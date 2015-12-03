@@ -9,9 +9,6 @@
 import XCTest
 @testable import GlueKit
 
-func noop<Value>(value: Value) {
-}
-
 class SignalTests: XCTestCase {
 
     //MARK: Test simple stuff
