@@ -44,10 +44,10 @@ public final class Connection {
     /// Disconnect this connection, immediately releasing its source and sink.
     /// This method is idempotent and it is safe to call it at any time from any thread.
     public func disconnect() {
-        let callbacks = lock.locked { ()->[Callback] in
+        let callbacks: [Callback] = lock.locked {
             if !self.disconnected {
-                let callbacks = self.callbacks
                 self.disconnected = true
+                let callbacks = self.callbacks
                 self.callbacks = []
                 return callbacks
             }

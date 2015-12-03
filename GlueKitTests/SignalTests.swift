@@ -9,22 +9,20 @@
 import XCTest
 @testable import GlueKit
 
-class TestSink<Value> {
-    var values = [Value]()
-    var sink: Value->Void { return { value in self.values.append(value) } }
-}
-
 func noop<Value>(value: Value) {
 }
 
 class SignalTests: XCTestCase {
+
+    //MARK: Test simple stuff
+
     func testSimpleConnection() {
         let signal = Signal<Int>()
 
         signal.send(1)
 
-        let test = TestSink<Int>()
-        let connection = signal.connect(test.sink)
+        var r = [Int]()
+        let connection = signal.connect { i in r.append(i) }
 
         signal.send(2)
         signal.send(3)
@@ -34,7 +32,21 @@ class SignalTests: XCTestCase {
 
         signal.send(5)
 
-        XCTAssertEqual(test.values, [2, 3, 4])
+        XCTAssertEqual(r, [2, 3, 4])
+    }
+
+    func testReleasingConnectionDisconnects() {
+        let signal = Signal<Int>()
+        var values = [Int]()
+        var c: Connection? = nil
+
+        c = signal.connect { values.append($0) }
+        signal.send(1)
+        c = nil
+        signal.send(2)
+
+        XCTAssertEqual(values, [1])
+        noop(c)
     }
 
     func testDuplicateDisconnect() {
@@ -42,8 +54,8 @@ class SignalTests: XCTestCase {
 
         let c = signal.connect { i in }
 
-        c.disconnect()
         // It is OK to call disconnect twice.
+        c.disconnect()
         c.disconnect()
     }
 
@@ -52,13 +64,13 @@ class SignalTests: XCTestCase {
 
         signal.send(1)
 
-        let a = TestSink<Int>()
-        let c1 = signal.connect(a.sink)
+        var a = [Int]()
+        let c1 = signal.connect { i in a.append(i) }
 
         signal.send(2)
 
-        let b = TestSink<Int>()
-        let c2 = signal.connect(b.sink)
+        var b = [Int]()
+        let c2 = signal.connect { i in b.append(i) }
 
         signal.send(3)
 
@@ -70,35 +82,14 @@ class SignalTests: XCTestCase {
 
         signal.send(5)
 
-        XCTAssertEqual(a.values, [2, 3])
-        XCTAssertEqual(b.values, [3, 4])
+        XCTAssertEqual(a, [2, 3])
+        XCTAssertEqual(b, [3, 4])
     }
 
-    func testSendsAreSynchronous() {
-        let signal = Signal<Int>()
-
-        var r = [Int]()
-
-        let c = signal.connect { i in
-            if i > 0 {
-                r.append(i)
-                signal.send(i - 1)
-                r.append(-i)
-            }
-            else {
-                r.append(i)
-            }
-        }
-
-        signal.send(1)
-        signal.send(3)
-        c.disconnect()
-
-        XCTAssertEqual(r, [1, 0, -1, 3, 2, 1, 0, -1, -2, -3])
-    }
+    //MARK: Test memory management
 
     func testConnectionRetainsTheSignal() {
-        let test = TestSink<Int>()
+        var values = [Int]()
         weak var weakSignal: Signal<Int>? = nil
         weak var weakConnection: Connection? = nil
         do {
@@ -106,7 +97,7 @@ class SignalTests: XCTestCase {
             do {
                 let signal = Signal<Int>()
                 weakSignal = signal
-                connection = signal.connect(test.sink)
+                connection = signal.connect { i in values.append(i) }
                 weakConnection = .Some(connection)
 
                 signal.send(1)
@@ -118,7 +109,7 @@ class SignalTests: XCTestCase {
         }
         XCTAssertNil(weakSignal)
         XCTAssertNil(weakConnection)
-        XCTAssertEqual(test.values, [1])
+        XCTAssertEqual(values, [1])
     }
 
     func testDisconnectingConnectionReleasesResources() {
@@ -151,11 +142,11 @@ class SignalTests: XCTestCase {
     }
 
     func testSourceDoesNotRetainConnection() {
-        let test = TestSink<Int>()
+        var values = [Int]()
         weak var weakConnection: Connection? = nil
         let signal = Signal<Int>()
         do {
-            let connection = signal.connect(test.sink)
+            let connection = signal.connect { values.append($0) }
             weakConnection = connection
 
             signal.send(1)
@@ -165,8 +156,10 @@ class SignalTests: XCTestCase {
         signal.send(2)
         XCTAssertNil(weakConnection)
 
-        XCTAssertEqual(test.values, [1])
+        XCTAssertEqual(values, [1])
     }
+
+    //MARK: Test sinks adding and removing connections
 
     func testAddingAConnectionInASink() {
         let signal = Signal<Int>()
@@ -313,9 +306,13 @@ class SignalTests: XCTestCase {
         for i in 1...6 {
             signal.send(i)
         }
-        
+
+        c?.disconnect()
+
         XCTAssertEqual(r, [1, 2, 3, 4, 5, 6])
     }
+
+    // MARK: Test didConnectFirstSink and didDisconnectLastSink
 
     func testFirstAndLastConnectCallbacksAreCalled() {
         var first = 0
@@ -418,4 +415,91 @@ class SignalTests: XCTestCase {
         c3.disconnect()
         XCTAssertEqual(last, 2)
     }
+
+    //MARK: Test reentrant sends
+
+    func testSinksAreNeverNested() {
+        let signal = Signal<Int>()
+
+        var s = ""
+
+        let c = signal.connect { i in
+            s += " (\(i)"
+            if i > 0 {
+                signal.send(i - 1) // This send is asynchronous. The value is sent at the end of the outermost send.
+            }
+            s += ")"
+        }
+
+        signal.send(3)
+        c.disconnect()
+
+        XCTAssertEqual(s, " (3) (2) (1) (0)")
+    }
+
+    func testSinksReceiveAllValuesSentAfterTheyConnectedEvenWhenReentrant() {
+        var s = ""
+        let signal = Signal<Int>()
+
+        // Let's do an exponential cascade of decrements with two sinks:
+        var values1 = [Int]()
+        let c1 = signal.connect { i in
+            values1.append(i)
+            s += " (\(i)"
+            if i > 0 {
+                signal.send(i - 1)
+            }
+            s += ")"
+        }
+
+        var values2 = [Int]()
+        let c2 = signal.connect { i in
+            values2.append(i)
+            s += " (\(i)"
+            if i > 0 {
+                signal.send(i - 1)
+            }
+            s += ")"
+        }
+
+        signal.send(2)
+
+        // There should be no nesting and both sinks should receive all sent values, in correct order.
+        XCTAssertEqual(values1, [2, 1, 1, 0, 0, 0, 0])
+        XCTAssertEqual(values2, [2, 1, 1, 0, 0, 0, 0])
+        XCTAssertEqual(s, " (2) (2) (1) (1) (1) (1) (0) (0) (0) (0) (0) (0) (0) (0)")
+        
+        c1.disconnect()
+        c2.disconnect()
+    }
+
+    func testSinksDoNotReceiveValuesSentToTheSignalBeforeTheyWereConnected() {
+        let signal = Signal<Int>()
+
+        var values1 = [Int]()
+        var values2 = [Int]()
+
+        var c2: Connection? = nil
+        let c1 = signal.connect { i in
+            values1.append(i)
+            if i == 3 && c2 == nil {
+                signal.send(0) // This should not reach c2
+                c2 = signal.connect { i in
+                    values2.append(i)
+                }
+            }
+        }
+        signal.send(1)
+        signal.send(2)
+        signal.send(3)
+        signal.send(4)
+        signal.send(5)
+
+        XCTAssertEqual(values1, [1, 2, 3, 0, 4, 5])
+        XCTAssertEqual(values2, [4, 5])
+
+        c1.disconnect()
+        c2?.disconnect()
+    }
+
 }
