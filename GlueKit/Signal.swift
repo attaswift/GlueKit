@@ -35,7 +35,7 @@ private enum PendingItem<Value> {
 }
 
 
-/// A Signal is a source that has an exposed method to send a value to all sinks that are currently connected to it.
+/// A Signal provides a source and a sink. Sending a value to a signal's sink forwards it to all sinks that are currently connected to the signal. The signal's sink is named "send", and it is available as a direct method.
 ///
 /// The Five Rules of Signal:
 /// 0. Signal only sends values to sinks that it receives via Signal.send(). All such values are forwarded to sinks connected at the time of the send (if any).
@@ -46,18 +46,11 @@ private enum PendingItem<Value> {
 ///
 /// Some implementation notes:
 ///
-/// The simplest nontrivial way to implement these rules is to make the Signal synchronous by serializing send() using a lock -- this
-/// is the way chosen by ReactiveCocoa and RxSwift. This makes reentrant send() calls deadlock, but that's probably a good thing.
-/// (You can emulate reentrant sends by scheduling an asyncronous send; however, that can visibly break value ordering.)
+/// The simplest nontrivial way to implement these rules is to make the Signal synchronous by serializing send() using a lock -- this is the way chosen by ReactiveCocoa and RxSwift. This makes reentrant send() calls deadlock, but that's probably a good thing. (You can emulate reentrant sends by scheduling an asyncronous send; however, that can visibly break value ordering.)
 ///
-/// As an experiment, this particular Signal implementation allows send() to be called from any thread at any time -- including reentrant
-/// send()s from a sink that is currently being executed by it. To ensure the rule set above, reentrant and concurrent sends and connects
-/// are asynchronous. They are ordered in a queue and performed at the end of the active send that first entered the signal.
+/// As an experiment, this particular Signal implementation allows send() to be called from any thread at any time -- including reentrant send()s from a sink that is currently being executed by it. To ensure the rule set above, reentrant and concurrent sends and connects are asynchronous. They are ordered in a queue and performed at the end of the active send that first entered the signal. This implementation never invokes sinks recursively inside another sink invocation.
 ///
-/// For reference, KVO's analogue to Signal in Foundation supports reentrancy, but its send() is synchronous. There is no way to satisy
-/// the Signal rules in a system like that. KVO's designers chose to resolve this by always calling observers with the latest value of 
-/// the observed key path. That's a nice pragmatic solution in the face of reentrancy, but it only makes sense when you have the concept
-/// of a current value, which Signal doesn't. (Although Variable does.)
+/// For reference, KVO's analogue to Signal in Foundation supports reentrancy, but its send() is synchronous. There is no way to satisy the above rules in a system like that. KVO's designers chose to resolve this by always calling observers with the latest value of the observed key path. That's a nice pragmatic solution in the face of reentrancy, but it only makes sense when you have the concept of a current value, which Signal doesn't. (Although Variable does.)
 ///
 public final class Signal<Value>: SourceType, SinkType {
     public typealias Sink = Value->Void
@@ -89,28 +82,20 @@ public final class Signal<Value>: SourceType, SinkType {
     /// A sink that, when executed, triggers the source of this Signal.
     public var sink: Sink { return self.send }
 
-    /// Returns true if the signal is free for sending. Enters the sending state if so.
-    /// When the signal is already in the sending state, this function appends the value to the pending list, and returns false.
-    private func _shouldSendNowAndIfSoThenEnterSendingState(value: Value) -> Bool {
-        return lock.locked {
-            if self.sinks.isEmpty {
-                // Shortcut: If there are no sinks, value can be discarded immediately.
-                return false
-            }
-            else if self.sending {
-                // We are already sending some values; remember this send for later.
-                self.pendingItems.append(.SendValue(value))
-                return false
-            }
-            else {
-                // Send the value immediately.
-                self.sending = true
-                return true
-            }
+
+    /// Atomically enter sending state if the signal wasn't already in it.
+    /// @returns true if the signal entered sending state due to this call.
+    private func _enterSendingState() -> Bool {
+        if self.sending {
+            return false
+        }
+        else {
+            self.sending = true
+            return true
         }
     }
 
-    /// Return the pending value that needs to be sent next, or nil. Exit the sending state when there are no more values.
+    /// Atomically return the pending value that needs to be sent next, or nil. If there are no more values, exit the sending state.
     private func _nextValueToSendOrElseLeaveSendingState() -> Value? {
         return lock.locked {
             assert(self.sending)
@@ -152,8 +137,44 @@ public final class Signal<Value>: SourceType, SinkType {
     ///
     /// You may safely call this method from any thread, provided that the sinks are OK with running there.
     public func send(value: Value) {
-        if _shouldSendNowAndIfSoThenEnterSendingState(value) {
-            _sendValueNow(value)
+        sendLater(value)
+        sendNow()
+    }
+
+    /// Append value to the queue of pending values. The value will be sent by the next send() or sendNow() invocation. If sendNow() is already running (recursively up the call stack, or on another thread), then the value will be sent by that invocation.
+    ///
+    /// This is useful to control the ordering of notifications about changes to a value in the face of concurrent modifications, without calling send() inside a lock. For example, here is a thread-safe, reentrant counter:
+    ///
+    /// ```
+    /// public struct Counter: SourceType {
+    ///     private var lock = Spinlock()
+    ///     private var count: Int = 0
+    ///     private let signal = Signal<Int>()
+    ///
+    ///     public var source: Source<Int> { return signal.source }
+    ///
+    ///     public mutating func increment() {
+    ///         let value: Int = lock.locked {
+    ///             let v = ++count
+    ///             signal.sendLater(v)
+    ///             return v
+    ///         }
+    ///         signal.sendNow()
+    ///         return value
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Calls to sendLater() should always be followed by at least one call to sendNow().
+    internal func sendLater(value: Value) {
+        lock.locked {
+            self.pendingItems.append(.SendValue(value))
+        }
+    }
+
+    /// Send all pending values immediately, or do nothing if the signal is already sending values elsewhere. (On another thread, or if this is a recursive call of sendNow on the current thread.)
+    internal func sendNow() {
+        if _enterSendingState() {
             while let value = _nextValueToSendOrElseLeaveSendingState() {
                 _sendValueNow(value)
             }
@@ -165,13 +186,13 @@ public final class Signal<Value>: SourceType, SinkType {
         let id = c.connectionID
         let first: Bool = lock.locked {
             let first = self.sinks.isEmpty
-            if self.sending {
+            if self.pendingItems.isEmpty {
+                self.sinks[id] = .Ripe(sink)
+            }
+            else {
                 // Values that are currently pending should not be sent to this sink, but any future values should be.
                 self.sinks[id] = .Unripe(sink)
                 self.pendingItems.append(.RipenSinkWithID(id))
-            }
-            else {
-                self.sinks[id] = .Ripe(sink)
             }
             return first
         }

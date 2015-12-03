@@ -502,4 +502,112 @@ class SignalTests: XCTestCase {
         c2?.disconnect()
     }
 
+    //MARK: sendLater / sendNow
+
+    func testSendLaterSendsValueLater() {
+        let signal = Signal<Int>()
+
+        var r = [Int]()
+        let c = signal.connect { r.append($0) }
+
+        signal.sendLater(0)
+        signal.sendLater(1)
+        signal.sendLater(2)
+
+        XCTAssertEqual(r, [])
+
+        signal.sendNow()
+
+        XCTAssertEqual(r, [0, 1, 2])
+
+        c.disconnect()
+    }
+
+    func testSendLaterDoesntSendValueToSinksConnectedLater() {
+        let signal = Signal<Int>()
+
+        signal.sendLater(0)
+        signal.sendLater(1)
+        signal.sendLater(2)
+
+        var r = [Int]()
+        let c = signal.connect { r.append($0) }
+
+        signal.sendLater(3)
+        signal.sendLater(4)
+
+        XCTAssertEqual(r, [])
+
+        signal.sendNow()
+
+        XCTAssertEqual(r, [3, 4])
+
+        c.disconnect()
+    }
+
+    func testSendLaterDoesntSendValueToSinksConnectedLaterEvenIfThereAreOtherSinks() {
+        let signal = Signal<Int>()
+
+        var r1 = [Int]()
+        let c1 = signal.connect { r1.append($0) }
+
+        signal.sendLater(0)
+        signal.sendLater(1)
+        signal.sendLater(2)
+
+        var r2 = [Int]()
+        let c2 = signal.connect { r2.append($0) }
+
+        signal.sendLater(3)
+        signal.sendLater(4)
+
+        XCTAssertEqual(r1, [])
+        XCTAssertEqual(r2, [])
+
+        signal.sendNow()
+
+        XCTAssertEqual(r1, [0, 1, 2, 3, 4])
+        XCTAssertEqual(r2, [3, 4])
+
+        c1.disconnect()
+        c2.disconnect()
+    }
+
+
+    func testSendLaterUsingCounter() {
+        var counter = Counter()
+
+        var s = ""
+        let c = counter.connect { value in
+            s += " (\(value)"
+            if value < 5 {
+                counter.increment()
+            }
+            s += ")"
+        }
+
+        let v = counter.increment()
+        XCTAssertEqual(v, 1)
+        XCTAssertEqual(s, " (1) (2) (3) (4) (5)")
+
+        c.disconnect()
+    }
+}
+
+struct Counter: SourceType {
+    private var lock = Spinlock()
+    private var counter: Int = 0
+    private var signal = Signal<Int>()
+
+    var source: Source<Int> { return signal.source }
+
+    mutating func increment() -> Int {
+        let value: Int = lock.locked {
+            let v = ++self.counter
+            signal.sendLater(v)
+            return v
+        }
+        signal.sendNow()
+        return value
+    }
 }
