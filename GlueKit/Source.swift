@@ -13,7 +13,8 @@ import Foundation
 /// We represent a source by a struct holding the subscription closure; this allows extensions on it, which is convenient. GlueKit provides built-in extension methods for transforming sources to other kinds of sources.
 ///
 /// A source is intended to be equivalent to a read-only propery. Therefore, while a source typically has a mechanism for sending values, this is intentionally outside the scope of this construct (see Signal<Value>).
-public struct Source<Value>: SourceProvider {
+///
+public struct Source<Value>: SourceType {
     public typealias Sink = Value -> Void
 
     private let connecter: Sink -> Connection
@@ -22,43 +23,48 @@ public struct Source<Value>: SourceProvider {
         self.connecter = connecter
     }
 
-    public init<Provider: SourceProvider where Provider.Value == Value>(_ sourceProvider: Provider) {
-        self.connecter = sourceProvider.source.connecter
+    public init<S: SourceType where S.Value == Value>(_ source: S) {
+        self.connecter = source.source.connecter
     }
 
     public var source: Source<Value> { return self }
 }
 
-/// A SourceProvider is anything that provides a Source. This protocol is used as a convenient extension point.
-public protocol SourceProvider {
+/// A SourceType is anything that provides a Source. This protocol is used as a convenient extension point.
+public protocol SourceType {
     typealias Value
 
     /// The source provided by this entity.
     var source: Source<Value> { get }
 }
 
-/// A SinkProvider is anything that provides a Sink. This protocol is used as a convenient extension point.
-public protocol SinkProvider {
+/// A SinkType is anything that provides a Sink. This protocol is used as a convenient extension point.
+public protocol SinkType {
     typealias Value
 
     /// The sink provided by this entity.
     var sink: Value->Void { get }
 }
 
-extension SourceProvider {
+// Connect methods.
+extension SourceType {
     public typealias Sink = Value -> Void
 
     /// Connect `sink` to the source provided by this entity. The sink will receive all values that this source produces in the future.
     /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
-    @warn_unused_result
+    ///
+    /// Note that a connection holds strong references to both its source and sink; thus sources (and sinks) are kept alive as long as they have an active connection.
+    @warn_unused_result(message = "You probably want to keep the connection alive by storing it somewhere")
     public func connect(sink: Sink) -> Connection {
         return source.connecter(sink)
     }
 
-    /// Connect the sink provided by `sinkProvider` to the source provided by this entity. The sink will receive all values that this source produces in the future.
+    /// Connect the sink provided by `SinkType` to the source provided by this entity. The sink will receive all values that this source produces in the future.
     /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
-    @warn_unused_result
-    public func connect<P: SinkProvider where P.Value == Value>(sinkProvider: P) -> Connection {
-        return source.connect(sinkProvider.sink)
+    ///
+    /// Note that a connection holds strong references to both its source and sink; thus sources (and sinks) are kept alive as long as they have an active connection.
+    @warn_unused_result(message = "You probably want to keep the connection alive by storing it somewhere")
+    public func connect<S: SinkType where S.Value == Value>(sink: S) -> Connection {
+        return source.connect(sink.sink)
     }
 }
