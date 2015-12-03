@@ -14,6 +14,8 @@
 		BB8B2C1D1C0D1C51008B78A3 /* Locks.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C1C1C0D1C51008B78A3 /* Locks.swift */; };
 		BBA58D101C1095C0003D4511 /* SimpleSources.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D0F1C1095C0003D4511 /* SimpleSources.swift */; };
 		BBA58D121C10961C003D4511 /* SimpleSourcesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */; };
+		BBA58D141C109FC5003D4511 /* Variable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D131C109FC5003D4511 /* Variable.swift */; };
+		BBA58D161C109FCE003D4511 /* VariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D151C109FCE003D4511 /* VariableTests.swift */; };
 		BBB285071C0C76CB00FABFE2 /* GlueKit.h in Headers */ = {isa = PBXBuildFile; fileRef = BBB285061C0C76CB00FABFE2 /* GlueKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BBB2850E1C0C76CB00FABFE2 /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB285031C0C76CB00FABFE2 /* GlueKit.framework */; };
 		BBB2851E1C0C76E200FABFE2 /* Source.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB2851D1C0C76E200FABFE2 /* Source.swift */; };
@@ -37,6 +39,8 @@
 		BB8B2C1E1C0D1CC2008B78A3 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		BBA58D0F1C1095C0003D4511 /* SimpleSources.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleSources.swift; sourceTree = "<group>"; };
 		BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleSourcesTests.swift; sourceTree = "<group>"; };
+		BBA58D131C109FC5003D4511 /* Variable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Variable.swift; sourceTree = "<group>"; };
+		BBA58D151C109FCE003D4511 /* VariableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VariableTests.swift; sourceTree = "<group>"; };
 		BBB285031C0C76CB00FABFE2 /* GlueKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GlueKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBB285061C0C76CB00FABFE2 /* GlueKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GlueKit.h; sourceTree = "<group>"; };
 		BBB285081C0C76CB00FABFE2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -94,6 +98,7 @@
 				BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */,
 				BB8B2C1C1C0D1C51008B78A3 /* Locks.swift */,
 				BBA58D0F1C1095C0003D4511 /* SimpleSources.swift */,
+				BBA58D131C109FC5003D4511 /* Variable.swift */,
 			);
 			path = GlueKit;
 			sourceTree = "<group>";
@@ -104,6 +109,7 @@
 				BB8B2C1A1C0D0E61008B78A3 /* ConnectionTests.swift */,
 				BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */,
 				BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */,
+				BBA58D151C109FCE003D4511 /* VariableTests.swift */,
 				BBB285141C0C76CB00FABFE2 /* Info.plist */,
 			);
 			path = GlueKitTests;
@@ -218,6 +224,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB8B2C1D1C0D1C51008B78A3 /* Locks.swift in Sources */,
+				BBA58D141C109FC5003D4511 /* Variable.swift in Sources */,
 				BBB2851E1C0C76E200FABFE2 /* Source.swift in Sources */,
 				BBA58D101C1095C0003D4511 /* SimpleSources.swift in Sources */,
 				BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */,
@@ -232,6 +239,7 @@
 				BBA58D121C10961C003D4511 /* SimpleSourcesTests.swift in Sources */,
 				BB8B2C0F1C0CA718008B78A3 /* SignalTests.swift in Sources */,
 				BB8B2C1B1C0D0E61008B78A3 /* ConnectionTests.swift in Sources */,
+				BBA58D161C109FCE003D4511 /* VariableTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
