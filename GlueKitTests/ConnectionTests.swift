@@ -10,6 +10,9 @@ import XCTest
 @testable import GlueKit
 
 class ConnectionTests: XCTestCase {
+
+    //MARK: Callback tests
+
     func testConnectionCallsDisconnectCallbackOnce() {
         let c = Connection()
         var count = 0
@@ -93,4 +96,76 @@ class ConnectionTests: XCTestCase {
         XCTAssertEqual(outerCount, 1)
         XCTAssertEqual(innerCount, 1)
     }
+
+    //MARK: Disconnect source tests
+
+    func testDisconnectSourceFiresWhenConnectionIsDisconnected() {
+        let signal = Signal<Int>()
+        let targetConnection = signal.connect { i in /* Do nothing */ }
+
+        var count = 0
+        let connection = targetConnection.disconnectSource.connect { count++ }
+
+        signal.send(1)
+        signal.send(2)
+
+        XCTAssertEqual(count, 0)
+
+        targetConnection.disconnect()
+
+        XCTAssertEqual(count, 1)
+
+        connection.disconnect()
+    }
+
+    func testDisconnectSourceHasDisconnectableConnections() {
+        let signal = Signal<Int>()
+        let targetConnection = signal.connect { i in /* Do nothing */ }
+
+        var count = 0
+        let connection = targetConnection.disconnectSource.connect { count++ }
+
+        signal.send(1)
+        signal.send(2)
+
+        connection.disconnect()
+
+        XCTAssertEqual(count, 0)
+
+        targetConnection.disconnect()
+
+        XCTAssertEqual(count, 0)
+    }
+
+    func testDisconnectSourceDoesntRetainTheConnection() {
+        var count = 0
+        var connection: Connection? = nil
+        do {
+            let signal = Signal<Int>()
+            let targetConnection = signal.connect { i in /* Do nothing */ }
+
+            connection = targetConnection.disconnectSource.connect { count++ }
+
+            signal.send(1)
+            signal.send(2)
+        } // target should deinit and disconnect here, even though connection is still alive.
+
+        XCTAssertEqual(count, 1)
+        connection?.disconnect()
+    }
+
+    func testDisconnectSourceFiresImmediatelyIfConnectionIsAlreadyDisconnected() {
+        let signal = Signal<Int>()
+        let targetConnection = signal.connect { i in /* Do nothing */ }
+
+        targetConnection.disconnect()
+
+        var count = 0
+        let connection = targetConnection.disconnectSource.connect { count++ }
+
+        XCTAssertEqual(count, 1)
+
+        connection.disconnect()
+    }
+
 }

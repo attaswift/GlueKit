@@ -81,3 +81,29 @@ public final class Connection {
         }
     }
 }
+
+extension Connection {
+    /// A source that fires exactly once after this connection is disconnected.
+    /// The source (and its connections) do not hold a strong reference to this connection.
+    public var disconnectSource: Source<Void> {
+        return Source { [weak self] sink in
+            if let c = self {
+                var lock = Spinlock()
+                var maybeSink: Source<Void>.Sink? = sink
+                c.addCallback { id in
+                    if let sink = lock.locked({ maybeSink }) {
+                        sink()
+                    }
+                }
+                return Connection(callback: { id in
+                    lock.locked { maybeSink = nil }
+                })
+            }
+            else {
+                // Target has already disconnected.
+                sink()
+                return Connection()
+            }
+        }
+    }
+}
