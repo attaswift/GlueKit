@@ -14,8 +14,9 @@ public protocol SignalType: SourceType, SinkType {
 }
 
 internal protocol SignalOwner: class {
-    func start()
-    func stop()
+    typealias Signal: SignalType
+    func signalDidStart(signal: Signal)
+    func signalDidStop(signal: Signal)
 }
 
 /// Holds a strong reference to a value that may not be ready for consumption yet.
@@ -70,26 +71,26 @@ public final class Signal<Value>: SignalType {
     private var pendingItems: [PendingItem<Value>] = []
 
     /// A closure that is run whenever this signal transitions from an empty signal to one having a single connection. (Executed on the thread that connects the first sink.)
-    internal let didConnectFirstSink: Void->Void
+    internal let didConnectFirstSink: Signal<Value>->Void
 
     /// A closure that is run whenever this signal transitions from having at least one connection to having no connections. (Executed on the thread that disconnects the last sink.)
-    internal let didDisconnectLastSink: Void->Void
+    internal let didDisconnectLastSink: Signal<Value>->Void
 
     /// @param didConnectFirstSink: A closure that is run whenever this signal transitions from an empty signal to one having a single connection. (Executed on the thread that connects the first sink.)
     /// @param didDisconnectLastSink: A closure that is run whenever this signal transitions from having at least one connection to having no connections. (Executed on the thread that disconnects the last sink.)
-    internal init(didConnectFirstSink: Void->Void, didDisconnectLastSink: Void->Void) {
+    internal init(didConnectFirstSink: Signal<Value>->Void, didDisconnectLastSink: Signal<Value>->Void) {
         self.didConnectFirstSink = didConnectFirstSink
         self.didDisconnectLastSink = didDisconnectLastSink
     }
 
-    internal convenience init(owner: SignalOwner) {
+    internal convenience init<Owner: SignalOwner where Owner.Signal == Signal<Value>>(owner: Owner) {
         self.init(
-            didConnectFirstSink: { [unowned owner] in owner.start() },
-            didDisconnectLastSink: { [unowned owner] in owner.stop() })
+            didConnectFirstSink: { [unowned owner] s in owner.signalDidStart(s) },
+            didDisconnectLastSink: { [unowned owner] s in owner.signalDidStop(s) })
     }
 
     public convenience init() {
-        self.init(didConnectFirstSink: {}, didDisconnectLastSink: {})
+        self.init(didConnectFirstSink: { s in }, didDisconnectLastSink: { s in })
     }
 
     /// The source of this Signal.
@@ -215,7 +216,7 @@ public final class Signal<Value>: SignalType {
         // c is holding us, and we now hold a strong reference to the sink, so c holds both us and the sink.
 
         if first {
-            self.didConnectFirstSink()
+            self.didConnectFirstSink(self)
         }
         return c
     }
@@ -225,7 +226,7 @@ public final class Signal<Value>: SignalType {
             return self.sinks.removeValueForKey(id) != nil && self.sinks.isEmpty
         }
         if last {
-            self.didDisconnectLastSink()
+            self.didDisconnectLastSink(self)
         }
     }
 }

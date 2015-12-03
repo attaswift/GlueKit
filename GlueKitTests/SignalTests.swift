@@ -310,11 +310,10 @@ class SignalTests: XCTestCase {
     }
 
     // MARK: Test didConnectFirstSink and didDisconnectLastSink
-
     func testFirstAndLastConnectCallbacksAreCalled() {
         var first = 0
         var last = 0
-        let signal = Signal<Int>(didConnectFirstSink: { first++ }, didDisconnectLastSink: { last++ })
+        let signal = Signal<Int>(didConnectFirstSink: { _ in first++ }, didDisconnectLastSink: { _ in last++ })
 
         XCTAssertEqual(first, 0)
         XCTAssertEqual(last, 0)
@@ -350,10 +349,31 @@ class SignalTests: XCTestCase {
         XCTAssertEqual(count, 1)
     }
 
+    func testFirstAndLastConnectCallbacksAreCalledWithTheSignal() {
+
+        var first: Signal<Int>? = nil
+        var last: Signal<Int>? = nil
+
+        let signal = Signal<Int>(
+            didConnectFirstSink: { s in first = s },
+            didDisconnectLastSink: { s in last = s })
+
+        signal.send(0)
+
+        var count = 0
+        let connection = signal.connect { i in count++ }
+
+        XCTAssert(first != nil && first === signal)
+
+        connection.disconnect()
+
+        XCTAssert(last != nil && last === signal)
+    }
+
     func testFirstAndLastConnectCallbacksCanBeCalledMultipleTimes() {
         var first = 0
         var last = 0
-        let signal = Signal<Int>(didConnectFirstSink: { first++ }, didDisconnectLastSink: { last++ })
+        let signal = Signal<Int>(didConnectFirstSink: { _ in first++ }, didDisconnectLastSink: { _ in last++ })
 
         let c1 = signal.connect { i in }
 
@@ -378,7 +398,7 @@ class SignalTests: XCTestCase {
 
     func testFirstConnectCallbackIsOnlyCalledOnFirstConnections() {
         var first = 0
-        let signal = Signal<Int>(didConnectFirstSink: { first++ }, didDisconnectLastSink: { })
+        let signal = Signal<Int>(didConnectFirstSink: { _ in first++ }, didDisconnectLastSink: { _ in })
 
         XCTAssertEqual(first, 0)
 
@@ -396,7 +416,7 @@ class SignalTests: XCTestCase {
 
     func testLastConnectCallbackIsOnlyCalledOnLastConnections() {
         var last = 0
-        let signal = Signal<Int>(didConnectFirstSink: { }, didDisconnectLastSink: { last++ })
+        let signal = Signal<Int>(didConnectFirstSink: { _ in }, didDisconnectLastSink: { _ in last++ })
 
         XCTAssertEqual(last, 0)
 

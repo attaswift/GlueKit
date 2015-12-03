@@ -18,26 +18,26 @@ internal class SynchronousSignal<Value>: SignalType {
     private var sinks: Dictionary<ConnectionID, Sink> = [:]
 
     /// A closure that is run whenever this signal transitions from an empty signal to one having a single connection. (Executed on the thread that connects the first sink.)
-    internal let didConnectFirstSink: Void->Void
+    internal let didConnectFirstSink: SynchronousSignal<Value>->Void
 
     /// A closure that is run whenever this signal transitions from having at least one connection to having no connections. (Executed on the thread that disconnects the last sink.)
-    internal let didDisconnectLastSink: Void->Void
+    internal let didDisconnectLastSink: SynchronousSignal<Value>->Void
 
     /// @param didConnectFirstSink: A closure that is run whenever this signal transitions from an empty signal to one having a single connection. (Executed on the thread that connects the first sink.)
     /// @param didDisconnectLastSink: A closure that is run whenever this signal transitions from having at least one connection to having no connections. (Executed on the thread that disconnects the last sink.)
-    internal init(didConnectFirstSink: Void->Void, didDisconnectLastSink: Void->Void) {
+    internal init(didConnectFirstSink: SynchronousSignal<Value>->Void, didDisconnectLastSink: SynchronousSignal<Value>->Void) {
         self.didConnectFirstSink = didConnectFirstSink
         self.didDisconnectLastSink = didDisconnectLastSink
     }
 
-    internal convenience init(owner: SignalOwner) {
+    internal convenience init<Owner: SignalOwner where Owner.Signal == SynchronousSignal<Value>>(owner: Owner) {
         self.init(
-            didConnectFirstSink: { [unowned owner] in owner.start() },
-            didDisconnectLastSink: { [unowned owner] in owner.stop() })
+            didConnectFirstSink: { [unowned owner] signal in owner.signalDidStart(signal) },
+            didDisconnectLastSink: { [unowned owner] signal in owner.signalDidStop(signal) })
     }
 
     internal convenience init() {
-        self.init(didConnectFirstSink: {}, didDisconnectLastSink: {})
+        self.init(didConnectFirstSink: { s in }, didDisconnectLastSink: { s in })
     }
 
     internal var source: Source<Value> { return Source(self.connect) }
@@ -59,7 +59,7 @@ internal class SynchronousSignal<Value>: SignalType {
             return self.sinks.isEmpty
         }
         if last {
-            self.didDisconnectLastSink()
+            self.didDisconnectLastSink(self)
         }
     }
 
@@ -72,7 +72,7 @@ internal class SynchronousSignal<Value>: SignalType {
         }
         // c is holding self via its callback, and we now hold a strong reference to the sink, so c holds both self and the sink.
         if first {
-            self.didConnectFirstSink()
+            self.didConnectFirstSink(self)
         }
         return c        
     }

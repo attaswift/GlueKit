@@ -317,7 +317,7 @@ class SynchronousSignalProtocolTests: XCTestCase {
     func testFirstAndLastConnectCallbacksAreCalled() {
         var first = 0
         var last = 0
-        let signal = SynchronousSignal<Int>(didConnectFirstSink: { first++ }, didDisconnectLastSink: { last++ })
+        let signal = SynchronousSignal<Int>(didConnectFirstSink: { s in first++ }, didDisconnectLastSink: { s in last++ })
 
         XCTAssertEqual(first, 0)
         XCTAssertEqual(last, 0)
@@ -353,10 +353,31 @@ class SynchronousSignalProtocolTests: XCTestCase {
         XCTAssertEqual(count, 1)
     }
 
+    func testFirstAndLastConnectCallbacksAreCalledWithTheSignal() {
+
+        var first: SynchronousSignal<Int>? = nil
+        var last: SynchronousSignal<Int>? = nil
+
+        let signal = SynchronousSignal<Int>(
+            didConnectFirstSink: { s in first = s },
+            didDisconnectLastSink: { s in last = s })
+
+        signal.send(0)
+
+        var count = 0
+        let connection = signal.connect { i in count++ }
+
+        XCTAssert(first != nil && first === signal)
+
+        connection.disconnect()
+
+        XCTAssert(last != nil && last === signal)
+    }
+
     func testFirstAndLastConnectCallbacksCanBeCalledMultipleTimes() {
         var first = 0
         var last = 0
-        let signal = SynchronousSignal<Int>(didConnectFirstSink: { first++ }, didDisconnectLastSink: { last++ })
+        let signal = SynchronousSignal<Int>(didConnectFirstSink: { s in first++ }, didDisconnectLastSink: { s in last++ })
 
         let c1 = signal.connect { i in }
 
@@ -381,7 +402,7 @@ class SynchronousSignalProtocolTests: XCTestCase {
 
     func testFirstConnectCallbackIsOnlyCalledOnFirstConnections() {
         var first = 0
-        let signal = SynchronousSignal<Int>(didConnectFirstSink: { first++ }, didDisconnectLastSink: { })
+        let signal = SynchronousSignal<Int>(didConnectFirstSink: { s in first++ }, didDisconnectLastSink: { s in })
 
         XCTAssertEqual(first, 0)
 
@@ -399,7 +420,7 @@ class SynchronousSignalProtocolTests: XCTestCase {
 
     func testLastConnectCallbackIsOnlyCalledOnLastConnections() {
         var last = 0
-        let signal = SynchronousSignal<Int>(didConnectFirstSink: { }, didDisconnectLastSink: { last++ })
+        let signal = SynchronousSignal<Int>(didConnectFirstSink: { s in }, didDisconnectLastSink: { s in last++ })
 
         XCTAssertEqual(last, 0)
 

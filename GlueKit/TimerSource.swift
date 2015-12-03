@@ -87,6 +87,13 @@ public final class TimerSource: SourceType, SignalOwner {
         }
     }
 
+    internal func signalDidStart(signal: SynchronousSignal<Void>) {
+        self.start()
+    }
+    internal func signalDidStop(signal: SynchronousSignal<Void>) {
+        self.stop()
+    }
+
     private func scheduleNext(frozenToken: Int32) {
         guard token.equals(frozenToken) else { return }
         if let nextDate = next() {
