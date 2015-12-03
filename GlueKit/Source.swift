@@ -54,7 +54,7 @@ extension SourceType {
     /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
     ///
     /// Note that a connection holds strong references to both its source and sink; thus sources (and sinks) are kept alive as long as they have an active connection.
-    @warn_unused_result(message = "You probably want to keep the connection alive by storing it somewhere")
+    @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
     public func connect(sink: Sink) -> Connection {
         return source.connecter(sink)
     }
@@ -63,7 +63,7 @@ extension SourceType {
     /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
     ///
     /// Note that a connection holds strong references to both its source and sink; thus sources (and sinks) are kept alive as long as they have an active connection.
-    @warn_unused_result(message = "You probably want to keep the connection alive by storing it somewhere")
+    @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
     public func connect<S: SinkType where S.Value == Value>(sink: S) -> Connection {
         return source.connect(sink.sink)
     }
