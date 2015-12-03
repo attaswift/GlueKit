@@ -8,6 +8,16 @@
 
 import Foundation
 
+public protocol SignalType: SourceType, SinkType {
+    func connect(sink: Value->Void) -> Connection
+    func send(value: Value)
+}
+
+internal protocol SignalOwner: class {
+    func start()
+    func stop()
+}
+
 /// Holds a strong reference to a value that may not be ready for consumption yet.
 private enum Ripening<Value> {
     case Ripe(Value)
@@ -34,7 +44,6 @@ private enum PendingItem<Value> {
     case RipenSinkWithID(ConnectionID)
 }
 
-
 /// A Signal provides a source and a sink. Sending a value to a signal's sink forwards it to all sinks that are currently connected to the signal. The signal's sink is named "send", and it is available as a direct method.
 ///
 /// The Five Rules of Signal:
@@ -52,7 +61,7 @@ private enum PendingItem<Value> {
 ///
 /// For reference, KVO's analogue to Signal in Foundation supports reentrancy, but its send() is synchronous. There is no way to satisy the above rules in a system like that. KVO's designers chose to resolve this by always calling observers with the latest value of the observed key path. That's a nice pragmatic solution in the face of reentrancy, but it only makes sense when you have the concept of a current value, which Signal doesn't. (Although Variable does.)
 ///
-public final class Signal<Value>: SourceType, SinkType {
+public final class Signal<Value>: SignalType {
     public typealias Sink = Value->Void
 
     private var lock = NSLock()
@@ -73,15 +82,21 @@ public final class Signal<Value>: SourceType, SinkType {
         self.didDisconnectLastSink = didDisconnectLastSink
     }
 
+    internal convenience init(owner: SignalOwner) {
+        self.init(
+            didConnectFirstSink: { [unowned owner] in owner.start() },
+            didDisconnectLastSink: { [unowned owner] in owner.stop() })
+    }
+
     public convenience init() {
         self.init(didConnectFirstSink: {}, didDisconnectLastSink: {})
     }
 
     /// The source of this Signal.
-    public var source: Source<Value> { return Source(self._connect) }
-    /// A sink that, when executed, triggers the source of this Signal.
-    public var sink: Sink { return self.send }
+    public var source: Source<Value> { return Source(self.connect) }
 
+    /// The sink of this Signal.
+    public var sink: Sink { return self.send }
 
     /// Atomically enter sending state if the signal wasn't already in it.
     /// @returns true if the signal entered sending state due to this call.
@@ -181,7 +196,7 @@ public final class Signal<Value>: SourceType, SinkType {
         }
     }
 
-    private func _connect(sink: Sink) -> Connection {
+    public func connect(sink: Sink) -> Connection {
         let c = Connection(callback: self.disconnect) // c now holds a strong reference to self.
         let id = c.connectionID
         let first: Bool = lock.locked {
