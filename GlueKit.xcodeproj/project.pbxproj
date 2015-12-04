@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */; };
+		BB4138AB1C120832005D5686 /* NotificationCenterSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */; };
 		BB534A111C10F46600FA1C7F /* KVOSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */; };
 		BB534A131C10FFCE00FA1C7F /* SourceOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */; };
 		BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A141C112D2A00FA1C7F /* UnionSource.swift */; };
@@ -52,6 +54,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSNotificationCenter Support.swift"; sourceTree = "<group>"; };
+		BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationCenterSupportTests.swift; sourceTree = "<group>"; };
 		BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceOperatorTests.swift; sourceTree = "<group>"; };
 		BB534A141C112D2A00FA1C7F /* UnionSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSource.swift; sourceTree = "<group>"; };
 		BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSourceTests.swift; sourceTree = "<group>"; };
@@ -157,6 +161,7 @@
 				BBA58D131C109FC5003D4511 /* Variable.swift */,
 				BBA58D171C10C3CA003D4511 /* TimerSource.swift */,
 				BBA58D221C10E47A003D4511 /* KVO Support.swift */,
+				BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */,
 			);
 			path = GlueKit;
 			sourceTree = "<group>";
@@ -174,6 +179,7 @@
 				BBA58D151C109FCE003D4511 /* VariableTests.swift */,
 				BBA58D191C10C5D7003D4511 /* TimerSourceTests.swift */,
 				BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */,
+				BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */,
 				BBB285141C0C76CB00FABFE2 /* Info.plist */,
 			);
 			path = GlueKitTests;
@@ -331,6 +337,7 @@
 				BBA58D1C1C10C73E003D4511 /* SynchronousSignal.swift in Sources */,
 				BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */,
 				BBA58D181C10C3CA003D4511 /* TimerSource.swift in Sources */,
+				BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */,
 				BBA58D101C1095C0003D4511 /* SimpleSources.swift in Sources */,
 				BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */,
 				BB8B2C061C0CA0B4008B78A3 /* Connection.swift in Sources */,
@@ -342,6 +349,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB4138AB1C120832005D5686 /* NotificationCenterSupportTests.swift in Sources */,
 				BB534A111C10F46600FA1C7F /* KVOSupportTests.swift in Sources */,
 				BBA58D121C10961C003D4511 /* SimpleSourcesTests.swift in Sources */,
 				BB534A131C10FFCE00FA1C7F /* SourceOperatorTests.swift in Sources */,
