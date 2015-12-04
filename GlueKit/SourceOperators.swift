@@ -73,3 +73,34 @@ extension SourceType {
         }
     }
 }
+
+extension SourceType {
+    public static func latestOf<B: SourceType>(a: Self, _ b: B) -> UnionSource<(Value, B.Value)> {
+        typealias A = Self
+        typealias Result = (A.Value, B.Value)
+        var lock = Spinlock()
+        var av: A.Value? = nil
+        var bv: B.Value? = nil
+
+        let sa: Source<(A.Value, B.Value)> = a.flatMap { (value: A.Value) -> (A.Value, B.Value)? in
+            return lock.locked {
+                av = value
+                if let bv = bv {
+                    return (value, bv)
+                }
+                return nil
+            }
+        }
+        let sb: Source<(A.Value, B.Value)> = b.flatMap { (value: B.Value) -> (A.Value, B.Value)? in
+            return lock.locked {
+                bv = value
+                if let av = av {
+                    return (av, value)
+                }
+                return nil
+            }
+        }
+        return UnionSource([sa, sb])
+    }
+}
+

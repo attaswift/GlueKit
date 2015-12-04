@@ -30,7 +30,7 @@ internal class SynchronousSignal<Value>: SignalType {
         self.didDisconnectLastSink = didDisconnectLastSink
     }
 
-    internal convenience init<Owner: SignalOwner where Owner.Signal == SynchronousSignal<Value>>(owner: Owner) {
+    internal convenience init<Owner: SignalOwner where Owner.S == SynchronousSignal<Value>>(owner: Owner) {
         self.init(
             didConnectFirstSink: { [unowned owner] signal in owner.signalDidStart(signal) },
             didDisconnectLastSink: { [unowned owner] signal in owner.signalDidStop(signal) })

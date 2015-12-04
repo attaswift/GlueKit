@@ -184,4 +184,24 @@ class SourceOperatorTests: XCTestCase {
         XCTAssertEqual(r2, [4, 7, 10])
         XCTAssertEqual(r3, [5, 8, 11])
     }
+
+    func testLatestOf() {
+        let sa = Signal<Int>()
+        let sb = Signal<String>()
+
+        var r = [String]()
+
+        let c = Signal.latestOf(sa, sb).connect { i, s in r.append("\(i), \(s)") }
+
+        sa.send(1)
+        sa.send(2)
+        sb.send("foo")
+        sb.send("bar")
+        sa.send(3)
+        sb.send("baz")
+
+        c.disconnect()
+
+        XCTAssertEqual(r, ["2, foo", "2, bar", "3, bar", "3, baz"])
+    }
 }

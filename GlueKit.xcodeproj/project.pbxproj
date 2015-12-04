@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		BB534A111C10F46600FA1C7F /* KVOSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */; };
 		BB534A131C10FFCE00FA1C7F /* SourceOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */; };
+		BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A141C112D2A00FA1C7F /* UnionSource.swift */; };
+		BB534A171C112D7000FA1C7F /* UnionSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */; };
 		BB8B2C061C0CA0B4008B78A3 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C051C0CA0B4008B78A3 /* Connection.swift */; };
 		BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */; };
 		BB8B2C0F1C0CA718008B78A3 /* SignalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */; };
@@ -42,6 +44,8 @@
 
 /* Begin PBXFileReference section */
 		BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceOperatorTests.swift; sourceTree = "<group>"; };
+		BB534A141C112D2A00FA1C7F /* UnionSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSource.swift; sourceTree = "<group>"; };
+		BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSourceTests.swift; sourceTree = "<group>"; };
 		BB8B2C051C0CA0B4008B78A3 /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTests.swift; sourceTree = "<group>"; };
 		BB8B2C1A1C0D0E61008B78A3 /* ConnectionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionTests.swift; sourceTree = "<group>"; };
@@ -117,8 +121,9 @@
 				BBA58D1B1C10C73E003D4511 /* SynchronousSignal.swift */,
 				BB8B2C1C1C0D1C51008B78A3 /* Locks.swift */,
 				BBA58D0F1C1095C0003D4511 /* SimpleSources.swift */,
-				BBA58D131C109FC5003D4511 /* Variable.swift */,
+				BB534A141C112D2A00FA1C7F /* UnionSource.swift */,
 				BBA58D241C10E4E2003D4511 /* SourceOperators.swift */,
+				BBA58D131C109FC5003D4511 /* Variable.swift */,
 				BBA58D171C10C3CA003D4511 /* TimerSource.swift */,
 				BBA58D221C10E47A003D4511 /* KVO Support.swift */,
 			);
@@ -133,6 +138,7 @@
 				BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */,
 				BBA58D1E1C10D1E1003D4511 /* SynchronousSignalTests.swift */,
 				BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */,
+				BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */,
 				BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */,
 				BBA58D151C109FCE003D4511 /* VariableTests.swift */,
 				BBA58D191C10C5D7003D4511 /* TimerSourceTests.swift */,
@@ -255,6 +261,7 @@
 				BBA58D251C10E4E2003D4511 /* SourceOperators.swift in Sources */,
 				BBB2851E1C0C76E200FABFE2 /* Source.swift in Sources */,
 				BBA58D1C1C10C73E003D4511 /* SynchronousSignal.swift in Sources */,
+				BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */,
 				BBA58D181C10C3CA003D4511 /* TimerSource.swift in Sources */,
 				BBA58D101C1095C0003D4511 /* SimpleSources.swift in Sources */,
 				BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */,
@@ -275,6 +282,7 @@
 				BB8B2C0F1C0CA718008B78A3 /* SignalTests.swift in Sources */,
 				BB8B2C1B1C0D0E61008B78A3 /* ConnectionTests.swift in Sources */,
 				BBA58D161C109FCE003D4511 /* VariableTests.swift in Sources */,
+				BB534A171C112D7000FA1C7F /* UnionSourceTests.swift in Sources */,
 				BBA58D1A1C10C5D7003D4511 /* TimerSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

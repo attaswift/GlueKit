@@ -14,9 +14,9 @@ public protocol SignalType: SourceType, SinkType {
 }
 
 internal protocol SignalOwner: class {
-    typealias Signal: SignalType
-    func signalDidStart(signal: Signal)
-    func signalDidStop(signal: Signal)
+    typealias S: SignalType
+    func signalDidStart(signal: S)
+    func signalDidStop(signal: S)
 }
 
 /// Holds a strong reference to a value that may not be ready for consumption yet.
@@ -65,7 +65,7 @@ private enum PendingItem<Value> {
 public final class Signal<Value>: SignalType {
     public typealias Sink = Value->Void
 
-    private var lock = NSLock()
+    private let lock = NSLock(name: "com.github.lorentey.GlueKit.Signal")
     private var sending = false
     private var sinks: Dictionary<ConnectionID, Ripening<Sink>> = [:]
     private var pendingItems: [PendingItem<Value>] = []
@@ -83,10 +83,16 @@ public final class Signal<Value>: SignalType {
         self.didDisconnectLastSink = didDisconnectLastSink
     }
 
-    internal convenience init<Owner: SignalOwner where Owner.Signal == Signal<Value>>(owner: Owner) {
+    internal convenience init<Owner: SignalOwner where Owner.S == Signal<Value>>(owner: Owner) {
         self.init(
             didConnectFirstSink: { [unowned owner] s in owner.signalDidStart(s) },
             didDisconnectLastSink: { [unowned owner] s in owner.signalDidStop(s) })
+    }
+
+    internal convenience init<Owner: SignalOwner where Owner.S == Signal<Value>>(stronglyHeldOwner owner: Owner) {
+        self.init(
+            didConnectFirstSink: { s in owner.signalDidStart(s) },
+            didDisconnectLastSink: { s in owner.signalDidStop(s) })
     }
 
     public convenience init() {
@@ -197,6 +203,7 @@ public final class Signal<Value>: SignalType {
         }
     }
 
+    @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
     public func connect(sink: Sink) -> Connection {
         let c = Connection(callback: self.disconnect) // c now holds a strong reference to self.
         let id = c.connectionID
