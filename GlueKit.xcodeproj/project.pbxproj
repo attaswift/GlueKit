@@ -388,7 +388,7 @@
 			buildSettings = {
 				INFOPLIST_FILE = PerformanceTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitPerformanceTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit.PerformanceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -398,7 +398,7 @@
 			buildSettings = {
 				INFOPLIST_FILE = PerformanceTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitPerformanceTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit.PerformanceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -457,7 +457,7 @@
 				INFOPLIST_FILE = Sources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKit;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -468,7 +468,7 @@
 			buildSettings = {
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit.Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Profile;
@@ -478,7 +478,7 @@
 			buildSettings = {
 				INFOPLIST_FILE = PerformanceTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitPerformanceTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit.PerformanceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Profile;
@@ -584,7 +584,7 @@
 				INFOPLIST_FILE = Sources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKit;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -603,7 +603,7 @@
 				INFOPLIST_FILE = Sources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKit;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -614,7 +614,7 @@
 			buildSettings = {
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit.Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -624,7 +624,7 @@
 			buildSettings = {
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit.Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
