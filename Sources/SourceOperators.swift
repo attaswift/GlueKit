@@ -103,4 +103,3 @@ extension SourceType {
         return UnionSource([sa, sb])
     }
 }
-

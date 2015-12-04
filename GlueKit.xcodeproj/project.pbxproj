@@ -117,22 +117,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		BB534A1D1C113C0200FA1C7F /* GlueKitPerformanceTests */ = {
+		BB534A1D1C113C0200FA1C7F /* PerformanceTests */ = {
 			isa = PBXGroup;
 			children = (
 				BB534A1E1C113C0200FA1C7F /* GlueKitPerformanceTests.swift */,
 				BB534A201C113C0200FA1C7F /* Info.plist */,
 			);
-			path = GlueKitPerformanceTests;
+			path = PerformanceTests;
 			sourceTree = "<group>";
 		};
 		BBB284F91C0C76CB00FABFE2 = {
 			isa = PBXGroup;
 			children = (
 				BB8B2C1E1C0D1CC2008B78A3 /* README.md */,
-				BBB285051C0C76CB00FABFE2 /* GlueKit */,
-				BBB285111C0C76CB00FABFE2 /* GlueKitTests */,
-				BB534A1D1C113C0200FA1C7F /* GlueKitPerformanceTests */,
+				BBB285051C0C76CB00FABFE2 /* Sources */,
+				BBB285111C0C76CB00FABFE2 /* Tests */,
+				BB534A1D1C113C0200FA1C7F /* PerformanceTests */,
 				BBB285041C0C76CB00FABFE2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -147,7 +147,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		BBB285051C0C76CB00FABFE2 /* GlueKit */ = {
+		BBB285051C0C76CB00FABFE2 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
 				BBB285061C0C76CB00FABFE2 /* GlueKit.h */,
@@ -166,10 +166,10 @@
 				BBA58D221C10E47A003D4511 /* KVO Support.swift */,
 				BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */,
 			);
-			path = GlueKit;
+			path = Sources;
 			sourceTree = "<group>";
 		};
-		BBB285111C0C76CB00FABFE2 /* GlueKitTests */ = {
+		BBB285111C0C76CB00FABFE2 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
 				BBA58D201C10D4FC003D4511 /* TestUtilities.swift */,
@@ -185,7 +185,7 @@
 				BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */,
 				BBB285141C0C76CB00FABFE2 /* Info.plist */,
 			);
-			path = GlueKitTests;
+			path = Tests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -386,7 +386,7 @@
 		BB534A251C113C0200FA1C7F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				INFOPLIST_FILE = GlueKitPerformanceTests/Info.plist;
+				INFOPLIST_FILE = PerformanceTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitPerformanceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -396,7 +396,7 @@
 		BB534A261C113C0200FA1C7F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				INFOPLIST_FILE = GlueKitPerformanceTests/Info.plist;
+				INFOPLIST_FILE = PerformanceTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitPerformanceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -454,7 +454,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = GlueKit/Info.plist;
+				INFOPLIST_FILE = Sources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKit;
@@ -466,7 +466,7 @@
 		BB534A291C113DE700FA1C7F /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				INFOPLIST_FILE = GlueKitTests/Info.plist;
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -476,7 +476,7 @@
 		BB534A2A1C113DE700FA1C7F /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				INFOPLIST_FILE = GlueKitPerformanceTests/Info.plist;
+				INFOPLIST_FILE = PerformanceTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitPerformanceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -581,7 +581,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = GlueKit/Info.plist;
+				INFOPLIST_FILE = Sources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKit;
@@ -600,7 +600,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = GlueKit/Info.plist;
+				INFOPLIST_FILE = Sources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKit;
@@ -612,7 +612,7 @@
 		BBB2851B1C0C76CB00FABFE2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				INFOPLIST_FILE = GlueKitTests/Info.plist;
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -622,7 +622,7 @@
 		BBB2851C1C0C76CB00FABFE2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				INFOPLIST_FILE = GlueKitTests/Info.plist;
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
