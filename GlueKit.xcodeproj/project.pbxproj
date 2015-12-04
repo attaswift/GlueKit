@@ -11,6 +11,8 @@
 		BB534A131C10FFCE00FA1C7F /* SourceOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */; };
 		BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A141C112D2A00FA1C7F /* UnionSource.swift */; };
 		BB534A171C112D7000FA1C7F /* UnionSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */; };
+		BB534A1F1C113C0200FA1C7F /* GlueKitPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A1E1C113C0200FA1C7F /* GlueKitPerformanceTests.swift */; };
+		BB534A211C113C0200FA1C7F /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB285031C0C76CB00FABFE2 /* GlueKit.framework */; };
 		BB8B2C061C0CA0B4008B78A3 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C051C0CA0B4008B78A3 /* Connection.swift */; };
 		BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */; };
 		BB8B2C0F1C0CA718008B78A3 /* SignalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */; };
@@ -33,6 +35,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		BB534A221C113C0200FA1C7F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBB284FA1C0C76CB00FABFE2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BBB285021C0C76CB00FABFE2;
+			remoteInfo = GlueKit;
+		};
 		BBB2850F1C0C76CB00FABFE2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BBB284FA1C0C76CB00FABFE2 /* Project object */;
@@ -46,6 +55,9 @@
 		BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceOperatorTests.swift; sourceTree = "<group>"; };
 		BB534A141C112D2A00FA1C7F /* UnionSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSource.swift; sourceTree = "<group>"; };
 		BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSourceTests.swift; sourceTree = "<group>"; };
+		BB534A1C1C113C0200FA1C7F /* GlueKitPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GlueKitPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB534A1E1C113C0200FA1C7F /* GlueKitPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlueKitPerformanceTests.swift; sourceTree = "<group>"; };
+		BB534A201C113C0200FA1C7F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BB8B2C051C0CA0B4008B78A3 /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTests.swift; sourceTree = "<group>"; };
 		BB8B2C1A1C0D0E61008B78A3 /* ConnectionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionTests.swift; sourceTree = "<group>"; };
@@ -73,6 +85,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		BB534A191C113C0200FA1C7F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB534A211C113C0200FA1C7F /* GlueKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BBB284FF1C0C76CB00FABFE2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -91,12 +111,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BB534A1D1C113C0200FA1C7F /* GlueKitPerformanceTests */ = {
+			isa = PBXGroup;
+			children = (
+				BB534A1E1C113C0200FA1C7F /* GlueKitPerformanceTests.swift */,
+				BB534A201C113C0200FA1C7F /* Info.plist */,
+			);
+			path = GlueKitPerformanceTests;
+			sourceTree = "<group>";
+		};
 		BBB284F91C0C76CB00FABFE2 = {
 			isa = PBXGroup;
 			children = (
 				BB8B2C1E1C0D1CC2008B78A3 /* README.md */,
 				BBB285051C0C76CB00FABFE2 /* GlueKit */,
 				BBB285111C0C76CB00FABFE2 /* GlueKitTests */,
+				BB534A1D1C113C0200FA1C7F /* GlueKitPerformanceTests */,
 				BBB285041C0C76CB00FABFE2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -106,6 +136,7 @@
 			children = (
 				BBB285031C0C76CB00FABFE2 /* GlueKit.framework */,
 				BBB2850D1C0C76CB00FABFE2 /* GlueKitTests.xctest */,
+				BB534A1C1C113C0200FA1C7F /* GlueKitPerformanceTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -162,6 +193,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		BB534A1B1C113C0200FA1C7F /* GlueKitPerformanceTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB534A241C113C0200FA1C7F /* Build configuration list for PBXNativeTarget "GlueKitPerformanceTests" */;
+			buildPhases = (
+				BB534A181C113C0200FA1C7F /* Sources */,
+				BB534A191C113C0200FA1C7F /* Frameworks */,
+				BB534A1A1C113C0200FA1C7F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BB534A231C113C0200FA1C7F /* PBXTargetDependency */,
+			);
+			name = GlueKitPerformanceTests;
+			productName = GlueKitPerformanceTests;
+			productReference = BB534A1C1C113C0200FA1C7F /* GlueKitPerformanceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		BBB285021C0C76CB00FABFE2 /* GlueKit */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = BBB285171C0C76CB00FABFE2 /* Build configuration list for PBXNativeTarget "GlueKit" */;
@@ -208,6 +257,9 @@
 				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = "Károly Lőrentey";
 				TargetAttributes = {
+					BB534A1B1C113C0200FA1C7F = {
+						CreatedOnToolsVersion = 7.2;
+					};
 					BBB285021C0C76CB00FABFE2 = {
 						CreatedOnToolsVersion = 7.2;
 					};
@@ -230,11 +282,19 @@
 			targets = (
 				BBB285021C0C76CB00FABFE2 /* GlueKit */,
 				BBB2850C1C0C76CB00FABFE2 /* GlueKitTests */,
+				BB534A1B1C113C0200FA1C7F /* GlueKitPerformanceTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		BB534A1A1C113C0200FA1C7F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BBB285011C0C76CB00FABFE2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -252,6 +312,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		BB534A181C113C0200FA1C7F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB534A1F1C113C0200FA1C7F /* GlueKitPerformanceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BBB284FE1C0C76CB00FABFE2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -290,6 +358,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		BB534A231C113C0200FA1C7F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BBB285021C0C76CB00FABFE2 /* GlueKit */;
+			targetProxy = BB534A221C113C0200FA1C7F /* PBXContainerItemProxy */;
+		};
 		BBB285101C0C76CB00FABFE2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = BBB285021C0C76CB00FABFE2 /* GlueKit */;
@@ -298,6 +371,106 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		BB534A251C113C0200FA1C7F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = GlueKitPerformanceTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitPerformanceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		BB534A261C113C0200FA1C7F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = GlueKitPerformanceTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitPerformanceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		BB534A271C113DE700FA1C7F /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Profile;
+		};
+		BB534A281C113DE700FA1C7F /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = GlueKit/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Profile;
+		};
+		BB534A291C113DE700FA1C7F /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = GlueKitTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
+		BB534A2A1C113DE700FA1C7F /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = GlueKitPerformanceTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = hu.fnord.GlueKitPerformanceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Profile;
+		};
 		BBB285151C0C76CB00FABFE2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -447,11 +620,22 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		BB534A241C113C0200FA1C7F /* Build configuration list for PBXNativeTarget "GlueKitPerformanceTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB534A251C113C0200FA1C7F /* Debug */,
+				BB534A261C113C0200FA1C7F /* Release */,
+				BB534A2A1C113DE700FA1C7F /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		BBB284FD1C0C76CB00FABFE2 /* Build configuration list for PBXProject "GlueKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BBB285151C0C76CB00FABFE2 /* Debug */,
 				BBB285161C0C76CB00FABFE2 /* Release */,
+				BB534A271C113DE700FA1C7F /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -461,6 +645,7 @@
 			buildConfigurations = (
 				BBB285181C0C76CB00FABFE2 /* Debug */,
 				BBB285191C0C76CB00FABFE2 /* Release */,
+				BB534A281C113DE700FA1C7F /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -470,6 +655,7 @@
 			buildConfigurations = (
 				BBB2851B1C0C76CB00FABFE2 /* Debug */,
 				BBB2851C1C0C76CB00FABFE2 /* Release */,
+				BB534A291C113DE700FA1C7F /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
