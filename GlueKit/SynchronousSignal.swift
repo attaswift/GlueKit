@@ -11,7 +11,7 @@ import Foundation
 /// A simple Signal that sends values synchronously. It uses a lock, so it does not allow reentrant sends.
 /// You can use this if you can prove that sinks will never call send.
 internal class SynchronousSignal<Value>: SignalType {
-    typealias Sink = Value->Void
+    internal typealias Sink = Value->Void
 
     private var lock = Spinlock()
     private let sendLock = NSLock(name: "com.github.lorentey.GlueKit.SynchronousSignal")
@@ -63,6 +63,7 @@ internal class SynchronousSignal<Value>: SignalType {
         }
     }
 
+    @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
     internal func connect(sink: Sink) -> Connection {
         let c = Connection(callback: self.disconnect)
         let id = c.connectionID
