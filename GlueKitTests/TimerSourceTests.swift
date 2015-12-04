@@ -81,8 +81,8 @@ class TimerSourceTests: XCTestCase {
 
         // Timer should return non-nil, clear triggerDate  and signal the semaphore.
 
-        XCTAssert(timerTimes.count >= 2 && timerTimes.count <= 3, "\(timerTimes.count) should be between 2 and 3")
         XCTAssertEqual(0, dispatch_semaphore_wait(timerSemaphore, dispatch_time(3.0)))
+
         XCTAssertEqual(timerTimes.count, 3) // 1: connect, 2: start, 3: after first firing
         XCTAssertEqual(sinkTimes.count, 1) // Should fire only once
 
