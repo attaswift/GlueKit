@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */; };
 		BB4138AB1C120832005D5686 /* NotificationCenterSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */; };
+		BB4138AD1C12102E005D5686 /* Connector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138AC1C12102E005D5686 /* Connector.swift */; };
 		BB534A111C10F46600FA1C7F /* KVOSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */; };
 		BB534A131C10FFCE00FA1C7F /* SourceOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */; };
 		BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A141C112D2A00FA1C7F /* UnionSource.swift */; };
@@ -56,6 +57,7 @@
 /* Begin PBXFileReference section */
 		BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSNotificationCenter Support.swift"; sourceTree = "<group>"; };
 		BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationCenterSupportTests.swift; sourceTree = "<group>"; };
+		BB4138AC1C12102E005D5686 /* Connector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connector.swift; sourceTree = "<group>"; };
 		BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceOperatorTests.swift; sourceTree = "<group>"; };
 		BB534A141C112D2A00FA1C7F /* UnionSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSource.swift; sourceTree = "<group>"; };
 		BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSourceTests.swift; sourceTree = "<group>"; };
@@ -152,6 +154,7 @@
 				BBB285081C0C76CB00FABFE2 /* Info.plist */,
 				BBB2851D1C0C76E200FABFE2 /* Source.swift */,
 				BB8B2C051C0CA0B4008B78A3 /* Connection.swift */,
+				BB4138AC1C12102E005D5686 /* Connector.swift */,
 				BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */,
 				BBA58D1B1C10C73E003D4511 /* SynchronousSignal.swift */,
 				BB8B2C1C1C0D1C51008B78A3 /* Locks.swift */,
@@ -335,6 +338,7 @@
 				BBA58D251C10E4E2003D4511 /* SourceOperators.swift in Sources */,
 				BBB2851E1C0C76E200FABFE2 /* Source.swift in Sources */,
 				BBA58D1C1C10C73E003D4511 /* SynchronousSignal.swift in Sources */,
+				BB4138AD1C12102E005D5686 /* Connector.swift in Sources */,
 				BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */,
 				BBA58D181C10C3CA003D4511 /* TimerSource.swift in Sources */,
 				BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */,
