@@ -55,6 +55,7 @@ public extension SourceType where Value == AnyObject {
         }
     }
 
+#if false // Disabled for package support
     /// Converts all values to CGFloat using NSNumber.doubleValue. Signals a fatal error if a value isn't an NSNumber.
     func toCGFloat() -> Source<CGFloat> {
         return sourceOperator { value, sink in
@@ -94,6 +95,7 @@ public extension SourceType where Value == AnyObject {
             sink(v.CGAffineTransformValue())
         }
     }
+#endif
 }
 
 /// A hashable unowned reference to an object of type Type.
