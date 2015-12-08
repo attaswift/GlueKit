@@ -42,6 +42,7 @@
 		BBBB197F1C1699FB00765E6A /* Transforming Observables.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138BE1C160DB1005D5686 /* Transforming Observables.swift */; };
 		BBBB19801C169D9900765E6A /* TimerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D171C10C3CA003D4511 /* TimerSource.swift */; };
 		BBBB19811C17100200765E6A /* ArrayVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB57795B1C1665240061994C /* ArrayVariable.swift */; };
+		BBBB19851C1721CE00765E6A /* ObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB19841C1721CE00765E6A /* ObservableTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +103,7 @@
 		BBB285141C0C76CB00FABFE2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BBB2851D1C0C76E200FABFE2 /* Source.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Source.swift; sourceTree = "<group>"; };
 		BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signal.swift; sourceTree = "<group>"; };
+		BBBB19841C1721CE00765E6A /* ObservableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -234,6 +236,7 @@
 		BBBB19831C17175900765E6A /* Observables */ = {
 			isa = PBXGroup;
 			children = (
+				BBBB19841C1721CE00765E6A /* ObservableTests.swift */,
 				BB4138C21C163394005D5686 /* UpdatableTests.swift */,
 				BBA58D151C109FCE003D4511 /* VariableTests.swift */,
 				BB4138B41C14536F005D5686 /* SelectTests.swift */,
@@ -419,6 +422,7 @@
 				BBA58D211C10D4FC003D4511 /* TestUtilities.swift in Sources */,
 				BB8B2C0F1C0CA718008B78A3 /* SignalTests.swift in Sources */,
 				BB4138B51C14536F005D5686 /* SelectTests.swift in Sources */,
+				BBBB19851C1721CE00765E6A /* ObservableTests.swift in Sources */,
 				BB8B2C1B1C0D0E61008B78A3 /* ConnectionTests.swift in Sources */,
 				BBA58D161C109FCE003D4511 /* VariableTests.swift in Sources */,
 				BB4138C31C163394005D5686 /* UpdatableTests.swift in Sources */,
