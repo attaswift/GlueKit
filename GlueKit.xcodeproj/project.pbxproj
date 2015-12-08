@@ -8,9 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		BB40ACA11C167A77007F9C37 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138B61C15CD8A005D5686 /* Observable.swift */; };
+		BB40ACA21C167ABB007F9C37 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138B81C15CEDF005D5686 /* Updatable.swift */; };
+		BB40ACA31C167B50007F9C37 /* Variable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D131C109FC5003D4511 /* Variable.swift */; };
 		BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */; };
 		BB4138AB1C120832005D5686 /* NotificationCenterSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */; };
 		BB4138AD1C12102E005D5686 /* Connector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138AC1C12102E005D5686 /* Connector.swift */; };
+		BB4138C31C163394005D5686 /* UpdatableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138C21C163394005D5686 /* UpdatableTests.swift */; };
 		BB534A111C10F46600FA1C7F /* KVOSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */; };
 		BB534A131C10FFCE00FA1C7F /* SourceOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */; };
 		BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A141C112D2A00FA1C7F /* UnionSource.swift */; };
@@ -24,9 +27,7 @@
 		BB8B2C1D1C0D1C51008B78A3 /* Locks.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C1C1C0D1C51008B78A3 /* Locks.swift */; };
 		BBA58D101C1095C0003D4511 /* SimpleSources.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D0F1C1095C0003D4511 /* SimpleSources.swift */; };
 		BBA58D121C10961C003D4511 /* SimpleSourcesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */; };
-		BBA58D141C109FC5003D4511 /* Variable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D131C109FC5003D4511 /* Variable.swift */; };
 		BBA58D161C109FCE003D4511 /* VariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D151C109FCE003D4511 /* VariableTests.swift */; };
-		BBA58D181C10C3CA003D4511 /* TimerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D171C10C3CA003D4511 /* TimerSource.swift */; };
 		BBA58D1A1C10C5D7003D4511 /* TimerSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D191C10C5D7003D4511 /* TimerSourceTests.swift */; };
 		BBA58D1C1C10C73E003D4511 /* SynchronousSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D1B1C10C73E003D4511 /* SynchronousSignal.swift */; };
 		BBA58D1F1C10D1E1003D4511 /* SynchronousSignalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D1E1C10D1E1003D4511 /* SynchronousSignalTests.swift */; };
@@ -36,6 +37,7 @@
 		BBB285071C0C76CB00FABFE2 /* GlueKit.h in Headers */ = {isa = PBXBuildFile; fileRef = BBB285061C0C76CB00FABFE2 /* GlueKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BBB2850E1C0C76CB00FABFE2 /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB285031C0C76CB00FABFE2 /* GlueKit.framework */; };
 		BBB2851E1C0C76E200FABFE2 /* Source.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB2851D1C0C76E200FABFE2 /* Source.swift */; };
+		BBBB19801C169D9900765E6A /* TimerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D171C10C3CA003D4511 /* TimerSource.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +62,8 @@
 		BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationCenterSupportTests.swift; sourceTree = "<group>"; };
 		BB4138AC1C12102E005D5686 /* Connector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connector.swift; sourceTree = "<group>"; };
 		BB4138B61C15CD8A005D5686 /* Observable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
+		BB4138B81C15CEDF005D5686 /* Updatable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Updatable.swift; sourceTree = "<group>"; };
+		BB4138C21C163394005D5686 /* UpdatableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdatableTests.swift; sourceTree = "<group>"; };
 		BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceOperatorTests.swift; sourceTree = "<group>"; };
 		BB534A141C112D2A00FA1C7F /* UnionSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSource.swift; sourceTree = "<group>"; };
 		BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSourceTests.swift; sourceTree = "<group>"; };
@@ -123,6 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				BB4138B61C15CD8A005D5686 /* Observable.swift */,
+				BB4138B81C15CEDF005D5686 /* Updatable.swift */,
 				BBA58D131C109FC5003D4511 /* Variable.swift */,
 			);
 			name = Observables;
@@ -198,6 +203,7 @@
 				BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */,
 				BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */,
 				BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */,
+				BB4138C21C163394005D5686 /* UpdatableTests.swift */,
 				BBA58D151C109FCE003D4511 /* VariableTests.swift */,
 				BBA58D191C10C5D7003D4511 /* TimerSourceTests.swift */,
 				BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */,
@@ -362,6 +368,7 @@
 				BB40ACA81C168504007F9C37 /* Select.swift in Sources */,
 				BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */,
 				BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */,
+				BB40ACA21C167ABB007F9C37 /* Updatable.swift in Sources */,
 				BBA58D101C1095C0003D4511 /* SimpleSources.swift in Sources */,
 				BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */,
 				BB8B2C061C0CA0B4008B78A3 /* Connection.swift in Sources */,
@@ -383,6 +390,7 @@
 				BB8B2C0F1C0CA718008B78A3 /* SignalTests.swift in Sources */,
 				BB8B2C1B1C0D0E61008B78A3 /* ConnectionTests.swift in Sources */,
 				BBA58D161C109FCE003D4511 /* VariableTests.swift in Sources */,
+				BB4138C31C163394005D5686 /* UpdatableTests.swift in Sources */,
 				BB534A171C112D7000FA1C7F /* UnionSourceTests.swift in Sources */,
 				BBA58D1A1C10C5D7003D4511 /* TimerSourceTests.swift in Sources */,
 			);
