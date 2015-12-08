@@ -59,7 +59,10 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
     public typealias ArrayElement = Element
 
     private var _value: [Element]
-    private weak var _signal: Signal<ArrayChange<Element>>? = nil // Created on demand, released immediately when unused
+    // These are created on demand and released immediately when unused
+    private weak var _futureChanges: Signal<ArrayChange<Element>>? = nil
+    private weak var _futureValues: Signal<[Element]>? = nil
+    private weak var _futureCounts: Signal<SimpleChange<Int>>? = nil
 
     public init() {
         _value = []
@@ -81,17 +84,14 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
     }
 
     /// A source that reports all future values of this variable.
-    public final var futureChanges: Source<ArrayChange<Element>> { return self.signal.source }
-
-    /// Return the existing signal or create a new one if needed.
-    private final var signal: Signal<ArrayChange<Element>> {
-        if let signal = _signal {
-            return signal
+    public final var futureChanges: Source<ArrayChange<Element>> {
+        if let futureChanges = _futureChanges {
+            return futureChanges.source
         }
         else {
             let signal = Signal<ArrayChange<Element>>()
-            _signal = signal
-            return signal
+            _futureChanges = signal
+            return signal.source
         }
     }
 
@@ -99,7 +99,7 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
     /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
     public final func setValue(value: [Element]) {
         _value = value
-        _signal?.send(.ReplaceAll(value))
+        _futureChanges?.send(.ReplaceAll(value))
     }
 
 
@@ -107,29 +107,44 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
         return value.count
     }
 
-    public var observableCount: Observable<Int> {
-        var count = self.count
-        return Observable(
-            getter: { self.count },
-            futureChanges: signal.map { change in
-                let oldCount = count
-                switch change {
-                case .Insert(_, at: _):
-                    count += 1
-                case .RemoveAt(_):
-                    count -= 1
-                case .ReplaceAt(_, with: _):
-                    break // Count doesn't change.
-                case .ReplaceRange(let range, with: let elements):
-                    count += elements.count - range.count
-                case .ReplaceAll(let elements):
-                    count = elements.count
-                }
-                return SimpleChange(oldValue: oldCount, newValue: count)
+    private var futureCounts: Signal<SimpleChange<Int>> {
+        if let futureCounts = _futureCounts {
+            return futureCounts
+        }
+        else {
+            var connection: Connection? = nil
+            let signal = Signal<SimpleChange<Int>>(
+                didConnectFirstSink: { signal in
+                    var count = self.count
+                    connection = self.futureChanges.connect { change in
+                        let oldCount = count
+                        switch change {
+                        case .Insert(_, at: _):
+                            count += 1
+                        case .RemoveAt(_):
+                            count -= 1
+                        case .ReplaceAt(_, with: _):
+                            break // Count doesn't change.
+                        case .ReplaceRange(let range, with: let elements):
+                            count += elements.count - range.count
+                        case .ReplaceAll(let elements):
+                            count = elements.count
+                        }
+                        signal.send(SimpleChange(oldValue: oldCount, newValue: count))
+                    }
+                },
+                didDisconnectLastSink: { signal in
+                    connection?.disconnect()
+                    connection = nil
             })
+            _futureCounts = signal
+            return signal
+        }
+    }
+    public var observableCount: Observable<Int> {
+        return Observable(getter: { self.count }, futureChanges: self.futureCounts)
     }
 
-    private weak var _futureValues: Signal<[Element]>? = nil
     public var futureValues: Source<[Element]> {
         if let signal = _futureValues {
             return signal.source
@@ -139,7 +154,7 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
             let s = Signal<[Element]>(
                 didConnectFirstSink: { s in
                     // TODO: check values sent when there're other sinks on self.signal
-                    connection = self.signal.map { _ in self.value }.connect(s)
+                    connection = self.futureValues.map { _ in self.value }.connect(s)
                 },
                 didDisconnectLastSink: { s in
                     connection?.disconnect()
@@ -168,7 +183,7 @@ extension ArrayVariable: MutableCollectionType {
         }
         set {
             value[index] = newValue
-            signal.send(.ReplaceAt(index, with: newValue))
+            _futureChanges?.send(.ReplaceAt(index, with: newValue))
         }
     }
 
@@ -178,7 +193,7 @@ extension ArrayVariable: MutableCollectionType {
         }
         set {
             value[bounds] = newValue
-            signal.send(.ReplaceRange(bounds, with: Array<Element>(newValue)))
+            _futureChanges?.send(.ReplaceRange(bounds, with: Array<Element>(newValue)))
         }
     }
 }
@@ -186,7 +201,7 @@ extension ArrayVariable: MutableCollectionType {
 extension ArrayVariable: RangeReplaceableCollectionType {
     public func replaceRange<C : CollectionType where C.Generator.Element == Generator.Element>(subRange: Range<Int>, with newElements: C) {
         value.replaceRange(subRange, with: newElements)
-        signal.send(.ReplaceRange(subRange, with: Array<Element>(newElements)))
+        _futureChanges?.send(.ReplaceRange(subRange, with: Array<Element>(newElements)))
     }
 
     // These have default implementations in terms of replaceRange, but doing them by hand makes for better change reports.
@@ -197,36 +212,36 @@ extension ArrayVariable: RangeReplaceableCollectionType {
 
     public func insert(newElement: Element, at index: Int) {
         value.insert(newElement, atIndex: index)
-        signal.send(.Insert(newElement, at: index))
+        _futureChanges?.send(.Insert(newElement, at: index))
     }
 
     public func removeAtIndex(index: Int) -> Element {
         let result = value.removeAtIndex(index)
-        signal.send(.RemoveAt(index))
+        _futureChanges?.send(.RemoveAt(index))
         return result
     }
 
     public func removeFirst() -> Element {
         let result = value.removeFirst()
-        signal.send(.RemoveAt(0))
+        _futureChanges?.send(.RemoveAt(0))
         return result
     }
 
     public func removeLast() -> Element {
         let result = value.removeLast()
-        signal.send(.RemoveAt(self.count))
+        _futureChanges?.send(.RemoveAt(self.count))
         return result
     }
     
     public func popLast() -> Element? {
         guard let result = value.popLast() else { return nil }
-        signal.send(.RemoveAt(self.count))
+        _futureChanges?.send(.RemoveAt(self.count))
         return result
     }
 
     public func removeAll() {
         value.removeAll()
-        signal.send(.ReplaceAll([]))
+        _futureChanges?.send(.ReplaceAll([]))
     }
 
 }
