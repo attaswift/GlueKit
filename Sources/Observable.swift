@@ -51,9 +51,6 @@ public protocol ObservableType {
 
     /// A source that delivers the new value whenever this observable changes.
     var futureValues: Source<Change.Value> { get } // Implemented in an extension in terms of futureChanges.
-
-    /// A source that, for each new sink, immediately sends the current value, and thereafter delivers updated values.
-    var values: Source<Change.Value> { get } // Implemented in an extension in terms of futureValues and value.
 }
 
 extension ObservableType where Change == SimpleChange<ObservableValue> {
@@ -70,8 +67,8 @@ extension ObservableType where Change == SimpleChange<ObservableValue> {
 }
 
 extension ObservableType {
-    /// A source that immediately sends the current value to each new sink, and thereafter delivers new values
-    /// whenever this readable changes.
+    /// A source that, for each new sink, immediately sends the current value, and thereafter delivers updated values, 
+    /// like `futureValues`. Implemented in terms of `futureValues` and `value`.
     public var values: Source<Change.Value> {
         return Source<Change.Value> { sink in
             // We assume connections not concurrent with updates.
@@ -121,33 +118,21 @@ public struct Observable<Value>: ObservableType {
 
 /// The type lifted representation of an ObservableType that contains a value with complex changes.
 public struct AnyObservable<Change: ChangeType>: ObservableType {
-    /// The getter closure for the current value of this observable.
-    public let getter: Void -> Change.Value
+    public typealias Value = Change.Value
 
-    /// A source providing the values of future updates to this observable.
-    public let futureChanges: Source<Change>
-    public let futureValues: Source<Change.Value>
-    public let values: Source<Change.Value>
-
-    /// Initializes an Observable from the given getter closure and source of future changes.
-    /// @param getter A closure that returns the current value of the observable at the time of the call.
-    /// @param futureSource A source that triggers whenever the observable changes.
-    public init
-        <FCS: SourceType, FVS: SourceType, VS: SourceType where FCS.SourceValue == Change, FVS.SourceValue == Change.Value, VS.SourceValue == Change.Value>
-        (getter: Void->Change.Value, futureChanges: FCS, futureValues: FVS, values: VS) {
-        self.getter = getter
-        self.futureChanges = futureChanges.source
-        self.futureValues = futureValues.source
-        self.values = values.source
-    }
+    private let _getter: Void -> Change.Value
+    private let _futureChanges: Void -> Source<Change>
+    private let _futureValues: Void -> Source<Value>
 
     public init<Observable: ObservableType where Observable.Change == Change>(_ observable: Observable) {
-        self.getter = { observable.value }
-        self.futureChanges = observable.futureChanges
-        self.futureValues = observable.futureValues
-        self.values = observable.values
+        self._getter = { observable.value }
+        self._futureChanges = { observable.futureChanges }
+        self._futureValues = { observable.futureValues }
     }
 
     /// The current value of the observable.
-    public var value: Change.Value { return getter() }
+    public var value: Value { return _getter() }
+
+    public var futureChanges: Source<Change> { return _futureChanges() }
+    public var futureValues: Source<Value> { return _futureValues() }
 }
