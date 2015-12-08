@@ -37,6 +37,7 @@
 		BBB285071C0C76CB00FABFE2 /* GlueKit.h in Headers */ = {isa = PBXBuildFile; fileRef = BBB285061C0C76CB00FABFE2 /* GlueKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BBB2850E1C0C76CB00FABFE2 /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB285031C0C76CB00FABFE2 /* GlueKit.framework */; };
 		BBB2851E1C0C76E200FABFE2 /* Source.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB2851D1C0C76E200FABFE2 /* Source.swift */; };
+		BBBB197F1C1699FB00765E6A /* Transforming Observables.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138BE1C160DB1005D5686 /* Transforming Observables.swift */; };
 		BBBB19801C169D9900765E6A /* TimerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D171C10C3CA003D4511 /* TimerSource.swift */; };
 /* End PBXBuildFile section */
 
@@ -63,6 +64,7 @@
 		BB4138AC1C12102E005D5686 /* Connector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connector.swift; sourceTree = "<group>"; };
 		BB4138B61C15CD8A005D5686 /* Observable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		BB4138B81C15CEDF005D5686 /* Updatable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Updatable.swift; sourceTree = "<group>"; };
+		BB4138BE1C160DB1005D5686 /* Transforming Observables.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Transforming Observables.swift"; sourceTree = "<group>"; };
 		BB4138C21C163394005D5686 /* UpdatableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdatableTests.swift; sourceTree = "<group>"; };
 		BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceOperatorTests.swift; sourceTree = "<group>"; };
 		BB534A141C112D2A00FA1C7F /* UnionSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSource.swift; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 				BB4138B61C15CD8A005D5686 /* Observable.swift */,
 				BB4138B81C15CEDF005D5686 /* Updatable.swift */,
 				BBA58D131C109FC5003D4511 /* Variable.swift */,
+				BB4138BE1C160DB1005D5686 /* Transforming Observables.swift */,
 			);
 			name = Observables;
 			sourceTree = "<group>";
@@ -369,6 +372,7 @@
 				BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */,
 				BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */,
 				BB40ACA21C167ABB007F9C37 /* Updatable.swift in Sources */,
+				BBBB197F1C1699FB00765E6A /* Transforming Observables.swift in Sources */,
 				BBA58D101C1095C0003D4511 /* SimpleSources.swift in Sources */,
 				BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */,
 				BB8B2C061C0CA0B4008B78A3 /* Connection.swift in Sources */,
