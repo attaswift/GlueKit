@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BB40ACA11C167A77007F9C37 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138B61C15CD8A005D5686 /* Observable.swift */; };
 		BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */; };
 		BB4138AB1C120832005D5686 /* NotificationCenterSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */; };
 		BB4138AD1C12102E005D5686 /* Connector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138AC1C12102E005D5686 /* Connector.swift */; };
@@ -58,6 +59,7 @@
 		BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSNotificationCenter Support.swift"; sourceTree = "<group>"; };
 		BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationCenterSupportTests.swift; sourceTree = "<group>"; };
 		BB4138AC1C12102E005D5686 /* Connector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connector.swift; sourceTree = "<group>"; };
+		BB4138B61C15CD8A005D5686 /* Observable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceOperatorTests.swift; sourceTree = "<group>"; };
 		BB534A141C112D2A00FA1C7F /* UnionSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSource.swift; sourceTree = "<group>"; };
 		BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSourceTests.swift; sourceTree = "<group>"; };
@@ -117,6 +119,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BB40ACA01C16799B007F9C37 /* Observables */ = {
+			isa = PBXGroup;
+			children = (
+				BB4138B61C15CD8A005D5686 /* Observable.swift */,
+				BBA58D131C109FC5003D4511 /* Variable.swift */,
+			);
+			name = Observables;
+			sourceTree = "<group>";
+		};
 		BB534A1D1C113C0200FA1C7F /* PerformanceTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -124,6 +135,25 @@
 				BB534A201C113C0200FA1C7F /* Info.plist */,
 			);
 			path = PerformanceTests;
+			sourceTree = "<group>";
+		};
+		BB97C1BA1C16796400B15771 /* Value Sources */ = {
+			isa = PBXGroup;
+			children = (
+				BBB2851D1C0C76E200FABFE2 /* Source.swift */,
+				BB8B2C051C0CA0B4008B78A3 /* Connection.swift */,
+				BB4138AC1C12102E005D5686 /* Connector.swift */,
+				BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */,
+				BBA58D1B1C10C73E003D4511 /* SynchronousSignal.swift */,
+				BB8B2C1C1C0D1C51008B78A3 /* Locks.swift */,
+				BBA58D0F1C1095C0003D4511 /* SimpleSources.swift */,
+				BB534A141C112D2A00FA1C7F /* UnionSource.swift */,
+				BBA58D241C10E4E2003D4511 /* SourceOperators.swift */,
+				BBA58D171C10C3CA003D4511 /* TimerSource.swift */,
+				BBA58D221C10E47A003D4511 /* KVO Support.swift */,
+				BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */,
+			);
+			name = "Value Sources";
 			sourceTree = "<group>";
 		};
 		BBB284F91C0C76CB00FABFE2 = {
@@ -152,19 +182,8 @@
 			children = (
 				BBB285061C0C76CB00FABFE2 /* GlueKit.h */,
 				BBB285081C0C76CB00FABFE2 /* Info.plist */,
-				BBB2851D1C0C76E200FABFE2 /* Source.swift */,
-				BB8B2C051C0CA0B4008B78A3 /* Connection.swift */,
-				BB4138AC1C12102E005D5686 /* Connector.swift */,
-				BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */,
-				BBA58D1B1C10C73E003D4511 /* SynchronousSignal.swift */,
-				BB8B2C1C1C0D1C51008B78A3 /* Locks.swift */,
-				BBA58D0F1C1095C0003D4511 /* SimpleSources.swift */,
-				BB534A141C112D2A00FA1C7F /* UnionSource.swift */,
-				BBA58D241C10E4E2003D4511 /* SourceOperators.swift */,
-				BBA58D131C109FC5003D4511 /* Variable.swift */,
-				BBA58D171C10C3CA003D4511 /* TimerSource.swift */,
-				BBA58D221C10E47A003D4511 /* KVO Support.swift */,
-				BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */,
+				BB97C1BA1C16796400B15771 /* Value Sources */,
+				BB40ACA01C16799B007F9C37 /* Observables */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -334,18 +353,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB8B2C1D1C0D1C51008B78A3 /* Locks.swift in Sources */,
-				BBA58D141C109FC5003D4511 /* Variable.swift in Sources */,
+				BB40ACA31C167B50007F9C37 /* Variable.swift in Sources */,
 				BBA58D251C10E4E2003D4511 /* SourceOperators.swift in Sources */,
 				BBB2851E1C0C76E200FABFE2 /* Source.swift in Sources */,
 				BBA58D1C1C10C73E003D4511 /* SynchronousSignal.swift in Sources */,
+				BB40ACA11C167A77007F9C37 /* Observable.swift in Sources */,
 				BB4138AD1C12102E005D5686 /* Connector.swift in Sources */,
+				BB40ACA81C168504007F9C37 /* Select.swift in Sources */,
 				BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */,
-				BBA58D181C10C3CA003D4511 /* TimerSource.swift in Sources */,
 				BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */,
 				BBA58D101C1095C0003D4511 /* SimpleSources.swift in Sources */,
 				BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */,
 				BB8B2C061C0CA0B4008B78A3 /* Connection.swift in Sources */,
 				BBA58D231C10E47A003D4511 /* KVO Support.swift in Sources */,
+				BBBB19801C169D9900765E6A /* TimerSource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
