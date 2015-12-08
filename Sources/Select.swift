@@ -126,14 +126,14 @@ extension ObservableType where Change.Value == ObservableValue {
         return Updatable<U.ObservableValue>(
             getter: { key(self.value).value },
             setter: { key(self.value).value = $0 },
-            futureChanges: ChangeSourceForObservableField(parent: self, key: key))
+            futureChanges: { ChangeSourceForObservableField(parent: self, key: key).source })
     }
 
     public func select<O: ObservableType where O.Change == SimpleChange<O.ObservableValue>>
         (key: Change.Value->O) -> Observable<O.Change.Value> {
         return Observable<O.Change.Value>(
             getter: { key(self.value).value },
-            futureChanges: ChangeSourceForObservableField(parent: self, key: key))
+            futureChanges: { ChangeSourceForObservableField(parent: self, key: key).source })
     }
 
     public func select<S: SourceType>(key: ObservableValue->S) -> Source<S.SourceValue> {
@@ -202,7 +202,7 @@ extension ObservableType where ObservableValue == Change.Value, ObservableValue:
         (key: ObservableValue.Generator.Element->O) -> Observable<[O.ObservableValue]> {
         return Observable<[O.ObservableValue]>(
             getter: { self.value.map { key($0).value } },
-            futureChanges: ChangeSourceForObservableArrayField(parent: self, key: key))
+            futureChanges: { ChangeSourceForObservableArrayField(parent: self, key: key).source })
     }
 }
 

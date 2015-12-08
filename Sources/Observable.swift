@@ -58,9 +58,7 @@ extension ObservableType where Change == SimpleChange<ObservableValue> {
 
     /// Returns the type-lifted version of this ObservableType.
     public var observable: Observable<Change.Value> {
-        let getter: Void->Change.Value = { self.value }
-        let futureChanges: Source<SimpleChange<Change.Value>> = self.futureChanges
-        return Observable<Change.Value>(getter: getter, futureChanges: futureChanges)
+        return Observable<Change.Value>(getter: { self.value }, futureChanges: { self.futureChanges })
     }
 }
 
@@ -94,21 +92,24 @@ public struct Observable<Value>: ObservableType {
     public typealias Change = SimpleChange<Value>
 
     /// The getter closure for the current value of this observable.
-    public let getter: Void -> Change.Value
+    private let getter: Void -> Change.Value
 
-    /// A source providing the values of future updates to this observable.
-    public let futureChanges: Source<Change>
+    /// A closure providing a source providing the values of future updates to this observable.
+    private let _futureChanges: Void -> Source<Change>
 
     /// Initializes an Observable from the given getter closure and source of future changes.
     /// @param getter A closure that returns the current value of the observable at the time of the call.
-    /// @param futureSource A source that triggers whenever the observable changes.
-    public init<S: SourceType where S.SourceValue == Change>(getter: Void->Change.Value, futureChanges: S) {
+    /// @param futureSource A closure that returns a source that triggers whenever the observable changes.
+    public init(getter: Void->Change.Value, futureChanges: Void -> Source<Change>) {
         self.getter = getter
-        self.futureChanges = futureChanges.source
+        self._futureChanges = futureChanges
     }
 
     /// The current value of the observable.
     public var value: Value { return getter() }
+
+    /// The source providing the values of future updates to this observable.
+    public var futureChanges: Source<Change> { return _futureChanges() }
 }
 
 /// The type lifted representation of an ObservableType that contains a value with complex changes.

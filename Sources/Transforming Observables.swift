@@ -92,7 +92,9 @@ internal class DistinctChangeSource<Value>: SourceType, SignalOwner {
 
 public extension ObservableType where Change == SimpleChange<ObservableValue> {
     public func distinct(equalityTest: (ObservableValue, ObservableValue)->Bool) -> Observable<ObservableValue> {
-        return Observable(getter: { self.value }, futureChanges: DistinctChangeSource(input: self, equalityTest: equalityTest).source)
+        return Observable(
+            getter: { self.value },
+            futureChanges: { DistinctChangeSource(input: self, equalityTest: equalityTest).source })
     }
 }
 
@@ -107,7 +109,7 @@ public extension UpdatableType where Change == SimpleChange<ObservableValue> {
         return Updatable(
             getter: { self.value },
             setter: { v in self.value = v },
-            futureChanges: DistinctChangeSource(input: self, equalityTest: equalityTest).source)
+            futureChanges: { DistinctChangeSource(input: self, equalityTest: equalityTest).source })
     }
 }
 

@@ -142,7 +142,7 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
         }
     }
     public var observableCount: Observable<Int> {
-        return Observable(getter: { self.count }, futureChanges: self.futureCounts)
+        return Observable(getter: { self.count }, futureChanges: { self.futureCounts.source })
     }
 
     public var futureValues: Source<[Element]> {

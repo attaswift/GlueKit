@@ -153,7 +153,7 @@
 			path = PerformanceTests;
 			sourceTree = "<group>";
 		};
-		BB97C1BA1C16796400B15771 /* Value Sources */ = {
+		BB97C1BA1C16796400B15771 /* Sources and Signals */ = {
 			isa = PBXGroup;
 			children = (
 				BBB2851D1C0C76E200FABFE2 /* Source.swift */,
@@ -169,7 +169,7 @@
 				BBA58D221C10E47A003D4511 /* KVO Support.swift */,
 				BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */,
 			);
-			name = "Value Sources";
+			name = "Sources and Signals";
 			sourceTree = "<group>";
 		};
 		BBB284F91C0C76CB00FABFE2 = {
@@ -198,7 +198,7 @@
 			children = (
 				BBB285061C0C76CB00FABFE2 /* GlueKit.h */,
 				BBB285081C0C76CB00FABFE2 /* Info.plist */,
-				BB97C1BA1C16796400B15771 /* Value Sources */,
+				BB97C1BA1C16796400B15771 /* Sources and Signals */,
 				BB40ACA01C16799B007F9C37 /* Observables */,
 			);
 			path = Sources;
@@ -208,21 +208,37 @@
 			isa = PBXGroup;
 			children = (
 				BBA58D201C10D4FC003D4511 /* TestUtilities.swift */,
+				BBBB19821C17174500765E6A /* Sources and Signals */,
+				BBBB19831C17175900765E6A /* Observables */,
+				BBB285141C0C76CB00FABFE2 /* Info.plist */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		BBBB19821C17174500765E6A /* Sources and Signals */ = {
+			isa = PBXGroup;
+			children = (
 				BB8B2C1A1C0D0E61008B78A3 /* ConnectionTests.swift */,
 				BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */,
 				BBA58D1E1C10D1E1003D4511 /* SynchronousSignalTests.swift */,
 				BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */,
 				BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */,
 				BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */,
-				BB4138C21C163394005D5686 /* UpdatableTests.swift */,
-				BBA58D151C109FCE003D4511 /* VariableTests.swift */,
-				BB4138B41C14536F005D5686 /* SelectTests.swift */,
 				BBA58D191C10C5D7003D4511 /* TimerSourceTests.swift */,
 				BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */,
 				BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */,
-				BBB285141C0C76CB00FABFE2 /* Info.plist */,
 			);
-			path = Tests;
+			name = "Sources and Signals";
+			sourceTree = "<group>";
+		};
+		BBBB19831C17175900765E6A /* Observables */ = {
+			isa = PBXGroup;
+			children = (
+				BB4138C21C163394005D5686 /* UpdatableTests.swift */,
+				BBA58D151C109FCE003D4511 /* VariableTests.swift */,
+				BB4138B41C14536F005D5686 /* SelectTests.swift */,
+			);
+			name = Observables;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
