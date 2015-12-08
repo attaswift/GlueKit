@@ -10,9 +10,11 @@
 		BB40ACA11C167A77007F9C37 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138B61C15CD8A005D5686 /* Observable.swift */; };
 		BB40ACA21C167ABB007F9C37 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138B81C15CEDF005D5686 /* Updatable.swift */; };
 		BB40ACA31C167B50007F9C37 /* Variable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D131C109FC5003D4511 /* Variable.swift */; };
+		BB40ACA81C168504007F9C37 /* Select.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138B21C1443DC005D5686 /* Select.swift */; };
 		BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */; };
 		BB4138AB1C120832005D5686 /* NotificationCenterSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */; };
 		BB4138AD1C12102E005D5686 /* Connector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138AC1C12102E005D5686 /* Connector.swift */; };
+		BB4138B51C14536F005D5686 /* SelectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138B41C14536F005D5686 /* SelectTests.swift */; };
 		BB4138C31C163394005D5686 /* UpdatableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138C21C163394005D5686 /* UpdatableTests.swift */; };
 		BB534A111C10F46600FA1C7F /* KVOSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */; };
 		BB534A131C10FFCE00FA1C7F /* SourceOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */; };
@@ -63,6 +65,8 @@
 		BB4138A81C120707005D5686 /* NSNotificationCenter Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSNotificationCenter Support.swift"; sourceTree = "<group>"; };
 		BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationCenterSupportTests.swift; sourceTree = "<group>"; };
 		BB4138AC1C12102E005D5686 /* Connector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connector.swift; sourceTree = "<group>"; };
+		BB4138B21C1443DC005D5686 /* Select.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Select.swift; sourceTree = "<group>"; };
+		BB4138B41C14536F005D5686 /* SelectTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectTests.swift; sourceTree = "<group>"; };
 		BB4138B61C15CD8A005D5686 /* Observable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		BB4138B81C15CEDF005D5686 /* Updatable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Updatable.swift; sourceTree = "<group>"; };
 		BB4138BE1C160DB1005D5686 /* Transforming Observables.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Transforming Observables.swift"; sourceTree = "<group>"; };
@@ -135,6 +139,7 @@
 				BBA58D131C109FC5003D4511 /* Variable.swift */,
 				BB57795B1C1665240061994C /* ArrayVariable.swift */,
 				BB4138BE1C160DB1005D5686 /* Transforming Observables.swift */,
+				BB4138B21C1443DC005D5686 /* Select.swift */,
 			);
 			name = Observables;
 			sourceTree = "<group>";
@@ -211,6 +216,7 @@
 				BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */,
 				BB4138C21C163394005D5686 /* UpdatableTests.swift */,
 				BBA58D151C109FCE003D4511 /* VariableTests.swift */,
+				BB4138B41C14536F005D5686 /* SelectTests.swift */,
 				BBA58D191C10C5D7003D4511 /* TimerSourceTests.swift */,
 				BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */,
 				BB4138AA1C120832005D5686 /* NotificationCenterSupportTests.swift */,
@@ -396,6 +402,7 @@
 				BBA58D1F1C10D1E1003D4511 /* SynchronousSignalTests.swift in Sources */,
 				BBA58D211C10D4FC003D4511 /* TestUtilities.swift in Sources */,
 				BB8B2C0F1C0CA718008B78A3 /* SignalTests.swift in Sources */,
+				BB4138B51C14536F005D5686 /* SelectTests.swift in Sources */,
 				BB8B2C1B1C0D0E61008B78A3 /* ConnectionTests.swift in Sources */,
 				BBA58D161C109FCE003D4511 /* VariableTests.swift in Sources */,
 				BB4138C31C163394005D5686 /* UpdatableTests.swift in Sources */,
