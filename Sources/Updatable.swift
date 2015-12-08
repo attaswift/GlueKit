@@ -49,11 +49,17 @@ public struct Updatable<Value>: UpdatableType {
 
     /// The current value of the updatable. It's called an `Updatable` because this value is settable.
     public var value: Value {
-        get { return getter() }
-        nonmutating set { setter(newValue) }
+        get {
+            return getter()
+        }
+        nonmutating set {
+            setter(newValue)
+        }
     }
 
-    public var futureChanges: Source<Change> { return _futureChanges() }
+    public var futureChanges: Source<Change> {
+        return _futureChanges()
+    }
 
     public var sink: Value->Void {
         return self.setter

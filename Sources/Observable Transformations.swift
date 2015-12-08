@@ -1,5 +1,5 @@
 //
-//  ObservableOperations.swift
+//  Observable Transformations.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2015-12-07.
@@ -8,17 +8,23 @@
 
 import Foundation
 
+public extension ObservableType {
+    public static func constant(value: Change.Value) -> Observable<Change.Value> {
+        return Observable(getter: { value }, futureChanges: { Source.emptySource() })
+    }
+}
+
 /// An Observable that is derived from another observable.
-internal class TransformedObservable<Input: ObservableType, Output where Input.Change == SimpleChange<Input.ObservableValue>>: ObservableType, SignalOwner {
-    internal typealias ObservableValue = Output
-    internal typealias Change = SimpleChange<Output>
+internal class TransformedObservable<Input: ObservableType, Value where Input.Change == SimpleChange<Input.ObservableValue>>: ObservableType, SignalOwner {
+    internal typealias ObservableValue = Value
+    internal typealias Change = SimpleChange<Value>
 
     private let input: Input
-    private let transform: Input.Change.Value -> Output
+    private let transform: Input.Change.Value -> Value
 
     private var connection: Connection? = nil
 
-    internal init(input: Input, transform: Input.Change.Value->Output) {
+    internal init(input: Input, transform: Input.Change.Value->Value) {
         self.input = input
         self.transform = transform
     }
@@ -27,7 +33,7 @@ internal class TransformedObservable<Input: ObservableType, Output where Input.C
         assert(connection == nil)
     }
 
-    internal var value: ObservableValue { return transform(input.value) }
+    internal var value: Value { return transform(input.value) }
     internal var futureChanges: Source<Change> { return Signal<Change>(stronglyHeldOwner: self).source }
 
     internal func signalDidStart(signal: Signal<Change>) {
@@ -154,18 +160,18 @@ public class BinaryCompositeObservable<Change1: ChangeType, Change2: ChangeType,
         currentValue = combinator(firstValue!, secondValue!)
         let c1 = first.futureValues.connect { value in
             assert(self.currentValue != nil)
+            self.firstValue = value
             let previousValue = self.currentValue!
             let currentValue = self.combinator(value, self.secondValue!)
             self.currentValue = currentValue
-
             signal.send(SimpleChange(oldValue: previousValue, newValue: currentValue))
         }
         let c2 = second.futureValues.connect { value in
             assert(self.currentValue != nil)
+            self.secondValue = value
             let previousValue = self.currentValue!
             let currentValue = self.combinator(self.firstValue!, value)
             self.currentValue = currentValue
-
             signal.send(SimpleChange(oldValue: previousValue, newValue: currentValue))
         }
         connections = [c1, c2]
@@ -212,11 +218,11 @@ public func >= <Value: Comparable>(a: Observable<Value>, b: Observable<Value>) -
     return a.combine(b, via: >=)
 }
 
-public func min<Value: Comparable>(a: Observable<Value>, b: Observable<Value>) -> Observable<Value> {
+public func min<Value: Comparable>(a: Observable<Value>, _ b: Observable<Value>) -> Observable<Value> {
     return a.combine(b, via: min)
 }
 
-public func max<Value: Comparable>(a: Observable<Value>, b: Observable<Value>) -> Observable<Value> {
+public func max<Value: Comparable>(a: Observable<Value>, _ b: Observable<Value>) -> Observable<Value> {
     return a.combine(b, via: max)
 }
 
