@@ -9,20 +9,22 @@
 import Foundation
 
 extension SourceType {
-    public func union<S: SourceType where S.Value == Value>(source: S) -> UnionSource<Value> {
+    public func union<S: SourceType where S.SourceValue == SourceValue>(source: S) -> UnionSource<SourceValue> {
         return UnionSource([self.source, source.source])
     }
 
-    public static func union(sources: Self...) -> UnionSource<Value> {
+    public static func union(sources: Self...) -> UnionSource<SourceValue> {
         return UnionSource(sources.map { s in s.source })
     }
 
-    public static func union<S: SequenceType where S.Generator.Element == Self>(sources: S) -> UnionSource<Value> {
+    public static func union<S: SequenceType where S.Generator.Element == Self>(sources: S) -> UnionSource<SourceValue> {
         return UnionSource(sources)
     }
 }
 
 public struct UnionSource<Value>: SourceType {
+    public typealias SourceValue = Value
+
     private var lock = Spinlock()
     private var union: RealUnionSource<Value>
 
@@ -30,11 +32,11 @@ public struct UnionSource<Value>: SourceType {
         self.union = RealUnionSource(sources.map { $0.source })
     }
 
-    public init<Seq: SequenceType, Src: SourceType where Seq.Generator.Element == Src, Src.Value == Value>(_ sources: Seq) {
+    public init<Seq: SequenceType, Src: SourceType where Seq.Generator.Element == Src, Src.SourceValue == Value>(_ sources: Seq) {
         self.init(sources.map { $0.source })
     }
 
-    public init<S: SourceType where S.Value == Value>(sources: S...) {
+    public init<S: SourceType where S.SourceValue == Value>(sources: S...) {
         self.init(sources.map { $0.source })
     }
     
@@ -46,19 +48,21 @@ public struct UnionSource<Value>: SourceType {
         }
     }
 
-    public func union<S: SourceType where S.Value == Value>(source: S) -> UnionSource<Value> {
+    public func union<S: SourceType where S.SourceValue == Value>(source: S) -> UnionSource<Value> {
         var result = self
         result.addSource(source)
         return result
     }
 
-    private mutating func addSource<S: SourceType where S.Value == Value>(source: S) {
+    private mutating func addSource<S: SourceType where S.SourceValue == Value>(source: S) {
         makeUnique()
         union.addSource(source)
     }
 }
 
 private class RealUnionSource<Value>: SourceType, SignalOwner {
+    typealias SourceValue = Value
+
     private weak var _signal: Signal<Value>? = nil
 
     private var lock = Spinlock()
@@ -85,7 +89,7 @@ private class RealUnionSource<Value>: SourceType, SignalOwner {
 
     var source: Source<Value> { return signal.source }
 
-    func addSource<S: SourceType where S.Value == Value>(source: S) {
+    func addSource<S: SourceType where S.SourceValue == Value>(source: S) {
         lock.locked {
             sources.append(source.source)
             if connected {

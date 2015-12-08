@@ -10,12 +10,12 @@ import Foundation
 
 extension SourceType {
     /// Returns a source that never fires.
-    public static func emptySource() -> Source<Value> {
+    public static func emptySource() -> Source<SourceValue> {
         return Source { _ in return Connection() }
     }
 
     /// Returns a source that fires exactly once with the given value, then never again.
-    public static func constantSource(value: Value) -> Source<Value> {
+    public static func constantSource(value: SourceValue) -> Source<SourceValue> {
         return Source { sink in
             sink(value)
             return Connection()

@@ -19,7 +19,7 @@ public class Connector {
         disconnect()
     }
 
-    public func connect<S: SourceType>(source: S, sink: S.Value->Void) -> Connection {
+    public func connect<S: SourceType>(source: S, sink: S.SourceValue->Void) -> Connection {
         let c = source.connect(sink)
         add(c)
         return c

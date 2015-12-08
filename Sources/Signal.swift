@@ -8,15 +8,15 @@
 
 import Foundation
 
-public protocol SignalType: SourceType, SinkType {
-    func connect(sink: Value->Void) -> Connection
-    func send(value: Value)
+public protocol SignalType: SourceType, SinkType /* where SourceType.SourceValue == SinkType.SinkValue */ {
+    func connect(sink: SourceValue->Void) -> Connection
+    func send(value: SinkValue)
 }
 
 internal protocol SignalOwner: class {
-    typealias S: SignalType
-    func signalDidStart(signal: S)
-    func signalDidStop(signal: S)
+    typealias OwnedSignal: SignalType
+    func signalDidStart(signal: OwnedSignal)
+    func signalDidStop(signal: OwnedSignal)
 }
 
 /// Holds a strong reference to a value that may not be ready for consumption yet.
@@ -63,6 +63,8 @@ private enum PendingItem<Value> {
 /// For reference, KVO's analogue to Signal in Foundation supports reentrancy, but its send() is synchronous. There is no way to satisy the above rules in a system like that. KVO's designers chose to resolve this by always calling observers with the latest value of the observed key path. That's a nice pragmatic solution in the face of reentrancy, but it only makes sense when you have the concept of a current value, which Signal doesn't. (Although Variable does.)
 ///
 public final class Signal<Value>: SignalType {
+    public typealias SourceValue = Value
+    public typealias SinkValue = Value
     public typealias Sink = Value->Void
 
     private let lock = NSLock(name: "com.github.lorentey.GlueKit.Signal")
@@ -83,13 +85,13 @@ public final class Signal<Value>: SignalType {
         self.didDisconnectLastSink = didDisconnectLastSink
     }
 
-    internal convenience init<Owner: SignalOwner where Owner.S == Signal<Value>>(owner: Owner) {
+    internal convenience init<Owner: SignalOwner where Owner.OwnedSignal == Signal<Value>>(owner: Owner) {
         self.init(
             didConnectFirstSink: { [unowned owner] s in owner.signalDidStart(s) },
             didDisconnectLastSink: { [unowned owner] s in owner.signalDidStop(s) })
     }
 
-    internal convenience init<Owner: SignalOwner where Owner.S == Signal<Value>>(stronglyHeldOwner owner: Owner) {
+    internal convenience init<Owner: SignalOwner where Owner.OwnedSignal == Signal<Value>>(stronglyHeldOwner owner: Owner) {
         self.init(
             didConnectFirstSink: { s in owner.signalDidStart(s) },
             didDisconnectLastSink: { s in owner.signalDidStop(s) })

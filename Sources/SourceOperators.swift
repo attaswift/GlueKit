@@ -9,17 +9,17 @@
 import Foundation
 
 extension SourceType {
-    public func sourceOperator<Output>(operation: (Value, Output->Void)->Void) -> Source<Output> {
+    public func sourceOperator<Output>(operation: (SourceValue, Output->Void)->Void) -> Source<Output> {
         return Source<Output> { sink in self.connect { value in operation(value, sink) } }
     }
 
-    public func map<Output>(transform: Value->Output) -> Source<Output> {
+    public func map<Output>(transform: SourceValue->Output) -> Source<Output> {
         return sourceOperator { input, sink in
             sink(transform(input))
         }
     }
 
-    public func filter(predicate: Value->Bool) -> Source<Value> {
+    public func filter(predicate: SourceValue->Bool) -> Source<SourceValue> {
         return sourceOperator { input, sink in
             if predicate(input) {
                 sink(input)
@@ -27,7 +27,7 @@ extension SourceType {
         }
     }
 
-    public func flatMap<Output>(transform: Value->Output?) -> Source<Output> {
+    public func flatMap<Output>(transform: SourceValue->Output?) -> Source<Output> {
         return sourceOperator { input, sink in
             if let output = transform(input) {
                 sink(output)
@@ -35,7 +35,7 @@ extension SourceType {
         }
     }
 
-    public func flatMap<Output>(transform: Value->[Output]) -> Source<Output> {
+    public func flatMap<Output>(transform: SourceValue->[Output]) -> Source<Output> {
         return sourceOperator { input, sink in
             for output in transform(input) {
                 sink(output)
@@ -43,13 +43,13 @@ extension SourceType {
         }
     }
 
-    public func dispatch(queue: dispatch_queue_t) -> Source<Value> {
+    public func dispatch(queue: dispatch_queue_t) -> Source<SourceValue> {
         return sourceOperator { input, sink in
             dispatch_async(queue, { sink(input) })
         }
     }
 
-    public func dispatch(queue: NSOperationQueue) -> Source<Value> {
+    public func dispatch(queue: NSOperationQueue) -> Source<SourceValue> {
         return sourceOperator { input, sink in
             if NSOperationQueue.currentQueue() == queue {
                 sink(input)
@@ -60,7 +60,7 @@ extension SourceType {
         }
     }
 
-    public func everyNth(n: Int) -> Source<Value> {
+    public func everyNth(n: Int) -> Source<SourceValue> {
         assert(n > 0)
         return Source { sink in
             var count = 0
@@ -75,14 +75,14 @@ extension SourceType {
 }
 
 extension SourceType {
-    public static func latestOf<B: SourceType>(a: Self, _ b: B) -> UnionSource<(Value, B.Value)> {
+    public static func latestOf<B: SourceType>(a: Self, _ b: B) -> UnionSource<(SourceValue, B.SourceValue)> {
         typealias A = Self
-        typealias Result = (A.Value, B.Value)
+        typealias Result = (A.SourceValue, B.SourceValue)
         var lock = Spinlock()
-        var av: A.Value? = nil
-        var bv: B.Value? = nil
+        var av: A.SourceValue? = nil
+        var bv: B.SourceValue? = nil
 
-        let sa: Source<(A.Value, B.Value)> = a.flatMap { (value: A.Value) -> (A.Value, B.Value)? in
+        let sa: Source<(A.SourceValue, B.SourceValue)> = a.flatMap { (value: A.SourceValue) -> (A.SourceValue, B.SourceValue)? in
             return lock.locked {
                 av = value
                 if let bv = bv {
@@ -91,7 +91,7 @@ extension SourceType {
                 return nil
             }
         }
-        let sb: Source<(A.Value, B.Value)> = b.flatMap { (value: B.Value) -> (A.Value, B.Value)? in
+        let sb: Source<(A.SourceValue, B.SourceValue)> = b.flatMap { (value: B.SourceValue) -> (A.SourceValue, B.SourceValue)? in
             return lock.locked {
                 bv = value
                 if let av = av {

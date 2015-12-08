@@ -8,7 +8,7 @@
 
 import Foundation
 
-public extension SourceType where Value == AnyObject {
+public extension SourceType where SourceValue == AnyObject {
     /// Casts all values to Type using an unsafe cast. Signals a fatal error if a value isn't a Type.
     func castedTo<Type: AnyObject>() -> Source<Type> {
         return sourceOperator { value, sink in

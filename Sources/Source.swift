@@ -23,7 +23,7 @@ public struct Source<Value>: SourceType {
         self.connecter = connecter
     }
 
-    public init<S: SourceType where S.Value == Value>(_ source: S) {
+    public init<S: SourceType where S.SourceValue == Value>(_ source: S) {
         self.connecter = source.source.connecter
     }
 
@@ -32,23 +32,23 @@ public struct Source<Value>: SourceType {
 
 /// A SourceType is anything that provides a Source. This protocol is used as a convenient extension point.
 public protocol SourceType {
-    typealias Value
+    typealias SourceValue
 
     /// The source provided by this entity.
-    var source: Source<Value> { get }
+    var source: Source<SourceValue> { get }
 }
 
 /// A SinkType is anything that provides a Sink. This protocol is used as a convenient extension point.
 public protocol SinkType {
-    typealias Value
+    typealias SinkValue
 
     /// The sink provided by this entity.
-    var sink: Value->Void { get }
+    var sink: SinkValue->Void { get }
 }
 
 // Connect methods.
 extension SourceType {
-    public typealias Sink = Value -> Void
+    public typealias Sink = SourceValue -> Void
 
     /// Connect `sink` to the source provided by this entity. The sink will receive all values that this source produces in the future.
     /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
@@ -64,7 +64,7 @@ extension SourceType {
     ///
     /// Note that a connection holds strong references to both its source and sink; thus sources (and sinks) are kept alive as long as they have an active connection.
     @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func connect<S: SinkType where S.Value == Value>(sink: S) -> Connection {
+    public func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection {
         return source.connect(sink.sink)
     }
 }
