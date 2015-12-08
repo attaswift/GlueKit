@@ -16,9 +16,7 @@ public class Connector {
     public init() {}
 
     deinit {
-        for (_, c) in connections {
-            c.disconnect()
-        }
+        disconnect()
     }
 
     public func connect<S: SourceType>(source: S, sink: S.Value->Void) -> Connection {
@@ -32,6 +30,14 @@ public class Connector {
         assert(connections[id] == nil)
         connections[id] = connection
         connection.addCallback { [weak self] id in self?.connections.removeValueForKey(id) }
+    }
+
+    public func disconnect() {
+        let cs = connections
+        connections.removeAll()
+        for (_, c) in cs {
+            c.disconnect()
+        }
     }
 }
 
