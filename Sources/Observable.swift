@@ -62,7 +62,9 @@ extension ObservableType where Change == SimpleChange<ObservableValue> {
         let futureChanges: Source<SimpleChange<Change.Value>> = self.futureChanges
         return Observable<Change.Value>(getter: getter, futureChanges: futureChanges)
     }
+}
 
+extension ObservableType {
     /// A source that immediately sends the current value to each new sink, and thereafter delivers new values
     /// whenever this readable changes.
     public var values: Source<Change.Value> {

@@ -39,6 +39,7 @@
 		BBB2851E1C0C76E200FABFE2 /* Source.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB2851D1C0C76E200FABFE2 /* Source.swift */; };
 		BBBB197F1C1699FB00765E6A /* Transforming Observables.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138BE1C160DB1005D5686 /* Transforming Observables.swift */; };
 		BBBB19801C169D9900765E6A /* TimerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D171C10C3CA003D4511 /* TimerSource.swift */; };
+		BBBB19811C17100200765E6A /* ArrayVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB57795B1C1665240061994C /* ArrayVariable.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +73,7 @@
 		BB534A1C1C113C0200FA1C7F /* GlueKitPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GlueKitPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB534A1E1C113C0200FA1C7F /* GlueKitPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlueKitPerformanceTests.swift; sourceTree = "<group>"; };
 		BB534A201C113C0200FA1C7F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BB57795B1C1665240061994C /* ArrayVariable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayVariable.swift; sourceTree = "<group>"; };
 		BB8B2C051C0CA0B4008B78A3 /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTests.swift; sourceTree = "<group>"; };
 		BB8B2C1A1C0D0E61008B78A3 /* ConnectionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionTests.swift; sourceTree = "<group>"; };
@@ -131,6 +133,7 @@
 				BB4138B61C15CD8A005D5686 /* Observable.swift */,
 				BB4138B81C15CEDF005D5686 /* Updatable.swift */,
 				BBA58D131C109FC5003D4511 /* Variable.swift */,
+				BB57795B1C1665240061994C /* ArrayVariable.swift */,
 				BB4138BE1C160DB1005D5686 /* Transforming Observables.swift */,
 			);
 			name = Observables;
@@ -364,6 +367,7 @@
 				BB8B2C1D1C0D1C51008B78A3 /* Locks.swift in Sources */,
 				BB40ACA31C167B50007F9C37 /* Variable.swift in Sources */,
 				BBA58D251C10E4E2003D4511 /* SourceOperators.swift in Sources */,
+				BBBB19811C17100200765E6A /* ArrayVariable.swift in Sources */,
 				BBB2851E1C0C76E200FABFE2 /* Source.swift in Sources */,
 				BBA58D1C1C10C73E003D4511 /* SynchronousSignal.swift in Sources */,
 				BB40ACA11C167A77007F9C37 /* Observable.swift in Sources */,
