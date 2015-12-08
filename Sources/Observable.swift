@@ -8,13 +8,20 @@
 
 import Foundation
 
+/// Describes a change of an Observable.
 public protocol ChangeType {
     typealias Value
 
+    /// Creates a new change description from `oldValue` to `newValue`.
     init(oldValue: Value, newValue: Value)
+
+    /// Applies this change on `value`, returning the new value.
+    /// `value` must have been created by loading the value before the change, 
+    /// or by applying the previous change to a previous valid value.
     func applyOn(value: Value) -> Value
 }
 
+/// Describes a change simply by including both the previous and the new value.
 public struct SimpleChange<Value>: ChangeType {
     public let oldValue: Value
     public let newValue: Value
