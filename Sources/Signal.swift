@@ -84,6 +84,12 @@ public final class Signal<Value>: SignalType {
         self.didDisconnectLastSink = didDisconnectLastSink
     }
 
+    internal convenience init(startStopCallback: (signal: Signal<Value>, started: Bool) -> Void) {
+        self.init(
+            didConnectFirstSink: { s in startStopCallback(signal: s, started: true) },
+            didDisconnectLastSink: { s in startStopCallback(signal: s, started: false) })
+    }
+
     internal convenience init<Owner: SignalOwner where Owner.OwnedSignal == Signal<Value>>(owner: Owner) {
         self.init(
             didConnectFirstSink: { [unowned owner] s in owner.signalDidStart(s) },
