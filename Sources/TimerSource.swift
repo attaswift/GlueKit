@@ -49,6 +49,8 @@ private class AtomicToken {
 ///
 /// Note that this source will only schedule an actual timer while there are sinks connected to it.
 public final class TimerSource: SourceType, SignalOwner {
+    public typealias SourceValue = Void
+
     private let queue: dispatch_queue_t
     private let next: Void->NSDate?
     private var token = AtomicToken()
@@ -64,11 +66,8 @@ public final class TimerSource: SourceType, SignalOwner {
         self.next = next
     }
 
-    public var source: Source<Void> {
-        return Source<Void> { sink in
-            // The returned source should hold a strong reference to self.
-            self.signal.connect(sink)
-        }
+    public func connect(sink: Sink<Void>) -> Connection {
+        return self.signal.connect(sink)
     }
 
     /// Stop the timer. The timer will not fire again until start() is called.

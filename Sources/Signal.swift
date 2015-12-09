@@ -9,8 +9,8 @@
 import Foundation
 
 public protocol SignalType: SourceType, SinkType /* where SourceType.SourceValue == SinkType.SinkValue */ {
-    func connect(sink: SourceValue->Void) -> Connection
-    func send(value: SinkValue)
+    func connect(sink: Sink<SourceValue>) -> Connection
+    func receive(value: SinkValue)
 }
 
 internal protocol SignalOwner: class {
@@ -65,11 +65,10 @@ private enum PendingItem<Value> {
 public final class Signal<Value>: SignalType {
     public typealias SourceValue = Value
     public typealias SinkValue = Value
-    public typealias Sink = Value->Void
 
     private let lock = NSLock(name: "com.github.lorentey.GlueKit.Signal")
     private var sending = false
-    private var sinks: Dictionary<ConnectionID, Ripening<Sink>> = [:]
+    private var sinks: Dictionary<ConnectionID, Ripening<Sink<Value>>> = [:]
     private var pendingItems: [PendingItem<Value>] = []
 
     /// A closure that is run whenever this signal transitions from an empty signal to one having a single connection. (Executed on the thread that connects the first sink.)
@@ -100,12 +99,6 @@ public final class Signal<Value>: SignalType {
     public convenience init() {
         self.init(didConnectFirstSink: { s in }, didDisconnectLastSink: { s in })
     }
-
-    /// The source of this Signal.
-    public var source: Source<Value> { return Source(self.connect) }
-
-    /// The sink of this Signal.
-    public var sink: Sink { return self.send }
 
     /// Atomically enter sending state if the signal wasn't already in it.
     /// @returns true if the signal entered sending state due to this call.
@@ -150,7 +143,7 @@ public final class Signal<Value>: SignalType {
         // - Sinks removed during the iteration will not fire.
         for (id, _) in lock.locked({ return self.sinks }) {
             if let sink = lock.locked({ return self.sinks[id]?.ripeValue }) {
-                sink(value)
+                sink.receive(value)
             }
         }
     }
@@ -165,9 +158,20 @@ public final class Signal<Value>: SignalType {
         sendNow()
     }
 
-    /// Append value to the queue of pending values. The value will be sent by the next send() or sendNow() invocation. If sendNow() is already running (recursively up the call stack, or on another thread), then the value will be sent by that invocation.
+    /// When used as a sink, a Signal will forward all received values to its connected sinks in turn.
+    public func receive(value: Value) {
+        send(value)
+    }
+
+    /// Append value to the queue of pending values. The value will be sent by a send() or sendNow() invocation.
+    /// (If sendNow() is already running (recursively up the call stack, or on another thread), then the value will be
+    /// sent by that invocation. If not, the first upcoming send will send the value.)
     ///
-    /// This is useful to control the ordering of notifications about changes to a value in the face of concurrent modifications, without calling send() inside a lock. For example, here is a thread-safe, reentrant counter:
+    /// Calls to sendLater() should always be followed by at least one call to sendNow().
+    ///
+    /// This construct is useful to control the ordering of notifications about changes to a value in the face of 
+    /// concurrent modifications, without calling send() inside a lock. For example, here is a thread-safe, reentrant 
+    /// counter that guarantees to send increasing counts, without holding a lock during sending:
     ///
     /// ```
     /// public struct Counter: SourceType {
@@ -188,15 +192,14 @@ public final class Signal<Value>: SignalType {
     ///     }
     /// }
     /// ```
-    ///
-    /// Calls to sendLater() should always be followed by at least one call to sendNow().
     internal func sendLater(value: Value) {
         lock.locked {
             self.pendingItems.append(.SendValue(value))
         }
     }
 
-    /// Send all pending values immediately, or do nothing if the signal is already sending values elsewhere. (On another thread, or if this is a recursive call of sendNow on the current thread.)
+    /// Send all pending values immediately, or do nothing if the signal is already sending values elsewhere.
+    /// (On another thread, or if this is a recursive call of sendNow on the current thread.)
     internal func sendNow() {
         if _enterSendingState() {
             while let value = _nextValueToSendOrElseLeaveSendingState() {
@@ -206,7 +209,7 @@ public final class Signal<Value>: SignalType {
     }
 
     @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func connect(sink: Sink) -> Connection {
+    public func connect(sink: Sink<Value>) -> Connection {
         let c = Connection(callback: self.disconnect) // c now holds a strong reference to self.
         let id = c.connectionID
         let first: Bool = lock.locked {

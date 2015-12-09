@@ -49,7 +49,7 @@ class VariableTests: XCTestCase {
         v.setValue(2)
         XCTAssertEqual(r, [0, 1, 2, 2])
 
-        v.sink(3)
+        v.sink.receive(3)
         XCTAssertEqual(r, [0, 1, 2, 2, 3])
         
         c.disconnect()
@@ -72,7 +72,7 @@ class VariableTests: XCTestCase {
         v.setValue(2)
         XCTAssertEqual(r, [1, 2, 2])
 
-        v.sink(3)
+        v.sink.receive(3)
         XCTAssertEqual(r, [1, 2, 2, 3])
 
         c.disconnect()
@@ -95,7 +95,7 @@ class VariableTests: XCTestCase {
         v.setValue(2)
         XCTAssertEqual(r, ["0 to 1", "1 to 2", "2 to 2"])
 
-        v.sink(3)
+        v.sink.receive(3)
         XCTAssertEqual(r, ["0 to 1", "1 to 2", "2 to 2", "2 to 3"])
         
         c.disconnect()

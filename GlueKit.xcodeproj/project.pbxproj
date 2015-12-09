@@ -18,8 +18,8 @@
 		BB4138C31C163394005D5686 /* UpdatableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138C21C163394005D5686 /* UpdatableTests.swift */; };
 		BB534A111C10F46600FA1C7F /* KVOSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */; };
 		BB534A131C10FFCE00FA1C7F /* SourceOperatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */; };
-		BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A141C112D2A00FA1C7F /* UnionSource.swift */; };
-		BB534A171C112D7000FA1C7F /* UnionSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */; };
+		BB534A151C112D2A00FA1C7F /* MergedSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A141C112D2A00FA1C7F /* MergedSource.swift */; };
+		BB534A171C112D7000FA1C7F /* MergedSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A161C112D7000FA1C7F /* MergedSourceTests.swift */; };
 		BB534A1F1C113C0200FA1C7F /* GlueKitPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A1E1C113C0200FA1C7F /* GlueKitPerformanceTests.swift */; };
 		BB534A211C113C0200FA1C7F /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB285031C0C76CB00FABFE2 /* GlueKit.framework */; };
 		BB8B2C061C0CA0B4008B78A3 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C051C0CA0B4008B78A3 /* Connection.swift */; };
@@ -74,8 +74,8 @@
 		BB4138BE1C160DB1005D5686 /* Observable Transformations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Observable Transformations.swift"; sourceTree = "<group>"; };
 		BB4138C21C163394005D5686 /* UpdatableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdatableTests.swift; sourceTree = "<group>"; };
 		BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceOperatorTests.swift; sourceTree = "<group>"; };
-		BB534A141C112D2A00FA1C7F /* UnionSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSource.swift; sourceTree = "<group>"; };
-		BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnionSourceTests.swift; sourceTree = "<group>"; };
+		BB534A141C112D2A00FA1C7F /* MergedSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MergedSource.swift; sourceTree = "<group>"; };
+		BB534A161C112D7000FA1C7F /* MergedSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MergedSourceTests.swift; sourceTree = "<group>"; };
 		BB534A1C1C113C0200FA1C7F /* GlueKitPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GlueKitPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB534A1E1C113C0200FA1C7F /* GlueKitPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlueKitPerformanceTests.swift; sourceTree = "<group>"; };
 		BB534A201C113C0200FA1C7F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -157,6 +157,14 @@
 			path = PerformanceTests;
 			sourceTree = "<group>";
 		};
+		BB8F25081C186FA30016BD25 /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				BB8B2C1C1C0D1C51008B78A3 /* Locks.swift */,
+			);
+			name = Tools;
+			sourceTree = "<group>";
+		};
 		BB97C1BA1C16796400B15771 /* Sources and Signals */ = {
 			isa = PBXGroup;
 			children = (
@@ -165,9 +173,8 @@
 				BB4138AC1C12102E005D5686 /* Connector.swift */,
 				BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */,
 				BBA58D1B1C10C73E003D4511 /* SynchronousSignal.swift */,
-				BB8B2C1C1C0D1C51008B78A3 /* Locks.swift */,
 				BBA58D0F1C1095C0003D4511 /* SimpleSources.swift */,
-				BB534A141C112D2A00FA1C7F /* UnionSource.swift */,
+				BB534A141C112D2A00FA1C7F /* MergedSource.swift */,
 				BBA58D241C10E4E2003D4511 /* SourceOperators.swift */,
 				BBA58D171C10C3CA003D4511 /* TimerSource.swift */,
 				BBA58D221C10E47A003D4511 /* KVO Support.swift */,
@@ -202,6 +209,7 @@
 			children = (
 				BBB285061C0C76CB00FABFE2 /* GlueKit.h */,
 				BBB285081C0C76CB00FABFE2 /* Info.plist */,
+				BB8F25081C186FA30016BD25 /* Tools */,
 				BB97C1BA1C16796400B15771 /* Sources and Signals */,
 				BB40ACA01C16799B007F9C37 /* Observables */,
 			);
@@ -226,7 +234,7 @@
 				BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */,
 				BBA58D1E1C10D1E1003D4511 /* SynchronousSignalTests.swift */,
 				BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */,
-				BB534A161C112D7000FA1C7F /* UnionSourceTests.swift */,
+				BB534A161C112D7000FA1C7F /* MergedSourceTests.swift */,
 				BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */,
 				BBA58D191C10C5D7003D4511 /* TimerSourceTests.swift */,
 				BBA58D261C10EF26003D4511 /* KVOSupportTests.swift */,
@@ -401,7 +409,7 @@
 				BB40ACA11C167A77007F9C37 /* Observable.swift in Sources */,
 				BB4138AD1C12102E005D5686 /* Connector.swift in Sources */,
 				BB40ACA81C168504007F9C37 /* Select.swift in Sources */,
-				BB534A151C112D2A00FA1C7F /* UnionSource.swift in Sources */,
+				BB534A151C112D2A00FA1C7F /* MergedSource.swift in Sources */,
 				BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */,
 				BB40ACA21C167ABB007F9C37 /* Updatable.swift in Sources */,
 				BBBB197F1C1699FB00765E6A /* Observable Transformations.swift in Sources */,
@@ -430,7 +438,7 @@
 				BB8B2C1B1C0D0E61008B78A3 /* ConnectionTests.swift in Sources */,
 				BBA58D161C109FCE003D4511 /* VariableTests.swift in Sources */,
 				BB4138C31C163394005D5686 /* UpdatableTests.swift in Sources */,
-				BB534A171C112D7000FA1C7F /* UnionSourceTests.swift in Sources */,
+				BB534A171C112D7000FA1C7F /* MergedSourceTests.swift in Sources */,
 				BBA58D1A1C10C5D7003D4511 /* TimerSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

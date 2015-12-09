@@ -11,9 +11,11 @@ import Foundation
 internal typealias ConnectionID = ObjectIdentifier
 
 /// A Connection is an association between a source and a sink.
-/// As long as the connection is alive, the values from the source will reach the sink. Deallocating or explicitly disconnecting a connection breaks this association.
+/// As long as the connection is alive, the values from the source will reach the sink. 
+/// Deallocating or explicitly disconnecting a connection breaks this association.
 ///
-/// A live connection holds strong references to both its source and sink. These references are immediately released when the connection is disconnected.
+/// A live connection holds strong references to both its source and sink. 
+/// These references are immediately released when the connection is disconnected.
 public final class Connection {
     // Implementation notes:
     // - This is basically just a thread-safe list of closures to call on disconnection.
@@ -42,7 +44,8 @@ public final class Connection {
     internal var connectionID: ConnectionID { return ObjectIdentifier(self) }
 
     /// Disconnect this connection, immediately releasing its source and sink.
-    /// This method is idempotent and it is safe to call it at any time from any thread.
+    /// This method is safe to call it at any time from any thread. 
+    /// It is OK to call this method multiple times; the second and subsequent calls will do nothing.
     public func disconnect() {
         let callbacks: [Callback] = lock.locked {
             if !self.disconnected {
@@ -84,15 +87,16 @@ public final class Connection {
 
 extension Connection {
     /// A source that fires exactly once after this connection is disconnected.
-    /// The source (and its connections) do not hold a strong reference to this connection.
+    /// If the connection has already disconnected at the time of a new connection, the source will fire immediately.
+    /// The returned source (and its connections) do not hold a strong reference to this connection.
     public var disconnectSource: Source<Void> {
         return Source { [weak self] sink in
             if let c = self {
                 var lock = Spinlock()
-                var maybeSink: Source<Void>.Sink? = sink
+                var maybeSink: Sink<Void>? = sink
                 c.addCallback { id in
                     if let sink = lock.locked({ maybeSink }) {
-                        sink()
+                        sink.receive()
                     }
                 }
                 return Connection(callback: { id in
@@ -101,7 +105,7 @@ extension Connection {
             }
             else {
                 // Target has already disconnected.
-                sink()
+                sink.receive()
                 return Connection()
             }
         }

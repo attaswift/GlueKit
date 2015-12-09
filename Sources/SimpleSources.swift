@@ -17,7 +17,7 @@ extension SourceType {
     /// Returns a source that fires exactly once with the given value, then never again.
     public static func constantSource(value: SourceValue) -> Source<SourceValue> {
         return Source { sink in
-            sink(value)
+            sink.receive(value)
             return Connection()
         }
     }

@@ -18,8 +18,8 @@ public protocol UpdatableType: ObservableType, SinkType {
 }
 
 extension UpdatableType {
-    public var sink: Change.Value->Void {
-        return { value in self.value = value }
+    public func receive(value: Change.Value) {
+        self.value = value
     }
 }
 
@@ -61,8 +61,8 @@ public struct Updatable<Value>: UpdatableType {
         return _futureChanges()
     }
 
-    public var sink: Value->Void {
-        return self.setter
+    public func receive(value: Value) {
+        self.setter(value)
     }
 }
 

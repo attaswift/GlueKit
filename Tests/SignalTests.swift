@@ -616,7 +616,9 @@ private struct Counter: SourceType {
     private var counter: Int = 0
     private var signal = Signal<Int>()
 
-    var source: Source<Int> { return signal.source }
+    func connect(sink: Sink<Int>) -> Connection {
+        return signal.connect(sink)
+    }
 
     mutating func increment() -> Int {
         let value: Int = lock.locked {

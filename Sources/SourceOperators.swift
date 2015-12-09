@@ -9,20 +9,20 @@
 import Foundation
 
 extension SourceType {
-    public func sourceOperator<Output>(operation: (SourceValue, Output->Void)->Void) -> Source<Output> {
+    public func sourceOperator<Output>(operation: (SourceValue, Sink<Output>)->Void) -> Source<Output> {
         return Source<Output> { sink in self.connect { value in operation(value, sink) } }
     }
 
     public func map<Output>(transform: SourceValue->Output) -> Source<Output> {
         return sourceOperator { input, sink in
-            sink(transform(input))
+            sink.receive(transform(input))
         }
     }
 
     public func filter(predicate: SourceValue->Bool) -> Source<SourceValue> {
         return sourceOperator { input, sink in
             if predicate(input) {
-                sink(input)
+                sink.receive(input)
             }
         }
     }
@@ -30,7 +30,7 @@ extension SourceType {
     public func flatMap<Output>(transform: SourceValue->Output?) -> Source<Output> {
         return sourceOperator { input, sink in
             if let output = transform(input) {
-                sink(output)
+                sink.receive(output)
             }
         }
     }
@@ -38,24 +38,24 @@ extension SourceType {
     public func flatMap<Output>(transform: SourceValue->[Output]) -> Source<Output> {
         return sourceOperator { input, sink in
             for output in transform(input) {
-                sink(output)
+                sink.receive(output)
             }
         }
     }
 
     public func dispatch(queue: dispatch_queue_t) -> Source<SourceValue> {
         return sourceOperator { input, sink in
-            dispatch_async(queue, { sink(input) })
+            dispatch_async(queue, { sink.receive(input) })
         }
     }
 
     public func dispatch(queue: NSOperationQueue) -> Source<SourceValue> {
         return sourceOperator { input, sink in
             if NSOperationQueue.currentQueue() == queue {
-                sink(input)
+                sink.receive(input)
             }
             else {
-                queue.addOperationWithBlock { sink(input) }
+                queue.addOperationWithBlock { sink.receive(input) }
             }
         }
     }
@@ -67,7 +67,7 @@ extension SourceType {
             return self.connect { value in
                 if ++count == n {
                     count = 0
-                    sink(value)
+                    sink.receive(value)
                 }
             }
         }
@@ -75,7 +75,7 @@ extension SourceType {
 }
 
 extension SourceType {
-    public static func latestOf<B: SourceType>(a: Self, _ b: B) -> UnionSource<(SourceValue, B.SourceValue)> {
+    public static func latestOf<B: SourceType>(a: Self, _ b: B) -> MergedSource<(SourceValue, B.SourceValue)> {
         typealias A = Self
         typealias Result = (A.SourceValue, B.SourceValue)
         var lock = Spinlock()
@@ -100,6 +100,6 @@ extension SourceType {
                 return nil
             }
         }
-        return UnionSource([sa, sb])
+        return MergedSource(sources: [sa, sb])
     }
 }

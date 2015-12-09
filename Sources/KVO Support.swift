@@ -12,14 +12,14 @@ public extension SourceType where SourceValue == AnyObject {
     /// Casts all values to Type using an unsafe cast. Signals a fatal error if a value isn't a Type.
     func castedTo<Type: AnyObject>() -> Source<Type> {
         return sourceOperator { value, sink in
-            sink(value as! Type)
+            sink.receive(value as! Type)
         }
     }
 
     /// Casts all values to String via NSString. Signals a fatal error if a value isn't an NSString.
     func toString() -> Source<String> {
         return sourceOperator { value, sink in
-            sink(value as! String)
+            sink.receive(value as! String)
         }
     }
 
@@ -27,7 +27,7 @@ public extension SourceType where SourceValue == AnyObject {
     func toBool() -> Source<Bool> {
         return sourceOperator { value, sink in
             let v = value as! NSNumber
-            sink(v.boolValue)
+            sink.receive(v.boolValue)
         }
     }
 
@@ -35,7 +35,7 @@ public extension SourceType where SourceValue == AnyObject {
     func toInt() -> Source<Int> {
         return sourceOperator { value, sink in
             let v = value as! NSNumber
-            sink(v.integerValue)
+            sink.receive(v.integerValue)
         }
     }
 
@@ -43,7 +43,7 @@ public extension SourceType where SourceValue == AnyObject {
     func toFloat() -> Source<Float> {
         return sourceOperator { value, sink in
             let v = value as! NSNumber
-            sink(v.floatValue)
+            sink.receive(v.floatValue)
         }
     }
 
@@ -51,7 +51,7 @@ public extension SourceType where SourceValue == AnyObject {
     func toDouble() -> Source<Double> {
         return sourceOperator { value, sink in
             let v = value as! NSNumber
-            sink(v.doubleValue)
+            sink.receive(v.doubleValue)
         }
     }
 
@@ -60,7 +60,7 @@ public extension SourceType where SourceValue == AnyObject {
     func toCGFloat() -> Source<CGFloat> {
         return sourceOperator { value, sink in
             let v = value as! NSNumber
-            sink(CGFloat(v.doubleValue))
+            sink.receive(CGFloat(v.doubleValue))
         }
     }
 
@@ -68,7 +68,7 @@ public extension SourceType where SourceValue == AnyObject {
     func toCGPoint() -> Source<CGPoint> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink(v.CGPointValue())
+            sink.receive(v.CGPointValue())
         }
     }
 
@@ -76,7 +76,7 @@ public extension SourceType where SourceValue == AnyObject {
     func toCGSize() -> Source<CGSize> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink(v.CGSizeValue())
+            sink.receive(v.CGSizeValue())
         }
     }
 
@@ -84,7 +84,7 @@ public extension SourceType where SourceValue == AnyObject {
     func toCGRect() -> Source<CGRect> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink(v.CGRectValue())
+            sink.receive(v.CGRectValue())
         }
     }
 
@@ -92,7 +92,7 @@ public extension SourceType where SourceValue == AnyObject {
     func toCGAffineTransform() -> Source<CGAffineTransform> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink(v.CGAffineTransformValue())
+            sink.receive(v.CGAffineTransformValue())
         }
     }
 #endif

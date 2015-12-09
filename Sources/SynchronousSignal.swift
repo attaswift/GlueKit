@@ -11,11 +11,10 @@ import Foundation
 /// A simple Signal that sends values synchronously. It uses a lock, so it does not allow reentrant sends.
 /// You can use this if you can prove that sinks will never call send.
 internal class SynchronousSignal<Value>: SignalType {
-    internal typealias Sink = Value->Void
 
     private var lock = Spinlock()
     private let sendLock = NSLock(name: "com.github.lorentey.GlueKit.SynchronousSignal")
-    private var sinks: Dictionary<ConnectionID, Sink> = [:]
+    private var sinks: Dictionary<ConnectionID, Sink<Value>> = [:]
 
     /// A closure that is run whenever this signal transitions from an empty signal to one having a single connection. (Executed on the thread that connects the first sink.)
     internal let didConnectFirstSink: SynchronousSignal<Value>->Void
@@ -40,17 +39,18 @@ internal class SynchronousSignal<Value>: SignalType {
         self.init(didConnectFirstSink: { s in }, didDisconnectLastSink: { s in })
     }
 
-    internal var source: Source<Value> { return Source(self.connect) }
-    internal var sink: Sink { return self.send }
-
     internal func send(value: Value) {
         sendLock.locked {
             for (id, _) in lock.locked({ sinks }) {
                 if let sink = lock.locked({ sinks[id] }) {
-                    sink(value)
+                    sink.receive(value)
                 }
             }
         }
+    }
+
+    internal func receive(value: Value) {
+        self.send(value)
     }
 
     private func disconnect(id: ConnectionID) {
@@ -64,7 +64,7 @@ internal class SynchronousSignal<Value>: SignalType {
     }
 
     @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    internal func connect(sink: Sink) -> Connection {
+    internal func connect(sink: Sink<Value>) -> Connection {
         let c = Connection(callback: self.disconnect)
         let id = c.connectionID
         let first: Bool = lock.locked {

@@ -1,5 +1,5 @@
 //
-//  UnionSourceTests.swift
+//  MergedSourceTests.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2015-12-04.
@@ -9,13 +9,13 @@
 import XCTest
 import GlueKit
 
-class UnionSourceTests: XCTestCase {
+class MergedSourceTests: XCTestCase {
 
-    func testSimpleUnion() {
+    func testSimpleMerge() {
         let s1 = Signal<Int>()
         let s2 = Signal<Int>()
 
-        let source = s1.union(s2)
+        let source = s1.merge(s2)
 
         var r = [Int]()
         let c = source.connect { r.append($0) }
@@ -32,14 +32,14 @@ class UnionSourceTests: XCTestCase {
         c.disconnect()
     }
 
-    func testNaryUnion() {
+    func testNaryMerge() {
         var signals: [Signal<Int>] = []
         (0..<10).forEach { _ in signals.append(Signal<Int>()) }
 
-        let union = Signal.union(signals)
+        let merge = Signal.merge(signals)
 
         var r = [Int]()
-        let c = union.connect { i in r.append(i) }
+        let c = merge.connect { i in r.append(i) }
 
         for i in 0..<20 {
             signals[i % signals.count].send(i)
@@ -50,11 +50,11 @@ class UnionSourceTests: XCTestCase {
         XCTAssertEqual(r, Array(0..<20))
     }
 
-    func testReentrantUnion() {
+    func testReentrantMerge() {
         let s1 = Signal<Int>()
         let s2 = Signal<Int>()
 
-        let source = s1.union(s2)
+        let source = s1.merge(s2)
 
         var s = ""
         let c = source.connect { i in
@@ -71,17 +71,17 @@ class UnionSourceTests: XCTestCase {
         c.disconnect()
     }
 
-    func testUnionChaining() {
+    func testMergeChaining() {
         let s1 = Signal<Int>()
         let s2 = Signal<Int>()
         let s3 = Signal<Int>()
         let s4 = Signal<Int>()
 
-        // This does not chain three unions together; it creates a single union containing all sources.
-        let union = s1.union(s2).union(s3).union(s4)
+        // This does not chain three merged sources together; it creates a single merged source containing all sources.
+        let merge = s1.merge(s2).merge(s3).merge(s4)
 
         var r = [Int]()
-        let c = union.connect { i in r.append(i) }
+        let c = merge.connect { i in r.append(i) }
 
         s1.send(1)
         s2.send(2)

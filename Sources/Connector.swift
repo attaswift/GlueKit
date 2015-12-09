@@ -42,6 +42,7 @@ public class Connector {
 }
 
 extension Connection {
+    /// Put this connection into `connector`. The connector will disconnect the connection when it is deallocated.
     public func putInto(connector: Connector) -> Connection {
         connector.add(self)
         return self

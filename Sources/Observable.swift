@@ -79,11 +79,11 @@ extension ObservableType {
                     pendingValues!.append(value)
                 }
                 else {
-                    sink(value)
+                    sink.receive(value)
                 }
             }
             while !(pendingValues!.isEmpty) {
-                sink(pendingValues!.removeFirst())
+                sink.receive(pendingValues!.removeFirst())
             }
             pendingValues = nil
             return c
