@@ -11,7 +11,7 @@ import GlueKit
 
 private class TestObservable: ObservableType {
     var _value: Int = 0
-    var _signal = Signal<SimpleChange<Int>>()
+    var _signal = Signal<Int>()
 
     var value: Int {
         get {
@@ -19,20 +19,14 @@ private class TestObservable: ObservableType {
         }
         set {
             _value = newValue
-            _signal.send(SimpleChange(_value))
+            _signal.send(_value)
         }
     }
 
-    var futureChanges: Source<SimpleChange<Int>> { return _signal.source }
+    var futureValues: Source<Int> { return _signal.source }
 }
 
 class ObservableTests: XCTestCase {
-    func testSimpleChange_applyOn_SimplyReturnsTheNewValue() {
-        let change = SimpleChange<Int>(2)
-
-        XCTAssertEqual(change.applyOn(0), 2)
-    }
-
     func testObservableType_values_SendsInitialValue() {
         let test = TestObservable()
 

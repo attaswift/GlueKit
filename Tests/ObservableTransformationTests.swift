@@ -11,7 +11,7 @@ import GlueKit
 
 private class TestObservable: ObservableType {
     var _value: Int = 0
-    var _signal = Signal<SimpleChange<Int>>()
+    var _signal = Signal<Int>()
 
     var value: Int {
         get {
@@ -19,16 +19,16 @@ private class TestObservable: ObservableType {
         }
         set {
             _value = newValue
-            _signal.send(SimpleChange(newValue))
+            _signal.send(newValue)
         }
     }
 
-    var futureChanges: Source<SimpleChange<Int>> { return _signal.source }
+    var futureValues: Source<Int> { return _signal.source }
 }
 
 private class TestUpdatable: UpdatableType {
     var _value: Int = 0
-    var _signal = Signal<SimpleChange<Int>>()
+    var _signal = Signal<Int>()
 
     var value: Int {
         get {
@@ -36,11 +36,11 @@ private class TestUpdatable: UpdatableType {
         }
         set {
             _value = newValue
-            _signal.send(SimpleChange(newValue))
+            _signal.send(newValue)
         }
     }
 
-    var futureChanges: Source<SimpleChange<Int>> { return _signal.source }
+    var futureValues: Source<Int> { return _signal.source }
 }
 
 
@@ -102,21 +102,6 @@ class ObservableTransformationTests: XCTestCase {
         let test = TestObservable()
         var r = [Int]()
         let c = test.distinct().futureValues.connect { i in r.append(i) }
-
-        test.value = 0 // This will be not sent to the future source.
-        test.value = 1
-        test.value = 1
-        test.value = 1
-        test.value = 2
-
-        XCTAssertEqual(r, [1, 2])
-        c.disconnect()
-    }
-
-    func testDistinct_DefaultEqualityTestOnFutureChanges() {
-        let test = TestObservable()
-        var r = [Int]()
-        let c = test.distinct().futureChanges.connect { change in r.append(change.value) }
 
         test.value = 0 // This will be not sent to the future source.
         test.value = 1

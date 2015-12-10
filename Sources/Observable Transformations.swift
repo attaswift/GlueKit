@@ -9,16 +9,14 @@
 import Foundation
 
 /// An Observable that is derived from another observable.
-internal class TransformedObservable<Input: ObservableType, Value where Input.Change == SimpleChange<Input.ObservableValue>>: ObservableType, SignalOwner {
-    internal typealias ObservableValue = Value
-    internal typealias Change = SimpleChange<Value>
+internal class TransformedObservable<Input: ObservableType, Value>: ObservableType, SignalOwner {
 
     private let input: Input
-    private let transform: Input.Change.Value -> Value
+    private let transform: Input.Value -> Value
 
     private var connection: Connection? = nil
 
-    internal init(input: Input, transform: Input.Change.Value->Value) {
+    internal init(input: Input, transform: Input.Value->Value) {
         self.input = input
         self.transform = transform
     }
@@ -28,42 +26,41 @@ internal class TransformedObservable<Input: ObservableType, Value where Input.Ch
     }
 
     internal var value: Value { return transform(input.value) }
-    internal var futureChanges: Source<Change> { return Signal<Change>(stronglyHeldOwner: self).source }
+    internal var futureValues: Source<Value> { return Signal<Value>(stronglyHeldOwner: self).source }
 
-    internal func signalDidStart(signal: Signal<Change>) {
+    internal func signalDidStart(signal: Signal<Value>) {
         assert(connection == nil)
-        connection = input.futureChanges.connect { change in
-            signal.send(SimpleChange(self.transform(change.value)))
+        connection = input.futureValues.connect { value in
+            signal.send(self.transform(value))
         }
     }
 
-    internal func signalDidStop(signal: Signal<Change>) {
+    internal func signalDidStop(signal: Signal<Value>) {
         assert(connection != nil)
         connection?.disconnect()
         connection = nil
     }
 }
 
-public extension ObservableType where Change == SimpleChange<ObservableValue> {
+public extension ObservableType {
     /// Returns an observable that calculates `transform` on all current and future values of this observable.
-    public func map<Output>(transform: ObservableValue->Output) -> Observable<Output> {
+    public func map<Output>(transform: Value->Output) -> Observable<Output> {
         return TransformedObservable(input: self, transform: transform).observable
     }
 }
 
 /// An source that provides the distinct values of another observable.
-internal class DistinctValueSource<Value>: SourceType, SignalOwner {
+internal class DistinctValueSource<Input: ObservableType>: SourceType, SignalOwner {
+    internal typealias Value = Input.Value
     internal typealias SourceValue = Value
 
-    private let input: Observable<Value>
+    private let input: Input
     private let equalityTest: (Value, Value) -> Bool
 
     private var connection: Connection? = nil
 
-    internal init
-        <InputObservable: ObservableType where InputObservable.ObservableValue == Value, InputObservable.Change == SimpleChange<Value>>
-        (input: InputObservable, equalityTest: (Value, Value)->Bool) {
-        self.input = input.observable
+    internal init(input: Input, equalityTest: (Value, Value)->Bool) {
+        self.input = input
         self.equalityTest = equalityTest
     }
 
@@ -96,22 +93,22 @@ internal class DistinctValueSource<Value>: SourceType, SignalOwner {
     }
 }
 
-public extension ObservableType where Change == SimpleChange<ObservableValue> {
-    public func distinct(equalityTest: (ObservableValue, ObservableValue)->Bool) -> Observable<ObservableValue> {
+public extension ObservableType {
+    public func distinct(equalityTest: (Value, Value)->Bool) -> Observable<Value> {
         return Observable(
             getter: { self.value },
             futureValues: { DistinctValueSource(input: self, equalityTest: equalityTest).source })
     }
 }
 
-public extension ObservableType where Change == SimpleChange<ObservableValue>, ObservableValue: Equatable {
-    public func distinct() -> Observable<ObservableValue> {
+public extension ObservableType where Value: Equatable {
+    public func distinct() -> Observable<Value> {
         return distinct(==)
     }
 }
 
-public extension UpdatableType where Change == SimpleChange<ObservableValue> {
-    public func distinct(equalityTest: (ObservableValue, ObservableValue)->Bool) -> Updatable<ObservableValue> {
+public extension UpdatableType {
+    public func distinct(equalityTest: (Value, Value)->Bool) -> Updatable<Value> {
         return Updatable(
             getter: { self.value },
             setter: { v in self.value = v },
@@ -119,26 +116,22 @@ public extension UpdatableType where Change == SimpleChange<ObservableValue> {
     }
 }
 
-public extension UpdatableType where Change == SimpleChange<ObservableValue>, ObservableValue: Equatable {
-    public func distinct() -> Updatable<ObservableValue> {
+public extension UpdatableType where Value: Equatable {
+    public func distinct() -> Updatable<Value> {
         return distinct(==)
     }
 }
 
 /// An Observable that is calculated from two other observables.
-public class BinaryCompositeObservable<Change1: ChangeType, Change2: ChangeType, Value>: ObservableType, SignalOwner {
-    public typealias ObservableValue = Value
-    public typealias Change = SimpleChange<Value>
+public class BinaryCompositeObservable<Input1: ObservableType, Input2: ObservableType, Value>: ObservableType, SignalOwner {
+    private let first: Input1
+    private let second: Input2
+    private let combinator: (Input1.Value, Input2.Value) -> Value
 
-    private let first: AnyObservable<Change1>
-    private let second: AnyObservable<Change2>
-    private let combinator: (Change1.Value, Change2.Value) -> Value
-
-    public init<Input1: ObservableType, Input2: ObservableType where Input1.Change == Change1, Input2.Change == Change2>
-        (first: Input1, second: Input2, combinator: (Change1.Value, Change2.Value) -> Value) {
-            self.first = AnyObservable(first)
-            self.second = AnyObservable(second)
-            self.combinator = combinator
+    public init(first: Input1, second: Input2, combinator: (Input1.Value, Input2.Value) -> Value) {
+        self.first = first
+        self.second = second
+        self.combinator = combinator
     }
 
     deinit {
@@ -146,13 +139,13 @@ public class BinaryCompositeObservable<Change1: ChangeType, Change2: ChangeType,
     }
 
     public var value: Value { return combinator(first.value, second.value) }
-    public var futureChanges: Source<Change> { return Signal<Change>(stronglyHeldOwner: self).source }
+    public var futureValues: Source<Value> { return Signal<Value>(stronglyHeldOwner: self).source }
 
-    private var firstValue: Change1.Value? = nil
-    private var secondValue: Change2.Value? = nil
+    private var firstValue: Input1.Value? = nil
+    private var secondValue: Input2.Value? = nil
     private var connections: [Connection] = []
 
-    internal func signalDidStart(signal: Signal<Change>) {
+    internal func signalDidStart(signal: Signal<Value>) {
         assert(connections.count == 0)
         firstValue = first.value
         secondValue = second.value
@@ -160,18 +153,18 @@ public class BinaryCompositeObservable<Change1: ChangeType, Change2: ChangeType,
             assert(self.secondValue != nil)
             self.firstValue = value
             let result = self.combinator(value, self.secondValue!)
-            signal.send(SimpleChange(result))
+            signal.send(result)
         }
         let c2 = second.futureValues.connect { value in
             assert(self.firstValue != nil)
             self.secondValue = value
             let result = self.combinator(self.firstValue!, value)
-            signal.send(SimpleChange(result))
+            signal.send(result)
         }
         connections = [c1, c2]
     }
 
-    internal func signalDidStop(signal: Signal<Change>) {
+    internal func signalDidStop(signal: Signal<Value>) {
         connections.forEach { $0.disconnect() }
         firstValue = nil
         secondValue = nil
@@ -180,7 +173,7 @@ public class BinaryCompositeObservable<Change1: ChangeType, Change2: ChangeType,
 }
 
 public extension ObservableType {
-    public func combine<Other: ObservableType, Output>(other: Other, via combinator: (Change.Value, Other.Change.Value)->Output) -> Observable<Output> {
+    public func combine<Other: ObservableType, Output>(other: Other, via combinator: (Value, Other.Value)->Output) -> Observable<Output> {
         return BinaryCompositeObservable(first: self, second: other, combinator: combinator).observable
     }
 }

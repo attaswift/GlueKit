@@ -10,10 +10,9 @@ import Foundation
 
 /// A Variable holds a value that can be read and updated. Updates to a variable are observable via any of its several sources.
 public class Variable<Value>: UpdatableType {
-    public typealias Change = SimpleChange<Value>
 
     private var _value: Value
-    private weak var _signal: Signal<Change>? = nil // Created on demand, released immediately when unused
+    private weak var _signal: Signal<Value>? = nil // Created on demand, released immediately when unused
 
     /// Create a new variable with an initial value.
     /// @param value: The initial value of the variable.
@@ -28,15 +27,15 @@ public class Variable<Value>: UpdatableType {
     }
 
     /// A source that reports all future values of this variable.
-    public final var futureChanges: Source<Change> { return self.signal.source }
+    public final var futureValues: Source<Value> { return self.signal.source }
 
     /// Return the existing signal or create a new one if needed.
-    private final var signal: Signal<Change> {
+    private final var signal: Signal<Value> {
         if let signal = _signal {
             return signal
         }
         else {
-            let signal = Signal<Change>()
+            let signal = Signal<Value>()
             _signal = signal
             return signal
         }
@@ -46,7 +45,7 @@ public class Variable<Value>: UpdatableType {
     /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
     public final func setValue(value: Value) {
         _value = value
-        _signal?.send(SimpleChange(value))
+        _signal?.send(value)
     }
 }
 
