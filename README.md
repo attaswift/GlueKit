@@ -24,7 +24,7 @@ it does provide easy-to-use adapters for observing KVO-compatible key paths on N
 NSNotificationCenter notifications.
 
 A major design goal for GlueKit is to eventually serve as the underlying observer implementation
-for a future model object graph (and perhaps persistence) project, which would include a 
+for a future model object graph (and perhaps persistence) project.
 
 ## Overview
 
