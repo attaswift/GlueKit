@@ -93,7 +93,7 @@ class ProjectSummaryViewModel {
 	
     /// The number of open issues in the current project.
 	var openIssueCount: Observable<Int> { 
-	    return project.selectCount({ $0.issues }, where: { $0.isOpen })
+	    return project.selectCount({ $0.issues }, filteredBy: { $0.isOpen })
 	}
 	
     /// The ratio of open issues to all issues, in percentage points.
@@ -105,16 +105,15 @@ class ProjectSummaryViewModel {
     /// The number of open issues assigned to the current account.
     var yourOpenIssues: Observable<Int> {
         return project
-            .selectCount(
-                { $0.issues }, 
-                where: { $0.isOpen && $0.owner == self.currentAccount })
+            .selectCount({ $0.issues }, 
+                filteredBy: { $0.isOpen && $0.owner == self.currentAccount })
     }
     
     /// The five most recently created issues assigned to the current account.
     var yourFiveMostRecentIssues: Observable<[Issue]> {
         return project
             .selectFirstN(5, { $0.issues }, 
-                where: { $0.isOpen && $0.owner == currentAccount }),
+                filteredBy: { $0.isOpen && $0.owner == currentAccount }),
                 orderBy: { $0.created < $1.created })
     }
 
@@ -138,14 +137,13 @@ class ProjectSummaryViewModel {
     /// An observable text for a label.
     var localizedIssueCountString: Observable<String> {
         return Observable
-            // Create an observable of tuples containing values of three observables
+            // Create an observable of tuples containing values of four observables
             .combine(localizedIssueCountFormat, issueCount, openIssueCount, percentageOfOpenIssues)
             // Then convert each tuple into a single localized string
             .map { format, all, open, percent in 
                 return String(format: format, open, all, percent)
             }
     }
-    
 }
 ```
 
@@ -188,10 +186,9 @@ class ProjectSummaryViewController: UIViewController {
     
     override func viewDidDisappear() {
         super.viewDidDisappear()
-        
-	    visibleConnections.disconnect()
+        visibleConnections.disconnect()
     }
-
+}
 ```
 
 Setting up the connections in `viewWillAppear` ensures that the view model's complex observer
