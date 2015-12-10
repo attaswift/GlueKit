@@ -18,9 +18,8 @@ private class TestObservable: ObservableType {
             return _value
         }
         set {
-            let change = SimpleChange(oldValue: _value, newValue: newValue)
             _value = newValue
-            _signal.send(change)
+            _signal.send(SimpleChange(_value))
         }
     }
 
@@ -29,7 +28,7 @@ private class TestObservable: ObservableType {
 
 class ObservableTests: XCTestCase {
     func testSimpleChange_applyOn_SimplyReturnsTheNewValue() {
-        let change = SimpleChange<Int>(oldValue: 1, newValue: 2)
+        let change = SimpleChange<Int>(2)
 
         XCTAssertEqual(change.applyOn(0), 2)
     }
@@ -75,5 +74,11 @@ class ObservableTests: XCTestCase {
 
         c1.disconnect()
         c2.disconnect()
+    }
+
+    func testObservableType_constant() {
+        let constant = Observable.constant(1)
+
+        XCTAssertEqual(constant.value, 1)
     }
 }

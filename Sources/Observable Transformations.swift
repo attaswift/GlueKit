@@ -8,12 +8,6 @@
 
 import Foundation
 
-public extension ObservableType {
-    public static func constant(value: Change.Value) -> Observable<Change.Value> {
-        return Observable(getter: { value }, futureChanges: { Source.emptySource() })
-    }
-}
-
 /// An Observable that is derived from another observable.
 internal class TransformedObservable<Input: ObservableType, Value where Input.Change == SimpleChange<Input.ObservableValue>>: ObservableType, SignalOwner {
     internal typealias ObservableValue = Value
@@ -39,7 +33,7 @@ internal class TransformedObservable<Input: ObservableType, Value where Input.Ch
     internal func signalDidStart(signal: Signal<Change>) {
         assert(connection == nil)
         connection = input.futureChanges.connect { change in
-            signal.send(SimpleChange(oldValue: self.transform(change.oldValue), newValue: self.transform(change.newValue)))
+            signal.send(SimpleChange(self.transform(change.value)))
         }
     }
 
@@ -51,6 +45,7 @@ internal class TransformedObservable<Input: ObservableType, Value where Input.Ch
 }
 
 public extension ObservableType where Change == SimpleChange<ObservableValue> {
+    /// Returns an observable that calculates `transform` on all current and future values of this observable.
     public func map<Output>(transform: ObservableValue->Output) -> Observable<Output> {
         return TransformedObservable(input: self, transform: transform).observable
     }
@@ -80,10 +75,15 @@ internal class DistinctChangeSource<Value>: SourceType, SignalOwner {
     internal var value: Value { return input.value }
     internal var source: Source<Change> { return Signal<Change>(stronglyHeldOwner: self).source }
 
+    private var lastValue: Value? = nil
+
     internal func signalDidStart(signal: Signal<Change>) {
         assert(connection == nil)
+        lastValue = input.value
         connection = input.futureChanges.connect { change in
-            if !self.equalityTest(change.oldValue, change.newValue) {
+            let send = !self.equalityTest(self.lastValue!, change.value)
+            self.lastValue = change.value
+            if send {
                 signal.send(change)
             }
         }
@@ -93,6 +93,7 @@ internal class DistinctChangeSource<Value>: SourceType, SignalOwner {
         assert(connection != nil)
         connection?.disconnect()
         connection = nil
+        lastValue = nil
     }
 }
 
@@ -150,36 +151,31 @@ public class BinaryCompositeObservable<Change1: ChangeType, Change2: ChangeType,
 
     private var firstValue: Change1.Value? = nil
     private var secondValue: Change2.Value? = nil
-    private var currentValue: Value? = nil
     private var connections: [Connection] = []
 
     internal func signalDidStart(signal: Signal<Change>) {
         assert(connections.count == 0)
         firstValue = first.value
         secondValue = second.value
-        currentValue = combinator(firstValue!, secondValue!)
         let c1 = first.futureValues.connect { value in
-            assert(self.currentValue != nil)
+            assert(self.secondValue != nil)
             self.firstValue = value
-            let previousValue = self.currentValue!
-            let currentValue = self.combinator(value, self.secondValue!)
-            self.currentValue = currentValue
-            signal.send(SimpleChange(oldValue: previousValue, newValue: currentValue))
+            let result = self.combinator(value, self.secondValue!)
+            signal.send(SimpleChange(result))
         }
         let c2 = second.futureValues.connect { value in
-            assert(self.currentValue != nil)
+            assert(self.firstValue != nil)
             self.secondValue = value
-            let previousValue = self.currentValue!
-            let currentValue = self.combinator(self.firstValue!, value)
-            self.currentValue = currentValue
-            signal.send(SimpleChange(oldValue: previousValue, newValue: currentValue))
+            let result = self.combinator(self.firstValue!, value)
+            signal.send(SimpleChange(result))
         }
         connections = [c1, c2]
     }
 
     internal func signalDidStop(signal: Signal<Change>) {
         connections.forEach { $0.disconnect() }
-        currentValue = nil
+        firstValue = nil
+        secondValue = nil
         connections = []
     }
 }

@@ -45,9 +45,8 @@ public class Variable<Value>: UpdatableType {
     /// Update the value of this variable, and send the new value to all sinks that are currently connected.
     /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
     public final func setValue(value: Value) {
-        let oldValue = _value
         _value = value
-        _signal?.send(Change(oldValue: oldValue, newValue: value))
+        _signal?.send(SimpleChange(value))
     }
 }
 

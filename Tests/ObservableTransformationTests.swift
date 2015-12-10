@@ -18,9 +18,8 @@ private class TestObservable: ObservableType {
             return _value
         }
         set {
-            let change = SimpleChange(oldValue: _value, newValue: newValue)
             _value = newValue
-            _signal.send(change)
+            _signal.send(SimpleChange(newValue))
         }
     }
 
@@ -36,9 +35,8 @@ private class TestUpdatable: UpdatableType {
             return _value
         }
         set {
-            let change = SimpleChange(oldValue: _value, newValue: newValue)
             _value = newValue
-            _signal.send(change)
+            _signal.send(SimpleChange(newValue))
         }
     }
 
@@ -117,8 +115,8 @@ class ObservableTransformationTests: XCTestCase {
 
     func testDistinct_DefaultEqualityTestOnFutureChanges() {
         let test = TestObservable()
-        var r = [String]()
-        let c = test.distinct().futureChanges.connect { change in r.append("\(change.oldValue) to \(change.newValue)") }
+        var r = [Int]()
+        let c = test.distinct().futureChanges.connect { change in r.append(change.value) }
 
         test.value = 0 // This will be not sent to the future source.
         test.value = 1
@@ -126,7 +124,7 @@ class ObservableTransformationTests: XCTestCase {
         test.value = 1
         test.value = 2
 
-        XCTAssertEqual(r, ["0 to 1", "1 to 2"])
+        XCTAssertEqual(r, [1, 2])
         c.disconnect()
     }
 

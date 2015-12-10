@@ -81,22 +81,22 @@ class VariableTests: XCTestCase {
     func testFutureChangesSource() {
         let v = Variable<Int>(0)
 
-        var r = [String]()
-        let c = v.futureChanges.connect { change in r.append("\(change.oldValue) to \(change.newValue)") }
+        var r = [Int]()
+        let c = v.futureChanges.connect { change in r.append(change.value) }
 
         XCTAssertEqual(r, [], "The future changes source should not trigger with the current value of the variable")
 
         v.value = 1
-        XCTAssertEqual(r, ["0 to 1"])
+        XCTAssertEqual(r, [1])
 
         v.setValue(2)
-        XCTAssertEqual(r, ["0 to 1", "1 to 2"])
+        XCTAssertEqual(r, [1, 2])
 
         v.setValue(2)
-        XCTAssertEqual(r, ["0 to 1", "1 to 2", "2 to 2"])
+        XCTAssertEqual(r, [1, 2, 2])
 
         v.sink.receive(3)
-        XCTAssertEqual(r, ["0 to 1", "1 to 2", "2 to 2", "2 to 3"])
+        XCTAssertEqual(r, [1, 2, 2, 3])
         
         c.disconnect()
     }

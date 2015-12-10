@@ -77,8 +77,10 @@ private final class ChangeSourceForObservableField<Parent: ObservableType, Field
             self.currentValue = field.value
             self.fieldConnection = field.futureChanges.connect(signal)
 
-            let change: Field.Change = Field.Change(oldValue: previousValue, newValue: self.currentValue!)
-            signal.send(change)
+            let change: Field.Change = Field.Change(from: previousValue, to: self.currentValue!)
+            if !change.isNull {
+                signal.send(change)
+            }
         }
     }
 
@@ -166,24 +168,21 @@ private final class ChangeSourceForObservableArrayField<Parent: ObservableType, 
         currentValue = fields.map { $0.value }
         fieldConnections = fields.enumerate().map { i, field in
             field.futureValues.connect { fv in
-                let oldValue = self.currentValue
                 self.currentValue[i] = fv
-                signal.send(SimpleChange(oldValue: oldValue, newValue: self.currentValue))
+                signal.send(SimpleChange(self.currentValue))
             }
         }
         parentConnection = parent.futureValues.connect { parentValue in
             let fields = parentValue.map(self.key)
             self.fieldConnections.forEach { $0.disconnect() }
-            let previousValue = self.currentValue
             self.currentValue = fields.map { $0.value }
             self.fieldConnections = fields.enumerate().map { i, field in
                 field.futureValues.connect { fv in
-                    let oldValue = self.currentValue
                     self.currentValue[i] = fv
-                    signal.send(SimpleChange(oldValue: oldValue, newValue: self.currentValue))
+                    signal.send(SimpleChange(self.currentValue))
                 }
             }
-            signal.send(SimpleChange(oldValue: previousValue, newValue: self.currentValue))
+            signal.send(SimpleChange(self.currentValue))
         }
     }
 
