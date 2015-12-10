@@ -49,7 +49,7 @@ class Account {
 
 class Issue {
     let identifier: Variable<String>
-    let owner: Variable<Account?>
+    let owner: Variable<Account>
     let isOpen: Variable<Bool>
     let created: Variable<NSDate>
 }
@@ -70,9 +70,104 @@ print("a = \(a)")   ;        print("b = \(b.value\)")
 a = 7               ;        b.value = 7
 ```
 
+Given the model above, in Cocoa you could specify key paths for accessing various parts of the model from a
+`Document` instance. For example, to get the email addresses of all issue owners in one big unsorted array, 
+you'd use the Cocoa key path `"projects.issues.owner.email"`. The GlueKit is able to do this too, although
+it uses a specially constructed Swift closure to represent the key path:
 
-Given this model, you can set up a view model for a project summary screen that displays various
-useful data about the currently selected project:
+```Swift
+let cocoaKeyPath: String = "projects.issues.owner.email"
+let swiftKeyPath: Document -> Observable<[String]> = { document in 
+    document.projects.selectEach{$0.issues}.selectEach{$0.owner}.select{email} 
+}
+```
+
+(The type declarations are included to make it clear that GlueKit is fully type-safe. Swift's type inference is able
+to find these out automatically, so typically you'd omit specifying types in declarations like this.)
+The GlueKit syntax is certainly much more verbose, but in exchange it is typesafe, much more flexible, and also extensible. 
+Plus, there is a visual difference between selecting a single value (`select`) or a collection of values (`selectEach`), 
+which alerts you that using this key path might be more expensive than usual. (GlueKit's key paths are really just 
+combinations of observables. `select` is a combinator that is used to build one-to-one key paths; there are many other
+interesting combinators available.)
+
+In Cocoa, you would get the current list of emails using KVC's accessor method. In GlueKit, if you give the key path a
+document instance, it returns an `Observable` that has a `value` property that you can get. 
+
+```Swift
+let document: Document = ...
+let cocoaEmails: AnyObject? = document.valueForKeyPath(cocoaKeyPath)
+let swiftEmails: [String] = swiftKeyPath(document).value
+```
+
+In both cases, you get an array of strings. However, Cocoa returns it as an optional `AnyObject` that you'll need to
+unwrap and cast to the correct type yourself (you'll want to hold your nose while doing so). Boo! 
+GlueKit knows what type the result is going to be, so it gives it to you straight. Yay!
+
+Neither Cocoa nor GlueKit allows you to update the value at the end of this key path; however, with Cocoa, you only find
+this out at runtime, while with GlueKit, you get a nice compiler error:
+
+```Swift
+// Cocoa: Compiles fine, but oops, crash at runtime
+document.setValue("karoly@example.com", forKeyPath: cocoaKeyPath)
+// GlueKit/Swift: error: cannot assign to property: 'value' is a get-only property
+swiftKeyPath(document).value = "karoly@example.com"
+```
+
+You'll be happy to know that one-to-one key paths are assignable in both Cocoa and GlueKit:
+
+```Swift
+let issue: Issue = ...
+/* Cocoa */   issue.setValue("karoly@example.com", forKeyPath: "owner.email") // OK
+/* GlueKit */ issue.owner.select{$0.email}.value = "karoly@example.com"  // OK
+```
+
+(In GlueKit, you generally just use the observable combinators directly instead of creating key path entities.
+So we're going to do that from now on. Serializable type-safe key paths require additional work, which is better
+provided by a potentional future model object framework built on top of GlueKit.)
+
+More interestingly, you can ask to be notified whenever a key path changes its value.
+
+```Swift
+// GlueKit
+let c = document.projects.selectEach{$0.issues}.selectEach{$0.owner}.select{$0.name}.connect { emails in 
+    print("Owners' email addresses are: \(emails)")
+}
+// Call c.disconnect() when you get bored of getting so many emails.
+
+// Cocoa
+class Foo {
+    static let context: Int8 = 0
+    let document: Document
+    
+    init(document: Document) {
+        self.document = document
+        document.addObserver(self, forKeyPath: "projects.issues.owner.email", options: .New, context:&context)
+    }
+    deinit {
+        document.removeObserver(self, forKeyPath: "projects.issues.owner.email", context: &context)
+    }
+    func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, 
+                                change change: [String : AnyObject]?, 
+                                context context: UnsafeMutablePointer<Void>) {
+        if context == &self.context {
+	    print("Owners' email addresses are: \(change[NSKeyValueChangeNewKey]))
+        }
+        else {
+            super.observeValueForKeyPath(keyPath, ofObject: object, change: change, context: context)
+        }
+    }
+}
+```
+
+Well, Cocoa is a mouthful, but people tend to wrap this up in their own abstractions. In both cases, a new set of emails is
+printed whenever the list of projects changes, or the list of issues belonging to any project changes, or the owner of any
+issue changes, or if the email address is changed on an individual account.
+
+
+To present a more down-to-earth example, let's say you want to create a view model for a project summary screen that
+displays various useful data about the currently selected project. GlueKit's observable combinators make it simple to
+put together data derived from our model objects. The resulting fields in the view model are themselves observable,
+and react to changes to any of their dependencies on their own.
 
 ```Swift
 class ProjectSummaryViewModel {
