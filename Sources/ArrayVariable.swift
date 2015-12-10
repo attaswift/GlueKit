@@ -249,10 +249,22 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
         }
     }
 
+    public var futureValues: Source<[Element]> {
+        if let signal = _futureValues {
+            return signal.source
+        }
+        else {
+            let s = Signal<[Element]>()
+            _futureValues = s
+            return s.source
+        }
+    }
+
     public func setValue(value: [Element]) {
         let oldCount = _value.count
         _value = value
         _futureChanges?.send(ArrayChange(count: oldCount, modification: .ReplaceRange(0..<oldCount, with: value)))
+        _futureValues?.send(value)
     }
 
     public var count: Int {
@@ -282,26 +294,6 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
     public var observableCount: Observable<Int> {
         return Observable(getter: { self.count }, futureValues: { self.futureCounts.source })
     }
-
-    public var futureValues: Source<[Element]> {
-        if let signal = _futureValues {
-            return signal.source
-        }
-        else {
-            var connection: Connection? = nil
-            let s = Signal<[Element]>(
-                didConnectFirstSink: { s in
-                    // TODO: check values sent when there're other sinks on self.signal
-                    connection = self.futureValues.map { _ in self.value }.connect(s)
-                },
-                didDisconnectLastSink: { s in
-                    connection?.disconnect()
-                    connection = nil
-            })
-            _futureValues = s
-            return s.source
-        }
-    }
 }
 
 extension ArrayVariable: MutableCollectionType {
@@ -322,6 +314,7 @@ extension ArrayVariable: MutableCollectionType {
         set {
             value[index] = newValue
             _futureChanges?.send(ArrayChange(count: self.count, modification: .ReplaceAt(index, with: newValue)))
+            _futureValues?.send(value)
         }
     }
 
@@ -333,6 +326,7 @@ extension ArrayVariable: MutableCollectionType {
             let oldCount = count
             value[bounds] = newValue
             _futureChanges?.send(ArrayChange(count: oldCount, modification: .ReplaceRange(bounds, with: Array<Element>(newValue))))
+            _futureValues?.send(value)
         }
     }
 }
@@ -342,6 +336,7 @@ extension ArrayVariable: RangeReplaceableCollectionType {
         let oldCount = count
         value.replaceRange(subRange, with: newElements)
         _futureChanges?.send(ArrayChange(count: oldCount, modification: .ReplaceRange(subRange, with: Array<Element>(newElements))))
+        _futureValues?.send(value)
     }
 
     // These have default implementations in terms of replaceRange, but doing them by hand makes for better change reports.
@@ -353,29 +348,34 @@ extension ArrayVariable: RangeReplaceableCollectionType {
     public func insert(newElement: Element, at index: Int) {
         value.insert(newElement, atIndex: index)
         _futureChanges?.send(ArrayChange(count: self.count - 1, modification: .Insert(newElement, at: index)))
+        _futureValues?.send(value)
     }
 
     public func removeAtIndex(index: Int) -> Element {
         let result = value.removeAtIndex(index)
         _futureChanges?.send(ArrayChange(count: self.count + 1, modification: .RemoveAt(index)))
+        _futureValues?.send(value)
         return result
     }
 
     public func removeFirst() -> Element {
         let result = value.removeFirst()
         _futureChanges?.send(ArrayChange(count: self.count + 1, modification: .RemoveAt(0)))
+        _futureValues?.send(value)
         return result
     }
 
     public func removeLast() -> Element {
         let result = value.removeLast()
         _futureChanges?.send(ArrayChange(count: self.count + 1, modification: .RemoveAt(self.count)))
+        _futureValues?.send(value)
         return result
     }
     
     public func popLast() -> Element? {
         guard let result = value.popLast() else { return nil }
         _futureChanges?.send(ArrayChange(count: self.count + 1, modification: .RemoveAt(self.count)))
+        _futureValues?.send(value)
         return result
     }
 
@@ -383,6 +383,7 @@ extension ArrayVariable: RangeReplaceableCollectionType {
         let count = value.count
         value.removeAll()
         _futureChanges?.send(ArrayChange(count: count, modification: .ReplaceRange(0..<count, with: [])))
+        _futureValues?.send(value)
     }
 }
 
