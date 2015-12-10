@@ -10,10 +10,19 @@ import Foundation
 
 //MARK: ArrayModification
 
-internal enum ArrayModification<Element> {
+/// Describes a single modification of an array.
+public enum ArrayModification<Element> {
+    /// The insertion of a single element at the specified position.
     case Insert(Element, at: Int)
+    /// The removal of a single element at the specified position.
     case RemoveAt(Int)
+    /// The replacement of a single element at the specified position with the specified new element.
     case ReplaceAt(Int, with: Element)
+    /// The replacement of the specified range of elements with the specified new list of elements.
+    /// The count of the range need not equal the replacement element count.
+    ///
+    /// Note that all other modification cases have an equivalent range replacement.
+    /// We chose to keep them separate only because they are more expressive that way.
     case ReplaceRange(Range<Int>, with: [Element])
 
     var countDelta: Int {
@@ -25,45 +34,63 @@ internal enum ArrayModification<Element> {
         }
     }
 
-    func toRangeReplacement() -> (range: Range<Int>, elements: [Element]) {
+    /// The range (in the original array) that this modification replaces, when converted into a range modification.
+    public var range: Range<Int> {
         switch self {
-        case .Insert(let e, at: let i):
-            return (Range(start: i, end: i), [e])
+        case .Insert(_, at: let i):
+            return Range(start: i, end: i)
         case .RemoveAt(let i):
-            return (Range(start: i, end: i + 1), [])
-        case .ReplaceAt(let i, with: let e):
-            return (Range(start: i, end: i + 1), [e])
-        case .ReplaceRange(let range, with: let es):
-            return (range, es)
+            return Range(start: i, end: i + 1)
+        case .ReplaceAt(let i, with: _):
+            return Range(start: i, end: i + 1)
+        case .ReplaceRange(let range, with: _):
+            return range
+        }
+    }
+
+    /// The replacement elements that this modification inserts into the array in place of the old elements in `range`.
+    public var elements: [Element] {
+        switch self {
+        case .Insert(let e, at: _):
+            return [e]
+        case .RemoveAt(_):
+            return []
+        case .ReplaceAt(_, with: let e):
+            return [e]
+        case .ReplaceRange(_, with: let es):
+            return es
         }
     }
 
     func merge(mod: ArrayModification<Element>) -> ArrayModificationMergeResult<Element> {
-        let rm1 = self.toRangeReplacement()
-        let rm2 = mod.toRangeReplacement()
+        let range1 = self.range
+        let range2 = mod.range
 
-        if rm1.range.startIndex + rm1.elements.count < rm2.range.startIndex {
+        let elements1 = self.elements
+        let elements2 = mod.elements
+
+        if range1.startIndex + elements1.count < range2.startIndex {
             // New range affects indices greater than our range
             return .DisjunctOrderedAfter
         }
-        else if rm2.range.endIndex < rm1.range.startIndex {
+        else if range2.endIndex < range1.startIndex {
             // New range affects indices earlier than our range
             return .DisjunctOrderedBefore
         }
 
         // There is some overlap.
-        let delta = rm1.elements.count - rm1.range.count
+        let delta = elements1.count - range1.count
 
         let combinedRange = Range<Int>(
-            start: min(rm1.range.startIndex, rm2.range.startIndex),
-            end: max(rm1.range.endIndex, rm2.range.endIndex - delta)
+            start: min(range1.startIndex, range2.startIndex),
+            end: max(range1.endIndex, range2.endIndex - delta)
         )
 
         let replacement = Range<Int>(
-            start: max(0, rm2.range.startIndex - rm1.range.startIndex),
-            end: min(rm1.elements.count, rm2.range.endIndex - rm1.range.startIndex))
-        var combinedElements = rm1.elements
-        combinedElements.replaceRange(replacement, with: rm2.elements)
+            start: max(0, range2.startIndex - range1.startIndex),
+            end: min(elements1.count, range2.endIndex - range1.startIndex))
+        var combinedElements = elements1
+        combinedElements.replaceRange(replacement, with: elements2)
 
         switch (combinedRange.count, combinedElements.count) {
         case (0, 0):
@@ -79,7 +106,20 @@ internal enum ArrayModification<Element> {
         }
     }
 
-    func shift(delta: Int) -> ArrayModification<Element> {
+    public func map<Result>(transform: Element->Result) -> ArrayModification<Result> {
+        switch self {
+        case .Insert(let e, at: let i):
+            return .Insert(transform(e), at: i)
+        case .RemoveAt(let i):
+            return .RemoveAt(i)
+        case .ReplaceAt(let i, with: let e):
+            return .ReplaceAt(i, with: transform(e))
+        case .ReplaceRange(let range, with: let es):
+            return .ReplaceRange(range, with: es.map(transform))
+        }
+    }
+
+    public func shift(delta: Int) -> ArrayModification<Element> {
         switch self {
         case .Insert(let e, at: let i):
             return .Insert(e, at: i + delta)
@@ -126,7 +166,7 @@ public struct ArrayChange<Element>: ChangeType {
     /// List of independent modifications to apply, in order of startIndex.
     /// All indices are understood to be in the *resulting* array.
     /// (But if you apply them in order to the original, you'll get the correct result.)
-    internal var modifications: [ArrayModification<Element>] = []
+    public private(set) var modifications: [ArrayModification<Element>] = []
 
     internal init(initialCount: Int, finalCount: Int, modifications: [ArrayModification<Element>]) {
         assert(finalCount == initialCount + modifications.reduce(0, combine: { c, m in c + m.countDelta }))
@@ -181,24 +221,38 @@ public struct ArrayChange<Element>: ChangeType {
         return result
     }
 
-    public func merge(other: ArrayChange<Element>) -> ArrayChange<Element> {
+    public mutating func mergeInPlace(other: ArrayChange<Element>) {
         precondition(finalCount == other.initialCount)
-        var result = self
         for m in other.modifications {
-            result.addModification(m)
+            addModification(m)
         }
-        assert(result.finalCount == other.finalCount)
+        assert(finalCount == other.finalCount)
+    }
+
+    @warn_unused_result
+    public func merge(other: ArrayChange<Element>) -> ArrayChange<Element> {
+        var result = self
+        result.mergeInPlace(other)
         return result
+    }
+
+    public func map<Result>(transform: Element->Result) -> ArrayChange<Result> {
+        return ArrayChange<Result>(initialCount: initialCount, finalCount: finalCount,
+            modifications: modifications.map { $0.map(transform) })
     }
 }
 
 extension RangeReplaceableCollectionType where Index == Int {
     public mutating func apply(change: ArrayChange<Generator.Element>) {
+        precondition(self.count == change.initialCount)
         for modification in change.modifications {
             self.apply(modification)
         }
+        assert(self.count == change.finalCount)
     }
 }
+
+//MARK: ArrayVariable
 
 public protocol ArrayObservableType: ObservableType {
     var observableCount: Observable<Int> { get }

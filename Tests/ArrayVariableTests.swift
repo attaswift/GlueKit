@@ -10,9 +10,7 @@ import XCTest
 @testable import GlueKit
 
 private func ==<T: Equatable>(a: ArrayModification<T>, b: ArrayModification<T>) -> Bool {
-    let ar = a.toRangeReplacement()
-    let br = b.toRangeReplacement()
-    return ar.range == br.range && ar.elements == br.elements
+    return a.range == b.range && a.elements == b.elements
 }
 
 private func ==<T: Equatable>(a: ArrayModificationMergeResult<T>, b: ArrayModificationMergeResult<T>) -> Bool {
@@ -47,8 +45,10 @@ class ArrayModificationTests: XCTestCase {
         let mod = ArrayModification.Insert(10, at: 2)
 
         XCTAssertEqual(mod.countDelta, 1)
-        XCTAssertEqual(mod.toRangeReplacement().range, 2..<2)
-        XCTAssertEqual(mod.toRangeReplacement().elements, [10])
+        XCTAssertEqual(mod.range, 2..<2)
+        XCTAssertEqual(mod.elements, [10])
+
+        XCTAssert(mod.map { "\($0)" } == ArrayModification.Insert("10", at: 2))
 
         a.apply(mod)
 
@@ -60,10 +60,12 @@ class ArrayModificationTests: XCTestCase {
         let mod = ArrayModification<Int>.RemoveAt(1)
 
         XCTAssertEqual(mod.countDelta, -1)
-        XCTAssertEqual(mod.toRangeReplacement().range, 1..<2)
-        XCTAssertEqual(mod.toRangeReplacement().elements, [])
+        XCTAssertEqual(mod.range, 1..<2)
+        XCTAssertEqual(mod.elements, [])
 
         a.apply(mod)
+
+        XCTAssert(mod.map { "\($0)" } == ArrayModification<String>.RemoveAt(1))
 
         XCTAssertEqual(a, [1, 3])
     }
@@ -73,10 +75,12 @@ class ArrayModificationTests: XCTestCase {
         let mod = ArrayModification.ReplaceAt(1, with: 10)
 
         XCTAssertEqual(mod.countDelta, 0)
-        XCTAssertEqual(mod.toRangeReplacement().range, 1..<2)
-        XCTAssertEqual(mod.toRangeReplacement().elements, [10])
+        XCTAssertEqual(mod.range, 1..<2)
+        XCTAssertEqual(mod.elements, [10])
 
         a.apply(mod)
+
+        XCTAssert(mod.map { "\($0)" } == ArrayModification.ReplaceAt(1, with: "10"))
 
         XCTAssertEqual(a, [1, 10, 3])
     }
@@ -86,10 +90,12 @@ class ArrayModificationTests: XCTestCase {
         let mod = ArrayModification.ReplaceRange(1...1, with: [10, 20])
 
         XCTAssertEqual(mod.countDelta, 1)
-        XCTAssertEqual(mod.toRangeReplacement().range, 1..<2)
-        XCTAssertEqual(mod.toRangeReplacement().elements, [10, 20])
+        XCTAssertEqual(mod.range, 1..<2)
+        XCTAssertEqual(mod.elements, [10, 20])
 
         a.apply(mod)
+
+        XCTAssert(mod.map { "\($0)" } == ArrayModification.ReplaceRange(1...1, with: ["10", "20"]))
 
         XCTAssertEqual(a, [1, 10, 20, 3])
     }
@@ -171,13 +177,11 @@ class ArrayChangeTests: XCTestCase {
             print("    \(input)")
             print("This sequence of changes:")
             for t in trace {
-                let r = t.toRangeReplacement()
-                print("    Replace \(r.range) with \(r.elements)")
+                print("    Replace \(t.range) with \(t.elements)")
             }
             print("Was collapsed to:")
             for m in change.modifications {
-                let r = m.toRangeReplacement()
-                print("    Replace \(r.range) with \(r.elements)")
+                print("    Replace \(m.range) with \(m.elements)")
             }
             print("Which resulted in:")
             print("     \(applied)")
@@ -214,11 +218,26 @@ class ArrayChangeTests: XCTestCase {
 
         let startChange = ArrayChange<Int>(initialCount: startSequence.count, finalCount: startSequence.count, modifications: [])
         recurse(1, input: startSequence, change: startChange, output: startSequence, trace: [])
+    }
 
+    func testMap() {
+        let c1 = ArrayChange<Int>(count: 10, modification: .Insert(1, at: 3))
+            .merge(ArrayChange<Int>(count: 11, modification: .ReplaceAt(1, with: 2)))
+            .merge(ArrayChange<Int>(count: 11, modification: .RemoveAt(4)))
+            .merge(ArrayChange<Int>(count: 10, modification: .ReplaceRange(8...9, with: [5, 6])))
+
+        let c2 = ArrayChange<String>(count: 10, modification: .Insert("1", at: 3))
+            .merge(ArrayChange<String>(count: 11, modification: .ReplaceAt(1, with: "2")))
+            .merge(ArrayChange<String>(count: 11, modification: .RemoveAt(4)))
+            .merge(ArrayChange<String>(count: 10, modification: .ReplaceRange(8...9, with: ["5", "6"])))
+
+        let m = c1.map { "\($0)" }
+        XCTAssertEqual(m.initialCount, c2.initialCount)
+        XCTAssertEqual(m.finalCount, c2.finalCount)
+        XCTAssert(m.modifications.elementsEqual(c2.modifications, isEquivalent: ==))
     }
 }
 
 
 class ArrayVariableTests: XCTestCase {
-
 }
