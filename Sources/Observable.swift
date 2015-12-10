@@ -148,7 +148,7 @@ extension ObservableType where Change == SimpleChange<ObservableValue> {
 
     /// Returns the type-lifted version of this ObservableType.
     public var observable: Observable<Change.Value> {
-        return Observable<Change.Value>(getter: { self.value }, futureChanges: { self.futureChanges })
+        return Observable<Change.Value>(getter: { self.value }, futureValues: { self.futureValues })
     }
 }
 
@@ -182,24 +182,26 @@ public struct Observable<Value>: ObservableType {
     public typealias Change = SimpleChange<Value>
 
     /// The getter closure for the current value of this observable.
-    private let getter: Void -> Change.Value
+    private let _getter: Void -> Value
 
     /// A closure providing a source providing the values of future updates to this observable.
-    private let _futureChanges: Void -> Source<Change>
+    private let _futureValues: Void -> Source<Value>
 
     /// Initializes an Observable from the given getter closure and source of future changes.
     /// @param getter A closure that returns the current value of the observable at the time of the call.
     /// @param futureSource A closure that returns a source that triggers whenever the observable changes.
-    public init(getter: Void->Change.Value, futureChanges: Void -> Source<Change>) {
-        self.getter = getter
-        self._futureChanges = futureChanges
+    public init(getter: Void->Value, futureValues: Void -> Source<Value>) {
+        self._getter = getter
+        self._futureValues = futureValues
     }
 
     /// The current value of the observable.
-    public var value: Value { return getter() }
+    public var value: Value { return _getter() }
+
+    public var futureValues: Source<Change.Value> { return _futureValues() }
 
     /// The source providing the values of future updates to this observable.
-    public var futureChanges: Source<Change> { return _futureChanges() }
+    public var futureChanges: Source<Change> { return _futureValues().map { SimpleChange($0) } }
 }
 
 /// The type lifted representation of an ObservableType that contains a value with complex changes.
@@ -226,6 +228,6 @@ public struct AnyObservable<Change: ChangeType>: ObservableType {
 public extension ObservableType {
     /// Creates a constant observable wrapping the given value. The returned observable is not modifiable and it will not ever send updates.
     public static func constant(value: Change.Value) -> Observable<Change.Value> {
-        return Observable(getter: { value }, futureChanges: { Source.emptySource() })
+        return Observable(getter: { value }, futureValues: { Source.emptySource() })
     }
 }

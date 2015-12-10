@@ -216,7 +216,7 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
     // These are created on demand and released immediately when unused
     private weak var _futureChanges: Signal<ArrayChange<Element>>? = nil
     private weak var _futureValues: Signal<[Element]>? = nil
-    private weak var _futureCounts: Signal<SimpleChange<Int>>? = nil
+    private weak var _futureCounts: Signal<Int>? = nil
 
     public init() {
         _value = []
@@ -259,16 +259,16 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
         return value.count
     }
 
-    private var futureCounts: Signal<SimpleChange<Int>> {
+    private var futureCounts: Signal<Int> {
         if let futureCounts = _futureCounts {
             return futureCounts
         }
         else {
             var connection: Connection? = nil
-            let signal = Signal<SimpleChange<Int>>(
+            let signal = Signal<Int>(
                 didConnectFirstSink: { signal in
                     connection = self.futureChanges.connect { change in
-                        signal.send(SimpleChange(change.finalCount))
+                        signal.send(change.finalCount)
                     }
                 },
                 didDisconnectLastSink: { signal in
@@ -280,7 +280,7 @@ public final class ArrayVariable<Element>: ArrayUpdatableType, ArrayLiteralConve
         }
     }
     public var observableCount: Observable<Int> {
-        return Observable(getter: { self.count }, futureChanges: { self.futureCounts.source })
+        return Observable(getter: { self.count }, futureValues: { self.futureCounts.source })
     }
 
     public var futureValues: Source<[Element]> {

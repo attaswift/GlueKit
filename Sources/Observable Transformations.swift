@@ -52,9 +52,8 @@ public extension ObservableType where Change == SimpleChange<ObservableValue> {
 }
 
 /// An source that provides the distinct values of another observable.
-internal class DistinctChangeSource<Value>: SourceType, SignalOwner {
-    internal typealias Change = SimpleChange<Value>
-    internal typealias SourceValue = Change
+internal class DistinctValueSource<Value>: SourceType, SignalOwner {
+    internal typealias SourceValue = Value
 
     private let input: Observable<Value>
     private let equalityTest: (Value, Value) -> Bool
@@ -73,23 +72,23 @@ internal class DistinctChangeSource<Value>: SourceType, SignalOwner {
     }
 
     internal var value: Value { return input.value }
-    internal var source: Source<Change> { return Signal<Change>(stronglyHeldOwner: self).source }
+    internal var source: Source<Value> { return Signal<Value>(stronglyHeldOwner: self).source }
 
     private var lastValue: Value? = nil
 
-    internal func signalDidStart(signal: Signal<Change>) {
+    internal func signalDidStart(signal: Signal<Value>) {
         assert(connection == nil)
         lastValue = input.value
-        connection = input.futureChanges.connect { change in
-            let send = !self.equalityTest(self.lastValue!, change.value)
-            self.lastValue = change.value
+        connection = input.futureValues.connect { value in
+            let send = !self.equalityTest(self.lastValue!, value)
+            self.lastValue = value
             if send {
-                signal.send(change)
+                signal.send(value)
             }
         }
     }
 
-    internal func signalDidStop(signal: Signal<Change>) {
+    internal func signalDidStop(signal: Signal<Value>) {
         assert(connection != nil)
         connection?.disconnect()
         connection = nil
@@ -101,7 +100,7 @@ public extension ObservableType where Change == SimpleChange<ObservableValue> {
     public func distinct(equalityTest: (ObservableValue, ObservableValue)->Bool) -> Observable<ObservableValue> {
         return Observable(
             getter: { self.value },
-            futureChanges: { DistinctChangeSource(input: self, equalityTest: equalityTest).source })
+            futureValues: { DistinctValueSource(input: self, equalityTest: equalityTest).source })
     }
 }
 
@@ -116,7 +115,7 @@ public extension UpdatableType where Change == SimpleChange<ObservableValue> {
         return Updatable(
             getter: { self.value },
             setter: { v in self.value = v },
-            futureChanges: { DistinctChangeSource(input: self, equalityTest: equalityTest).source })
+            futureValues: { DistinctValueSource(input: self, equalityTest: equalityTest).source })
     }
 }
 

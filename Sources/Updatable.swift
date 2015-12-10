@@ -26,7 +26,7 @@ extension UpdatableType {
 extension UpdatableType where Change == SimpleChange<SinkValue> {
     /// Returns the type-lifted version of this UpdatableType.
     public var updatable: Updatable<Change.Value> {
-        return Updatable(getter: { self.value }, setter: { self.value = $0 }, futureChanges: { self.futureChanges })
+        return Updatable(getter: { self.value }, setter: { self.value = $0 }, futureValues: { self.futureValues })
     }
 }
 
@@ -39,12 +39,12 @@ public struct Updatable<Value>: UpdatableType {
     /// The setter closure for updating the current value of this updatable.
     public let setter: Value->Void
     /// A closure returning a source providing the values of future updates to this updatable.
-    private let _futureChanges: Void->Source<Change>
+    private let _futureValues: Void->Source<Value>
 
-    public init(getter: Void->Value, setter: Value->Void, futureChanges: Void->Source<Change>) {
+    public init(getter: Void->Value, setter: Value->Void, futureValues: Void->Source<Value>) {
         self.getter = getter
         self.setter = setter
-        self._futureChanges = futureChanges
+        self._futureValues = futureValues
     }
 
     /// The current value of the updatable. It's called an `Updatable` because this value is settable.
@@ -57,8 +57,12 @@ public struct Updatable<Value>: UpdatableType {
         }
     }
 
+    public var futureValues: Source<Value> {
+        return _futureValues()
+    }
+
     public var futureChanges: Source<Change> {
-        return _futureChanges()
+        return futureValues.map { SimpleChange($0) }
     }
 
     public func receive(value: Value) {

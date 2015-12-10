@@ -47,8 +47,8 @@ private final class ValueSourceForSourceField<Parent: ObservableType, Field: Sou
 
 
 /// A source of changes for an Observable field.
-private final class ChangeSourceForObservableField<Parent: ObservableType, Field: ObservableType>: SourceType, SignalOwner {
-    typealias Value = Field.Change
+private final class ValueSourceForObservableField<Parent: ObservableType, Field: ObservableType>: SourceType, SignalOwner {
+    typealias Value = Field.Change.Value
     typealias SourceValue = Value
 
     let parent: Parent
@@ -69,18 +69,14 @@ private final class ChangeSourceForObservableField<Parent: ObservableType, Field
         assert(parentConnection == nil)
         let field = key(parent.value)
         currentValue = field.value
-        fieldConnection = field.futureChanges.connect(signal)
+        fieldConnection = field.futureValues.connect(signal)
         parentConnection = parent.futureValues.connect { parentValue in
             let field = self.key(parentValue)
             self.fieldConnection?.disconnect()
-            let previousValue = self.currentValue!
-            self.currentValue = field.value
-            self.fieldConnection = field.futureChanges.connect(signal)
-
-            let change: Field.Change = Field.Change(from: previousValue, to: self.currentValue!)
-            if !change.isNull {
-                signal.send(change)
-            }
+            let fv = field.value
+            self.currentValue = fv
+            self.fieldConnection = field.futureValues.connect(signal)
+            signal.send(fv)
         }
     }
 
@@ -128,14 +124,14 @@ extension ObservableType where Change.Value == ObservableValue {
         return Updatable<U.ObservableValue>(
             getter: { key(self.value).value },
             setter: { key(self.value).value = $0 },
-            futureChanges: { ChangeSourceForObservableField(parent: self, key: key).source })
+            futureValues: { ValueSourceForObservableField(parent: self, key: key).source })
     }
 
     public func select<O: ObservableType where O.Change == SimpleChange<O.ObservableValue>>
         (key: Change.Value->O) -> Observable<O.Change.Value> {
         return Observable<O.Change.Value>(
             getter: { key(self.value).value },
-            futureChanges: { ChangeSourceForObservableField(parent: self, key: key).source })
+            futureValues: { ValueSourceForObservableField(parent: self, key: key).source })
     }
 
     public func select<S: SourceType>(key: ObservableValue->S) -> Source<S.SourceValue> {
@@ -144,9 +140,9 @@ extension ObservableType where Change.Value == ObservableValue {
 }
 
 
-private final class ChangeSourceForObservableArrayField<Parent: ObservableType, Field: ObservableType where Parent.Change.Value: _ArrayType>: SourceType, SignalOwner {
+private final class ValueSourceForObservableArrayField<Parent: ObservableType, Field: ObservableType where Parent.Change.Value: _ArrayType>: SourceType, SignalOwner {
     typealias Change = SimpleChange<[Field.Change.Value]>
-    typealias SourceValue = Change
+    typealias SourceValue = Change.Value
 
     let parent: Parent
     let key: Parent.Change.Value.Generator.Element -> Field
@@ -169,7 +165,7 @@ private final class ChangeSourceForObservableArrayField<Parent: ObservableType, 
         fieldConnections = fields.enumerate().map { i, field in
             field.futureValues.connect { fv in
                 self.currentValue[i] = fv
-                signal.send(SimpleChange(self.currentValue))
+                signal.send(self.currentValue)
             }
         }
         parentConnection = parent.futureValues.connect { parentValue in
@@ -179,10 +175,10 @@ private final class ChangeSourceForObservableArrayField<Parent: ObservableType, 
             self.fieldConnections = fields.enumerate().map { i, field in
                 field.futureValues.connect { fv in
                     self.currentValue[i] = fv
-                    signal.send(SimpleChange(self.currentValue))
+                    signal.send(self.currentValue)
                 }
             }
-            signal.send(SimpleChange(self.currentValue))
+            signal.send(self.currentValue)
         }
     }
 
@@ -201,7 +197,7 @@ extension ObservableType where ObservableValue == Change.Value, ObservableValue:
         (key: ObservableValue.Generator.Element->O) -> Observable<[O.ObservableValue]> {
         return Observable<[O.ObservableValue]>(
             getter: { self.value.map { key($0).value } },
-            futureChanges: { ChangeSourceForObservableArrayField(parent: self, key: key).source })
+            futureValues: { ValueSourceForObservableArrayField(parent: self, key: key).source })
     }
 }
 
