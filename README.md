@@ -79,7 +79,7 @@ it uses a specially constructed Swift closure to represent the key path:
 let cocoaKeyPath: String = "projects.issues.owner.email"
 
 let swiftKeyPath: Document -> Observable<[String]> = { document in 
-    document.projects.selectEach{$0.issues}.selectEach{$0.owner}.select{email} 
+    document.projects.selectEach{$0.issues}.selectEach{$0.owner}.select{$0.email} 
 }
 ```
 
