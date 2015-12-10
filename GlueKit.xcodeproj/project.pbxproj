@@ -20,6 +20,7 @@
 		BB534A171C112D7000FA1C7F /* MergedSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A161C112D7000FA1C7F /* MergedSourceTests.swift */; };
 		BB534A1F1C113C0200FA1C7F /* GlueKitPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A1E1C113C0200FA1C7F /* GlueKitPerformanceTests.swift */; };
 		BB534A211C113C0200FA1C7F /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB285031C0C76CB00FABFE2 /* GlueKit.framework */; };
+		BB87D5641C19FE1200186780 /* SelectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138B41C14536F005D5686 /* SelectTests.swift */; };
 		BB8B2C061C0CA0B4008B78A3 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C051C0CA0B4008B78A3 /* Connection.swift */; };
 		BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */; };
 		BB8B2C0F1C0CA718008B78A3 /* SignalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */; };
@@ -27,6 +28,7 @@
 		BB8B2C1D1C0D1C51008B78A3 /* Locks.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C1C1C0D1C51008B78A3 /* Locks.swift */; };
 		BB8F250A1C18D4EB0016BD25 /* ArrayVariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8F25091C18D4EB0016BD25 /* ArrayVariableTests.swift */; };
 		BB8F250C1C19F8B00016BD25 /* ArrayChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8F250B1C19F8B00016BD25 /* ArrayChange.swift */; };
+		BB8F250D1C19FDD00016BD25 /* Select.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138B21C1443DC005D5686 /* Select.swift */; };
 		BBA58D101C1095C0003D4511 /* SimpleSources.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D0F1C1095C0003D4511 /* SimpleSources.swift */; };
 		BBA58D121C10961C003D4511 /* SimpleSourcesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */; };
 		BBA58D161C109FCE003D4511 /* VariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D151C109FCE003D4511 /* VariableTests.swift */; };
@@ -412,6 +414,7 @@
 				BBA58D1C1C10C73E003D4511 /* SynchronousSignal.swift in Sources */,
 				BB40ACA11C167A77007F9C37 /* Observable.swift in Sources */,
 				BB4138AD1C12102E005D5686 /* Connector.swift in Sources */,
+				BB8F250D1C19FDD00016BD25 /* Select.swift in Sources */,
 				BB8F250C1C19F8B00016BD25 /* ArrayChange.swift in Sources */,
 				BB534A151C112D2A00FA1C7F /* MergedSource.swift in Sources */,
 				BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */,
@@ -444,6 +447,7 @@
 				BB4138C31C163394005D5686 /* UpdatableTests.swift in Sources */,
 				BB534A171C112D7000FA1C7F /* MergedSourceTests.swift in Sources */,
 				BBA58D1A1C10C5D7003D4511 /* TimerSourceTests.swift in Sources */,
+				BB87D5641C19FE1200186780 /* SelectTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

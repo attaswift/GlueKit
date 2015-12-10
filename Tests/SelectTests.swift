@@ -11,7 +11,7 @@ import GlueKit
 
 private class Company {
     let name = Variable<String>("")
-    let employees = Variable<Array<Person>>([])
+    let employees = ArrayVariable<Person>([])
 
     init(name: String) {
         self.name.value = name
@@ -152,9 +152,10 @@ class SelectOperatorTests: XCTestCase {
     }
 
     func testArraySelector() {
-        let cowLickerDeveloperNames = apps.cowLicker.developer.select{$0.employees}.selectEach{$0.name}
+        let cowLickerDeveloperNames: ObservableArray<String> = apps.cowLicker.developer.select{$0.employees}.selectEach{$0.name}
+
         var r: [[String]] = []
-        let connection = cowLickerDeveloperNames.values.connect { names in r.append(names) }
+        let connection = cowLickerDeveloperNames.futureChanges.connect { changes in r.append(cowLickerDeveloperNames.value) }
 
         XCTAssertEqual(cowLickerDeveloperNames.value, ["Adam Edgar Whatever", "David Sampleguy"])
 
@@ -172,7 +173,6 @@ class SelectOperatorTests: XCTestCase {
         XCTAssertEqual(cowLickerDeveloperNames.value, ["Emily von Fixture", "Davey Sampleguy"])
 
         XCTAssertEqual(r, [
-            ["Adam Edgar Whatever", "David Sampleguy"],
             ["Adam Edgar Whatever"],
             ["Emily von Fixture", "David Sampleguy"],
             ["Emily von Fixture", "Davey Sampleguy"],

@@ -81,10 +81,11 @@ public protocol ObservableArrayType: ObservableCollectionType { // Sadly there i
     typealias Value = [Generator.Element]
     typealias Change = ArrayChange<Generator.Element>
     typealias Index = Int
-    typealias SubSequence = ArraySlice<Generator.Element>
 
     // This is included because although it is not actually required by CollectionType, we do want to use it in ObservableArray, below.
-    subscript(bounds: Range<Int>) -> ArraySlice<Generator.Element> { get }
+    subscript(bounds: Range<Int>) -> SubSequence { get }
+
+    var observableArray: ObservableArray<Generator.Element> { get }
 }
 
 /// Elementwise comparison of two instances of an ObservableArrayType.
@@ -168,10 +169,10 @@ public struct ObservableArray<Element>: ObservableArrayType {
 
     public typealias Index = Int
     public typealias Generator = AnyGenerator<Element>
-    public typealias SubSequence = Array<Element>.SubSequence
+    public typealias SubSequence = Array<Element>
 
     private let _count: Void->Int
-    private let _lookup: Range<Int> -> ArraySlice<Element>
+    private let _lookup: Range<Int> -> Array<Element>
     private let _futureChanges: Void -> Source<ArrayChange<Element>>
 
     private var _futureCounts: Source<Int> {
@@ -189,15 +190,15 @@ public struct ObservableArray<Element>: ObservableArrayType {
         return signal.source
     }
 
-    public init(count: Void->Int, lookup: Range<Int>->ArraySlice<Element>, futureChanges: Void->Source<ArrayChange<Element>>, futureValues: Void->Source<[Element]>) {
+    public init(count: Void->Int, lookup: Range<Int>->Array<Element>, futureChanges: Void->Source<ArrayChange<Element>>) {
         _count = count
         _lookup = lookup
         _futureChanges = futureChanges
     }
 
-    public init<A: ObservableArrayType where A.Index == Int, A.Generator.Element == Element, A.Change == ArrayChange<Element>>(_ array: A) {
+    public init<A: ObservableArrayType, S: SequenceType where A.Index == Int, S.Generator.Element == Element, A.Generator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence == S>(_ array: A) {
         _count = { array.count }
-        _lookup = { range in array[range] }
+        _lookup = { range in Array(array[range]) }
         _futureChanges = { array.futureChanges }
     }
 
@@ -208,8 +209,8 @@ public struct ObservableArray<Element>: ObservableArrayType {
     public var startIndex: Int { return 0 }
     public var endIndex: Int { return count }
 
-    public subscript(index: Int) -> Element { return _lookup(Range(start: index, end: index + 1))[index] }
-    public subscript(range: Range<Int>) -> ArraySlice<Element> { return _lookup(range) }
+    public subscript(index: Int) -> Element { return _lookup(Range(start: index, end: index + 1))[0] }
+    public subscript(range: Range<Int>) -> Array<Element> { return _lookup(range) }
 
     public func generate() -> AnyGenerator<Element> {
         var index = 0
@@ -225,6 +226,8 @@ public struct ObservableArray<Element>: ObservableArrayType {
         }
     }
 
+    public var observableArray: ObservableArray<Element> { return self }
+
     // TODO: Move this to an extension of ObservableArrayType once Swift's protocols grow up.
     public var observableCount: Observable<Int> {
         return Observable(getter: { self.count }, futureValues: { self.futureChanges.map { change in change.finalCount } })
@@ -234,7 +237,7 @@ public struct ObservableArray<Element>: ObservableArrayType {
 //MARK: UpdatableArrayType
 
 /// An observable array that is also updatable.
-public protocol UpdatableArrayType: UpdatableType, ObservableArrayType, MutableCollectionType, RangeReplaceableCollectionType {
+public protocol UpdatableArrayType: ObservableArrayType, MutableCollectionType, RangeReplaceableCollectionType {
 }
 
 //MARK: ArrayVariable
@@ -301,6 +304,8 @@ public final class ArrayVariable<Element>: UpdatableArrayType, ArrayLiteralConve
     public var count: Int {
         return value.count
     }
+
+    public var observableArray: ObservableArray<Element> { return ObservableArray(self) }
 
     // TODO: Move this to an extension of ObservableArrayType once Swift's protocols grow up.
     public var observableCount: Observable<Int> {

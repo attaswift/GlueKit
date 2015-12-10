@@ -285,11 +285,6 @@ class ArrayVariableTests: XCTestCase {
 
         XCTAssertEqual(array.value, [6])
         XCTAssertEqual(array.count, 1)
-
-        array.receive([7, 8])
-
-        XCTAssertEqual(array.value, [7, 8])
-        XCTAssertEqual(array.count, 2)
     }
 
     func testGenerate() {
