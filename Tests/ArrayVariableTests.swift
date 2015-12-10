@@ -9,10 +9,6 @@
 import XCTest
 @testable import GlueKit
 
-private func ==<T: Equatable>(a: ArrayModification<T>, b: ArrayModification<T>) -> Bool {
-    return a.range == b.range && a.elements == b.elements
-}
-
 private func ==<T: Equatable>(a: ArrayModificationMergeResult<T>, b: ArrayModificationMergeResult<T>) -> Bool {
     switch a {
     case .DisjunctOrderedAfter:
@@ -44,7 +40,7 @@ class ArrayModificationTests: XCTestCase {
         var a = [1, 2, 3]
         let mod = ArrayModification.Insert(10, at: 2)
 
-        XCTAssertEqual(mod.countDelta, 1)
+        XCTAssertEqual(mod.deltaCount, 1)
         XCTAssertEqual(mod.range, 2..<2)
         XCTAssertEqual(mod.elements, [10])
 
@@ -59,7 +55,7 @@ class ArrayModificationTests: XCTestCase {
         var a = [1, 2, 3]
         let mod = ArrayModification<Int>.RemoveAt(1)
 
-        XCTAssertEqual(mod.countDelta, -1)
+        XCTAssertEqual(mod.deltaCount, -1)
         XCTAssertEqual(mod.range, 1..<2)
         XCTAssertEqual(mod.elements, [])
 
@@ -74,7 +70,7 @@ class ArrayModificationTests: XCTestCase {
         var a = [1, 2, 3]
         let mod = ArrayModification.ReplaceAt(1, with: 10)
 
-        XCTAssertEqual(mod.countDelta, 0)
+        XCTAssertEqual(mod.deltaCount, 0)
         XCTAssertEqual(mod.range, 1..<2)
         XCTAssertEqual(mod.elements, [10])
 
@@ -89,7 +85,7 @@ class ArrayModificationTests: XCTestCase {
         var a = [1, 2, 3]
         let mod = ArrayModification.ReplaceRange(1...1, with: [10, 20])
 
-        XCTAssertEqual(mod.countDelta, 1)
+        XCTAssertEqual(mod.deltaCount, 1)
         XCTAssertEqual(mod.range, 1..<2)
         XCTAssertEqual(mod.elements, [10, 20])
 
@@ -240,4 +236,150 @@ class ArrayChangeTests: XCTestCase {
 
 
 class ArrayVariableTests: XCTestCase {
+    func testArrayInitialization() {
+        let a0 = ArrayVariable<Int>() // Empty
+        XCTAssertEqual(a0.count, 0)
+
+        let a1 = ArrayVariable([1, 2, 3, 4])
+        XCTAssert([1, 2, 3, 4].elementsEqual(a1, isEquivalent: ==))
+
+        let a2 = ArrayVariable(elements: 1, 2, 3, 4)
+        XCTAssert([1, 2, 3, 4].elementsEqual(a2, isEquivalent: ==))
+
+        let a3: ArrayVariable<Int> = [1, 2, 3, 4] // From array literal
+        XCTAssert([1, 2, 3, 4].elementsEqual(a3, isEquivalent: ==))
+    }
+
+    func testEquality() {
+        // Equality tests between two ArrayVariables
+        XCTAssertTrue(ArrayVariable([1, 2, 3]) == ArrayVariable([1, 2, 3]))
+        XCTAssertFalse(ArrayVariable([1, 2, 3]) == ArrayVariable([1, 2]))
+
+        // Equality tests between ArrayVariable and an array literal
+        XCTAssertTrue(ArrayVariable([1, 2, 3]) == [1, 2, 3])
+        XCTAssertFalse(ArrayVariable([1, 2, 3]) == [1, 2])
+
+        // Equality tests between two different ObservableArrayTypes
+        XCTAssertTrue(ArrayVariable([1, 2, 3]) == ObservableArray(ArrayVariable([1, 2, 3])))
+        XCTAssertFalse(ArrayVariable([1, 2, 3]) == ObservableArray(ArrayVariable([1, 2])))
+
+        // Equality tests between an ArrayVariable and an Array
+        XCTAssertTrue(ArrayVariable([1, 2, 3]) == Array([1, 2, 3]))
+        XCTAssertFalse(ArrayVariable([1, 2, 3]) == Array([1, 2]))
+        XCTAssertTrue(Array([1, 2, 3]) == ArrayVariable([1, 2, 3]))
+        XCTAssertFalse(Array([1, 2]) == ArrayVariable([1, 2, 3]))
+    }
+
+    func testValueAndCount() {
+        let array: ArrayVariable<Int> = [1, 2, 3]
+
+        XCTAssertEqual(array.value, [1, 2, 3])
+        XCTAssertEqual(array.count, 3)
+
+        array.value = [4, 5]
+
+        XCTAssertEqual(array.value, [4, 5])
+        XCTAssertEqual(array.count, 2)
+
+        array.setValue([6])
+
+        XCTAssertEqual(array.value, [6])
+        XCTAssertEqual(array.count, 1)
+
+        array.receive([7, 8])
+
+        XCTAssertEqual(array.value, [7, 8])
+        XCTAssertEqual(array.count, 2)
+    }
+
+    func testGenerate() {
+        let array: ArrayVariable<Int> = [1, 2, 3, 4]
+        var g = array.generate()
+        XCTAssertEqual(g.next(), 1)
+        XCTAssertEqual(g.next(), 2)
+        XCTAssertEqual(g.next(), 3)
+        XCTAssertEqual(g.next(), 4)
+        XCTAssertEqual(g.next(), nil)
+    }
+
+    func testIndexing() {
+        let array: ArrayVariable<Int> = [1, 2, 3]
+
+        XCTAssertEqual(array[1], 2)
+
+        array[2] = 10
+
+        XCTAssertEqual(array[2], 10)
+
+        XCTAssert([1, 2, 10].elementsEqual(array, isEquivalent: ==))
+    }
+
+    func testIndexingWithRanges() {
+        let array: ArrayVariable<Int> = [1, 2, 3, 4]
+
+        XCTAssertEqual(array[1...2], [2, 3])
+
+        array[1...2] = [20, 30, 40]
+
+        XCTAssertEqual(array, [1, 20, 30, 40, 4])
+    }
+
+    func testChangeNotifications() {
+        func tryCase(input: [Int], op: ArrayVariable<Int>->(), expectedOutput: [Int], expectedChange: ArrayChange<Int>) {
+            let array = ArrayVariable<Int>(input)
+
+            var changes = [ArrayChange<Int>]()
+            var values = [[Int]]()
+
+            let c1 = array.futureChanges.connect { changes.append($0) }
+            defer { c1.disconnect() }
+
+            let c2 = array.futureValues.connect { values.append($0) }
+            defer { c2.disconnect() }
+
+            op(array)
+
+            XCTAssertEqual(array, expectedOutput)
+            XCTAssertEqual(values, [expectedOutput])
+            XCTAssertTrue(changes.count == 1 && changes[0] == expectedChange)
+        }
+
+        tryCase([1, 2, 3], op: { $0[1] = 20 },
+            expectedOutput: [1, 20, 3], expectedChange: ArrayChange(count: 3, modification: .ReplaceAt(1, with: 20)))
+
+        tryCase([1, 2, 3], op: { $0[1..<2] = [20, 30] },
+            expectedOutput: [1, 20, 30, 3], expectedChange: ArrayChange(count: 3, modification: .ReplaceRange(1..<2, with: [20, 30])))
+
+        tryCase([1, 2, 3], op: { $0.setValue([4, 5]) },
+            expectedOutput: [4, 5], expectedChange: ArrayChange(count: 3, modification: .ReplaceRange(0..<3, with: [4, 5])))
+
+        tryCase([1, 2, 3], op: { $0.value = [4, 5] },
+            expectedOutput: [4, 5], expectedChange: ArrayChange(count: 3, modification: .ReplaceRange(0..<3, with: [4, 5])))
+
+        tryCase([1, 2, 3], op: { $0.replaceRange(0..<2, with: [5, 6, 7]) },
+            expectedOutput: [5, 6, 7, 3], expectedChange: ArrayChange(count: 3, modification: .ReplaceRange(0..<2, with: [5, 6, 7])))
+
+        tryCase([1, 2, 3], op: { $0.append(10) },
+            expectedOutput: [1, 2, 3, 10], expectedChange: ArrayChange(count: 3, modification: .Insert(10, at: 3)))
+
+        tryCase([1, 2, 3], op: { $0.insert(10, at: 2) },
+            expectedOutput: [1, 2, 10, 3], expectedChange: ArrayChange(count: 3, modification: .Insert(10, at: 2)))
+
+        tryCase([1, 2, 3], op: { $0.removeAtIndex(1) },
+            expectedOutput: [1, 3], expectedChange: ArrayChange(count: 3, modification: .RemoveAt(1)))
+
+        tryCase([1, 2, 3], op: { $0.removeFirst() },
+            expectedOutput: [2, 3], expectedChange: ArrayChange(count: 3, modification: .RemoveAt(0)))
+
+        tryCase([1, 2, 3], op: { $0.removeLast() },
+            expectedOutput: [1, 2], expectedChange: ArrayChange(count: 3, modification: .RemoveAt(2)))
+
+        tryCase([1, 2, 3], op: { XCTAssertEqual($0.popLast(), 3) },
+            expectedOutput: [1, 2], expectedChange: ArrayChange(count: 3, modification: .RemoveAt(2)))
+
+        tryCase([1, 2, 3], op: { $0.removeAll() },
+            expectedOutput: [], expectedChange: ArrayChange(count: 3, modification: .ReplaceRange(0..<3, with: [])))
+
+    }
+
 }
