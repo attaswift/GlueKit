@@ -72,11 +72,12 @@ a = 7               ;        b.value = 7
 
 Given the model above, in Cocoa you could specify key paths for accessing various parts of the model from a
 `Document` instance. For example, to get the email addresses of all issue owners in one big unsorted array, 
-you'd use the Cocoa key path `"projects.issues.owner.email"`. The GlueKit is able to do this too, although
+you'd use the Cocoa key path `"projects.issues.owner.email"`. GlueKit is able to do this too, although
 it uses a specially constructed Swift closure to represent the key path:
 
 ```Swift
 let cocoaKeyPath: String = "projects.issues.owner.email"
+
 let swiftKeyPath: Document -> Observable<[String]> = { document in 
     document.projects.selectEach{$0.issues}.selectEach{$0.owner}.select{email} 
 }
