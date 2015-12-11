@@ -53,6 +53,11 @@ internal struct OwningSignal<Value, Delegate: SignalDelegate where Delegate.Sign
         }
     }
 
+    internal var isConnected: Bool {
+        guard let s = _signal else { return false }
+        return s.isConnected
+    }
+
     /// Send value to the signal (if it exists).
     internal func send(value: Value) {
         _signal?.send(value)
