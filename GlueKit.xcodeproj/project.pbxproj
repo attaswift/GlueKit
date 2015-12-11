@@ -33,8 +33,6 @@
 		BBA58D121C10961C003D4511 /* SimpleSourcesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */; };
 		BBA58D161C109FCE003D4511 /* VariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D151C109FCE003D4511 /* VariableTests.swift */; };
 		BBA58D1A1C10C5D7003D4511 /* TimerSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D191C10C5D7003D4511 /* TimerSourceTests.swift */; };
-		BBA58D1C1C10C73E003D4511 /* SynchronousSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D1B1C10C73E003D4511 /* SynchronousSignal.swift */; };
-		BBA58D1F1C10D1E1003D4511 /* SynchronousSignalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D1E1C10D1E1003D4511 /* SynchronousSignalTests.swift */; };
 		BBA58D211C10D4FC003D4511 /* TestUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D201C10D4FC003D4511 /* TestUtilities.swift */; };
 		BBA58D231C10E47A003D4511 /* KVO Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D221C10E47A003D4511 /* KVO Support.swift */; };
 		BBA58D251C10E4E2003D4511 /* SourceOperators.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA58D241C10E4E2003D4511 /* SourceOperators.swift */; };
@@ -104,8 +102,6 @@
 		BBA58D151C109FCE003D4511 /* VariableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VariableTests.swift; sourceTree = "<group>"; };
 		BBA58D171C10C3CA003D4511 /* TimerSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimerSource.swift; sourceTree = "<group>"; };
 		BBA58D191C10C5D7003D4511 /* TimerSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimerSourceTests.swift; sourceTree = "<group>"; };
-		BBA58D1B1C10C73E003D4511 /* SynchronousSignal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SynchronousSignal.swift; sourceTree = "<group>"; };
-		BBA58D1E1C10D1E1003D4511 /* SynchronousSignalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SynchronousSignalTests.swift; sourceTree = "<group>"; };
 		BBA58D201C10D4FC003D4511 /* TestUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtilities.swift; sourceTree = "<group>"; };
 		BBA58D221C10E47A003D4511 /* KVO Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "KVO Support.swift"; sourceTree = "<group>"; };
 		BBA58D241C10E4E2003D4511 /* SourceOperators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceOperators.swift; sourceTree = "<group>"; };
@@ -198,7 +194,6 @@
 				BB8B2C051C0CA0B4008B78A3 /* Connection.swift */,
 				BB4138AC1C12102E005D5686 /* Connector.swift */,
 				BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */,
-				BBA58D1B1C10C73E003D4511 /* SynchronousSignal.swift */,
 				BBA58D0F1C1095C0003D4511 /* SimpleSources.swift */,
 				BB534A141C112D2A00FA1C7F /* MergedSource.swift */,
 				BBA58D241C10E4E2003D4511 /* SourceOperators.swift */,
@@ -261,7 +256,6 @@
 			children = (
 				BB8B2C1A1C0D0E61008B78A3 /* ConnectionTests.swift */,
 				BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */,
-				BBA58D1E1C10D1E1003D4511 /* SynchronousSignalTests.swift */,
 				BBA58D111C10961C003D4511 /* SimpleSourcesTests.swift */,
 				BB534A161C112D7000FA1C7F /* MergedSourceTests.swift */,
 				BB534A121C10FFCE00FA1C7F /* SourceOperatorTests.swift */,
@@ -491,7 +485,6 @@
 				BBA58D251C10E4E2003D4511 /* SourceOperators.swift in Sources */,
 				BBBB19811C17100200765E6A /* ArrayVariable.swift in Sources */,
 				BBB2851E1C0C76E200FABFE2 /* Source.swift in Sources */,
-				BBA58D1C1C10C73E003D4511 /* SynchronousSignal.swift in Sources */,
 				BB40ACA11C167A77007F9C37 /* Observable.swift in Sources */,
 				BB4138AD1C12102E005D5686 /* Connector.swift in Sources */,
 				BB8F250D1C19FDD00016BD25 /* Select.swift in Sources */,
@@ -517,7 +510,6 @@
 				BBA58D121C10961C003D4511 /* SimpleSourcesTests.swift in Sources */,
 				BB534A131C10FFCE00FA1C7F /* SourceOperatorTests.swift in Sources */,
 				BBBB19871C17262100765E6A /* ObservableTransformationTests.swift in Sources */,
-				BBA58D1F1C10D1E1003D4511 /* SynchronousSignalTests.swift in Sources */,
 				BBA58D211C10D4FC003D4511 /* TestUtilities.swift in Sources */,
 				BB8B2C0F1C0CA718008B78A3 /* SignalTests.swift in Sources */,
 				BBBB19851C1721CE00765E6A /* ObservableTests.swift in Sources */,
