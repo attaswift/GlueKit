@@ -181,7 +181,7 @@ public struct ObservableArray<Element>: ObservableArrayType {
         let signal = Signal<Int>(
             start: { signal in
                 connection = self.futureChanges.connect { change in
-                    signal.send(change.finalCount)
+                    signal.send(change.initialCount + change.deltaCount)
                 }
             },
             stop: { signal in
@@ -244,7 +244,8 @@ public struct ObservableArray<Element>: ObservableArrayType {
             },
             futureValues: {
                 self.futureChanges.map { change in
-                    let c = change.finalCount
+                    assert(count == nil || count == change.initialCount)
+                    let c = change.initialCount + change.deltaCount
                     count = c
                     return c
                 }

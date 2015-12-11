@@ -202,30 +202,29 @@ public struct ArrayChange<Element>: ChangeType {
     /// The expected initial count of elements in the array on the input of this change.
     public private(set) var initialCount: Int
 
-    /// The expected final count of elements in the array on the output of this change.
-    public private(set) var finalCount: Int
+    /// The expected change in the count of elements in the array as a result of this change.
+    public var deltaCount: Int { return modifications.reduce(0) { s, mod in s + mod.deltaCount } }
 
     /// The sequence of independent modifications to apply, in order of the start indexes of their ranges.
     /// All indices are understood to be in the array resulting from the original array by applying all
     /// earlier modifications. (So you can simply loop over the modifications and apply them one by one.)
     public private(set) var modifications: [ArrayModification<Element>] = []
 
-    internal init(initialCount: Int, finalCount: Int, modifications: [ArrayModification<Element>]) {
-        assert(finalCount == initialCount + modifications.reduce(0, combine: { c, m in c + m.deltaCount }))
+    internal init(initialCount: Int, modifications: [ArrayModification<Element>]) {
         self.initialCount = initialCount
-        self.finalCount = finalCount
         self.modifications = modifications
     }
 
     /// Initializes a change with `count` as the expected initial count and consisting of `modification`.
-    public init(count: Int, modification: ArrayModification<Element>) {
-        self.init(initialCount: count, finalCount: count + modification.deltaCount, modifications: [modification])
+    public init(initialCount: Int, modification: ArrayModification<Element>) {
+        self.initialCount = initialCount
+        self.modifications = [modification]
     }
 
     /// Initializes a change that simply replaces all elements in `previousValue` with the ones in `newValue`.
     public init(from previousValue: Value, to newValue: Value) {
         // Elements aren't necessarily equatable here, so this is the best we can do.
-        self.init(count: previousValue.count, modification: .ReplaceRange(0..<previousValue.count, with: newValue))
+        self.init(initialCount: previousValue.count, modification: .ReplaceRange(0..<previousValue.count, with: newValue))
     }
 
     /// Returns true if this change contains no actual changes to the array.
@@ -233,8 +232,7 @@ public struct ArrayChange<Element>: ChangeType {
     /// and the subsequent removal of the same.
     public var isNull: Bool { return modifications.isEmpty }
 
-    private mutating func addModification(new: ArrayModification<Element>) {
-        finalCount += new.deltaCount
+    public mutating func addModification(new: ArrayModification<Element>) {
         var pos = modifications.count - 1
         var m = new
         while pos >= 0 {
@@ -272,11 +270,10 @@ public struct ArrayChange<Element>: ChangeType {
     /// Merge `other` into this change, modifying it in place.
     /// `other.initialCount` must be equal to `self.finalCount`, or the merge will report a fatal error.
     public mutating func mergeInPlace(other: ArrayChange<Element>) {
-        precondition(finalCount == other.initialCount)
+        precondition(initialCount + deltaCount == other.initialCount)
         for m in other.modifications {
             addModification(m)
         }
-        assert(finalCount == other.finalCount)
     }
 
     /// Returns a new change that contains all changes in this change plus all changes in `other`.
@@ -290,14 +287,26 @@ public struct ArrayChange<Element>: ChangeType {
 
     /// Transform all element values contained in this change using the `transform` function.
     public func map<Result>(@noescape transform: Element->Result) -> ArrayChange<Result> {
-        return ArrayChange<Result>(initialCount: initialCount, finalCount: finalCount,
-            modifications: modifications.map { $0.map(transform) })
+        return ArrayChange<Result>(initialCount: initialCount, modifications: modifications.map { $0.map(transform) })
+    }
+
+    /// Convert this change so that it modifies a range of items in a larger array.
+    ///
+    /// Modifications contained in the result will be the same as in this change, except they will 
+    /// apply on the range `startIndex ..< startIndex + self.initialCount` in the wider array.
+    ///
+    /// - Parameter startIndex: The start index of the range to rebase this change into.
+    /// - Parameter count: The element count of the wider array to rebase this change into.
+    /// - Returns: A new change that applies the same modifications on a range inside a wider array.
+    public func widen(startIndex: Int, count: Int) -> ArrayChange<Element> {
+        precondition(startIndex + initialCount <= count)
+        let mods = modifications.map { $0.shift(startIndex) }
+        return ArrayChange(initialCount: count, modifications: mods)
     }
 }
 
 public func ==<Element: Equatable>(a: ArrayChange<Element>, b: ArrayChange<Element>) -> Bool {
     return (a.initialCount == b.initialCount
-        && a.finalCount == b.finalCount
         && a.modifications.elementsEqual(b.modifications, isEquivalent: ==))
 }
 
@@ -309,7 +318,6 @@ extension RangeReplaceableCollectionType where Index == Int {
         for modification in change.modifications {
             self.apply(modification)
         }
-        assert(self.count == change.finalCount)
     }
 }
 

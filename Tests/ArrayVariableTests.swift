@@ -204,7 +204,7 @@ class ArrayChangeTests: XCTestCase {
                             var nextOutput = output
                             nextOutput.replaceRange(startIndex..<endIndex, with: insertion)
                             let mod = ArrayModification.ReplaceRange(startIndex..<endIndex, with: insertion)
-                            let nextChange = change.merge(ArrayChange(count: output.count, modification: mod))
+                            let nextChange = change.merge(ArrayChange(initialCount: output.count, modification: mod))
                             recurse(level + 1, input: input, change: nextChange, output: nextOutput, trace: trace + [mod])
                         }
                     }
@@ -212,24 +212,24 @@ class ArrayChangeTests: XCTestCase {
             }
         }
 
-        let startChange = ArrayChange<Int>(initialCount: startSequence.count, finalCount: startSequence.count, modifications: [])
+        let startChange = ArrayChange<Int>(initialCount: startSequence.count, modifications: [])
         recurse(1, input: startSequence, change: startChange, output: startSequence, trace: [])
     }
 
     func testMap() {
-        let c1 = ArrayChange<Int>(count: 10, modification: .Insert(1, at: 3))
-            .merge(ArrayChange<Int>(count: 11, modification: .ReplaceAt(1, with: 2)))
-            .merge(ArrayChange<Int>(count: 11, modification: .RemoveAt(4)))
-            .merge(ArrayChange<Int>(count: 10, modification: .ReplaceRange(8...9, with: [5, 6])))
+        let c1 = ArrayChange<Int>(initialCount: 10, modification: .Insert(1, at: 3))
+            .merge(ArrayChange<Int>(initialCount: 11, modification: .ReplaceAt(1, with: 2)))
+            .merge(ArrayChange<Int>(initialCount: 11, modification: .RemoveAt(4)))
+            .merge(ArrayChange<Int>(initialCount: 10, modification: .ReplaceRange(8...9, with: [5, 6])))
 
-        let c2 = ArrayChange<String>(count: 10, modification: .Insert("1", at: 3))
-            .merge(ArrayChange<String>(count: 11, modification: .ReplaceAt(1, with: "2")))
-            .merge(ArrayChange<String>(count: 11, modification: .RemoveAt(4)))
-            .merge(ArrayChange<String>(count: 10, modification: .ReplaceRange(8...9, with: ["5", "6"])))
+        let c2 = ArrayChange<String>(initialCount: 10, modification: .Insert("1", at: 3))
+            .merge(ArrayChange<String>(initialCount: 11, modification: .ReplaceAt(1, with: "2")))
+            .merge(ArrayChange<String>(initialCount: 11, modification: .RemoveAt(4)))
+            .merge(ArrayChange<String>(initialCount: 10, modification: .ReplaceRange(8...9, with: ["5", "6"])))
 
         let m = c1.map { "\($0)" }
         XCTAssertEqual(m.initialCount, c2.initialCount)
-        XCTAssertEqual(m.finalCount, c2.finalCount)
+        XCTAssertEqual(m.deltaCount, c2.deltaCount)
         XCTAssert(m.modifications.elementsEqual(c2.modifications, isEquivalent: ==))
     }
 }
@@ -340,40 +340,40 @@ class ArrayVariableTests: XCTestCase {
         }
 
         tryCase([1, 2, 3], op: { $0[1] = 20 },
-            expectedOutput: [1, 20, 3], expectedChange: ArrayChange(count: 3, modification: .ReplaceAt(1, with: 20)))
+            expectedOutput: [1, 20, 3], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceAt(1, with: 20)))
 
         tryCase([1, 2, 3], op: { $0[1..<2] = [20, 30] },
-            expectedOutput: [1, 20, 30, 3], expectedChange: ArrayChange(count: 3, modification: .ReplaceRange(1..<2, with: [20, 30])))
+            expectedOutput: [1, 20, 30, 3], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceRange(1..<2, with: [20, 30])))
 
         tryCase([1, 2, 3], op: { $0.setValue([4, 5]) },
-            expectedOutput: [4, 5], expectedChange: ArrayChange(count: 3, modification: .ReplaceRange(0..<3, with: [4, 5])))
+            expectedOutput: [4, 5], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceRange(0..<3, with: [4, 5])))
 
         tryCase([1, 2, 3], op: { $0.value = [4, 5] },
-            expectedOutput: [4, 5], expectedChange: ArrayChange(count: 3, modification: .ReplaceRange(0..<3, with: [4, 5])))
+            expectedOutput: [4, 5], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceRange(0..<3, with: [4, 5])))
 
         tryCase([1, 2, 3], op: { $0.replaceRange(0..<2, with: [5, 6, 7]) },
-            expectedOutput: [5, 6, 7, 3], expectedChange: ArrayChange(count: 3, modification: .ReplaceRange(0..<2, with: [5, 6, 7])))
+            expectedOutput: [5, 6, 7, 3], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceRange(0..<2, with: [5, 6, 7])))
 
         tryCase([1, 2, 3], op: { $0.append(10) },
-            expectedOutput: [1, 2, 3, 10], expectedChange: ArrayChange(count: 3, modification: .Insert(10, at: 3)))
+            expectedOutput: [1, 2, 3, 10], expectedChange: ArrayChange(initialCount: 3, modification: .Insert(10, at: 3)))
 
         tryCase([1, 2, 3], op: { $0.insert(10, at: 2) },
-            expectedOutput: [1, 2, 10, 3], expectedChange: ArrayChange(count: 3, modification: .Insert(10, at: 2)))
+            expectedOutput: [1, 2, 10, 3], expectedChange: ArrayChange(initialCount: 3, modification: .Insert(10, at: 2)))
 
         tryCase([1, 2, 3], op: { $0.removeAtIndex(1) },
-            expectedOutput: [1, 3], expectedChange: ArrayChange(count: 3, modification: .RemoveAt(1)))
+            expectedOutput: [1, 3], expectedChange: ArrayChange(initialCount: 3, modification: .RemoveAt(1)))
 
         tryCase([1, 2, 3], op: { $0.removeFirst() },
-            expectedOutput: [2, 3], expectedChange: ArrayChange(count: 3, modification: .RemoveAt(0)))
+            expectedOutput: [2, 3], expectedChange: ArrayChange(initialCount: 3, modification: .RemoveAt(0)))
 
         tryCase([1, 2, 3], op: { $0.removeLast() },
-            expectedOutput: [1, 2], expectedChange: ArrayChange(count: 3, modification: .RemoveAt(2)))
+            expectedOutput: [1, 2], expectedChange: ArrayChange(initialCount: 3, modification: .RemoveAt(2)))
 
         tryCase([1, 2, 3], op: { XCTAssertEqual($0.popLast(), 3) },
-            expectedOutput: [1, 2], expectedChange: ArrayChange(count: 3, modification: .RemoveAt(2)))
+            expectedOutput: [1, 2], expectedChange: ArrayChange(initialCount: 3, modification: .RemoveAt(2)))
 
         tryCase([1, 2, 3], op: { $0.removeAll() },
-            expectedOutput: [], expectedChange: ArrayChange(count: 3, modification: .ReplaceRange(0..<3, with: [])))
+            expectedOutput: [], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceRange(0..<3, with: [])))
 
     }
 
