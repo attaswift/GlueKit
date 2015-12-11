@@ -44,6 +44,10 @@ public struct Sink<Value>: SinkType {
         self.receiver = receiver
     }
 
+    public init(_ sink: Sink<Value>) {
+        self.receiver = sink.receiver
+    }
+
     /// Initializes a new `Sink<Value>` from the given value implementing `SinkType`.
     public init<S: SinkType where S.SinkValue == Value>(_ sink: S) {
         self.receiver = sink.receive
@@ -89,7 +93,7 @@ public protocol SourceType {
     /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
     /// alive at least as long as they have an active connection.
     @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    func connect(sink: Sink<SourceValue>) -> Connection
+    func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection
 }
 
 /// A Source is an entity that is able to produce values to other entities (called Sinks) that are connected to it.
@@ -123,8 +127,8 @@ public struct Source<Value>: SourceType {
     }
 
     @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func connect(sink: Sink<Value>) -> Connection {
-        return source.connecter(sink)
+    public func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection {
+        return source.connecter(Sink(sink.sink))
     }
 
     public var source: Source<Value> { return self }
@@ -141,16 +145,6 @@ extension SourceType {
     /// alive at least as long as they have an active connection.
     @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
     public func connect(sink: SourceValue->Void) -> Connection {
-        return connect(Sink(sink))
-    }
-
-    /// Connect `sink` to this source. The sink will receive all values that this source produces in the future.
-    /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
-    ///
-    /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
-    /// alive at least as long as they have an active connection.
-    @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection {
-        return source.connect(sink.sink)
+        return self.connect(Sink(sink))
     }
 }
