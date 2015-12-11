@@ -220,101 +220,22 @@ extension ObservableType {
             futureChanges: { source.source }
         )
     }
-}
 
-private final class ChangeSourceForObservableFieldInArray<Element, Field: ObservableType>
-    : SourceType, SignalOwner {
-    typealias Value = ArrayChange<Field.Value>
-    typealias SourceValue = Value
-
-    private let parent: ObservableArray<Element>
-    private let key: Element->Field
-
-    init(parent: ObservableArray<Element>, key: Element->Field) {
-        self.parent = parent
-        self.key = key
-    }
-
-    private var parentConnection: Connection? = nil
-    private var fieldConnections: [Connection] = []
-    private var fieldIndices: [Int: Int] = [:] // ID -> Index
-
-    var source: Source<Value> { return Signal<Value>(stronglyHeldOwner: self).source }
-
-    private var _nextFieldID: Int = 0
-    private var nextFieldID: Int {
-        var result = _nextFieldID
-        repeat {
-            result = _nextFieldID
-            _nextFieldID = _nextFieldID &+ 1
-        } while fieldIndices[result] != nil
-
-        return result
-    }
-
-    private func sendValue(value: Field.Value, forFieldWithID id: Int, toSignal signal: Signal<Value>) {
-        let index = fieldIndices[id]!
-        let mod = ArrayModification<Field.Value>.ReplaceAt(index, with: value)
-        let change = ArrayChange<Field.Value>(count: self.fieldConnections.count, modification: mod)
-        signal.send(change)
-    }
-
-    private func connectField(field: Field, index: Int, signal: Signal<Value>) -> Connection {
-        let id = self.nextFieldID
-        self.fieldIndices[id] = index
-        let c = field.futureValues.connect { value in self.sendValue(value, forFieldWithID: id, toSignal: signal) }
-        c.addCallback { _ in self.fieldIndices[id] = nil }
-        return c
-    }
-
-    private func applyParentChange(change: ArrayChange<Element>, signal: Signal<Value>) {
-        assert(fieldConnections.count == change.initialCount)
-        for mod in change.modifications {
-            let range = mod.range
-            let delta = mod.deltaCount
-            let startIndex = range.startIndex
-            self.fieldConnections[range].forEach { $0.disconnect() }
-            let newConnections = mod.elements.enumerate().map { i, pv in
-                self.connectField(self.key(pv), index: startIndex + i, signal: signal)
-            }
-            self.fieldIndices.forEach { id, index in
-                if index >= range.endIndex {
-                    self.fieldIndices[id] = index + delta
-                }
-            }
-            self.fieldConnections.replaceRange(range, with: newConnections)
-
-        }
-        assert(fieldConnections.count == change.finalCount)
-        signal.send(change.map { self.key($0).value })
-    }
-
-    func signalDidStart(signal: Signal<Value>) {
-        assert(parentConnection == nil && fieldConnections.isEmpty)
-        let fields = parent.value.map(key)
-        fieldConnections = fields.enumerate().map { index, field in
-            self.connectField(field, index: index, signal: signal)
-        }
-        parentConnection = parent.futureChanges.connect { change in
-            self.applyParentChange(change, signal: signal)
-        }
-    }
-
-    func signalDidStop(signal: Signal<Value>) {
-        assert(parentConnection != nil)
-        parentConnection?.disconnect()
-        fieldConnections.forEach { $0.disconnect() }
-        parentConnection = nil
-        fieldConnections.removeAll()
+    public func select<Element, A: UpdatableArrayType
+        where A.Generator.Element == Element,
+        A.Change == ArrayChange<Element>,
+        A.Index == Int,
+        A.BaseCollection == [Element],
+        A.SubSequence: SequenceType,
+        A.SubSequence.Generator.Element == Element>
+        (key: Value->A) -> UpdatableArray<A.Generator.Element> {
+            let source = ChangeSourceForObservableArrayField(parent: self, key: key)
+            return UpdatableArray<A.Generator.Element>(
+                count: { source.count },
+                lookup: { range in Array(source.field[range]) },
+                store: { range, elements in source.field.replaceRange(range, with: elements) },
+                futureChanges: { source.source }
+            )
     }
 }
 
-extension ObservableArrayType where Index == Int, SubSequence: SequenceType, SubSequence.Generator.Element == Generator.Element {
-
-    public func selectEach<Field: ObservableType>(key: Generator.Element->Field) -> ObservableArray<Field.Value> {
-        return ObservableArray<Field.Value>(
-            count: { self.count },
-            lookup: { range in self[range].map { key($0).value } },
-            futureChanges: { ChangeSourceForObservableFieldInArray(parent: self.observableArray, key: key).source })
-    }
-}

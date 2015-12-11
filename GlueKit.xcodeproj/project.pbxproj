@@ -21,6 +21,8 @@
 		BB534A1F1C113C0200FA1C7F /* GlueKitPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB534A1E1C113C0200FA1C7F /* GlueKitPerformanceTests.swift */; };
 		BB534A211C113C0200FA1C7F /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB285031C0C76CB00FABFE2 /* GlueKit.framework */; };
 		BB87D5641C19FE1200186780 /* SelectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4138B41C14536F005D5686 /* SelectTests.swift */; };
+		BB87D5661C1A300300186780 /* SelectEach.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB87D5651C1A300300186780 /* SelectEach.swift */; };
+		BB87D5681C1A3F5400186780 /* ObservableArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB87D5671C1A3F5400186780 /* ObservableArray.swift */; };
 		BB8B2C061C0CA0B4008B78A3 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C051C0CA0B4008B78A3 /* Connection.swift */; };
 		BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */; };
 		BB8B2C0F1C0CA718008B78A3 /* SignalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */; };
@@ -44,6 +46,7 @@
 		BBBB19811C17100200765E6A /* ArrayVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB57795B1C1665240061994C /* ArrayVariable.swift */; };
 		BBBB19851C1721CE00765E6A /* ObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB19841C1721CE00765E6A /* ObservableTests.swift */; };
 		BBBB19871C17262100765E6A /* ObservableTransformationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB19861C17262100765E6A /* ObservableTransformationTests.swift */; };
+		BBF6FED21C1A400600382B5B /* UpdatableArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF6FED11C1A400600382B5B /* UpdatableArray.swift */; };
 		BBF6FEE01C1A46AB00382B5B /* SampleModel.h in Headers */ = {isa = PBXBuildFile; fileRef = BBF6FEDF1C1A46AB00382B5B /* SampleModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BBF6FEF91C1A46DE00382B5B /* SampleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF6FEF81C1A46DE00382B5B /* SampleModel.swift */; };
 /* End PBXBuildFile section */
@@ -89,6 +92,8 @@
 		BB534A1E1C113C0200FA1C7F /* GlueKitPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlueKitPerformanceTests.swift; sourceTree = "<group>"; };
 		BB534A201C113C0200FA1C7F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BB57795B1C1665240061994C /* ArrayVariable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayVariable.swift; sourceTree = "<group>"; };
+		BB87D5651C1A300300186780 /* SelectEach.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectEach.swift; sourceTree = "<group>"; };
+		BB87D5671C1A3F5400186780 /* ObservableArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableArray.swift; sourceTree = "<group>"; };
 		BB8B2C051C0CA0B4008B78A3 /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		BB8B2C0E1C0CA718008B78A3 /* SignalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTests.swift; sourceTree = "<group>"; };
 		BB8B2C1A1C0D0E61008B78A3 /* ConnectionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionTests.swift; sourceTree = "<group>"; };
@@ -115,6 +120,7 @@
 		BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signal.swift; sourceTree = "<group>"; };
 		BBBB19841C1721CE00765E6A /* ObservableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTests.swift; sourceTree = "<group>"; };
 		BBBB19861C17262100765E6A /* ObservableTransformationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTransformationTests.swift; sourceTree = "<group>"; };
+		BBF6FED11C1A400600382B5B /* UpdatableArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdatableArray.swift; sourceTree = "<group>"; };
 		BBF6FED51C1A42C400382B5B /* Overview.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Overview.md; sourceTree = "<group>"; };
 		BBF6FEDD1C1A46AB00382B5B /* SampleModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SampleModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBF6FEDF1C1A46AB00382B5B /* SampleModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SampleModel.h; sourceTree = "<group>"; };
@@ -156,18 +162,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		BB40ACA01C16799B007F9C37 /* Observables */ = {
+		BB40ACA01C16799B007F9C37 /* Observable Values */ = {
 			isa = PBXGroup;
 			children = (
 				BB4138B61C15CD8A005D5686 /* Observable.swift */,
 				BB4138BE1C160DB1005D5686 /* Observable Transformations.swift */,
 				BB4138B81C15CEDF005D5686 /* Updatable.swift */,
 				BBA58D131C109FC5003D4511 /* Variable.swift */,
-				BB8F250B1C19F8B00016BD25 /* ArrayChange.swift */,
-				BB57795B1C1665240061994C /* ArrayVariable.swift */,
 				BB4138B21C1443DC005D5686 /* Select.swift */,
 			);
-			name = Observables;
+			name = "Observable Values";
 			sourceTree = "<group>";
 		};
 		BB534A1D1C113C0200FA1C7F /* PerformanceTests */ = {
@@ -235,7 +239,8 @@
 				BBB285081C0C76CB00FABFE2 /* Info.plist */,
 				BB8F25081C186FA30016BD25 /* Tools */,
 				BB97C1BA1C16796400B15771 /* Sources and Signals */,
-				BB40ACA01C16799B007F9C37 /* Observables */,
+				BB40ACA01C16799B007F9C37 /* Observable Values */,
+				BBF6FED31C1A403200382B5B /* Observable Arrays */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -277,6 +282,18 @@
 				BB4138B41C14536F005D5686 /* SelectTests.swift */,
 			);
 			name = Observables;
+			sourceTree = "<group>";
+		};
+		BBF6FED31C1A403200382B5B /* Observable Arrays */ = {
+			isa = PBXGroup;
+			children = (
+				BB8F250B1C19F8B00016BD25 /* ArrayChange.swift */,
+				BB87D5671C1A3F5400186780 /* ObservableArray.swift */,
+				BBF6FED11C1A400600382B5B /* UpdatableArray.swift */,
+				BB57795B1C1665240061994C /* ArrayVariable.swift */,
+				BB87D5651C1A300300186780 /* SelectEach.swift */,
+			);
+			name = "Observable Arrays";
 			sourceTree = "<group>";
 		};
 		BBF6FED41C1A42C400382B5B /* Documentation */ = {
@@ -491,11 +508,14 @@
 				BB8F250C1C19F8B00016BD25 /* ArrayChange.swift in Sources */,
 				BB534A151C112D2A00FA1C7F /* MergedSource.swift in Sources */,
 				BB4138A91C120707005D5686 /* NSNotificationCenter Support.swift in Sources */,
+				BBF6FED21C1A400600382B5B /* UpdatableArray.swift in Sources */,
+				BB87D5661C1A300300186780 /* SelectEach.swift in Sources */,
 				BB40ACA21C167ABB007F9C37 /* Updatable.swift in Sources */,
 				BBBB197F1C1699FB00765E6A /* Observable Transformations.swift in Sources */,
 				BBA58D101C1095C0003D4511 /* SimpleSources.swift in Sources */,
 				BB8B2C081C0CA0EA008B78A3 /* Signal.swift in Sources */,
 				BB8B2C061C0CA0B4008B78A3 /* Connection.swift in Sources */,
+				BB87D5681C1A3F5400186780 /* ObservableArray.swift in Sources */,
 				BBA58D231C10E47A003D4511 /* KVO Support.swift in Sources */,
 				BBBB19801C169D9900765E6A /* TimerSource.swift in Sources */,
 			);
