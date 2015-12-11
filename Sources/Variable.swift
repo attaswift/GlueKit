@@ -8,21 +8,57 @@
 
 import Foundation
 
-/// A Variable holds a value that can be read and updated. Updates to a variable are observable via any of its several sources.
-public class Variable<Value>: UpdatableType {
+/// A Storage allows read-write access to an individual piece of data.
+public protocol StorageType {
+    typealias Value
+    var value: Value { get set }
+}
 
-    private var _value: Value
+/// `StrongStorage` directly contains a value, or a strong reference to a class instance.
+public struct StrongStorage<Value>: StorageType {
+    public var value: Value
+    public init(_ value: Value) { self.value = value }
+}
+
+/// `WeakStorage` contains a weak reference to a class instance, as an optional value.
+public struct WeakStorage<Object: AnyObject>: StorageType {
+    public typealias Value = Object?
+    public weak var value: Object?
+    public init(_ value: Value) { self.value = value }
+}
+
+/// `UnownedStorage` containes an unowned reference to a class instance.
+public struct UnownedStorage<Object: AnyObject>: StorageType {
+    public typealias Value = Object
+    public unowned var value: Object
+
+    public init(_ value: Value) { self.value = value }
+}
+
+/// A property implements `UpdatableType` by accessing and updating its value in a piece of storage it owns.
+/// The storage is configurable, and specified by the generic type parameter `Storage`.
+///
+/// Note that the storage must only be updated via the property's setters in order for update notifications to trigger 
+/// correctly.
+///
+/// - SeeAlso: Variable<Value>, UnownedVariable<Value>, WeakVariable<Value>
+///
+public class Property<Storage: StorageType>: UpdatableType {
+    public typealias Value = Storage.Value
+
+    private var storage: Storage
+
     private lazy var signal = LazySignal<Value>()
 
     /// Create a new variable with an initial value.
     /// @param value: The initial value of the variable.
-    public init(_ value: Value) {
-        self._value = value
+    public init(_ storage: Storage) {
+        self.storage = storage
     }
 
     /// The current value of the variable.
     public final var value: Value {
-        get { return _value }
+        get { return storage.value }
         set { setValue(newValue) }
     }
 
@@ -32,62 +68,35 @@ public class Variable<Value>: UpdatableType {
     /// Update the value of this variable, and send the new value to all sinks that are currently connected.
     /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
     public final func setValue(value: Value) {
-        _value = value
+        storage.value = value
         signal.sendIfConnected(value)
     }
 }
 
-public class UnownedVariable<Value: AnyObject>: UpdatableType {
-    private unowned var _value: Value
-    private lazy var signal = LazySignal<Value>()
-
+/// A Variable contains a value that can be read and updated. Updates are observable.
+public class Variable<Value>: Property<StrongStorage<Value>> {
     /// Create a new variable with an initial value.
     /// @param value: The initial value of the variable.
     public init(_ value: Value) {
-        self._value = value
-    }
-
-    /// The current value of the variable.
-    public final var value: Value {
-        get { return _value }
-        set { setValue(newValue) }
-    }
-
-    /// A source that reports all future values of this variable.
-    public final var futureValues: Source<Value> { return self.signal.source }
-
-    /// Update the value of this variable, and send the new value to all sinks that are currently connected.
-    /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
-    public final func setValue(value: Value) {
-        _value = value
-        signal.sendIfConnected(value)
+        super.init(StrongStorage(value))
     }
 }
 
-public class WeakVariable<Value: AnyObject>: UpdatableType {
-    private weak var _value: Value? = nil
-    private lazy var signal = LazySignal<Value?>()
-
+/// An unowned variable contains an unowned reference to an object that can be read and updated. Updates are observable.
+public class UnownedVariable<Value: AnyObject>: Property<UnownedStorage<Value>> {
     /// Create a new variable with an initial value.
     /// @param value: The initial value of the variable.
-    public init(_ value: Value?) {
-        self._value = value
+    public init(_ value: Value) {
+        super.init(UnownedStorage(value))
     }
+}
 
-    /// The current value of the variable.
-    public final var value: Value? {
-        get { return _value }
-        set { setValue(newValue) }
-    }
-
-    /// A source that reports all future values of this variable.
-    public final var futureValues: Source<Value?> { return self.signal.source }
-
-    /// Update the value of this variable, and send the new value to all sinks that are currently connected.
-    /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
-    public final func setValue(value: Value?) {
-        _value = value
-        signal.sendIfConnected(value)
+/// A weak variable contains a weak reference to an object that can be read and updated. Updates are observable.
+public class WeakVariable<Object: AnyObject>: Property<WeakStorage<Object>> {
+    /// Create a new variable with an initial value.
+    /// @param value: The initial value of the variable.
+    public init(_ value: Object?) {
+        super.init(WeakStorage(value))
     }
 }
 

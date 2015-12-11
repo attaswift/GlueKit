@@ -32,7 +32,6 @@ extension UpdatableType {
 
 /// The type lifted representation of an UpdatableType.
 public struct Updatable<Value>: UpdatableType {
-
     /// The getter closure for the current value of this updatable.
     public let getter: Void->Value
     /// The setter closure for updating the current value of this updatable.
