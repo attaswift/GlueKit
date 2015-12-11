@@ -313,7 +313,7 @@ class SignalTests: XCTestCase {
     func testFirstAndLastConnectCallbacksAreCalled() {
         var first = 0
         var last = 0
-        let signal = Signal<Int>(didConnectFirstSink: { _ in first++ }, didDisconnectLastSink: { _ in last++ })
+        let signal = Signal<Int>(start: { _ in first++ }, stop: { _ in last++ })
 
         XCTAssertEqual(first, 0)
         XCTAssertEqual(last, 0)
@@ -354,9 +354,7 @@ class SignalTests: XCTestCase {
         var first: Signal<Int>? = nil
         var last: Signal<Int>? = nil
 
-        let signal = Signal<Int>(
-            didConnectFirstSink: { s in first = s },
-            didDisconnectLastSink: { s in last = s })
+        let signal = Signal<Int>(start: { s in first = s }, stop: { s in last = s })
 
         signal.send(0)
 
@@ -373,7 +371,7 @@ class SignalTests: XCTestCase {
     func testFirstAndLastConnectCallbacksCanBeCalledMultipleTimes() {
         var first = 0
         var last = 0
-        let signal = Signal<Int>(didConnectFirstSink: { _ in first++ }, didDisconnectLastSink: { _ in last++ })
+        let signal = Signal<Int>(start: { _ in first++ }, stop: { _ in last++ })
 
         let c1 = signal.connect { i in }
 
@@ -398,7 +396,7 @@ class SignalTests: XCTestCase {
 
     func testFirstConnectCallbackIsOnlyCalledOnFirstConnections() {
         var first = 0
-        let signal = Signal<Int>(didConnectFirstSink: { _ in first++ }, didDisconnectLastSink: { _ in })
+        let signal = Signal<Int>(start: { _ in first++ }, stop: { _ in })
 
         XCTAssertEqual(first, 0)
 
@@ -416,7 +414,7 @@ class SignalTests: XCTestCase {
 
     func testLastConnectCallbackIsOnlyCalledOnLastConnections() {
         var last = 0
-        let signal = Signal<Int>(didConnectFirstSink: { _ in }, didDisconnectLastSink: { _ in last++ })
+        let signal = Signal<Int>(start: { _ in }, stop: { _ in last++ })
 
         XCTAssertEqual(last, 0)
 
@@ -612,12 +610,14 @@ class SignalTests: XCTestCase {
 }
 
 private struct Counter: SourceType {
+    typealias SourceValue = Int
+
     private var lock = Spinlock()
     private var counter: Int = 0
     private var signal = Signal<Int>()
 
-    func connect(sink: Sink<Int>) -> Connection {
-        return signal.connect(sink)
+    func connect<S: GlueKit.SinkType where S.SinkValue == Int>(sink: S) -> Connection {
+        return signal.connect(Sink(sink))
     }
 
     mutating func increment() -> Int {

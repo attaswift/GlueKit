@@ -9,14 +9,104 @@
 import Foundation
 
 public protocol SignalType: SourceType, SinkType /* where SourceType.SourceValue == SinkType.SinkValue */ {
-    func connect(sink: Sink<SourceValue>) -> Connection
-    func receive(value: SinkValue)
+    typealias SinkValue = SourceValue
+
+    func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection
+    func receive(value: SourceValue)
 }
 
-internal protocol SignalOwner: class {
-    typealias OwnedSignal: SignalType
-    func signalDidStart(signal: OwnedSignal)
-    func signalDidStop(signal: OwnedSignal)
+internal protocol SignalDelegate: class {
+    typealias SignalValue
+    func start(signal: Signal<SignalValue>)
+    func stop(signal: Signal<SignalValue>)
+}
+
+/// This is a wrapper around a lazily created Signal that holds a strong reference to its delegate.
+///
+/// Using this in your implementation of a source or observable helps satisfying GlueKit's two conventions:
+///
+/// - Dependants hold strong references to their dependencies
+/// - Dependants only activate their dependencies while someone is interested in them
+///
+/// Note that while this struct implements `SourceType`, it cannot formally declare this, because its
+/// `connect` method is mutating.
+internal struct OwningSignal<Value, Delegate: SignalDelegate where Delegate.SignalValue == Value> {
+    internal typealias SourceValue = Value
+
+    private unowned var delegate: Delegate
+    private weak var _signal: Signal<Value>? = nil
+
+    internal init(delegate: Delegate) {
+        self.delegate = delegate
+    }
+
+    internal var signal: Signal<Value> {
+        mutating get {
+            if let s = _signal {
+                return s
+            }
+            else {
+                let s = Signal<Value>(stronglyHeldDelegate: delegate)
+                _signal = s
+                return s
+            }
+        }
+    }
+
+    /// Send value to the signal (if it exists).
+    internal func send(value: Value) {
+        _signal?.send(value)
+    }
+
+    internal var source: Source<Value> {
+        mutating get { return self.signal.source }
+    }
+
+    internal mutating func connect<S: SinkType where S.SinkValue == Value>(sink: S) -> Connection {
+        return signal.connect(sink)
+    }
+}
+
+internal struct LazySignal<Value> {
+    internal typealias SourceValue = Value
+
+    private weak var _signal: Signal<Value>? = nil
+    private var connected = false
+
+    internal init() {
+    }
+
+    internal var signal: Signal<Value> {
+        mutating get {
+            if let s = _signal {
+                return s
+            }
+            else {
+                let s = Signal<Value>()
+                _signal = s
+                return s
+            }
+        }
+    }
+
+    /// Send value to the signal (if it exists).
+    internal func send(value: Value) {
+        _signal?.send(value)
+    }
+
+    internal func sendIfConnected(@autoclosure value: Void->Value) {
+        if let s = _signal where s.isConnected {
+            s.send(value())
+        }
+    }
+
+    internal var source: Source<Value> {
+        mutating get { return self.signal.source }
+    }
+
+    internal mutating func connect<S: SinkType where S.SinkValue == Value>(sink: S) -> Connection {
+        return signal.connect(sink)
+    }
 }
 
 /// Holds a strong reference to a value that may not be ready for consumption yet.
@@ -45,22 +135,39 @@ private enum PendingItem<Value> {
     case RipenSinkWithID(ConnectionID)
 }
 
-/// A Signal provides a source and a sink. Sending a value to a signal's sink forwards it to all sinks that are currently connected to the signal. The signal's sink is named "send", and it is available as a direct method.
+/// A Signal provides a source and a sink. Sending a value to a signal's sink forwards it to all sinks that are 
+/// currently connected to the signal. The signal's sink is named "send", and it is available as a direct method.
 ///
 /// The Five Rules of Signal:
-/// 0. Signal only sends values to sinks that it receives via Signal.send(). All such values are forwarded to sinks connected at the time of the send (if any).
-/// 1. Sends are serialized. Signal defines a strict order between the values sent to it, forming a single sequence of values.
-/// 2. All sinks get the same values. Each sink receives a subsequence of the Signal's value sequence. No reordering, no skipping, no duplicates.
-/// 3. Connections are serialized with sends. Each sink's value subsequence starts with the first value that was (started to be) sent after it was connected (if any).
+///
+/// 0. Signal only sends values to sinks that it receives via Signal.send(). All such values are forwarded to 
+///    sinks connected at the time of the send (if any).
+/// 1. Sends are serialized. Signal defines a strict order between the values sent to it, forming a single 
+///    sequence of values.
+/// 2. All sinks get the same values. Each sink receives a subsequence of the Signal's value sequence. No reordering,
+///    no skipping, no duplicates.
+/// 3. Connections are serialized with sends. Each sink's value subsequence starts with the first value that 
+///    was (started to be) sent after it was connected (if any).
 /// 4. Disconnection is immediate. No new value is sent to a sink after its connection has finished disconnecting.
 ///
 /// Some implementation notes:
 ///
-/// The simplest nontrivial way to implement these rules is to make the Signal synchronous by serializing send() using a lock -- this is the way chosen by ReactiveCocoa and RxSwift. This makes reentrant send() calls deadlock, but that's probably a good thing. (You can emulate reentrant sends by scheduling an asyncronous send; however, that can visibly break value ordering.)
+/// The simplest nontrivial way to implement these rules is to make the Signal synchronous by serializing send() 
+/// using a lock -- this is the way chosen by ReactiveCocoa and RxSwift. This makes reentrant send() calls deadlock, 
+/// but that's probably a good thing. (You can emulate reentrant sends by scheduling an asyncronous send; however,
+/// that can visibly break value ordering.)
 ///
-/// As an experiment, this particular Signal implementation allows send() to be called from any thread at any time -- including reentrant send()s from a sink that is currently being executed by it. To ensure the rule set above, reentrant and concurrent sends and connects are asynchronous. They are ordered in a queue and performed at the end of the active send that first entered the signal. This implementation never invokes sinks recursively inside another sink invocation.
+/// As an experiment, this particular Signal implementation allows send() to be called from any thread at any 
+/// time---including reentrant send()s from a sink that is currently being executed by it. To ensure the rule set
+/// above, reentrant and concurrent sends and connects are asynchronous. They are ordered in a queue and performed 
+/// at the end of the active send that first entered the signal. This implementation never invokes sinks recursively 
+/// inside another sink invocation.
 ///
-/// For reference, KVO's analogue to Signal in Foundation supports reentrancy, but its send() is synchronous. There is no way to satisy the above rules in a system like that. KVO's designers chose to resolve this by always calling observers with the latest value of the observed key path. That's a nice pragmatic solution in the face of reentrancy, but it only makes sense when you have the concept of a current value, which Signal doesn't. (Although Variable does.)
+/// For reference, KVO's analogue to Signal in Foundation supports reentrancy, but its send() is synchronous. There 
+/// is no way to satisy the above rules in a system like that. KVO's designers chose to resolve this by always calling 
+/// observers with the latest value of the observed key path. That's a nice pragmatic solution in the face of 
+/// reentrancy, but it only makes sense when you have the concept of a current value, which Signal doesn't. 
+/// (Although Variable does.)
 ///
 public final class Signal<Value>: SignalType {
     public typealias SourceValue = Value
@@ -71,39 +178,43 @@ public final class Signal<Value>: SignalType {
     private var sinks: Dictionary<ConnectionID, Ripening<Sink<Value>>> = [:]
     private var pendingItems: [PendingItem<Value>] = []
 
-    /// A closure that is run whenever this signal transitions from an empty signal to one having a single connection. (Executed on the thread that connects the first sink.)
-    internal let didConnectFirstSink: Signal<Value>->Void
+    /// A closure that is run whenever this signal transitions from an empty signal to one having a single connection.
+    /// (Executed on the thread that connects the first sink.)
+    internal let startCallback: Signal<Value>->Void
 
-    /// A closure that is run whenever this signal transitions from having at least one connection to having no connections. (Executed on the thread that disconnects the last sink.)
-    internal let didDisconnectLastSink: Signal<Value>->Void
+    /// A closure that is run whenever this signal transitions from having at least one connection to having no 
+    /// connections. (Executed on the thread that disconnects the last sink.)
+    internal let stopCallback: Signal<Value>->Void
 
-    /// @param didConnectFirstSink: A closure that is run whenever this signal transitions from an empty signal to one having a single connection. (Executed on the thread that connects the first sink.)
-    /// @param didDisconnectLastSink: A closure that is run whenever this signal transitions from having at least one connection to having no connections. (Executed on the thread that disconnects the last sink.)
-    internal init(didConnectFirstSink: Signal<Value>->Void, didDisconnectLastSink: Signal<Value>->Void) {
-        self.didConnectFirstSink = didConnectFirstSink
-        self.didDisconnectLastSink = didDisconnectLastSink
+    /// @param start: A closure that is run whenever this signal transitions from an empty signal to one having a 
+    ///     single connection. (Executed on the thread that connects the first sink.)
+    /// @param stop: A closure that is run whenever this signal transitions from having at least one connection to
+    ///     having no connections. (Executed on the thread that disconnects the last sink.)
+    internal init(start: Signal<Value>->Void, stop: Signal<Value>->Void) {
+        self.startCallback = start
+        self.stopCallback = stop
     }
 
-    internal convenience init(startStopCallback: (signal: Signal<Value>, started: Bool) -> Void) {
+    internal convenience init(delegateCallback: (signal: Signal<Value>, started: Bool) -> Void) {
         self.init(
-            didConnectFirstSink: { s in startStopCallback(signal: s, started: true) },
-            didDisconnectLastSink: { s in startStopCallback(signal: s, started: false) })
+            start: { s in delegateCallback(signal: s, started: true) },
+            stop: { s in delegateCallback(signal: s, started: false) })
     }
 
-    internal convenience init<Owner: SignalOwner where Owner.OwnedSignal == Signal<Value>>(owner: Owner) {
+    internal convenience init<Delegate: SignalDelegate where Delegate.SignalValue == Value>(delegate: Delegate) {
         self.init(
-            didConnectFirstSink: { [unowned owner] s in owner.signalDidStart(s) },
-            didDisconnectLastSink: { [unowned owner] s in owner.signalDidStop(s) })
+            start: { [weak delegate] s in delegate?.start(s) },
+            stop: { [weak delegate] s in delegate?.stop(s) })
     }
 
-    internal convenience init<Owner: SignalOwner where Owner.OwnedSignal == Signal<Value>>(stronglyHeldOwner owner: Owner) {
+    internal convenience init<Delegate: SignalDelegate where Delegate.SignalValue == Value>(stronglyHeldDelegate delegate: Delegate) {
         self.init(
-            didConnectFirstSink: { s in owner.signalDidStart(s) },
-            didDisconnectLastSink: { s in owner.signalDidStop(s) })
+            start: { s in delegate.start(s) },
+            stop: { s in delegate.stop(s) })
     }
 
     public convenience init() {
-        self.init(didConnectFirstSink: { s in }, didDisconnectLastSink: { s in })
+        self.init(start: { s in }, stop: { s in })
     }
 
     /// Atomically enter sending state if the signal wasn't already in it.
@@ -118,7 +229,8 @@ public final class Signal<Value>: SignalType {
         }
     }
 
-    /// Atomically return the pending value that needs to be sent next, or nil. If there are no more values, exit the sending state.
+    /// Atomically return the pending value that needs to be sent next, or nil. 
+    /// If there are no more values, exit the sending state.
     private func _nextValueToSendOrElseLeaveSendingState() -> Value? {
         return lock.locked {
             assert(self.sending)
@@ -144,7 +256,8 @@ public final class Signal<Value>: SignalType {
     private func _sendValueNow(value: Value) {
         assert(sending)
 
-        // Note that sinks are allowed to freely add or remove connections. This loop is constructed to support this correctly:
+        // Note that sinks are allowed to freely add or remove connections. 
+        // This loop is constructed to support this correctly:
         // - New sinks added while we are sending a value will not fire.
         // - Sinks removed during the iteration will not fire.
         for (id, _) in lock.locked({ return self.sinks }) {
@@ -156,7 +269,10 @@ public final class Signal<Value>: SignalType {
 
     /// Send a value to all sinks currently connected to this Signal. The sinks are executed in undefined order.
     ///
-    /// The sinks are normally executed synchronously. However, when two or more threads are sending values at the same time, or when a connected sink sends a value back to this same signal, then only the send() arriving first is synchronous; the rest are performed asynchronously on the thread of the first send(), before the first send() returns.
+    /// The sinks are normally executed synchronously. However, when two or more threads are sending values at the 
+    /// same time, or when a connected sink sends a value back to this same signal, then only the send() arriving 
+    /// first is synchronous; the rest are performed asynchronously on the thread of the first send(), before the 
+    /// first send() returns.
     ///
     /// You may safely call this method from any thread, provided that the sinks are OK with running there.
     public func send(value: Value) {
@@ -215,7 +331,9 @@ public final class Signal<Value>: SignalType {
     }
 
     @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func connect(sink: Sink<Value>) -> Connection {
+    public func connect<S: SinkType where S.SinkValue == Value>(sink: S) -> Connection {
+        let sink = Sink(sink)
+        
         let c = Connection(callback: self.disconnect) // c now holds a strong reference to self.
         let id = c.connectionID
         let first: Bool = lock.locked {
@@ -234,17 +352,20 @@ public final class Signal<Value>: SignalType {
         // c is holding us, and we now hold a strong reference to the sink, so c holds both us and the sink.
 
         if first {
-            self.didConnectFirstSink(self)
+            self.startCallback(self)
         }
         return c
     }
+
+    public var isConnected: Bool { return lock.locked { !self.sinks.isEmpty } }
 
     private func disconnect(id: ConnectionID) {
         let last = lock.locked { ()->Bool in
             return self.sinks.removeValueForKey(id) != nil && self.sinks.isEmpty
         }
         if last {
-            self.didDisconnectLastSink(self)
+            self.stopCallback(self)
         }
     }
 }
+

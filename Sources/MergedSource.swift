@@ -12,7 +12,8 @@ extension SourceType {
     /// Returns a source that merges self with `source`. The returned source will forward all values sent by either
     /// of its two input sources to its own connected sinks.
     ///
-    /// It is fine to chain multiple merges together: `MergedSource` has its own, specialized `merge` method.
+    /// It is fine to chain multiple merges together: `MergedSource` has its own, specialized `merge` method to 
+    /// collapse multiple merges into a single source.
     public func merge<S: SourceType where S.SourceValue == SourceValue>(source: S) -> MergedSource<SourceValue> {
         return MergedSource(sources: [self.source, source.source])
     }
@@ -29,12 +30,12 @@ extension SourceType {
 /// A Source that receives all values from a set of input sources and forwards all to its own connected sinks.
 ///
 /// Note that MergedSource only connects to its input sources while it has at least one connection of its own.
-public final class MergedSource<Value>: SourceType, SignalOwner {
+public final class MergedSource<Value>: SourceType, SignalDelegate {
     public typealias SourceValue = Value
 
     private let inputs: [Source<Value>]
 
-    private weak var _signal: Signal<Value>? = nil
+    private lazy var signal: OwningSignal<Value, MergedSource<Value>> = { OwningSignal(delegate: self) }()
 
     private var lock = Spinlock()
     private var connections: [Connection] = []
@@ -44,19 +45,8 @@ public final class MergedSource<Value>: SourceType, SignalOwner {
         self.inputs = sources
     }
 
-    private var signal: Signal<Value> {
-        if let signal = _signal {
-            return signal
-        }
-        else {
-            let signal = Signal<Value>(stronglyHeldOwner: self)
-            _signal = signal
-            return signal
-        }
-    }
-
-    public func connect(sink: Sink<Value>) -> Connection {
-        return signal.connect(sink)
+    public func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection {
+        return signal.connect(Sink(sink))
     }
 
     /// Returns a new MergedSource that merges the same sources as self but also listens to `source`.
@@ -65,14 +55,14 @@ public final class MergedSource<Value>: SourceType, SignalOwner {
         return MergedSource(sources: self.inputs + [source.source])
     }
 
-    internal func signalDidStart(signal: Signal<Value>) {
+    internal func start(signal: Signal<Value>) {
         lock.locked {
             assert(connections.isEmpty)
             connections = inputs.map { $0.connect(signal) }
         }
     }
 
-    internal func signalDidStop(signal: Signal<Value>) {
+    internal func stop(signal: Signal<Value>) {
         lock.locked {
             for c in connections {
                 c.disconnect()

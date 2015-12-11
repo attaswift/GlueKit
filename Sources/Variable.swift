@@ -12,7 +12,7 @@ import Foundation
 public class Variable<Value>: UpdatableType {
 
     private var _value: Value
-    private weak var _signal: Signal<Value>? = nil // Created on demand, released immediately when unused
+    private lazy var signal = LazySignal<Value>()
 
     /// Create a new variable with an initial value.
     /// @param value: The initial value of the variable.
@@ -29,23 +29,11 @@ public class Variable<Value>: UpdatableType {
     /// A source that reports all future values of this variable.
     public final var futureValues: Source<Value> { return self.signal.source }
 
-    /// Return the existing signal or create a new one if needed.
-    private final var signal: Signal<Value> {
-        if let signal = _signal {
-            return signal
-        }
-        else {
-            let signal = Signal<Value>()
-            _signal = signal
-            return signal
-        }
-    }
-
     /// Update the value of this variable, and send the new value to all sinks that are currently connected.
     /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
     public final func setValue(value: Value) {
         _value = value
-        _signal?.send(value)
+        signal.sendIfConnected(value)
     }
 }
 

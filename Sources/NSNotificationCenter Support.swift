@@ -23,7 +23,7 @@ extension NSNotificationCenter {
         var observer: NSObjectProtocol? = nil
 
         let signal = Signal<NSNotification>(
-            didConnectFirstSink: { signal in
+            start: { signal in
                 lock.locked {
                     assert(observer == nil)
                     observer = self.addObserverForName(name, object: sender, queue: queue) { [unowned signal] notification in
@@ -31,7 +31,7 @@ extension NSNotificationCenter {
                     }
                 }
             },
-            didDisconnectLastSink: { signal in
+            stop: { signal in
                 lock.locked {
                     assert(observer != nil)
                     self.removeObserver(observer!)

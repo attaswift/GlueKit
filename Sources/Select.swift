@@ -9,23 +9,24 @@
 import Foundation
 
 /// A source of values for a Source field.
-private final class ValueSourceForSourceField<Parent: ObservableType, Field: SourceType>: SourceType, SignalOwner {
-    typealias SourceValue = Field.SourceValue
+private final class ValueSourceForSourceField<Parent: ObservableType, Field: SourceType>: SignalDelegate {
+    typealias Value = Field.SourceValue
 
     let parent: Parent
     let key: Parent.Value -> Field
 
+    lazy var signal: OwningSignal<Value, ValueSourceForSourceField<Parent, Field>> = { OwningSignal(delegate: self) }()
     var fieldConnection: Connection? = nil
     var parentConnection: Connection? = nil
 
-    var source: Source<SourceValue> { return Signal<SourceValue>(stronglyHeldOwner: self).source }
+    var source: Source<Value> { return signal.source }
 
     init(parent: Parent, key: Parent.Value->Field) {
         self.parent = parent
         self.key = key
     }
 
-    func signalDidStart(signal: Signal<SourceValue>) {
+    func start(signal: Signal<Value>) {
         assert(parentConnection == nil)
         let field = key(parent.value)
         fieldConnection = field.connect(signal)
@@ -36,7 +37,7 @@ private final class ValueSourceForSourceField<Parent: ObservableType, Field: Sou
         }
     }
 
-    func signalDidStop(signal: Signal<SourceValue>) {
+    func stop(signal: Signal<Value>) {
         assert(parentConnection != nil)
         fieldConnection?.disconnect()
         parentConnection?.disconnect()
@@ -46,25 +47,26 @@ private final class ValueSourceForSourceField<Parent: ObservableType, Field: Sou
 }
 
 /// A source of changes for an Observable field.
-private final class ValueSourceForObservableField<Parent: ObservableType, Field: ObservableType>: SourceType, SignalOwner {
+private final class ValueSourceForObservableField<Parent: ObservableType, Field: ObservableType>: SignalDelegate {
     typealias Value = Field.Value
     typealias SourceValue = Value
 
     let parent: Parent
     let key: Parent.Value -> Field
 
+    lazy var signal: OwningSignal<Value, ValueSourceForObservableField<Parent, Field>> = { OwningSignal(delegate: self) }()
     var currentValue: Field.Value? = nil
     var fieldConnection: Connection? = nil
     var parentConnection: Connection? = nil
 
-    var source: Source<Value> { return Signal<Value>(stronglyHeldOwner: self).source }
+    var source: Source<Value> { return signal.source }
 
     init(parent: Parent, key: Parent.Value->Field) {
         self.parent = parent
         self.key = key
     }
 
-    func signalDidStart(signal: Signal<Value>) {
+    func start(signal: Signal<Value>) {
         assert(parentConnection == nil)
         let field = key(parent.value)
         currentValue = field.value
@@ -79,7 +81,7 @@ private final class ValueSourceForObservableField<Parent: ObservableType, Field:
         }
     }
 
-    func signalDidStop(signal: Signal<Value>) {
+    func stop(signal: Signal<Value>) {
         assert(parentConnection != nil)
         fieldConnection?.disconnect()
         parentConnection?.disconnect()
@@ -89,7 +91,8 @@ private final class ValueSourceForObservableField<Parent: ObservableType, Field:
     }
 }
 
-private final class ChangeSourceForObservableArrayField<Parent: ObservableType, Field: ObservableArrayType where Field.Change == ArrayChange<Field.Generator.Element>, Field.Index == Int, Field.BaseCollection == [Field.Generator.Element]>: SourceType, SignalOwner {
+/// A source of changes for an ObservableArray field.
+private final class ChangeSourceForObservableArrayField<Parent: ObservableType, Field: ObservableArrayType where Field.Change == ArrayChange<Field.Generator.Element>, Field.Index == Int, Field.BaseCollection == [Field.Generator.Element]>: SignalDelegate {
     typealias Element = Field.Generator.Element
     typealias Value = Field.Change
     typealias SourceValue = Value
@@ -97,12 +100,13 @@ private final class ChangeSourceForObservableArrayField<Parent: ObservableType, 
     let parent: Parent
     let key: Parent.Value -> Field
 
+    lazy var signal: OwningSignal<Value, ChangeSourceForObservableArrayField<Parent, Field>> = { OwningSignal(delegate: self) }()
     var fieldConnection: Connection? = nil
     var parentConnection: Connection? = nil
     var _field: Field? = nil
     var _count: Int = 0
 
-    var source: Source<Value> { return Signal<Value>(stronglyHeldOwner: self).source }
+    var source: Source<Value> { return signal.source }
 
     var field: Field {
         if let field = _field {
@@ -125,7 +129,7 @@ private final class ChangeSourceForObservableArrayField<Parent: ObservableType, 
         self.key = key
     }
 
-    func signalDidStart(signal: Signal<Value>) {
+    func start(signal: Signal<Value>) {
         assert(parentConnection == nil)
         let field = key(parent.value)
         self._field = field
@@ -146,7 +150,7 @@ private final class ChangeSourceForObservableArrayField<Parent: ObservableType, 
         }
     }
 
-    func signalDidStop(signal: Signal<Value>) {
+    func stop(signal: Signal<Value>) {
         assert(parentConnection != nil)
         fieldConnection?.disconnect()
         parentConnection?.disconnect()

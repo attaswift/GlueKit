@@ -248,9 +248,8 @@ public final class ArrayVariable<Element>: UpdatableArrayType, ArrayLiteralConve
     public typealias SinkValue = [Element]
 
     private var _value: [Element]
-    // These are created on demand and released immediately when unused
-    private weak var _futureChanges: Signal<ArrayChange<Element>>? = nil
-    private weak var _futureValues: Signal<[Element]>? = nil
+    private var _changeSignal = LazySignal<Change>()
+    private var _valueSignal = LazySignal<[Element]>()
 
     public init() {
         _value = []
@@ -273,32 +272,18 @@ public final class ArrayVariable<Element>: UpdatableArrayType, ArrayLiteralConve
 
     /// A source that reports all future changes of this variable.
     public var futureChanges: Source<ArrayChange<Element>> {
-        if let futureChanges = _futureChanges {
-            return futureChanges.source
-        }
-        else {
-            let signal = Signal<ArrayChange<Element>>()
-            _futureChanges = signal
-            return signal.source
-        }
+        return _changeSignal.source
     }
 
     public var futureValues: Source<[Element]> {
-        if let signal = _futureValues {
-            return signal.source
-        }
-        else {
-            let s = Signal<[Element]>()
-            _futureValues = s
-            return s.source
-        }
+        return _valueSignal.source
     }
 
     public func setValue(value: [Element]) {
         let oldCount = _value.count
         _value = value
-        _futureChanges?.send(ArrayChange(count: oldCount, modification: .ReplaceRange(0..<oldCount, with: value)))
-        _futureValues?.send(value)
+        _changeSignal.sendIfConnected(ArrayChange(count: oldCount, modification: .ReplaceRange(0..<oldCount, with: value)))
+        _valueSignal.sendIfConnected(value)
     }
 
     public var count: Int {
@@ -330,8 +315,8 @@ extension ArrayVariable: MutableCollectionType {
         }
         set {
             _value[index] = newValue
-            _futureChanges?.send(ArrayChange(count: self.count, modification: .ReplaceAt(index, with: newValue)))
-            _futureValues?.send(value)
+            _changeSignal.sendIfConnected(ArrayChange(count: self.count, modification: .ReplaceAt(index, with: newValue)))
+            _valueSignal.sendIfConnected(value)
         }
     }
 
@@ -342,8 +327,8 @@ extension ArrayVariable: MutableCollectionType {
         set {
             let oldCount = count
             _value[bounds] = newValue
-            _futureChanges?.send(ArrayChange(count: oldCount, modification: .ReplaceRange(bounds, with: Array<Element>(newValue))))
-            _futureValues?.send(value)
+            _changeSignal.sendIfConnected(ArrayChange(count: oldCount, modification: .ReplaceRange(bounds, with: Array<Element>(newValue))))
+            _valueSignal.sendIfConnected(value)
         }
     }
 }
@@ -352,8 +337,8 @@ extension ArrayVariable: RangeReplaceableCollectionType {
     public func replaceRange<C : CollectionType where C.Generator.Element == Generator.Element>(subRange: Range<Int>, with newElements: C) {
         let oldCount = count
         _value.replaceRange(subRange, with: newElements)
-        _futureChanges?.send(ArrayChange(count: oldCount, modification: .ReplaceRange(subRange, with: Array<Element>(newElements))))
-        _futureValues?.send(value)
+        _changeSignal.sendIfConnected(ArrayChange(count: oldCount, modification: .ReplaceRange(subRange, with: Array<Element>(newElements))))
+        _valueSignal.sendIfConnected(value)
     }
 
     // These have default implementations in terms of replaceRange, but doing them by hand makes for better change reports.
@@ -364,43 +349,43 @@ extension ArrayVariable: RangeReplaceableCollectionType {
 
     public func insert(newElement: Element, at index: Int) {
         _value.insert(newElement, atIndex: index)
-        _futureChanges?.send(ArrayChange(count: self.count - 1, modification: .Insert(newElement, at: index)))
-        _futureValues?.send(value)
+        _changeSignal.sendIfConnected(ArrayChange(count: self.count - 1, modification: .Insert(newElement, at: index)))
+        _valueSignal.sendIfConnected(value)
     }
 
     public func removeAtIndex(index: Int) -> Element {
         let result = _value.removeAtIndex(index)
-        _futureChanges?.send(ArrayChange(count: self.count + 1, modification: .RemoveAt(index)))
-        _futureValues?.send(value)
+        _changeSignal.sendIfConnected(ArrayChange(count: self.count + 1, modification: .RemoveAt(index)))
+        _valueSignal.sendIfConnected(value)
         return result
     }
 
     public func removeFirst() -> Element {
         let result = _value.removeFirst()
-        _futureChanges?.send(ArrayChange(count: self.count + 1, modification: .RemoveAt(0)))
-        _futureValues?.send(value)
+        _changeSignal.sendIfConnected(ArrayChange(count: self.count + 1, modification: .RemoveAt(0)))
+        _valueSignal.sendIfConnected(value)
         return result
     }
 
     public func removeLast() -> Element {
         let result = _value.removeLast()
-        _futureChanges?.send(ArrayChange(count: self.count + 1, modification: .RemoveAt(self.count)))
-        _futureValues?.send(value)
+        _changeSignal.sendIfConnected(ArrayChange(count: self.count + 1, modification: .RemoveAt(self.count)))
+        _valueSignal.sendIfConnected(value)
         return result
     }
     
     public func popLast() -> Element? {
         guard let result = _value.popLast() else { return nil }
-        _futureChanges?.send(ArrayChange(count: self.count + 1, modification: .RemoveAt(self.count)))
-        _futureValues?.send(value)
+        _changeSignal.sendIfConnected(ArrayChange(count: self.count + 1, modification: .RemoveAt(self.count)))
+        _valueSignal.sendIfConnected(value)
         return result
     }
 
     public func removeAll() {
         let count = _value.count
         _value.removeAll()
-        _futureChanges?.send(ArrayChange(count: count, modification: .ReplaceRange(0..<count, with: [])))
-        _futureValues?.send(value)
+        _changeSignal.sendIfConnected(ArrayChange(count: count, modification: .ReplaceRange(0..<count, with: [])))
+        _valueSignal.sendIfConnected(value)
     }
 }
 

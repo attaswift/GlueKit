@@ -9,11 +9,12 @@
 import Foundation
 
 /// An Observable that is derived from another observable.
-internal class TransformedObservable<Input: ObservableType, Value>: ObservableType, SignalOwner {
+internal class TransformedObservable<Input: ObservableType, Value>: ObservableType, SignalDelegate {
 
     private let input: Input
     private let transform: Input.Value -> Value
 
+    private lazy var signal: OwningSignal<Value, TransformedObservable<Input, Value>> = { OwningSignal(delegate: self) } ()
     private var connection: Connection? = nil
 
     internal init(input: Input, transform: Input.Value->Value) {
@@ -26,16 +27,16 @@ internal class TransformedObservable<Input: ObservableType, Value>: ObservableTy
     }
 
     internal var value: Value { return transform(input.value) }
-    internal var futureValues: Source<Value> { return Signal<Value>(stronglyHeldOwner: self).source }
+    internal var futureValues: Source<Value> { return signal.source }
 
-    internal func signalDidStart(signal: Signal<Value>) {
+    internal func start(signal: Signal<Value>) {
         assert(connection == nil)
         connection = input.futureValues.connect { value in
             signal.send(self.transform(value))
         }
     }
 
-    internal func signalDidStop(signal: Signal<Value>) {
+    internal func stop(signal: Signal<Value>) {
         assert(connection != nil)
         connection?.disconnect()
         connection = nil
@@ -50,13 +51,13 @@ public extension ObservableType {
 }
 
 /// An source that provides the distinct values of another observable.
-internal class DistinctValueSource<Input: ObservableType>: SourceType, SignalOwner {
+internal class DistinctValueSource<Input: ObservableType>: SignalDelegate {
     internal typealias Value = Input.Value
-    internal typealias SourceValue = Value
 
     private let input: Input
     private let equalityTest: (Value, Value) -> Bool
 
+    private lazy var signal: OwningSignal<Value, DistinctValueSource<Input>> = { OwningSignal(delegate: self) }()
     private var connection: Connection? = nil
 
     internal init(input: Input, equalityTest: (Value, Value)->Bool) {
@@ -69,11 +70,11 @@ internal class DistinctValueSource<Input: ObservableType>: SourceType, SignalOwn
     }
 
     internal var value: Value { return input.value }
-    internal var source: Source<Value> { return Signal<Value>(stronglyHeldOwner: self).source }
+    internal var source: Source<Value> { return signal.source }
 
     private var lastValue: Value? = nil
 
-    internal func signalDidStart(signal: Signal<Value>) {
+    internal func start(signal: Signal<Value>) {
         assert(connection == nil)
         lastValue = input.value
         connection = input.futureValues.connect { value in
@@ -85,7 +86,7 @@ internal class DistinctValueSource<Input: ObservableType>: SourceType, SignalOwn
         }
     }
 
-    internal func signalDidStop(signal: Signal<Value>) {
+    internal func stop(signal: Signal<Value>) {
         assert(connection != nil)
         connection?.disconnect()
         connection = nil
@@ -123,10 +124,11 @@ public extension UpdatableType where Value: Equatable {
 }
 
 /// An Observable that is calculated from two other observables.
-public class BinaryCompositeObservable<Input1: ObservableType, Input2: ObservableType, Value>: ObservableType, SignalOwner {
+public class BinaryCompositeObservable<Input1: ObservableType, Input2: ObservableType, Value>: ObservableType, SignalDelegate {
     private let first: Input1
     private let second: Input2
     private let combinator: (Input1.Value, Input2.Value) -> Value
+    private lazy var signal: OwningSignal<Value, BinaryCompositeObservable<Input1, Input2, Value>> = { OwningSignal(delegate: self) }()
 
     public init(first: Input1, second: Input2, combinator: (Input1.Value, Input2.Value) -> Value) {
         self.first = first
@@ -139,13 +141,13 @@ public class BinaryCompositeObservable<Input1: ObservableType, Input2: Observabl
     }
 
     public var value: Value { return combinator(first.value, second.value) }
-    public var futureValues: Source<Value> { return Signal<Value>(stronglyHeldOwner: self).source }
+    public var futureValues: Source<Value> { return signal.source }
 
     private var firstValue: Input1.Value? = nil
     private var secondValue: Input2.Value? = nil
     private var connections: [Connection] = []
 
-    internal func signalDidStart(signal: Signal<Value>) {
+    internal func start(signal: Signal<Value>) {
         assert(connections.count == 0)
         firstValue = first.value
         secondValue = second.value
@@ -164,7 +166,7 @@ public class BinaryCompositeObservable<Input1: ObservableType, Input2: Observabl
         connections = [c1, c2]
     }
 
-    internal func signalDidStop(signal: Signal<Value>) {
+    internal func stop(signal: Signal<Value>) {
         connections.forEach { $0.disconnect() }
         firstValue = nil
         secondValue = nil

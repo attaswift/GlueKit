@@ -157,8 +157,8 @@ public extension NSObject {
             }
             else {
                 let signal = Signal<AnyObject>(
-                    didConnectFirstSink: { signal in self.startObservingKeyPath(keyPath, signal: signal) },
-                    didDisconnectLastSink: { signal in self.stopObservingKeyPath(keyPath) })
+                    start: { signal in self.startObservingKeyPath(keyPath, signal: signal) },
+                    stop: { signal in self.stopObservingKeyPath(keyPath) })
                 // Note that signal now holds strong references to this KVOObserver
                 self.signals[keyPath] = Unowned(signal)
                 return signal.source
