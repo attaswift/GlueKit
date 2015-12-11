@@ -37,6 +37,61 @@ public class Variable<Value>: UpdatableType {
     }
 }
 
+public class UnownedVariable<Value: AnyObject>: UpdatableType {
+    private unowned var _value: Value
+    private lazy var signal = LazySignal<Value>()
+
+    /// Create a new variable with an initial value.
+    /// @param value: The initial value of the variable.
+    public init(_ value: Value) {
+        self._value = value
+    }
+
+    /// The current value of the variable.
+    public final var value: Value {
+        get { return _value }
+        set { setValue(newValue) }
+    }
+
+    /// A source that reports all future values of this variable.
+    public final var futureValues: Source<Value> { return self.signal.source }
+
+    /// Update the value of this variable, and send the new value to all sinks that are currently connected.
+    /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
+    public final func setValue(value: Value) {
+        _value = value
+        signal.sendIfConnected(value)
+    }
+}
+
+public class WeakVariable<Value: AnyObject>: UpdatableType {
+    private weak var _value: Value? = nil
+    private lazy var signal = LazySignal<Value?>()
+
+    /// Create a new variable with an initial value.
+    /// @param value: The initial value of the variable.
+    public init(_ value: Value?) {
+        self._value = value
+    }
+
+    /// The current value of the variable.
+    public final var value: Value? {
+        get { return _value }
+        set { setValue(newValue) }
+    }
+
+    /// A source that reports all future values of this variable.
+    public final var futureValues: Source<Value?> { return self.signal.source }
+
+    /// Update the value of this variable, and send the new value to all sinks that are currently connected.
+    /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
+    public final func setValue(value: Value?) {
+        _value = value
+        signal.sendIfConnected(value)
+    }
+}
+
+
 //MARK: Experimental subclasses for specific types
 
 // It would be so much more convenient if Swift allowed me to define these as extensions...
@@ -99,3 +154,4 @@ public final class OptionalVariable<Wrapped>: Variable<Optional<Wrapped>>, NilLi
         super.init(nil)
     }
 }
+
