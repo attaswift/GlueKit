@@ -162,42 +162,116 @@ private final class ChangeSourceForObservableArrayField<Parent: ObservableType, 
 
 extension ObservableType {
     /// Select is an operator that implements key path coding and observing.
-    /// Given a parent Readable and a key that selects an updatable child component of its value, `select` returns a new
-    /// Updatable that can be used to look up, modify and observe changes to the child component indirectly through 
-    /// the parent.
+    /// Given an observable parent and a key that selects an child component (a.k.a "field") of its value that is a source,
+    /// `select` returns a new source that can be used connect to the field indirectly through the parent.
     ///
-    /// For example, given the model for a hypothetical group chat system below, you can create an updatable for
-    /// the avatar image of the author of the latest message in the 'foo' room with
-    /// `foo.latestMessage.select { $0.author }.select { $0.avatar }'.
-    /// Sink connected to this source will fire whenever a new message is posted in foo, or when the current author changes their
-    /// avatar. The updatable can also be used to simply retrieve the avatar at any time, or to update it.
+    /// @param key: An accessor function that returns a component of self (a field) that is a SourceType.
+    /// @returns A new source that sends the same values as the current source returned by key in the parent.
     ///
+    /// For example, take the model for a hypothetical group chat system below.
     /// ```
     /// class Account {
     ///     let name: Variable<String>
     ///     let avatar: Variable<Image>
     /// }
     /// class Message {
-    ///     let author: Readable<Account>
+    ///     let author: Variable<Account>
+    ///     let text: Variable<String>
     /// }
     /// class Room {
-    ///     let latestMessage: Readable<Message>
+    ///     let latestMessage: Observable<Message>
+    ///     let newMessages: Source<Message> /* = latestMessage.futureValues */
+    ///     let messages: ArrayVariable<Message>
     /// }
-    /// let foo: Room
+    /// let currentRoom: Variable<Room>
     /// ```
     ///
-    /// @param key: An accessor function that returns a component of self that is itself updatable.
-    /// @returns A new updatable that tracks changes to both self and the component returned by `key`.
+    /// You can create a source for new messages in the current room with
+    /// ```Swift
+    /// let source = currentRoom.select{$0.newMessages}
+    /// ```
+    /// Sinks connected to `source` will fire whenever the current room changes and whenever a new
+    /// message is posted in the current room.
+    ///
     public func select<S: SourceType>(key: Value->S) -> Source<S.SourceValue> {
         return ValueSourceForSourceField(parent: self, key: key).source
     }
 
+    /// Select is an operator that implements key path coding and observing.
+    /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
+    /// `select` returns a new observable that can be used to look up and modify the field and observe its changes
+    /// indirectly through the parent.
+    ///
+    /// @param key: An accessor function that returns a component of self (a field) that is itself observable.
+    /// @returns A new observable that tracks changes to both self and the field returned by `key`.
+    ///
+    /// For example, take the model for a hypothetical group chat system below.
+    /// ```
+    /// class Account {
+    ///     let name: Variable<String>
+    ///     let avatar: Variable<Image>
+    /// }
+    /// class Message {
+    ///     let author: Variable<Account>
+    ///     let text: Variable<String>
+    /// }
+    /// class Room {
+    ///     let latestMessage: Observable<Message>
+    ///     let newMessages: Source<Message>
+    ///     let messages: ArrayVariable<Message>
+    /// }
+    /// let currentRoom: Variable<Room>
+    /// ```
+    ///
+    /// You can create an observable for the latest message in the current room with
+    /// ```Swift
+    /// let observable = currentRoom.select{$0.latestMessage}
+    /// ```
+    /// Sinks connected to `observable.futureValues` will fire whenever the current room changes, or when a new 
+    /// message is posted in the current room. The observable can also be used to simply retrieve the latest 
+    /// message at any time.
+    ///
     public func select<O: ObservableType>(key: Value->O) -> Observable<O.Value> {
             return Observable<O.Value>(
                 getter: { key(self.value).value },
                 futureValues: { ValueSourceForObservableField(parent: self, key: key).source })
     }
 
+    /// Select is an operator that implements key path coding and observing.
+    /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
+    /// `select` returns a new observable that can be used to look up and modify the field and observe its changes
+    /// indirectly through the parent. If the field is updatable, then the result will be, too.
+    ///
+    /// @param key: An accessor function that returns a component of self (a field) that is itself updatable.
+    /// @returns A new updatable that tracks changes to both self and the field returned by `key`.
+    ///
+    /// For example, take the model for a hypothetical group chat system below.
+    /// ```
+    /// class Account {
+    ///     let name: Variable<String>
+    ///     let avatar: Variable<Image>
+    /// }
+    /// class Message {
+    ///     let author: Variable<Account>
+    ///     let text: Variable<String>
+    /// }
+    /// class Room {
+    ///     let latestMessage: Observable<Message>
+    ///     let messages: ArrayVariable<Message>
+    ///     let newMessages: Source<Message>
+    /// }
+    /// let currentRoom: Variable<Room>
+    /// ```
+    ///
+    /// You can create an updatable for the avatar image of the author of the latest message in the current room with
+    /// ```Swift
+    /// let updatable = currentRoom.select{$0.latestMessage}.select{$0.author}.select{$0.avatar}
+    /// ```
+    /// Sinks connected to `updatable.futureValues` will fire whenever the current room changes, or when a new message is posted
+    /// in the current room, or when the author of that message is changed, or when the current
+    /// author changes their avatar. The updatable can also be used to simply retrieve the avatar at any time,
+    /// or to update it.
+    ///
     public func select<U: UpdatableType>(key: Value->U) -> Updatable<U.Value> {
         return Updatable<U.Value>(
             getter: { key(self.value).value },
@@ -205,6 +279,40 @@ extension ObservableType {
             futureValues: { ValueSourceForObservableField(parent: self, key: key).source })
     }
 
+    /// Select is an operator that implements key path coding and observing.
+    /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
+    /// `select` returns a new observable that can be used to look up and modify the field and observe its changes
+    /// indirectly through the parent. If the field is an observable array, then the result will be, too.
+    ///
+    /// @param key: An accessor function that returns a component of self (a field) that is an observable array.
+    /// @returns A new observable array that tracks changes to both self and the field returned by `key`.
+    ///
+    /// For example, take the model for a hypothetical group chat system below.
+    /// ```
+    /// class Account {
+    ///     let name: Variable<String>
+    ///     let avatar: Variable<Image>
+    /// }
+    /// class Message {
+    ///     let author: Variable<Account>
+    ///     let text: Variable<String>
+    /// }
+    /// class Room {
+    ///     let latestMessage: Observable<Message>
+    ///     let messages: ArrayVariable<Message>
+    ///     let newMessages: Source<Message>
+    /// }
+    /// let currentRoom: Variable<Room>
+    /// ```
+    ///
+    /// You can create an observable array for all messages in the current room with
+    /// ```Swift
+    /// let observable = currentRoom.select{$0.messages}
+    /// ```
+    /// Sinks connected to `observable.futureChanges` will fire whenever the current room changes, or when the list of
+    /// messages is updated in the current room.  The observable can also be used to simply retrieve the list of messages
+    /// at any time.
+    ///
     public func select<Element, A: ObservableArrayType
         where A.Generator.Element == Element,
         A.Change == ArrayChange<Element>,
