@@ -46,6 +46,8 @@
 		BBBB19811C17100200765E6A /* ArrayVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB57795B1C1665240061994C /* ArrayVariable.swift */; };
 		BBBB19851C1721CE00765E6A /* ObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB19841C1721CE00765E6A /* ObservableTests.swift */; };
 		BBBB19871C17262100765E6A /* ObservableTransformationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB19861C17262100765E6A /* ObservableTransformationTests.swift */; };
+		BBF6FEE01C1A46AB00382B5B /* SampleModel.h in Headers */ = {isa = PBXBuildFile; fileRef = BBF6FEDF1C1A46AB00382B5B /* SampleModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BBF6FEF91C1A46DE00382B5B /* SampleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF6FEF81C1A46DE00382B5B /* SampleModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +59,13 @@
 			remoteInfo = GlueKit;
 		};
 		BBB2850F1C0C76CB00FABFE2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBB284FA1C0C76CB00FABFE2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BBB285021C0C76CB00FABFE2;
+			remoteInfo = GlueKit;
+		};
+		BBF6FEF61C1A46CC00382B5B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BBB284FA1C0C76CB00FABFE2 /* Project object */;
 			proxyType = 1;
@@ -110,6 +119,11 @@
 		BBB2851F1C0C7F5A00FABFE2 /* Signal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signal.swift; sourceTree = "<group>"; };
 		BBBB19841C1721CE00765E6A /* ObservableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTests.swift; sourceTree = "<group>"; };
 		BBBB19861C17262100765E6A /* ObservableTransformationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTransformationTests.swift; sourceTree = "<group>"; };
+		BBF6FED51C1A42C400382B5B /* Overview.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Overview.md; sourceTree = "<group>"; };
+		BBF6FEDD1C1A46AB00382B5B /* SampleModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SampleModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BBF6FEDF1C1A46AB00382B5B /* SampleModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SampleModel.h; sourceTree = "<group>"; };
+		BBF6FEE11C1A46AB00382B5B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BBF6FEF81C1A46DE00382B5B /* SampleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +147,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				BBB2850E1C0C76CB00FABFE2 /* GlueKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BBF6FED91C1A46AB00382B5B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -192,9 +213,11 @@
 			isa = PBXGroup;
 			children = (
 				BB8B2C1E1C0D1CC2008B78A3 /* README.md */,
+				BBF6FED41C1A42C400382B5B /* Documentation */,
 				BBB285051C0C76CB00FABFE2 /* Sources */,
 				BBB285111C0C76CB00FABFE2 /* Tests */,
 				BB534A1D1C113C0200FA1C7F /* PerformanceTests */,
+				BBF6FEDE1C1A46AB00382B5B /* SampleModel */,
 				BBB285041C0C76CB00FABFE2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -205,6 +228,7 @@
 				BBB285031C0C76CB00FABFE2 /* GlueKit.framework */,
 				BBB2850D1C0C76CB00FABFE2 /* GlueKitTests.xctest */,
 				BB534A1C1C113C0200FA1C7F /* GlueKitPerformanceTests.xctest */,
+				BBF6FEDD1C1A46AB00382B5B /* SampleModel.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -261,6 +285,24 @@
 			name = Observables;
 			sourceTree = "<group>";
 		};
+		BBF6FED41C1A42C400382B5B /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				BBF6FED51C1A42C400382B5B /* Overview.md */,
+			);
+			path = Documentation;
+			sourceTree = "<group>";
+		};
+		BBF6FEDE1C1A46AB00382B5B /* SampleModel */ = {
+			isa = PBXGroup;
+			children = (
+				BBF6FEDF1C1A46AB00382B5B /* SampleModel.h */,
+				BBF6FEF81C1A46DE00382B5B /* SampleModel.swift */,
+				BBF6FEE11C1A46AB00382B5B /* Info.plist */,
+			);
+			path = SampleModel;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -269,6 +311,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				BBB285071C0C76CB00FABFE2 /* GlueKit.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BBF6FEDA1C1A46AB00382B5B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BBF6FEE01C1A46AB00382B5B /* SampleModel.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -329,6 +379,25 @@
 			productReference = BBB2850D1C0C76CB00FABFE2 /* GlueKitTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		BBF6FEDC1C1A46AB00382B5B /* SampleModel */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BBF6FEEE1C1A46AB00382B5B /* Build configuration list for PBXNativeTarget "SampleModel" */;
+			buildPhases = (
+				BBF6FED81C1A46AB00382B5B /* Sources */,
+				BBF6FED91C1A46AB00382B5B /* Frameworks */,
+				BBF6FEDA1C1A46AB00382B5B /* Headers */,
+				BBF6FEDB1C1A46AB00382B5B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BBF6FEF71C1A46CC00382B5B /* PBXTargetDependency */,
+			);
+			name = SampleModel;
+			productName = SampleModel;
+			productReference = BBF6FEDD1C1A46AB00382B5B /* SampleModel.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -348,6 +417,9 @@
 					BBB2850C1C0C76CB00FABFE2 = {
 						CreatedOnToolsVersion = 7.2;
 					};
+					BBF6FEDC1C1A46AB00382B5B = {
+						CreatedOnToolsVersion = 7.2;
+					};
 				};
 			};
 			buildConfigurationList = BBB284FD1C0C76CB00FABFE2 /* Build configuration list for PBXProject "GlueKit" */;
@@ -365,6 +437,7 @@
 				BBB285021C0C76CB00FABFE2 /* GlueKit */,
 				BBB2850C1C0C76CB00FABFE2 /* GlueKitTests */,
 				BB534A1B1C113C0200FA1C7F /* GlueKitPerformanceTests */,
+				BBF6FEDC1C1A46AB00382B5B /* SampleModel */,
 			);
 		};
 /* End PBXProject section */
@@ -385,6 +458,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		BBB2850B1C0C76CB00FABFE2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BBF6FEDB1C1A46AB00382B5B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -451,6 +531,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BBF6FED81C1A46AB00382B5B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BBF6FEF91C1A46DE00382B5B /* SampleModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -463,6 +551,11 @@
 			isa = PBXTargetDependency;
 			target = BBB285021C0C76CB00FABFE2 /* GlueKit */;
 			targetProxy = BBB2850F1C0C76CB00FABFE2 /* PBXContainerItemProxy */;
+		};
+		BBF6FEF71C1A46CC00382B5B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BBB285021C0C76CB00FABFE2 /* GlueKit */;
+			targetProxy = BBF6FEF61C1A46CC00382B5B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -716,6 +809,58 @@
 			};
 			name = Release;
 		};
+		BBF6FEEF1C1A46AB00382B5B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = SampleModel/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit.SampleModel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BBF6FEF01C1A46AB00382B5B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = SampleModel/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit.SampleModel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		BBF6FEF11C1A46AB00382B5B /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = SampleModel/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.lorentey.GlueKit.SampleModel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Profile;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -755,6 +900,16 @@
 				BBB2851B1C0C76CB00FABFE2 /* Debug */,
 				BBB2851C1C0C76CB00FABFE2 /* Release */,
 				BB534A291C113DE700FA1C7F /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BBF6FEEE1C1A46AB00382B5B /* Build configuration list for PBXNativeTarget "SampleModel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BBF6FEEF1C1A46AB00382B5B /* Debug */,
+				BBF6FEF01C1A46AB00382B5B /* Release */,
+				BBF6FEF11C1A46AB00382B5B /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
