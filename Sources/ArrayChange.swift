@@ -165,6 +165,23 @@ internal enum ArrayModificationMergeResult<Element> {
     case CollapsedTo(ArrayModification<Element>)
 }
 
+extension ArrayModification: CustomStringConvertible, CustomDebugStringConvertible {
+    public var description: String {
+        switch self {
+        case .Insert(let e, at: let i):
+            return ".Insert(\(String(reflecting: e)), at: \(i))"
+        case .RemoveAt(let i):
+            return ".RemoveAt(\(i))"
+        case .ReplaceAt(let i, with: let e):
+            return ".ReplaceAt(\(i), with: \(String(reflecting: e)))"
+        case .ReplaceRange(let range, with: let es):
+            return ".ReplaceRange(\(range.startIndex)..<\(range.endIndex), with: [\(es.map { String(reflecting: $0) }.joinWithSeparator(", "))])"
+        }
+    }
+
+    public var debugDescription: String { return description }
+}
+
 extension RangeReplaceableCollectionType where Index == Int {
     /// Apply `modification` to this array in place.
     internal mutating func apply(modification: ArrayModification<Generator.Element>) {
@@ -307,6 +324,29 @@ public struct ArrayChange<Element>: ChangeType {
         precondition(startIndex + initialCount <= count)
         let mods = modifications.map { $0.shift(startIndex) }
         return ArrayChange(initialCount: count, modifications: mods)
+    }
+}
+
+extension ArrayChange: CustomStringConvertible {
+    public var description: String {
+        let type = String(ArrayChange.self)
+        let c = modifications.count
+        return "\(type) initialCount: \(initialCount), \(c) modifications"
+    }
+}
+
+extension ArrayChange: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        let type = String(reflecting: ArrayChange.self)
+        let c = modifications.count
+        return "\(type) initialCount: \(initialCount), \(c) modifications"
+    }
+}
+
+extension ArrayChange: CustomReflectable {
+    @warn_unused_result
+    public func customMirror() -> Mirror {
+        return Mirror(self, unlabeledChildren: modifications, displayStyle: .Struct)
     }
 }
 
