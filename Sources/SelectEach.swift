@@ -282,13 +282,15 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
             self.startIndexes.replaceRange(fieldRange, with: newIndexes)
 
             // Collect new values.
-            var elements: [FieldElement] = []
+            var fieldValues: [FieldElement] = []
             for field in newFields {
-                elements.appendContentsOf(field)
+                fieldValues.appendContentsOf(field)
             }
 
             // Create new change component.
-            result.addModification(.ReplaceRange(fieldRange, with: elements))
+            if fieldRange.count > 0 || fieldValues.count > 0 {
+                result.addModification(ArrayModification(range: oldFieldIndexRange, elements: fieldValues))
+            }
         }
         signal.send(result)
     }
