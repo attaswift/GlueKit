@@ -45,6 +45,7 @@ public final class ArrayVariable<Element>: UpdatableArrayType {
     }
 
     public func apply(change: ArrayChange<Generator.Element>) {
+        guard !change.isEmpty else { return }
         _value.apply(change)
         _changeSignal.sendIfConnected(change)
         _valueSignal.sendIfConnected(value)
