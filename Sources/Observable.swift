@@ -72,28 +72,34 @@ extension ObservableType {
 /// The type lifted representation of an ObservableType that contains a single value with simple changes.
 public struct Observable<Value>: ObservableType {
     /// The getter closure for the current value of this observable.
-    private let _getter: Void -> Value
+    private let getter: Void -> Value
 
     /// A closure providing a source providing the values of future updates to this observable.
-    private let _futureValues: Void -> Source<Value>
+    private let valueSource: Void -> Source<Value>
 
     /// Initializes an Observable from the given getter closure and source of future changes.
     /// @param getter A closure that returns the current value of the observable at the time of the call.
     /// @param futureValues A closure that returns a source that triggers whenever the observable changes.
     public init(getter: Void->Value, futureValues: Void -> Source<Value>) {
-        self._getter = getter
-        self._futureValues = futureValues
+        self.getter = getter
+        self.valueSource = futureValues
     }
 
     /// The current value of the observable.
-    public var value: Value { return _getter() }
+    public var value: Value { return getter() }
 
-    public var futureValues: Source<Value> { return _futureValues() }
+    public var futureValues: Source<Value> { return valueSource() }
 }
 
 public extension ObservableType {
     /// Creates a constant observable wrapping the given value. The returned observable is not modifiable and it will not ever send updates.
     public static func constant(value: Value) -> Observable<Value> {
         return Observable(getter: { value }, futureValues: { Source.emptySource() })
+    }
+}
+
+public extension Updatable {
+    public init(observable: Observable<Value>, setter: Value->Void) {
+        self.init(getter: observable.getter, setter: setter, futureValues: observable.valueSource)
     }
 }

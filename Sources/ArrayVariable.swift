@@ -101,6 +101,9 @@ extension ArrayVariable {
         }
     }
 
+    public var observable: Observable<[Element]> {
+        return Observable(getter: { self.value }, futureValues: { self._valueSignal.source })
+    }
     public var observableArray: ObservableArray<Element> { return ObservableArray(self) }
     public var updatableArray: UpdatableArray<Element> { return UpdatableArray(self) }
 }

@@ -100,14 +100,15 @@ public protocol ObservableArrayType: ObservableCollectionType { // Sadly there i
     var startIndex: Int { get }
     var endIndex: Int { get }
 
+    subscript(index: Int) -> Generator.Element { get }
+    subscript(bounds: Range<Int>) -> SubSequence { get }
+
     // From ObservableCollectionType
     var observableCount: Observable<Int> { get }
     var value: [Generator.Element] { get }
     var observable: Observable<BaseCollection> { get }
 
     // Extras
-    subscript(index: Int) -> Generator.Element { get }
-    subscript(bounds: Range<Int>) -> SubSequence { get }
     var observableArray: ObservableArray<Generator.Element> { get }
 }
 
@@ -120,6 +121,13 @@ extension ObservableArrayType where
 
     public var startIndex: Int { return 0 }
     public var endIndex: Int { return count }
+
+    public subscript(index: Int) -> Generator.Element {
+        return lookup(Range(start: index, end: index + 1)).first!
+    }
+    public subscript(bounds: Range<Int>) -> SubSequence {
+        return lookup(bounds)
+    }
 
     public var observableCount: Observable<Int> {
         let fv: Void -> Source<Int> = { self.futureChanges.map { change in change.initialCount + change.deltaCount } }
@@ -137,13 +145,6 @@ extension ObservableArrayType where
         return Observable<Array<Generator.Element>>(
             getter: { self.value },
             futureValues: { return ValueSourceForObservableArray(array: self).source })
-    }
-
-    public subscript(index: Int) -> Generator.Element {
-        return lookup(Range(start: index, end: index + 1)).first!
-    }
-    public subscript(bounds: Range<Int>) -> SubSequence {
-        return lookup(bounds)
     }
 
     public var observableArray: ObservableArray<Generator.Element> {

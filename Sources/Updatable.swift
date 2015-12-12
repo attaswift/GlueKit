@@ -21,9 +21,7 @@ extension UpdatableType {
     public func receive(value: Value) {
         self.value = value
     }
-}
 
-extension UpdatableType {
     /// Returns the type-lifted version of this UpdatableType.
     public var updatable: Updatable<Value> {
         return Updatable(getter: { self.value }, setter: { self.value = $0 }, futureValues: { self.futureValues })
@@ -37,12 +35,12 @@ public struct Updatable<Value>: UpdatableType {
     /// The setter closure for updating the current value of this updatable.
     public let setter: Value->Void
     /// A closure returning a source providing the values of future updates to this updatable.
-    private let _futureValues: Void->Source<Value>
+    private let valueSource: Void->Source<Value>
 
     public init(getter: Void->Value, setter: Value->Void, futureValues: Void->Source<Value>) {
         self.getter = getter
         self.setter = setter
-        self._futureValues = futureValues
+        self.valueSource = futureValues
     }
 
     /// The current value of the updatable. It's called an `Updatable` because this value is settable.
@@ -56,7 +54,7 @@ public struct Updatable<Value>: UpdatableType {
     }
 
     public var futureValues: Source<Value> {
-        return _futureValues()
+        return valueSource()
     }
 
     public func receive(value: Value) {

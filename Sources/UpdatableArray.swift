@@ -57,6 +57,7 @@ public protocol UpdatableArrayType: ObservableArrayType {
 extension UpdatableArrayType where
     Index == Int,
     Change == ArrayChange<Generator.Element>,
+    BaseCollection == Array<Generator.Element>,
     SubSequence: CollectionType,
     SubSequence.Generator.Element == Generator.Element {
 
@@ -90,6 +91,10 @@ extension UpdatableArrayType where
         nonmutating set {
             replaceRange(bounds, with: Array(newValue))
         }
+    }
+
+    public var updatable: Updatable<BaseCollection> {
+        return Updatable(observable: observable, setter: { v in self.value = v })
     }
 
     public var updatableArray: UpdatableArray<Generator.Element> {
@@ -195,6 +200,7 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
 
     public var observableCount: Observable<Int> { return _observableArray.observableCount }
     public var observable: Observable<[Element]> { return _observableArray.observable }
+
     public var observableArray: ObservableArray<Element> { return _observableArray }
     public var updatableArray: UpdatableArray<Element> { return self }
 }
