@@ -38,6 +38,8 @@ public protocol UpdatableArrayType: ObservableArrayType {
 
     var updatableArray: UpdatableArray<Generator.Element> { get }
 
+    func modify(@noescape block: ArrayVariable<Generator.Element>->Void) -> Void
+
     // RangeReplaceableCollectionType
     func replaceRange<C: CollectionType where C.Generator.Element == Generator.Element>(range: Range<Index>, with elements: C)
     func append(newElement: Self.Generator.Element)
@@ -93,6 +95,16 @@ extension UpdatableArrayType where
     public var updatableArray: UpdatableArray<Generator.Element> {
         return UpdatableArray(self)
     }
+
+    public func modify(@noescape block: ArrayVariable<Generator.Element>->Void) -> Void {
+        let array = ArrayVariable<Generator.Element>(self.value)
+        var change = ArrayChange<Generator.Element>(initialCount: array.count)
+        let connection = array.futureChanges.connect { c in change.mergeInPlace(c) }
+        block(array)
+        connection.disconnect()
+        self.apply(change)
+    }
+
 
     public func replaceRange<C: CollectionType where C.Generator.Element == Generator.Element>(range: Range<Index>, with elements: C) {
         let elements = elements as? Array<Generator.Element> ?? Array(elements)
