@@ -210,8 +210,8 @@ public struct ArrayChange<Element>: ChangeType {
     /// earlier modifications. (So you can simply loop over the modifications and apply them one by one.)
     public private(set) var modifications: [ArrayModification<Element>] = []
 
-    public init() {
-        self.initialCount = 0
+    public init(initialCount: Int) {
+        self.initialCount = initialCount
         self.modifications = []
     }
 
@@ -235,7 +235,7 @@ public struct ArrayChange<Element>: ChangeType {
     /// Returns true if this change contains no actual changes to the array.
     /// This can happen if a series of merged changes cancel each other out---such as the insertion of an element
     /// and the subsequent removal of the same.
-    public var isNull: Bool { return modifications.isEmpty }
+    public var isEmpty: Bool { return modifications.isEmpty }
 
     public mutating func addModification(new: ArrayModification<Element>) {
         var pos = modifications.count - 1
@@ -325,4 +325,3 @@ extension RangeReplaceableCollectionType where Index == Int {
         }
     }
 }
-

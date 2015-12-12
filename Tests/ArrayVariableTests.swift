@@ -329,7 +329,7 @@ class ArrayVariableTests: XCTestCase {
             let c1 = array.futureChanges.connect { changes.append($0) }
             defer { c1.disconnect() }
 
-            let c2 = array.futureValues.connect { values.append($0) }
+            let c2 = array.observable.futureValues.connect { values.append($0) }
             defer { c2.disconnect() }
 
             op(array)
@@ -367,9 +367,6 @@ class ArrayVariableTests: XCTestCase {
             expectedOutput: [2, 3], expectedChange: ArrayChange(initialCount: 3, modification: .RemoveAt(0)))
 
         tryCase([1, 2, 3], op: { $0.removeLast() },
-            expectedOutput: [1, 2], expectedChange: ArrayChange(initialCount: 3, modification: .RemoveAt(2)))
-
-        tryCase([1, 2, 3], op: { XCTAssertEqual($0.popLast(), 3) },
             expectedOutput: [1, 2], expectedChange: ArrayChange(initialCount: 3, modification: .RemoveAt(2)))
 
         tryCase([1, 2, 3], op: { $0.removeAll() },

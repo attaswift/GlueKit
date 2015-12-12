@@ -8,31 +8,6 @@
 
 import Foundation
 
-//MARK: ObservableCollectionType
-
-/// An observable collection type; i.e., a read-only view into an observable collection of elements.
-///
-/// Observable collections have an observable element count, and provide a source that sends change descriptions whenever
-/// the collection is modified. Each observable collection defines its own way to describe changes.
-///
-/// Note that observable collections do not implement `ObservableType`, but they do provide the `observable` getter to
-/// explicitly convert them to one. This is because observing the value of the entire collection is expensive enough
-/// to make sure you won't do it by accident.
-public protocol ObservableCollectionType: CollectionType {
-    /// The collection type underlying this observable collection.
-    typealias BaseCollection: CollectionType
-    /// The type of this observable collection's change descriptions.
-    typealias Change: ChangeType
-
-    /// The count of elements in this observable; this is also (efficiently) observable.
-    var observableCount: Observable<Int> { get }
-
-    var value: BaseCollection { get }
-    var futureChanges: Source<Change> { get }
-
-    var observable: Observable<BaseCollection> { get }
-}
-
 //MARK: ChangeType
 
 /// Describes a change to an observable that implements a collection of values.
@@ -49,7 +24,7 @@ public protocol ChangeType {
     /// Returns true if this change did not actually change the value of the observable.
     /// Noop changes aren't usually sent by observables, but it is possible to get them by merging a sequence of
     /// changes to a collection.
-    var isNull: Bool { get }
+    var isEmpty: Bool { get }
 
     /// Applies this change on `value`, returning the new value.
     /// Note that `value` must be the same value as the one this change was created from.
@@ -61,6 +36,39 @@ public protocol ChangeType {
     /// The resulting instance may take a shortcut when producing the result value if some information in `self`
     /// is overwritten by `next`.
     func merge(next: Self) -> Self
+}
+
+//MARK: ObservableCollectionType
+
+/// An observable collection type; i.e., a read-only view into an observable collection of elements.
+///
+/// Observable collections have an observable element count, and provide a source that sends change descriptions whenever
+/// the collection is modified. Each observable collection defines its own way to describe changes.
+///
+/// Note that observable collections do not implement `ObservableType`, but they do provide the `observable` getter to
+/// explicitly convert them to one. This is because observing the value of the entire collection is expensive enough
+/// to make sure you won't do it by accident.
+public protocol ObservableCollectionType: CollectionType {
+    /// The collection type underlying this observable collection.
+    typealias BaseCollection: CollectionType
+    /// The type of this observable collection's change descriptions.
+    typealias Change: ChangeType
+
+    typealias Generator = BaseCollection.Generator
+    func generate() -> BaseCollection.Generator
+
+    var count: Int { get }
+    var observableCount: Observable<Int> { get }
+    var value: BaseCollection { get }
+    var futureChanges: Source<Change> { get }
+
+    var observable: Observable<BaseCollection> { get }
+}
+
+extension ObservableCollectionType {
+    public func generate() -> BaseCollection.Generator {
+        return self.value.generate()
+    }
 }
 
 
@@ -78,15 +86,101 @@ public protocol ChangeType {
 /// - SeeAlso: ObservableType, ObservableArray, UpdatableArrayType, ArrayVariable
 public protocol ObservableArrayType: ObservableCollectionType { // Sadly there is no ArrayType in the standard library :-(
     typealias BaseCollection = Array<Generator.Element>
-    typealias Value = [Generator.Element]
     typealias Change = ArrayChange<Generator.Element>
     typealias Index = Int
 
-    // This is included because although it is not actually required by CollectionType, we do want to use it in ObservableArray, below.
-    subscript(bounds: Range<Int>) -> SubSequence { get }
+    // Required methods
 
+    var count: Int { get }
+    func lookup(range: Range<Int>) -> SubSequence
+    var futureChanges: Source<ArrayChange<Generator.Element>> { get }
+
+    // The following are defined in extensions but may be specialized in implementations:
+
+    var startIndex: Int { get }
+    var endIndex: Int { get }
+
+    // From ObservableCollectionType
+    var observableCount: Observable<Int> { get }
+    var value: [Generator.Element] { get }
+    var observable: Observable<BaseCollection> { get }
+
+    // Extras
+    subscript(index: Int) -> Generator.Element { get }
+    subscript(bounds: Range<Int>) -> SubSequence { get }
     var observableArray: ObservableArray<Generator.Element> { get }
 }
+
+extension ObservableArrayType where
+    Index == Int,
+    BaseCollection == Array<Generator.Element>,
+    Change == ArrayChange<Generator.Element>,
+    SubSequence: CollectionType,
+    SubSequence.Generator.Element == Generator.Element {
+
+    public var startIndex: Int { return 0 }
+    public var endIndex: Int { return count }
+
+    public var observableCount: Observable<Int> {
+        let fv: Void -> Source<Int> = { self.futureChanges.map { change in change.initialCount + change.deltaCount } }
+        return Observable(
+            getter: { self.count },
+            futureValues: fv)
+    }
+
+    public var value: [Generator.Element] {
+        let result = lookup(Range(start: 0, end: count))
+        return result as? Array<Generator.Element> ?? Array(result)
+    }
+
+    public var observable: Observable<Array<Generator.Element>> {
+        return Observable<Array<Generator.Element>>(
+            getter: { self.value },
+            futureValues: { return ValueSourceForObservableArray(array: self).source })
+    }
+
+    public subscript(index: Int) -> Generator.Element {
+        return lookup(Range(start: index, end: index + 1)).first!
+    }
+    public subscript(bounds: Range<Int>) -> SubSequence {
+        return lookup(bounds)
+    }
+
+    public var observableArray: ObservableArray<Generator.Element> {
+        return ObservableArray(self)
+    }
+}
+
+internal class ValueSourceForObservableArray<A: ObservableArrayType where A.Change == ArrayChange<A.Generator.Element>>: SignalDelegate {
+    internal typealias Element = A.Generator.Element
+
+    private let array: A
+
+    private lazy var _signal: OwningSignal<[Element], ValueSourceForObservableArray<A>> = { OwningSignal(delegate: self) }()
+
+    private var _connection: Connection? = nil
+    private var _values: [Element] = []
+
+    internal init(array: A) {
+        self.array = array
+    }
+
+    internal var source: Source<[Element]> { return _signal.source }
+
+    internal func start(signal: Signal<[Element]>) {
+        assert(_values.count == 0 && _connection == nil)
+        _values = Array(array)
+        _connection = array.futureChanges.connect { change in
+            self._values.apply(change)
+            signal.send(self._values)
+        }
+    }
+    internal func stop(signal: Signal<[Element]>) {
+        _connection?.disconnect()
+        _values.removeAll()
+    }
+}
+
 
 /// Elementwise comparison of two instances of an ObservableArrayType.
 /// This overload allows us to compare ObservableArrayTypes to array literals.
@@ -115,43 +209,6 @@ public func ==<E: Equatable, A: ObservableArrayType where A.Generator.Element ==
     return a.elementsEqual(b, isEquivalent: ==)
 }
 
-internal class ValueSourceForObservableArray<Element, A: ObservableArrayType where A.Generator.Element == Element, A.Change == ArrayChange<Element>>: SignalDelegate {
-    internal typealias SourceValue = [Element]
-
-    private let array: A
-
-    private var _connection: Connection? = nil
-    private var _values: [Element] = []
-    private lazy var _signal: OwningSignal<[Element], ValueSourceForObservableArray<Element, A>> = { OwningSignal(delegate: self) }()
-
-    internal init(array: A) {
-        self.array = array
-    }
-
-    internal var source: Source<[Element]> { return _signal.source }
-
-    internal func start(signal: Signal<[Element]>) {
-        assert(_values.count == 0 && _connection == nil)
-        _values = Array(array)
-        _connection = array.futureChanges.connect { change in
-            self._values.apply(change)
-            signal.send(self._values)
-        }
-    }
-    internal func stop(signal: Signal<[Element]>) {
-        _connection?.disconnect()
-        _values.removeAll()
-    }
-}
-
-extension ObservableArrayType where BaseCollection == Array<Generator.Element>, Change == ArrayChange<Generator.Element> {
-    public var observable: Observable<Array<Generator.Element>> {
-        return Observable<Array<Generator.Element>>(getter: { self.value }, futureValues: {
-            return ValueSourceForObservableArray(array: self).source
-        })
-    }
-}
-
 /// An observable array type; i.e., a read-only, array-like `CollectionType` that also provides efficient change
 /// notifications.
 ///
@@ -164,32 +221,16 @@ extension ObservableArrayType where BaseCollection == Array<Generator.Element>, 
 ///
 /// - SeeAlso: ObservableType, ObservableArrayType, UpdatableArrayType, ArrayVariable
 public struct ObservableArray<Element>: ObservableArrayType {
-    public typealias Value = [Element]
+    public typealias BaseCollection = [Element]
     public typealias Change = ArrayChange<Element>
-    public typealias ObservableValue = [Element]
 
     public typealias Index = Int
-    public typealias Generator = AnyGenerator<Element>
+    public typealias Generator = Array<Element>.Generator
     public typealias SubSequence = Array<Element>
 
     private let _count: Void->Int
     private let _lookup: Range<Int> -> Array<Element>
     private let _futureChanges: Void -> Source<ArrayChange<Element>>
-
-    private var _futureCounts: Source<Int> {
-        var connection: Connection? = nil
-        let signal = Signal<Int>(
-            start: { signal in
-                connection = self.futureChanges.connect { change in
-                    signal.send(change.initialCount + change.deltaCount)
-                }
-            },
-            stop: { signal in
-                connection?.disconnect()
-                connection = nil
-        })
-        return signal.source
-    }
 
     public init(count: Void->Int, lookup: Range<Int>->Array<Element>, futureChanges: Void->Source<ArrayChange<Element>>) {
         _count = count
@@ -197,59 +238,19 @@ public struct ObservableArray<Element>: ObservableArrayType {
         _futureChanges = futureChanges
     }
 
-    public init<A: ObservableArrayType, S: SequenceType where A.Index == Int, S.Generator.Element == Element, A.Generator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence == S>(_ array: A) {
+    public init<A: ObservableArrayType where A.Index == Int, A.Generator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Generator.Element == Element>(_ array: A) {
         _count = { array.count }
-        _lookup = { range in Array(array[range]) }
+        _lookup = { range in
+            let result = array.lookup(range)
+            return result as? Array<Element> ?? Array(result)
+        }
         _futureChanges = { array.futureChanges }
     }
 
-    public var value: [Element] { return Array(_lookup(Range(start: 0, end: count))) }
+    public var count: Int { return _count() }
+    public func lookup(range: Range<Int>) -> SubSequence { return _lookup(range) }
     public var futureChanges: Source<ArrayChange<Element>> { return _futureChanges() }
 
-    public var count: Int { return _count() }
-    public var startIndex: Int { return 0 }
-    public var endIndex: Int { return count }
-
-    public subscript(index: Int) -> Element { return _lookup(Range(start: index, end: index + 1))[0] }
-    public subscript(range: Range<Int>) -> Array<Element> { return _lookup(range) }
-
-    public func generate() -> AnyGenerator<Element> {
-        var index = 0
-        return anyGenerator {
-            if index < self.endIndex {
-                let value = self[index]
-                index += 1
-                return value
-            }
-            else {
-                return nil
-            }
-        }
-    }
-
     public var observableArray: ObservableArray<Element> { return self }
-
-    // TODO: Move this to an extension of ObservableArrayType once Swift's protocols grow up.
-    public var observableCount: Observable<Int> {
-        var count: Int? = nil
-        return Observable(
-            getter: {
-                if let c = count {
-                    assert(c == self.count)
-                    return c
-                }
-                let c = self.count
-                count = c
-                return c
-            },
-            futureValues: {
-                self.futureChanges.map { change in
-                    assert(count == nil || count == change.initialCount)
-                    let c = change.initialCount + change.deltaCount
-                    count = c
-                    return c
-                }
-        })
-    }
 }
 

@@ -313,37 +313,36 @@ extension ObservableType {
     /// messages is updated in the current room.  The observable can also be used to simply retrieve the list of messages
     /// at any time.
     ///
-    public func select<Element, A: ObservableArrayType
-        where A.Generator.Element == Element,
-        A.Change == ArrayChange<Element>,
-        A.Index == Int,
-        A.BaseCollection == [Element],
-        A.SubSequence: SequenceType,
-        A.SubSequence.Generator.Element == Element>
-        (key: Value->A) -> ObservableArray<A.Generator.Element> {
+    public func select<Field: ObservableArrayType where
+        Field.Change == ArrayChange<Field.Generator.Element>,
+        Field.Index == Int,
+        Field.BaseCollection == [Field.Generator.Element],
+        Field.SubSequence: SequenceType,
+        Field.SubSequence.Generator.Element == Field.Generator.Element>
+        (key: Value->Field) -> ObservableArray<Field.Generator.Element> {
         let selector = ValueSelectorForArrayField(parent: self, key: key)
-        return ObservableArray<A.Generator.Element>(
+        return ObservableArray<Field.Generator.Element>(
             count: { selector.count },
             lookup: { range in Array(selector.field[range]) },
             futureChanges: { selector.changeSource }
         )
     }
 
-    public func select<Element, A: UpdatableArrayType
-        where A.Generator.Element == Element,
-        A.Change == ArrayChange<Element>,
-        A.Index == Int,
-        A.BaseCollection == [Element],
-        A.SubSequence: SequenceType,
-        A.SubSequence.Generator.Element == Element>
-        (key: Value->A) -> UpdatableArray<A.Generator.Element> {
+    public func select<Field: UpdatableArrayType where
+        Field.Change == ArrayChange<Field.Generator.Element>,
+        Field.Index == Int,
+        Field.BaseCollection == [Field.Generator.Element],
+        Field.SubSequence: SequenceType,
+        Field.SubSequence.Generator.Element == Field.Generator.Element>
+        (key: Value->Field) -> UpdatableArray<Field.Generator.Element> {
             let selector = ValueSelectorForArrayField(parent: self, key: key)
-            return UpdatableArray<A.Generator.Element>(
+            return UpdatableArray<Field.Generator.Element>(
                 count: { selector.count },
                 lookup: { range in Array(selector.field[range]) },
-                store: { range, elements in selector.field.replaceRange(range, with: elements) },
+                apply: { change in selector.field.apply(change) },
                 futureChanges: { selector.changeSource }
             )
     }
+    
 }
 
