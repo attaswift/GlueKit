@@ -210,6 +210,11 @@ public struct ArrayChange<Element>: ChangeType {
     /// earlier modifications. (So you can simply loop over the modifications and apply them one by one.)
     public private(set) var modifications: [ArrayModification<Element>] = []
 
+    public init() {
+        self.initialCount = 0
+        self.modifications = []
+    }
+
     internal init(initialCount: Int, modifications: [ArrayModification<Element>]) {
         self.initialCount = initialCount
         self.modifications = modifications
