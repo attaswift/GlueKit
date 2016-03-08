@@ -172,7 +172,7 @@ class SelectFromArrayTests: XCTestCase {
         // Delete folder 2
         root.subfolders.removeAtIndex(2)
 
-        expected.append(ArrayChange(initialCount: 6, modification: .ReplaceRange(Range(start: 4, end: 6), with: [])))
+        expected.append(ArrayChange(initialCount: 6, modification: .ReplaceRange(4 ..< 6, with: [])))
 
         XCTAssertTrue(changes.elementsEqual(expected, isEquivalent: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
@@ -194,7 +194,7 @@ class SelectFromArrayTests: XCTestCase {
         let reducedChanges = changes.reduce(ArrayChange(initialCount: 5), combine: { m, c in m.merge(c) })
         let expectedreducedMods: [ArrayModification<String>] = [
             .ReplaceAt(1, with: "1/b2"),
-            .ReplaceRange(Range(start: 3, end: 5), with: ["3/1"])
+            .ReplaceRange(3 ..< 5, with: ["3/1"])
         ]
         XCTAssertTrue(reducedChanges.modifications.elementsEqual(expectedreducedMods, isEquivalent: ==))
     }

@@ -65,7 +65,8 @@ extension SourceType {
         return Source { sink in
             var count = 0
             return self.connect { value in
-                if ++count == n {
+                count += 1
+                if count == n {
                     count = 0
                     sink.receive(value)
                 }

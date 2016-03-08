@@ -103,7 +103,7 @@ class TimerSourceTests: XCTestCase {
             let elapsed = NSDate().timeIntervalSinceDate(start)
             ticks.append(elapsed)
             NSLog("tick \(count) at \(elapsed)")
-            ++count
+            count += 1
             if count >= 3 {
                 dispatch_semaphore_signal(sem)
             }

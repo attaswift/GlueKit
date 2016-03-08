@@ -129,7 +129,7 @@ extension ArrayVariable {
     public func appendContentsOf<C: CollectionType where C.Generator.Element == Generator.Element>(newElements: C) {
         let oldCount = _value.count
         _value.appendContentsOf(newElements)
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount, modification: .ReplaceRange(Range(start: oldCount, end: oldCount), with: Array<Element>(newElements))))
+        _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount, modification: .ReplaceRange(oldCount ..< oldCount, with: Array<Element>(newElements))))
         _valueSignal.sendIfConnected(value)
     }
 
@@ -143,7 +143,7 @@ extension ArrayVariable {
     {
         let oldCount = _value.count
         _value.appendContentsOf(newElements)
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount, modification: .ReplaceRange(Range(start: i, end: i), with: Array<Element>(newElements))))
+        _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount, modification: .ReplaceRange(i ..< i, with: Array<Element>(newElements))))
         _valueSignal.sendIfConnected(value)
     }
 

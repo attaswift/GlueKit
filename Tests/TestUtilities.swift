@@ -13,8 +13,14 @@ import GlueKit
 func noop<Value>(value: Value) {
 }
 
+#if Swift22
+    typealias FileString = StaticString
+#else
+    typealias FileString = String
+#endif
+
 // This basic overload is missing from XCTest, so it upgrades everything to Optional which makes reports harder to read.
-public func XCTAssertEqual<T : Equatable>(@autoclosure expression1: () -> T, @autoclosure _ expression2: () -> T, _ message: String = "", file: String = __FILE__, line: UInt = __LINE__) {
+func XCTAssertEqual<T : Equatable>(@autoclosure expression1: () -> T, @autoclosure _ expression2: () -> T, _ message: String = "", file: FileString = __FILE__, line: UInt = __LINE__) {
     let a = expression1()
     let b = expression2()
     if a != b {
@@ -24,10 +30,10 @@ public func XCTAssertEqual<T : Equatable>(@autoclosure expression1: () -> T, @au
 }
 
 
-public func XCTAssertEqual<E: Equatable, A: ObservableArrayType, B: SequenceType where A.Generator.Element == E, B.Generator.Element == E>(@autoclosure a: ()->A, @autoclosure _ b: ()->B, message: String = "", file: String = __FILE__, line: UInt = __LINE__) {
+func XCTAssertEqual<E: Equatable, A: ObservableArrayType, B: SequenceType where A.Generator.Element == E, B.Generator.Element == E>(@autoclosure a: ()->A, @autoclosure _ b: ()->B, message: String = "", file: FileString = __FILE__, line: UInt = __LINE__) {
     XCTAssertEqual(Array(a()), Array(b()), message, file: file, line: line)
 }
 
-public func XCTAssertEqual<E: Equatable, A: SequenceType, B: ObservableArrayType where A.Generator.Element == E, B.Generator.Element == E>(@autoclosure a: ()->A, @autoclosure _ b: ()->B, message: String = "", file: String = __FILE__, line: UInt = __LINE__) {
+func XCTAssertEqual<E: Equatable, A: SequenceType, B: ObservableArrayType where A.Generator.Element == E, B.Generator.Element == E>(@autoclosure a: ()->A, @autoclosure _ b: ()->B, message: String = "", file: FileString = __FILE__, line: UInt = __LINE__) {
     XCTAssertEqual(Array(a()), Array(b()), message, file: file, line: line)
 }

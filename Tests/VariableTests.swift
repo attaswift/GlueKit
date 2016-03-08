@@ -87,7 +87,7 @@ class VariableTests: XCTestCase {
             if i > 0 {
                 // This is OK as long as it doesn't lead to infinite updates.
                 // The value is updated immediately, but the source is triggered later, at the end of the outermost update.
-                v.value--
+                v.value -= 1
             }
             s += ")"
         }
@@ -109,7 +109,7 @@ class VariableTests: XCTestCase {
             if i > 0 {
                 // This is OK as long as it doesn't lead to infinite updates.
                 // The value is updated immediately, but the source is triggered later, at the end of the outermost update.
-                v.value--
+                v.value -= 1
             }
             s += ")"
         }

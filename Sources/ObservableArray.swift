@@ -123,7 +123,7 @@ extension ObservableArrayType where
     public var endIndex: Int { return count }
 
     public subscript(index: Int) -> Generator.Element {
-        return lookup(Range(start: index, end: index + 1)).first!
+        return lookup(index ..< index + 1).first!
     }
     public subscript(bounds: Range<Int>) -> SubSequence {
         return lookup(bounds)
@@ -137,7 +137,7 @@ extension ObservableArrayType where
     }
 
     public var value: [Generator.Element] {
-        let result = lookup(Range(start: 0, end: count))
+        let result = lookup(0 ..< count)
         return result as? Array<Generator.Element> ?? Array(result)
     }
 

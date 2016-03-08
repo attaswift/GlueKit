@@ -62,21 +62,21 @@ extension UpdatableArrayType where
     SubSequence.Generator.Element == Generator.Element {
 
     public func setValue(value: [Generator.Element]) {
-        replaceRange(Range(start: 0, end: count), with: value)
+        replaceRange(0 ..< count, with: value)
     }
 
     public var value: [Generator.Element] {
         get {
-            let result = lookup(Range(start: 0, end: count))
+            let result = lookup(0 ..< count)
             return result as? Array<Generator.Element> ?? Array(result)
         }
         nonmutating set {
-            replaceRange(Range(start: 0, end: count), with: newValue)
+            replaceRange(0 ..< count, with: newValue)
         }
     }
     public subscript(index: Index) -> Generator.Element {
         get {
-            let range = Range(start: index, end: index)
+            let range = index ..< index
             return lookup(range).first!
         }
         nonmutating set {
@@ -118,12 +118,12 @@ extension UpdatableArrayType where
 
     public func append(newElement: Generator.Element) {
         let c = count
-        replaceRange(Range(start: c, end: c), with: CollectionOfOne(newElement))
+        replaceRange(c ..< c, with: CollectionOfOne(newElement))
     }
 
     public func appendContentsOf<C : CollectionType where C.Generator.Element == Generator.Element>(newElements: C) {
         let c = count
-        replaceRange(Range(start: c, end: c), with: newElements)
+        replaceRange(c ..< c, with: newElements)
     }
 
     public func insert(newElement: Generator.Element, atIndex i: Index) {
@@ -132,11 +132,11 @@ extension UpdatableArrayType where
     }
 
     public func insertContentsOf<C : CollectionType where C.Generator.Element == Generator.Element>(newElements: C, at i: Index) {
-        replaceRange(Range(start: i, end: i), with: newElements)
+        replaceRange(i ..< i, with: newElements)
     }
 
     public func removeAtIndex(index: Index) -> Generator.Element {
-        let element = lookup(Range(start: index, end: index + 1)).first!
+        let element = lookup(index ..< index + 1).first!
         apply(ArrayChange(initialCount: self.count, modification: .RemoveAt(index)))
         return element
     }
@@ -146,23 +146,23 @@ extension UpdatableArrayType where
     }
 
     public func removeFirst(n: Int) {
-        replaceRange(Range(start: 0, end: n), with: EmptyCollection())
+        replaceRange(0 ..< n, with: EmptyCollection())
     }
 
     public func removeFirst() -> Generator.Element {
-        let range = Range(start: 0, end: 1)
+        let range = 0 ..< 1
         let first = lookup(range)
         replaceRange(range, with: EmptyCollection())
         return first.first!
     }
 
     public func removeAll() {
-        replaceRange(Range(start: 0, end: count), with: EmptyCollection())
+        replaceRange(0 ..< count, with: EmptyCollection())
     }
 
     public func removeLast() -> Generator.Element {
         let count = self.count
-        let range = Range(start: count - 1, end: count)
+        let range = count - 1 ..< count
         let last = lookup(range)
         replaceRange(range, with: EmptyCollection())
         return last.first!

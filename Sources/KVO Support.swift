@@ -98,19 +98,6 @@ public extension SourceType where SourceValue == AnyObject {
 #endif
 }
 
-/// A hashable unowned reference to an object of type Type.
-private struct Unowned<Type: AnyObject>: Hashable {
-    unowned var value: Type
-    init(_ value: Type) {
-        self.value = value
-    }
-
-    var hashValue: Int { return ObjectIdentifier(value).hashValue }
-}
-private func ==<Type: AnyObject>(a: Unowned<Type>, b: Unowned<Type>) -> Bool {
-    return a.value === b.value
-}
-
 public extension NSObject {
     /// Returns an observable source for a KVO-compatible key path.
     /// Note that the object is retained by the returned source.
@@ -127,7 +114,7 @@ public extension NSObject {
     let object: NSObject
 
     var lock = Spinlock()
-    var signals: [String: Unowned<Signal<AnyObject>>] = [:]
+    var signals: [String: UnownedReference<Signal<AnyObject>>] = [:]
     var observerContext: Int8 = 0
 
     static func observerForObject(object: NSObject) -> KVOObserver {
@@ -160,7 +147,7 @@ public extension NSObject {
                     start: { signal in self.startObservingKeyPath(keyPath, signal: signal) },
                     stop: { signal in self.stopObservingKeyPath(keyPath) })
                 // Note that signal now holds strong references to this KVOObserver
-                self.signals[keyPath] = Unowned(signal)
+                self.signals[keyPath] = UnownedReference(signal)
                 return signal.source
             }
         }
@@ -168,7 +155,7 @@ public extension NSObject {
 
     private func startObservingKeyPath(keyPath: String, signal: Signal<AnyObject>) {
         lock.locked {
-            self.signals[keyPath] = Unowned(signal)
+            self.signals[keyPath] = UnownedReference(signal)
             self.object.addObserver(self, forKeyPath: keyPath, options: .New, context: &self.observerContext)
         }
     }

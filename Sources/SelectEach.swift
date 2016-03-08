@@ -266,8 +266,8 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
             self.fieldConnections.replaceRange(fieldRange, with: newConnections)
 
             // Update start indexes.
-            let oldFieldIndexRange = Range(start: startIndexes[fieldRange.startIndex], end: startIndexes[fieldRange.endIndex])
-            var newFieldIndexRange = Range(start: oldFieldIndexRange.startIndex, end: oldFieldIndexRange.startIndex)
+            let oldFieldIndexRange = startIndexes[fieldRange.startIndex] ..< startIndexes[fieldRange.endIndex]
+            var newFieldIndexRange = oldFieldIndexRange.startIndex ..< oldFieldIndexRange.startIndex
             let newIndexes: [Int] = newFields.map { field in
                 let start = newFieldIndexRange.endIndex
                 newFieldIndexRange.endIndex += field.count

@@ -16,7 +16,7 @@ class ConnectionTests: XCTestCase {
     func testConnectionCallsDisconnectCallbackOnce() {
         let c = Connection()
         var count = 0
-        c.addCallback { id in count++ }
+        c.addCallback { id in count += 1 }
 
         c.disconnect()
         XCTAssertEqual(count, 1)
@@ -38,10 +38,10 @@ class ConnectionTests: XCTestCase {
         let c = Connection()
 
         var count1 = 0
-        c.addCallback { id in count1++ }
+        c.addCallback { id in count1 += 1 }
 
         var count2 = 0
-        c.addCallback { id in count2++ }
+        c.addCallback { id in count2 += 1 }
 
         XCTAssertEqual(count1, 0)
         XCTAssertEqual(count2, 0)
@@ -73,7 +73,7 @@ class ConnectionTests: XCTestCase {
         var count = 0
         c.disconnect()
 
-        c.addCallback { id in count++ }
+        c.addCallback { id in count += 1 }
 
         XCTAssertEqual(count, 1, "New callback on disconnected connection should be immediately executed")
     }
@@ -85,10 +85,10 @@ class ConnectionTests: XCTestCase {
 
         // This is a pathological case, but Connection should handle this correctly.
         c.addCallback { id in
-            outerCount++
+            outerCount += 1
             // When this callback is called, the connection is already considered disconnected.
             // Thefore, addCallback should call the inner callback synchronously.
-            c.addCallback { id in innerCount++ }
+            c.addCallback { id in innerCount += 1 }
         }
 
         c.disconnect()
@@ -104,7 +104,7 @@ class ConnectionTests: XCTestCase {
         let targetConnection = signal.connect { i in /* Do nothing */ }
 
         var count = 0
-        let connection = targetConnection.disconnectSource.connect { count++ }
+        let connection = targetConnection.disconnectSource.connect { count += 1 }
 
         signal.send(1)
         signal.send(2)
@@ -123,7 +123,7 @@ class ConnectionTests: XCTestCase {
         let targetConnection = signal.connect { i in /* Do nothing */ }
 
         var count = 0
-        let connection = targetConnection.disconnectSource.connect { count++ }
+        let connection = targetConnection.disconnectSource.connect { count += 1 }
 
         signal.send(1)
         signal.send(2)
@@ -144,7 +144,7 @@ class ConnectionTests: XCTestCase {
             let signal = Signal<Int>()
             let targetConnection = signal.connect { i in /* Do nothing */ }
 
-            connection = targetConnection.disconnectSource.connect { count++ }
+            connection = targetConnection.disconnectSource.connect { count += 1 }
 
             signal.send(1)
             signal.send(2)
@@ -161,7 +161,7 @@ class ConnectionTests: XCTestCase {
         targetConnection.disconnect()
 
         var count = 0
-        let connection = targetConnection.disconnectSource.connect { count++ }
+        let connection = targetConnection.disconnectSource.connect { count += 1 }
 
         XCTAssertEqual(count, 1)
 

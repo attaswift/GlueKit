@@ -313,7 +313,7 @@ class SignalTests: XCTestCase {
     func testFirstAndLastConnectCallbacksAreCalled() {
         var first = 0
         var last = 0
-        let signal = Signal<Int>(start: { _ in first++ }, stop: { _ in last++ })
+        let signal = Signal<Int>(start: { _ in first += 1 }, stop: { _ in last += 1 })
 
         XCTAssertEqual(first, 0)
         XCTAssertEqual(last, 0)
@@ -324,7 +324,7 @@ class SignalTests: XCTestCase {
         XCTAssertEqual(last, 0)
 
         var count = 0
-        let connection = signal.connect { i in count++ }
+        let connection = signal.connect { i in count += 1 }
 
         XCTAssertEqual(first, 1)
         XCTAssertEqual(last, 0)
@@ -359,7 +359,7 @@ class SignalTests: XCTestCase {
         signal.send(0)
 
         var count = 0
-        let connection = signal.connect { i in count++ }
+        let connection = signal.connect { i in count += 1 }
 
         XCTAssert(first != nil && first === signal)
 
@@ -371,7 +371,7 @@ class SignalTests: XCTestCase {
     func testFirstAndLastConnectCallbacksCanBeCalledMultipleTimes() {
         var first = 0
         var last = 0
-        let signal = Signal<Int>(start: { _ in first++ }, stop: { _ in last++ })
+        let signal = Signal<Int>(start: { _ in first += 1 }, stop: { _ in last += 1 })
 
         let c1 = signal.connect { i in }
 
@@ -396,7 +396,7 @@ class SignalTests: XCTestCase {
 
     func testFirstConnectCallbackIsOnlyCalledOnFirstConnections() {
         var first = 0
-        let signal = Signal<Int>(start: { _ in first++ }, stop: { _ in })
+        let signal = Signal<Int>(start: { _ in first += 1 }, stop: { _ in })
 
         XCTAssertEqual(first, 0)
 
@@ -414,7 +414,7 @@ class SignalTests: XCTestCase {
 
     func testLastConnectCallbackIsOnlyCalledOnLastConnections() {
         var last = 0
-        let signal = Signal<Int>(start: { _ in }, stop: { _ in last++ })
+        let signal = Signal<Int>(start: { _ in }, stop: { _ in last += 1 })
 
         XCTAssertEqual(last, 0)
 
@@ -622,7 +622,8 @@ private struct Counter: SourceType {
 
     mutating func increment() -> Int {
         let value: Int = lock.locked {
-            let v = ++self.counter
+            self.counter += 1
+            let v = self.counter
             signal.sendLater(v)
             return v
         }

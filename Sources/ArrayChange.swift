@@ -61,11 +61,11 @@ public enum ArrayModification<Element> {
     public var range: Range<Int> {
         switch self {
         case .Insert(_, at: let i):
-            return Range(start: i, end: i)
+            return i ..< i
         case .RemoveAt(let i):
-            return Range(start: i, end: i + 1)
+            return i ..< i + 1
         case .ReplaceAt(let i, with: _):
-            return Range(start: i, end: i + 1)
+            return i ..< i + 1
         case .ReplaceRange(let range, with: _):
             return range
         }
@@ -105,14 +105,9 @@ public enum ArrayModification<Element> {
         // There is some overlap.
         let delta = elements1.count - range1.count
 
-        let combinedRange = Range<Int>(
-            start: min(range1.startIndex, range2.startIndex),
-            end: max(range1.endIndex, range2.endIndex - delta)
-        )
-
-        let replacement = Range<Int>(
-            start: max(0, range2.startIndex - range1.startIndex),
-            end: min(elements1.count, range2.endIndex - range1.startIndex))
+        let combinedRange = min(range1.startIndex, range2.startIndex) ..< max(range1.endIndex, range2.endIndex - delta)
+        let replacement = max(0, range2.startIndex - range1.startIndex) ..< min(elements1.count, range2.endIndex - range1.startIndex)
+        
         var combinedElements = elements1
         combinedElements.replaceRange(replacement, with: elements2)
 
@@ -191,7 +186,7 @@ extension RangeReplaceableCollectionType where Index == Int {
         case .RemoveAt(let index):
             self.removeAtIndex(index)
         case .ReplaceAt(let index, with: let element):
-            self.replaceRange(Range(start: index, end: index + 1), with: [element])
+            self.replaceRange(index ..< index + 1, with: [element])
         case .ReplaceRange(let range, with: let elements):
             self.replaceRange(range, with: elements)
         }
