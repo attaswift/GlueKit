@@ -1,0 +1,22 @@
+//
+//  version.xcconfig
+//
+//  Created by Károly Lőrentey on 2016-03-08.
+//  Copyright © 2016 Károly Lőrentey.
+//
+
+// Increment the build number whenever you modify the version string.
+VERSION_STRING = 0.0.1
+BUILD_NUMBER = 1
+
+PROJECT_NAME = GlueKit
+BUNDLE_IDENTIFIER_BASE = hu.lorentey.$(PROJECT_NAME)
+
+IPHONEOS_DEPLOYMENT_TARGET = 9.0
+MACOSX_DEPLOYMENT_TARGET = 10.10
+WATCHOS_DEPLOYMENT_TARGET = 2.2
+TVOS_DEPLOYMENT_TARGET = 9.2
+
+APPLICATION_EXTENSION_API_ONLY = YES
+
+OTHER_SWIFT_FLAGS = -DSwift22
