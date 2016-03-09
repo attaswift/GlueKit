@@ -51,8 +51,7 @@ public class Property<Storage: StorageType>: UpdatableType {
     private lazy var signal = LazySignal<Value>()
 
     /// Create a new variable with an initial value.
-    /// @param value: The initial value of the variable.
-    public init(_ storage: Storage) {
+    internal init(_ storage: Storage) {
         self.storage = storage
     }
 

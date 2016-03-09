@@ -25,7 +25,7 @@ public final class Connection {
     // - All references (closures, source, sink) are directly or indirectly released when disconnect() is called.
 
     typealias Callback = ConnectionID -> Void
-    private var lock = Spinlock()
+    private var mutex = RawMutex()
     private var callbacks = [Callback]()
     private var disconnected = false
 
@@ -39,6 +39,7 @@ public final class Connection {
 
     deinit {
         disconnect()
+        mutex.destroy()
     }
 
     internal var connectionID: ConnectionID { return ObjectIdentifier(self) }
@@ -47,7 +48,7 @@ public final class Connection {
     /// This method is safe to call it at any time from any thread. 
     /// It is OK to call this method multiple times; the second and subsequent calls will do nothing.
     public func disconnect() {
-        let callbacks: [Callback] = lock.locked {
+        let callbacks: [Callback] = mutex.withLock {
             if !self.disconnected {
                 self.disconnected = true
                 let callbacks = self.callbacks
@@ -73,7 +74,7 @@ public final class Connection {
     ///
     /// The callbacks are called synchronously on the thread that called disconnect().
     internal func addCallback(callback: ConnectionID->Void) {
-        let disconnected = lock.locked { ()->Bool in
+        let disconnected = mutex.withLock { ()->Bool in
             if !self.disconnected {
                 self.callbacks.append(callback)
             }
@@ -92,15 +93,15 @@ extension Connection {
     public var disconnectSource: Source<Void> {
         return Source { [weak self] sink in
             if let c = self {
-                var lock = Spinlock()
+                let mutex = Mutex()
                 var maybeSink: Sink<Void>? = sink
                 c.addCallback { id in
-                    if let sink = lock.locked({ maybeSink }) {
+                    if let sink = mutex.withLock({ maybeSink }) {
                         sink.receive()
                     }
                 }
                 return Connection(callback: { id in
-                    lock.locked { maybeSink = nil }
+                    mutex.withLock { maybeSink = nil }
                 })
             }
             else {

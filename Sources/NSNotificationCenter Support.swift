@@ -19,12 +19,12 @@ extension NSNotificationCenter {
     /// @param queue The operation queue on which the source will trigger. If you pass nil, the sinks are run synchronously on the thread that posted the notification. This parameter is nil by default.
     /// @returns A Source that triggers when the specified notification is posted.
     public func sourceForNotification(name: String, sender: AnyObject? = nil, queue: NSOperationQueue? = nil) -> Source<NSNotification> {
-        var lock = Spinlock()
+        let mutex = Mutex()
         var observer: NSObjectProtocol? = nil
 
         let signal = Signal<NSNotification>(
             start: { signal in
-                lock.locked {
+                mutex.withLock {
                     assert(observer == nil)
                     observer = self.addObserverForName(name, object: sender, queue: queue) { [unowned signal] notification in
                         signal.send(notification)
@@ -32,7 +32,7 @@ extension NSNotificationCenter {
                 }
             },
             stop: { signal in
-                lock.locked {
+                mutex.withLock {
                     assert(observer != nil)
                     self.removeObserver(observer!)
                     observer = nil

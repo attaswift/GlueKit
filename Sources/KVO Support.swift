@@ -113,7 +113,7 @@ public extension NSObject {
 
     let object: NSObject
 
-    var lock = Spinlock()
+    var mutex = RawMutex()
     var signals: [String: UnownedReference<Signal<AnyObject>>] = [:]
     var observerContext: Int8 = 0
 
@@ -135,10 +135,11 @@ public extension NSObject {
 
     deinit {
         objc_setAssociatedObject(object, &KVOObserver.associatedObjectKey, nil, .OBJC_ASSOCIATION_ASSIGN)
+        mutex.destroy()
     }
 
     func _sourceForKeyPath(keyPath: String) -> Source<AnyObject> {
-        return lock.locked {
+        return mutex.withLock {
             if let signal = self.signals[keyPath] {
                 return signal.value.source
             }
@@ -154,14 +155,14 @@ public extension NSObject {
     }
 
     private func startObservingKeyPath(keyPath: String, signal: Signal<AnyObject>) {
-        lock.locked {
+        mutex.withLock {
             self.signals[keyPath] = UnownedReference(signal)
             self.object.addObserver(self, forKeyPath: keyPath, options: .New, context: &self.observerContext)
         }
     }
 
     private func stopObservingKeyPath(keyPath: String) {
-        lock.locked {
+        mutex.withLock {
             self.signals[keyPath] = nil
             self.object.removeObserver(self, forKeyPath: keyPath, context: &self.observerContext)
         }
@@ -170,7 +171,7 @@ public extension NSObject {
     override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
         if context == &observerContext {
             if let keyPath = keyPath, change = change, newValue = change[NSKeyValueChangeNewKey] {
-                if let signal = lock.locked({ self.signals[keyPath]?.value }) {
+                if let signal = mutex.withLock({ self.signals[keyPath]?.value }) {
                     signal.send(newValue)
                 }
             }

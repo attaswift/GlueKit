@@ -1518,6 +1518,7 @@
 				BBB55BE91C8FD1C60050DDA9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		BBB55C041C8FD5A30050DDA9 /* Build configuration list for PBXNativeTarget "SampleModel" */ = {
 			isa = XCConfigurationList;
@@ -1526,6 +1527,7 @@
 				BBB55C061C8FD5A30050DDA9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

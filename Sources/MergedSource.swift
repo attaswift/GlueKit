@@ -37,12 +37,16 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
 
     private lazy var signal: OwningSignal<Value, MergedSource<Value>> = { OwningSignal(delegate: self) }()
 
-    private var lock = Spinlock()
+    private var mutex = RawMutex()
     private var connections: [Connection] = []
 
     /// Initializes a new merged source with `sources` as its input sources.
     public init(sources: [Source<Value>]) {
         self.inputs = sources
+    }
+
+    deinit {
+        mutex.destroy()
     }
 
     public func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection {
@@ -56,14 +60,14 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
     }
 
     internal func start(signal: Signal<Value>) {
-        lock.locked {
+        mutex.withLock {
             assert(connections.isEmpty)
             connections = inputs.map { $0.connect(signal) }
         }
     }
 
     internal func stop(signal: Signal<Value>) {
-        lock.locked {
+        mutex.withLock {
             for c in connections {
                 c.disconnect()
             }
