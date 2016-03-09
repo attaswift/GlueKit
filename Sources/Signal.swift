@@ -305,15 +305,15 @@ public final class Signal<Value>: SignalType {
     /// counter that guarantees to send increasing counts, without holding a lock during sending:
     ///
     /// ```
-    /// public struct Counter: SourceType {
-    ///     private var lock = Spinlock()
+    /// public struct Counter: Mutex {
+    ///     private var mutex = Spinlock()
     ///     private var count: Int = 0
     ///     private let signal = Signal<Int>()
     ///
     ///     public var source: Source<Int> { return signal.source }
     ///
     ///     public mutating func increment() {
-    ///         let value: Int = lock.locked {
+    ///         let value: Int = mutex.withLock {
     ///             let v = ++count
     ///             signal.sendLater(v)
     ///             return v

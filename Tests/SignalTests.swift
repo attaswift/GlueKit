@@ -590,7 +590,7 @@ class SignalTests: XCTestCase {
 
 
     func testSendLaterUsingCounter() {
-        var counter = Counter()
+        let counter = Counter()
 
         var s = ""
         let c = counter.connect { value in
@@ -609,19 +609,23 @@ class SignalTests: XCTestCase {
     }
 }
 
-private struct Counter: SourceType {
+private class Counter: SourceType {
     typealias SourceValue = Int
 
-    private var lock = Spinlock()
+    private var mutex = RawMutex()
     private var counter: Int = 0
     private var signal = Signal<Int>()
+
+    deinit {
+        mutex.destroy()
+    }
 
     func connect<S: GlueKit.SinkType where S.SinkValue == Int>(sink: S) -> Connection {
         return signal.connect(Sink(sink))
     }
 
-    mutating func increment() -> Int {
-        let value: Int = lock.locked {
+    func increment() -> Int {
+        let value: Int = mutex.withLock {
             self.counter += 1
             let v = self.counter
             signal.sendLater(v)
