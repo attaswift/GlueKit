@@ -11,6 +11,8 @@ import Foundation
 internal struct UnownedReference<Target: AnyObject>: Hashable, Equatable {
     unowned var value: Target
 
+    @_semantics("optimize.sil.never") // Workaround for a compiler bug in Swift 2.2
+    @inline(__always)
     init(_ value: Target) {
         self.value = value
     }
