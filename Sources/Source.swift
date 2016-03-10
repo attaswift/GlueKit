@@ -21,7 +21,7 @@ import Foundation
 /// - SeeAlso: Sink<Value>, SourceType, Source<Value>
 public protocol SinkType {
     /// The type of values received by this sink.
-    typealias SinkValue
+    associatedtype SinkValue
 
     /// Receive a new value.
     func receive(value: SinkValue)
@@ -85,7 +85,7 @@ extension SinkType {
 ///
 public protocol SourceType {
     /// The type of values produced by this source.
-    typealias SourceValue
+    associatedtype SourceValue
 
     /// Connect `sink` to this source. The sink will receive all values that this source produces in the future.
     /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.

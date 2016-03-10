@@ -27,7 +27,7 @@ import Foundation
 /// (including connecting to any of their sources).
 ///
 public protocol ObservableType {
-    typealias Value
+    associatedtype Value
 
     /// The current value of this observable.
     var value: Value { get }

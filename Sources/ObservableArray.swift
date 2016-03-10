@@ -16,7 +16,7 @@ import Foundation
 ///
 /// - SeeAlso: ArrayChange, ObservableArray, ArrayVariable
 public protocol ChangeType {
-    typealias Value
+    associatedtype Value
 
     /// Creates a new change description for a change that goes from `oldValue` to `newValue`.
     init(from oldValue: Value, to newValue: Value)
@@ -50,11 +50,11 @@ public protocol ChangeType {
 /// to make sure you won't do it by accident.
 public protocol ObservableCollectionType: CollectionType {
     /// The collection type underlying this observable collection.
-    typealias BaseCollection: CollectionType
+    associatedtype BaseCollection: CollectionType
     /// The type of this observable collection's change descriptions.
-    typealias Change: ChangeType
+    associatedtype Change: ChangeType
 
-    typealias Generator = BaseCollection.Generator
+    associatedtype Generator = BaseCollection.Generator
     func generate() -> BaseCollection.Generator
 
     var count: Int { get }
@@ -85,9 +85,9 @@ extension ObservableCollectionType {
 ///
 /// - SeeAlso: ObservableType, ObservableArray, UpdatableArrayType, ArrayVariable
 public protocol ObservableArrayType: ObservableCollectionType { // Sadly there is no ArrayType in the standard library :-(
-    typealias BaseCollection = Array<Generator.Element>
-    typealias Change = ArrayChange<Generator.Element>
-    typealias Index = Int
+    associatedtype BaseCollection = Array<Generator.Element>
+    associatedtype Change = ArrayChange<Generator.Element>
+    associatedtype Index = Int
 
     // Required methods
 

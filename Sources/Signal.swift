@@ -9,14 +9,14 @@
 import Foundation
 
 public protocol SignalType: SourceType, SinkType /* where SourceType.SourceValue == SinkType.SinkValue */ {
-    typealias SinkValue = SourceValue
+    associatedtype SinkValue = SourceValue
 
     func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection
     func receive(value: SourceValue)
 }
 
 internal protocol SignalDelegate: class {
-    typealias SignalValue
+    associatedtype SignalValue
     func start(signal: Signal<SignalValue>)
     func stop(signal: Signal<SignalValue>)
 }

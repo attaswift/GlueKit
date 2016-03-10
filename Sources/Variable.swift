@@ -10,7 +10,7 @@ import Foundation
 
 /// A Storage allows read-write access to an individual piece of data.
 public protocol StorageType {
-    typealias Value
+    associatedtype Value
     var value: Value { get set }
 }
 
