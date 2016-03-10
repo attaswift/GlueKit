@@ -14,7 +14,7 @@ internal class TransformedObservable<Input: ObservableType, Value>: ObservableTy
     private let input: Input
     private let transform: Input.Value -> Value
 
-    private lazy var signal: OwningSignal<Value, TransformedObservable<Input, Value>> = { OwningSignal(delegate: self) } ()
+    private var signal = OwningSignal<Value, TransformedObservable<Input, Value>>()
     private var connection: Connection? = nil
 
     internal init(input: Input, transform: Input.Value->Value) {
@@ -27,7 +27,7 @@ internal class TransformedObservable<Input: ObservableType, Value>: ObservableTy
     }
 
     internal var value: Value { return transform(input.value) }
-    internal var futureValues: Source<Value> { return signal.source }
+    internal var futureValues: Source<Value> { return signal.with(self).source }
 
     internal func start(signal: Signal<Value>) {
         assert(connection == nil)
@@ -57,7 +57,7 @@ internal class DistinctValueSource<Input: ObservableType>: SignalDelegate {
     private let input: Input
     private let equalityTest: (Value, Value) -> Bool
 
-    private lazy var signal: OwningSignal<Value, DistinctValueSource<Input>> = { OwningSignal(delegate: self) }()
+    private var signal = OwningSignal<Value, DistinctValueSource<Input>>()
     private var connection: Connection? = nil
 
     internal init(input: Input, equalityTest: (Value, Value)->Bool) {
@@ -70,7 +70,7 @@ internal class DistinctValueSource<Input: ObservableType>: SignalDelegate {
     }
 
     internal var value: Value { return input.value }
-    internal var source: Source<Value> { return signal.source }
+    internal var source: Source<Value> { return signal.with(self).source }
 
     private var lastValue: Value? = nil
 
@@ -128,7 +128,7 @@ public class BinaryCompositeObservable<Input1: ObservableType, Input2: Observabl
     private let first: Input1
     private let second: Input2
     private let combinator: (Input1.Value, Input2.Value) -> Value
-    private lazy var signal: OwningSignal<Value, BinaryCompositeObservable<Input1, Input2, Value>> = { OwningSignal(delegate: self) }()
+    private var signal = OwningSignal<Value, BinaryCompositeObservable<Input1, Input2, Value>>()
 
     public init(first: Input1, second: Input2, combinator: (Input1.Value, Input2.Value) -> Value) {
         self.first = first
@@ -141,7 +141,7 @@ public class BinaryCompositeObservable<Input1: ObservableType, Input2: Observabl
     }
 
     public var value: Value { return combinator(first.value, second.value) }
-    public var futureValues: Source<Value> { return signal.source }
+    public var futureValues: Source<Value> { return signal.with(self).source }
 
     private var firstValue: Input1.Value? = nil
     private var secondValue: Input2.Value? = nil

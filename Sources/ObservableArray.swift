@@ -157,7 +157,7 @@ internal class ValueSourceForObservableArray<A: ObservableArrayType where A.Chan
 
     private let array: A
 
-    private lazy var _signal: OwningSignal<[Element], ValueSourceForObservableArray<A>> = { OwningSignal(delegate: self) }()
+    private var _signal = OwningSignal<[Element], ValueSourceForObservableArray<A>>()
 
     private var _connection: Connection? = nil
     private var _values: [Element] = []
@@ -166,7 +166,7 @@ internal class ValueSourceForObservableArray<A: ObservableArrayType where A.Chan
         self.array = array
     }
 
-    internal var source: Source<[Element]> { return _signal.source }
+    internal var source: Source<[Element]> { return _signal.with(self).source }
 
     internal func start(signal: Signal<[Element]>) {
         assert(_values.count == 0 && _connection == nil)

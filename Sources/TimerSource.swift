@@ -54,20 +54,23 @@ public final class TimerSource: SourceType, SignalDelegate {
     private let queue: dispatch_queue_t
     private let next: Void->NSDate?
     private var token = AtomicToken()
-    private lazy var signal: OwningSignal<Void, TimerSource> = { OwningSignal(delegate: self) }()
+    private var signal = OwningSignal<Void, TimerSource>()
 
     /// Set up a new TimerSource that is scheduled on a given queue at the times determined by the supplied block.
-    /// @param queue The queue on which to schedule the timer. The signal will fire on this queue. If unspecified, the main queue is used.
-    /// @param next A closure that returns the next date the signal is supposed to fire, or nil if the timer should be paused indefinitely. The closure is executed on the queue in the first parameter.
+    /// @param queue The queue on which to schedule the timer. 
+    ///    The signal will fire on this queue. If unspecified, the main queue is used.
+    /// @param next A closure that returns the next date the signal is supposed to fire, 
+    ///    or nil if the timer should be paused indefinitely. The closure is executed on the queue in the first parameter.
     ///
-    /// Note that the `next` closure will not be called immediately; the source waits for the first connection before establishing a timer.
+    /// Note that the `next` closure will not be called immediately; the source waits for the first connection 
+    /// before establishing a timer.
     public init(queue: dispatch_queue_t = dispatch_get_main_queue(), next: Void->NSDate?) {
         self.queue = queue
         self.next = next
     }
 
     public func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection {
-        return self.signal.connect(sink)
+        return self.signal.with(self).connect(sink)
     }
 
     /// Stop the timer. The timer will not fire again until start() is called.

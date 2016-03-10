@@ -35,7 +35,7 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
 
     private let inputs: [Source<Value>]
 
-    private lazy var signal: OwningSignal<Value, MergedSource<Value>> = { OwningSignal(delegate: self) }()
+    private var signal = OwningSignal<Value, MergedSource<Value>>()
 
     private var mutex = RawMutex()
     private var connections: [Connection] = []
@@ -50,7 +50,7 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
     }
 
     public func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection {
-        return signal.connect(Sink(sink))
+        return signal.with(self).connect(Sink(sink))
     }
 
     /// Returns a new MergedSource that merges the same sources as self but also listens to `source`.

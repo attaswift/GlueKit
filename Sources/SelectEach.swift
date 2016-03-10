@@ -35,7 +35,7 @@ private final class ArraySelectorForObservableField<Element, Field: ObservableTy
     private let parent: ObservableArray<Element>
     private let key: Element->Field
 
-    private lazy var signal: OwningSignal<Value,ArraySelectorForObservableField<Element, Field>> = { OwningSignal(delegate: self) }()
+    private var signal = OwningSignal<Value, ArraySelectorForObservableField<Element, Field>>()
 
     private var parentConnection: Connection? = nil
     private var fieldConnections: [Connection] = []
@@ -47,7 +47,7 @@ private final class ArraySelectorForObservableField<Element, Field: ObservableTy
         self.key = key
     }
 
-    var source: Source<Value> { return signal.source }
+    var source: Source<Value> { return signal.with(self).source }
 
     func start(signal: Signal<Value>) {
         assert(parentConnection == nil && fieldConnections.isEmpty)
@@ -137,7 +137,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
     private let parent: ObservableArray<ParentElement>
     private let key: ParentElement->Field
 
-    private lazy var signal: OwningSignal<Change, ArraySelectorForArrayField<ParentElement, Field>> = { OwningSignal(delegate: self) }()
+    private var signal = OwningSignal<Change, ArraySelectorForArrayField<ParentElement, Field>>()
 
     private var active = false
     private var parentConnection: Connection? = nil
@@ -185,7 +185,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
         return result
     }
 
-    var changeSource: Source<Change> { return signal.source }
+    var changeSource: Source<Change> { return signal.with(self).source }
 
     func start(signal: Signal<Change>) {
         assert(active == false)

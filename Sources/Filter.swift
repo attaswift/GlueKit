@@ -20,7 +20,7 @@ public class ObservableFilter<Element, TestResult: ObservableType where TestResu
     private let parent: ObservableArray<Element>
     private let test: Element->TestResult
 
-    private lazy var changeSignal: OwningSignal<Change, ObservableFilter<Element, TestResult>> = { OwningSignal(delegate: self) }()
+    private var changeSignal = OwningSignal<Change, ObservableFilter<Element, TestResult>>()
 
     private var parentConnection: Connection? = nil
     private var elementConnections: [Connection] = []

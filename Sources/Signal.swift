@@ -28,47 +28,31 @@ internal protocol SignalDelegate: class {
 /// - Dependants hold strong references to their dependencies
 /// - Dependants only activate their dependencies while someone is interested in them
 ///
-/// Note that while this struct implements `SourceType`, it cannot formally declare this, because its
-/// `connect` method is mutating.
 internal struct OwningSignal<Value, Delegate: SignalDelegate where Delegate.SignalValue == Value> {
     internal typealias SourceValue = Value
 
-    private unowned var delegate: Delegate
-    private weak var _signal: Signal<Value>? = nil
+    private weak var signal: Signal<Value>? = nil
 
-    internal init(delegate: Delegate) {
-        self.delegate = delegate
+    internal init() {
     }
 
-    internal var signal: Signal<Value> {
-        mutating get {
-            if let s = _signal {
-                return s
-            }
-            else {
-                let s = Signal<Value>(stronglyHeldDelegate: delegate)
-                _signal = s
-                return s
-            }
+    internal mutating func with(delegate: Delegate) -> Signal<Value> {
+        if let s = signal {
+            return s
         }
+        let s = Signal<Value>(stronglyHeldDelegate: delegate)
+        self.signal = s
+        return s
     }
 
     internal var isConnected: Bool {
-        guard let s = _signal else { return false }
+        guard let s = signal else { return false }
         return s.isConnected
     }
 
     /// Send value to the signal (if it exists).
     internal func send(value: Value) {
-        _signal?.send(value)
-    }
-
-    internal var source: Source<Value> {
-        mutating get { return self.signal.source }
-    }
-
-    internal mutating func connect<S: SinkType where S.SinkValue == Value>(sink: S) -> Connection {
-        return signal.connect(sink)
+        signal?.send(value)
     }
 }
 

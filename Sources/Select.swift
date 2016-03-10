@@ -15,11 +15,11 @@ private final class ValueSelectorForSourceField<Parent: ObservableType, Field: S
     let parent: Parent
     let key: Parent.Value -> Field
 
-    lazy var signal: OwningSignal<Value, ValueSelectorForSourceField<Parent, Field>> = { OwningSignal(delegate: self) }()
+    var signal = OwningSignal<Value, ValueSelectorForSourceField<Parent, Field>>()
     var fieldConnection: Connection? = nil
     var parentConnection: Connection? = nil
 
-    var source: Source<Value> { return signal.source }
+    var source: Source<Value> { return signal.with(self).source }
 
     init(parent: Parent, key: Parent.Value->Field) {
         self.parent = parent
@@ -54,12 +54,12 @@ private final class ValueSelectorForObservableField<Parent: ObservableType, Fiel
     let parent: Parent
     let key: Parent.Value -> Field
 
-    lazy var signal: OwningSignal<Value, ValueSelectorForObservableField<Parent, Field>> = { OwningSignal(delegate: self) }()
+    var signal = OwningSignal<Value, ValueSelectorForObservableField<Parent, Field>>()
     var currentValue: Field.Value? = nil
     var fieldConnection: Connection? = nil
     var parentConnection: Connection? = nil
 
-    var source: Source<Value> { return signal.source }
+    var source: Source<Value> { return signal.with(self).source }
 
     init(parent: Parent, key: Parent.Value->Field) {
         self.parent = parent
@@ -100,13 +100,13 @@ private final class ValueSelectorForArrayField<Parent: ObservableType, Field: Ob
     let parent: Parent
     let key: Parent.Value -> Field
 
-    lazy var signal: OwningSignal<Change, ValueSelectorForArrayField<Parent, Field>> = { OwningSignal(delegate: self) }()
+    var signal = OwningSignal<Change, ValueSelectorForArrayField<Parent, Field>>()
     var fieldConnection: Connection? = nil
     var parentConnection: Connection? = nil
     var _field: Field? = nil
     var _count: Int = 0
 
-    var changeSource: Source<Change> { return signal.source }
+    var changeSource: Source<Change> { return signal.with(self).source }
 
     var field: Field {
         if let field = _field {
