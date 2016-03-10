@@ -8,10 +8,10 @@
 
 import Foundation
 
-internal struct UnownedReference<Class: AnyObject>: Hashable, Equatable {
-    unowned var value: Class
+internal struct UnownedReference<Target: AnyObject>: Hashable, Equatable {
+    unowned var value: Target
 
-    init(_ value: Class) {
+    init(_ value: Target) {
         self.value = value
     }
 
@@ -20,7 +20,7 @@ internal struct UnownedReference<Class: AnyObject>: Hashable, Equatable {
     }
 }
 
-internal func ==<Class: AnyObject>(a: UnownedReference<Class>, b: UnownedReference<Class>) -> Bool {
+internal func ==<Target: AnyObject>(a: UnownedReference<Target>, b: UnownedReference<Target>) -> Bool {
     return a.value === b.value
 }
 
