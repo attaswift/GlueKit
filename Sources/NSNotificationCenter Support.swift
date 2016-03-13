@@ -25,7 +25,7 @@ extension NSNotificationCenter {
         let signal = Signal<NSNotification>(
             start: { signal in
                 mutex.withLock {
-                    assert(observer == nil)
+                    precondition(observer == nil)
                     observer = self.addObserverForName(name, object: sender, queue: queue) { [unowned signal] notification in
                         signal.send(notification)
                     }
@@ -33,7 +33,7 @@ extension NSNotificationCenter {
             },
             stop: { signal in
                 mutex.withLock {
-                    assert(observer != nil)
+                    precondition(observer != nil)
                     self.removeObserver(observer!)
                     observer = nil
                 }
