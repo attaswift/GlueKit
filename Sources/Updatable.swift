@@ -18,8 +18,8 @@ public protocol UpdatableType: ObservableType, SinkType {
 }
 
 extension UpdatableType {
-    public func receive(value: Value) {
-        self.value = value
+    public var receive: Value -> Void {
+        return { self.value = $0 }
     }
 
     /// Returns the type-lifted version of this UpdatableType.
@@ -30,6 +30,8 @@ extension UpdatableType {
 
 /// The type lifted representation of an UpdatableType.
 public struct Updatable<Value>: UpdatableType {
+    public typealias SinkValue = Value
+    
     /// The getter closure for the current value of this updatable.
     public let getter: Void->Value
     /// The setter closure for updating the current value of this updatable.
@@ -57,8 +59,8 @@ public struct Updatable<Value>: UpdatableType {
         return valueSource()
     }
 
-    public func receive(value: Value) {
-        self.setter(value)
+    public var receive: Value -> Void {
+        return self.setter
     }
 }
 

@@ -12,7 +12,7 @@ public protocol SignalType: SourceType, SinkType /* where SourceType.SourceValue
     associatedtype SinkValue = SourceValue
 
     func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection
-    func receive(value: SourceValue)
+    var receive: SourceValue -> Void { get }
 }
 
 internal protocol SignalDelegate: class {
@@ -274,8 +274,8 @@ public final class Signal<Value>: SignalType {
     }
 
     /// When used as a sink, a Signal will forward all received values to its connected sinks in turn.
-    public func receive(value: Value) {
-        send(value)
+    public var receive: Value -> Void {
+        return self.send
     }
 
     /// Append value to the queue of pending values. The value will be sent by a send() or sendNow() invocation.

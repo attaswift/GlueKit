@@ -24,7 +24,7 @@ public protocol SinkType {
     associatedtype SinkValue
 
     /// Receive a new value.
-    func receive(value: SinkValue)
+    var receive: SinkValue -> Void { get }
 }
 
 /// A Sink is anything that can receive a value, typically from a Source.
@@ -37,25 +37,16 @@ public protocol SinkType {
 public struct Sink<Value>: SinkType {
     public typealias SinkValue = Value
 
-    private let receiver: Value->Void
+    public let receive: Value->Void
 
     /// Initialize a new `Sink<Value>` from the given closure.
-    public init(_ receiver: Value->Void) {
-        self.receiver = receiver
-    }
-
-    public init(_ sink: Sink<Value>) {
-        self.receiver = sink.receiver
+    public init(_ receive: Value->Void) {
+        self.receive = receive
     }
 
     /// Initializes a new `Sink<Value>` from the given value implementing `SinkType`.
     public init<S: SinkType where S.SinkValue == Value>(_ sink: S) {
-        self.receiver = sink.receive
-    }
-
-    /// Receive a new value.
-    public func receive(value: SinkValue) {
-        self.receiver(value)
+        self.receive = sink.receive
     }
 }
 
