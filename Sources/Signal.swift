@@ -323,10 +323,12 @@ public final class Signal<Value>: SignalType {
         }
     }
 
+    public var connecter: Sink<Value> -> Connection {
+        return self.connect
+    }
+
     @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func connect<S: SinkType where S.SinkValue == Value>(sink: S) -> Connection {
-        let sink = Sink(sink)
-        
+    public func connect(sink: Sink<Value>) -> Connection {
         let c = Connection(callback: self.disconnect) // c now holds a strong reference to self.
         let id = c.connectionID
         let first: Bool = mutex.withLock {

@@ -49,8 +49,8 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
         mutex.destroy()
     }
 
-    public func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection {
-        return signal.with(self).connect(Sink(sink))
+    public var connecter: Sink<Value> -> Connection {
+        return signal.with(self).connecter
     }
 
     /// Returns a new MergedSource that merges the same sources as self but also listens to `source`.
