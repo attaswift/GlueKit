@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		BB23E63D1C90DEB6005EFD0A /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB55AB21C8F80020050DDA9 /* GlueKit.framework */; };
+		BB4052021C958712003D8F5B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB4052011C958712003D8F5B /* UIKit.framework */; };
 		BBAA826D1C91D16600586903 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* Observable.swift */; };
 		BBAA826E1C91D17400586903 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* Updatable.swift */; };
 		BBAA826F1C91D17A00586903 /* Observable Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */; };
@@ -151,6 +152,7 @@
 		BBB55BD71C8FCE2C0050DDA9 /* VariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BA71C8FCE2C0050DDA9 /* VariableTests.swift */; };
 		BBB55BEB1C8FD25F0050DDA9 /* GlueKitPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BEA1C8FD25F0050DDA9 /* GlueKitPerformanceTests.swift */; };
 		BBB55C0B1C8FD5D60050DDA9 /* SampleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55C0A1C8FD5D60050DDA9 /* SampleModel.swift */; };
+		BBC3C84E1C93164200E10D59 /* UIControl extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC3C84D1C93164200E10D59 /* UIControl extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -185,6 +187,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BB4052011C958712003D8F5B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.3.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		BBAA827C1C91D43700586903 /* AnyObject Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AnyObject Helpers.swift"; sourceTree = "<group>"; };
 		BBB55AB21C8F80020050DDA9 /* GlueKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GlueKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBB55AB71C8F80020050DDA9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -246,6 +249,7 @@
 		BBB55BF31C8FD5A30050DDA9 /* SampleModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SampleModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBB55BF71C8FD5A30050DDA9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BBB55C0A1C8FD5D60050DDA9 /* SampleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleModel.swift; sourceTree = "<group>"; };
+		BBC3C84D1C93164200E10D59 /* UIControl extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIControl extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -253,6 +257,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB4052021C958712003D8F5B /* UIKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,6 +326,7 @@
 		BBB55AA81C8F80020050DDA9 = {
 			isa = PBXGroup;
 			children = (
+				BB4052011C958712003D8F5B /* UIKit.framework */,
 				BBB55B1E1C8F9E920050DDA9 /* README.md */,
 				BBB55B1D1C8F9E850050DDA9 /* LICENCE.md */,
 				BBB55B1C1C8F90F60050DDA9 /* .travis.yml */,
@@ -359,6 +365,7 @@
 				BBB55B931C8FCD010050DDA9 /* Sources and Signals */,
 				BBB55B941C8FCD320050DDA9 /* Observable Values */,
 				BBB55B951C8FCD4E0050DDA9 /* Observable Arrays */,
+				BBC3C84F1C93164700E10D59 /* UIKit Extensions */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -487,6 +494,14 @@
 				BBB55BF71C8FD5A30050DDA9 /* Info.plist */,
 			);
 			path = SampleModel;
+			sourceTree = "<group>";
+		};
+		BBC3C84F1C93164700E10D59 /* UIKit Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				BBC3C84D1C93164200E10D59 /* UIControl extensions.swift */,
+			);
+			name = "UIKit Extensions";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -847,6 +862,7 @@
 				BBB55B861C8FCC820050DDA9 /* Updatable.swift in Sources */,
 				BBB55B3E1C8FCC820050DDA9 /* Connection.swift in Sources */,
 				BBB55B7A1C8FCC820050DDA9 /* Source.swift in Sources */,
+				BBC3C84E1C93164200E10D59 /* UIControl extensions.swift in Sources */,
 				BBB55B6E1C8FCC820050DDA9 /* SelectEach.swift in Sources */,
 				BBB55B3A1C8FCC820050DDA9 /* ArrayVariable.swift in Sources */,
 				BBB55B4A1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
