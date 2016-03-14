@@ -23,7 +23,7 @@ extension UIDevice {
             start: { [unowned self] signal in
                 precondition(observer == nil)
                 self.beginGeneratingDeviceOrientationNotifications()
-                observer = nc.addObserverForName(UIDeviceOrientationDidChangeNotification, object: nil, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
+                observer = nc.addObserverForName(UIDeviceOrientationDidChangeNotification, object: self, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
                     signal.send(self.orientation)
                 }
             },
@@ -49,10 +49,10 @@ extension UIDevice {
                 precondition(stateObserver == nil && levelObserver == nil)
                 precondition(!self.batteryMonitoringEnabled)
                 self.batteryMonitoringEnabled = true
-                stateObserver = nc.addObserverForName(UIDeviceBatteryStateDidChangeNotification, object: nil, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
+                stateObserver = nc.addObserverForName(UIDeviceBatteryStateDidChangeNotification, object: self, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
                     signal.send((self.batteryState, self.batteryLevel))
                 }
-                levelObserver = nc.addObserverForName(UIDeviceBatteryLevelDidChangeNotification, object: nil, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
+                levelObserver = nc.addObserverForName(UIDeviceBatteryLevelDidChangeNotification, object: self, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
                     signal.send((self.batteryState, self.batteryLevel))
                 }
             },
@@ -80,7 +80,7 @@ extension UIDevice {
                 precondition(observer == nil)
                 precondition(!self.proximityMonitoringEnabled)
                 self.proximityMonitoringEnabled = true
-                observer = nc.addObserverForName(UIDeviceProximityStateDidChangeNotification, object: nil, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
+                observer = nc.addObserverForName(UIDeviceProximityStateDidChangeNotification, object: self, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
                     signal.send(self.proximityState)
                 }
             },
