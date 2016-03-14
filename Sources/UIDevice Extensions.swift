@@ -13,7 +13,7 @@ private var batteryKey: UInt8 = 0
 private var proximityKey: UInt8 = 0
 
 extension UIDevice {
-    public var orientationSource: Source<UIDeviceOrientation> {
+    internal var orientationSource: Source<UIDeviceOrientation> {
         if let signal = objc_getAssociatedObject(self, &orientationKey) as? Signal<UIDeviceOrientation> {
             return signal.source
         }
@@ -35,6 +35,10 @@ extension UIDevice {
         )
         objc_setAssociatedObject(self, &orientationKey, signal, .OBJC_ASSOCIATION_RETAIN)
         return signal.source
+    }
+
+    public var observableOrientation: Observable<UIDeviceOrientation> {
+        return Observable(getter: { self.orientation }, futureValues: { self.orientationSource })
     }
 
     public var batterySource: Source<(UIDeviceBatteryState, Float)> {
