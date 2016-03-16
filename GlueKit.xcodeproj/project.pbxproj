@@ -28,6 +28,7 @@
 		BBAA82801C91D43700586903 /* AnyObject Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAA827C1C91D43700586903 /* AnyObject Helpers.swift */; };
 		BBAA82811C91D56600586903 /* KVO Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B241C8FCC810050DDA9 /* KVO Support.swift */; };
 		BBB4F2521C9594A9002532CC /* UIDevice Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */; };
+		BBB4F26F1C99E6CC002532CC /* UIGestureRecognizer Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */; };
 		BBB55ADE1C8F88F20050DDA9 /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB55AD41C8F88F20050DDA9 /* GlueKit.framework */; };
 		BBB55B081C8F8CBC0050DDA9 /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB55AFE1C8F8CBB0050DDA9 /* GlueKit.framework */; };
 		BBB55B361C8FCC820050DDA9 /* ArrayChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B1F1C8FCC810050DDA9 /* ArrayChange.swift */; };
@@ -191,6 +192,7 @@
 		BB4052011C958712003D8F5B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.3.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		BBAA827C1C91D43700586903 /* AnyObject Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AnyObject Helpers.swift"; sourceTree = "<group>"; };
 		BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice Extensions.swift"; sourceTree = "<group>"; };
+		BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIGestureRecognizer Extensions.swift"; sourceTree = "<group>"; };
 		BBB55AB21C8F80020050DDA9 /* GlueKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GlueKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBB55AB71C8F80020050DDA9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BBB55ABC1C8F80020050DDA9 /* GlueKit-Test.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GlueKit-Test.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -511,6 +513,7 @@
 			children = (
 				BBC3C84D1C93164200E10D59 /* UIControl extensions.swift */,
 				BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */,
+				BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */,
 			);
 			name = "UIKit Extensions";
 			sourceTree = "<group>";
@@ -875,6 +878,7 @@
 				BBB55B7A1C8FCC820050DDA9 /* Source.swift in Sources */,
 				BBC3C84E1C93164200E10D59 /* UIControl extensions.swift in Sources */,
 				BBB55B6E1C8FCC820050DDA9 /* SelectEach.swift in Sources */,
+				BBB4F26F1C99E6CC002532CC /* UIGestureRecognizer Extensions.swift in Sources */,
 				BBB55B3A1C8FCC820050DDA9 /* ArrayVariable.swift in Sources */,
 				BBB55B4A1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
 				BBB4F2521C9594A9002532CC /* UIDevice Extensions.swift in Sources */,
