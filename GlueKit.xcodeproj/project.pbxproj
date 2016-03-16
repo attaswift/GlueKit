@@ -338,10 +338,17 @@
 			name = "Foundation Extensions";
 			sourceTree = "<group>";
 		};
-		BBB55AA81C8F80020050DDA9 = {
+		BBB4F2711C9A1DCB002532CC /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
 				BB4052011C958712003D8F5B /* UIKit.framework */,
+			);
+			name = Dependencies;
+			sourceTree = "<group>";
+		};
+		BBB55AA81C8F80020050DDA9 = {
+			isa = PBXGroup;
+			children = (
 				BBB55B1E1C8F9E920050DDA9 /* README.md */,
 				BBB55B1D1C8F9E850050DDA9 /* LICENCE.md */,
 				BBB55B1C1C8F90F60050DDA9 /* .travis.yml */,
@@ -352,6 +359,7 @@
 				BBB55AC01C8F80020050DDA9 /* Tests */,
 				BBB55BE31C8FD1C60050DDA9 /* PerformanceTests */,
 				BBB55BF41C8FD5A30050DDA9 /* SampleModel */,
+				BBB4F2711C9A1DCB002532CC /* Dependencies */,
 				BBB55AB31C8F80020050DDA9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -1213,6 +1221,7 @@
 		BBB55ACA1C8F80020050DDA9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -1226,6 +1235,7 @@
 		BBB55ACB1C8F80020050DDA9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -1275,6 +1285,7 @@
 		BBB55AE91C8F88F20050DDA9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
@@ -1289,6 +1300,7 @@
 		BBB55AEA1C8F88F20050DDA9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
@@ -1372,6 +1384,7 @@
 		BBB55B131C8F8CBC0050DDA9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -1385,6 +1398,7 @@
 		BBB55B141C8F8CBC0050DDA9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -1397,6 +1411,7 @@
 		BBB55BE81C8FD1C60050DDA9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1414,6 +1429,7 @@
 		BBB55BE91C8FD1C60050DDA9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
