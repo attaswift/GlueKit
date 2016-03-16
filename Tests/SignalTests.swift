@@ -620,8 +620,8 @@ private class Counter: SourceType {
         mutex.destroy()
     }
 
-    func connect<S: GlueKit.SinkType where S.SinkValue == Int>(sink: S) -> Connection {
-        return signal.connect(Sink(sink))
+    var connecter: Sink<Int> -> Connection {
+        return signal.connecter
     }
 
     func increment() -> Int {
