@@ -9,7 +9,7 @@
 import UIKit
 
 extension UIControl {
-    public func sourceForPrimaryAction() -> Source<UIEvent> {
+    public var sourceForPrimaryAction: Source<UIEvent> {
         return self.sourceForControlEvents(.PrimaryActionTriggered)
     }
 
