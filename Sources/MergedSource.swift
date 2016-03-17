@@ -41,8 +41,8 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
     private var connections: [Connection] = []
 
     /// Initializes a new merged source with `sources` as its input sources.
-    public init(sources: [Source<Value>]) {
-        self.inputs = sources
+    public init<S: SequenceType where S.Generator.Element: SourceType, S.Generator.Element.SourceValue == Value>(sources: S) {
+        self.inputs = sources.map { $0.source }
     }
 
     deinit {
