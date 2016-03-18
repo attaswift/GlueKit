@@ -612,7 +612,7 @@ class SignalTests: XCTestCase {
 private class Counter: SourceType {
     typealias SourceValue = Int
 
-    private var mutex = RawMutex()
+    private let mutex = Mutex()
     private var counter: Int = 0
     private var signal = Signal<Int>()
 
