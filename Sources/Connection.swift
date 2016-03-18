@@ -32,9 +32,8 @@ public final class Connection {
     internal init() {
     }
 
-    internal convenience init(callback: Callback) {
-        self.init()
-        addCallback(callback)
+    internal init(callback: Callback) {
+        callbacks.append(callback)
     }
 
     deinit {
