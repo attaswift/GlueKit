@@ -25,7 +25,7 @@ public final class Connection {
     // - All references (closures, source, sink) are directly or indirectly released when disconnect() is called.
 
     typealias Callback = ConnectionID -> Void
-    private var mutex = Mutex()
+    private let mutex = Mutex()
     private var callbacks = [Callback]()
     private var disconnected = false
 

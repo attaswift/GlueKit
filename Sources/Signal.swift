@@ -162,7 +162,7 @@ public final class Signal<Value>: SignalType {
     public typealias SourceValue = Value
     public typealias SinkValue = Value
 
-    private var mutex = Mutex()
+    private let mutex = Mutex()
     private var sending = false
     private var sinks: Dictionary<ConnectionID, Ripening<Sink<Value>>> = [:]
     private var pendingItems: [PendingItem<Value>] = []
@@ -289,8 +289,8 @@ public final class Signal<Value>: SignalType {
     /// counter that guarantees to send increasing counts, without holding a lock during sending:
     ///
     /// ```
-    /// public struct Counter: Mutex {
-    ///     private var mutex = Spinlock()
+    /// public struct Counter {
+    ///     private let mutex = Mutex()
     ///     private var count: Int = 0
     ///     private let signal = Signal<Int>()
     ///
