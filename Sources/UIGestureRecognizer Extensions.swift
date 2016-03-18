@@ -8,7 +8,7 @@
 
 import UIKit
 
-var associatedObjectKey: Void = ()
+private var associatedObjectKey: UInt8 = 0
 
 extension UIGestureRecognizer {
     public class func create() -> Self {

@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		BB23E63D1C90DEB6005EFD0A /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB55AB21C8F80020050DDA9 /* GlueKit.framework */; };
 		BB4052021C958712003D8F5B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB4052011C958712003D8F5B /* UIKit.framework */; };
+		BB67E5521C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
+		BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
 		BBAA826D1C91D16600586903 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* Observable.swift */; };
 		BBAA826E1C91D17400586903 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* Updatable.swift */; };
 		BBAA826F1C91D17A00586903 /* Observable Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */; };
@@ -190,6 +192,7 @@
 
 /* Begin PBXFileReference section */
 		BB4052011C958712003D8F5B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.3.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
+		BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CADisplayLink Extensions.swift"; sourceTree = "<group>"; };
 		BBAA827C1C91D43700586903 /* AnyObject Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AnyObject Helpers.swift"; sourceTree = "<group>"; };
 		BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice Extensions.swift"; sourceTree = "<group>"; };
 		BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIGestureRecognizer Extensions.swift"; sourceTree = "<group>"; };
@@ -522,6 +525,7 @@
 				BBC3C84D1C93164200E10D59 /* UIControl extensions.swift */,
 				BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */,
 				BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */,
+				BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */,
 			);
 			name = "UIKit Extensions";
 			sourceTree = "<group>";
@@ -889,6 +893,7 @@
 				BBB4F26F1C99E6CC002532CC /* UIGestureRecognizer Extensions.swift in Sources */,
 				BBB55B3A1C8FCC820050DDA9 /* ArrayVariable.swift in Sources */,
 				BBB55B4A1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
+				BB67E5521C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */,
 				BBB4F2521C9594A9002532CC /* UIDevice Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1003,6 +1008,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BBB55B651C8FCC820050DDA9 /* ObservableArray.swift in Sources */,
+				BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */,
 				BBB55B611C8FCC820050DDA9 /* Observable.swift in Sources */,
 				BBB55B851C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BBB55B791C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
