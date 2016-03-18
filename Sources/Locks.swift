@@ -23,47 +23,62 @@ extension Lock {
     }
 }
 
-internal struct RawMutex: Lock {
-    private var mutex = pthread_mutex_t()
+#if os(watchOS)
+    // Use NSLock on watchOS because pthread_mutex_lock likes to hang for no reason.
+    // TODO: Look into this and if it's an SDK bug, report it.
+    internal struct RawMutex: Lock {
+        private var _lock = NSLock()
 
-    init() {
-        let result = pthread_mutex_init(&mutex, nil)
-        if result != 0 {
-            preconditionFailure("pthread_mutex_init returned \(result)")
+        init() {}
+        mutating func destroy() {}
+        mutating func lock() { _lock.lock() }
+        mutating func unlock() { _lock.unlock() }
+        mutating func tryLock() -> Bool { return _lock.tryLock() }
+    }
+#else
+    internal struct RawMutex: Lock {
+        private var mutex = pthread_mutex_t()
+
+        init() {
+            let result = pthread_mutex_init(&mutex, nil)
+            if result != 0 {
+                preconditionFailure("pthread_mutex_init returned \(result)")
+            }
+        }
+
+        mutating func destroy() {
+            let result = pthread_mutex_destroy(&mutex)
+            if result != 0 {
+                preconditionFailure("pthread_mutex_destroy returned \(result)")
+            }
+        }
+
+        mutating func lock() {
+            let result = pthread_mutex_lock(&mutex)
+            if result != 0 {
+                preconditionFailure("pthread_mutex_lock returned \(result)")
+            }
+        }
+
+        mutating func unlock() {
+            let result = pthread_mutex_unlock(&mutex)
+            if result != 0 {
+                preconditionFailure("pthread_mutex_unlock returned \(result)")
+            }
+        }
+
+        mutating func tryLock() -> Bool {
+            let result = pthread_mutex_trylock(&mutex)
+            switch result {
+            case 0: return true
+            case EBUSY: return false
+            default:
+                preconditionFailure("pthread_mutex_trylock returned \(result)")
+            }
+            return true
         }
     }
-
-    mutating func destroy() {
-        let result = pthread_mutex_destroy(&mutex)
-        if result != 0 {
-            preconditionFailure("pthread_mutex_destroy returned \(result)")
-        }
-    }
-
-    mutating func lock() {
-        let result = pthread_mutex_lock(&mutex)
-        if result != 0 {
-            preconditionFailure("pthread_mutex_lock returned \(result)")
-        }
-    }
-
-    mutating func unlock() {
-        let result = pthread_mutex_unlock(&mutex)
-        if result != 0 {
-            preconditionFailure("pthread_mutex_unlock returned \(result)")
-        }
-    }
-
-    mutating func tryLock() -> Bool {
-        let result = pthread_mutex_trylock(&mutex)
-        switch result {
-        case 0: return true
-        case EBUSY: return false
-        default:
-            preconditionFailure("pthread_mutex_trylock returned \(result)")
-        }
-    }
-}
+#endif
 
 internal final class Mutex: Lock {
     private var mutex: RawMutex
