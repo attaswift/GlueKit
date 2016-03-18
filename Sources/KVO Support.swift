@@ -23,7 +23,7 @@ public extension NSObject {
 
     let object: NSObject
 
-    var mutex = RawMutex()
+    var mutex = Mutex()
     var signals: [String: UnownedReference<Signal<AnyObject>>] = [:]
     var observerContext: Int8 = 0
 

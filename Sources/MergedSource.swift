@@ -37,7 +37,7 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
 
     private var signal = OwningSignal<Value, MergedSource<Value>>()
 
-    private var mutex = RawMutex()
+    private var mutex = Mutex()
     private var connections: [Connection] = []
 
     /// Initializes a new merged source with `sources` as its input sources.

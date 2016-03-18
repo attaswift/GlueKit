@@ -162,7 +162,7 @@ public final class Signal<Value>: SignalType {
     public typealias SourceValue = Value
     public typealias SinkValue = Value
 
-    private var mutex = RawMutex()
+    private var mutex = Mutex()
     private var sending = false
     private var sinks: Dictionary<ConnectionID, Ripening<Sink<Value>>> = [:]
     private var pendingItems: [PendingItem<Value>] = []
