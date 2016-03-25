@@ -12,6 +12,7 @@ import GlueKit
 private class Fixture: NSObject {
     dynamic var name: String = ""
     dynamic var count: Int = 0
+    dynamic var optional: String? = nil
 }
 
 private class RawKVOObserver: NSObject {
@@ -60,7 +61,7 @@ class KVOSupportTests: XCTestCase {
         let countSource = object.sourceForKeyPath("count")
 
         var r = [Int]()
-        let c = countSource.toInt().connect { r.append($0) }
+        let c = countSource.asInt.connect { r.append($0) }
 
         object.count = 1
         object.count = 2
@@ -75,7 +76,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String]()
-        let c = object.sourceForKeyPath("name").toString().connect { (s: String)->Void in r.append(s) }
+        let c = object.sourceForKeyPath("name").asString.connect { (s: String)->Void in r.append(s) }
 
         object.name = "Alice"
         object.name = "Bob"
@@ -88,6 +89,35 @@ class KVOSupportTests: XCTestCase {
         XCTAssertEqual(r, ["Alice", "Bob", "Charlie"])
     }
 
+    func testBasicKVOWithOptionals() {
+        let object = Fixture()
+
+        var r = [String?]()
+        let c = object.sourceForKeyPath("optional").connect { (v: AnyObject?)->Void in
+            if let s = v as? String {
+                r.append(s)
+            }
+            else {
+                XCTAssertNil(v)
+                r.append(nil)
+            }
+        }
+
+        object.optional = "Alice"
+        object.optional = nil
+        object.optional = "Bob"
+        object.optional = nil
+        object.optional = nil
+
+        c.disconnect()
+
+        object.optional = "Daniel"
+        object.optional = nil
+
+        let expected: [String?] = ["Alice", nil, "Bob", nil, nil]
+        XCTAssert(r.elementsEqual(expected, isEquivalent: { $0 == $1 }))
+    }
+
 
     func testDisconnectActuallyDisconnects() {
         let object = Fixture()
@@ -95,7 +125,7 @@ class KVOSupportTests: XCTestCase {
         let countSource = object.sourceForKeyPath("count")
 
         var r = [Int]()
-        let c = countSource.toInt().connect { r.append($0) }
+        let c = countSource.asInt.connect { r.append($0) }
 
         object.count = 1
 
@@ -115,7 +145,7 @@ class KVOSupportTests: XCTestCase {
             let object = Fixture()
             weakObject = object
 
-            source = object.sourceForKeyPath("count").toInt()
+            source = object.sourceForKeyPath("count").asInt
         }
 
         XCTAssertNotNil(weakObject)
@@ -133,7 +163,7 @@ class KVOSupportTests: XCTestCase {
             let object = Fixture()
             weakObject = object
 
-            c = object.sourceForKeyPath("count").toInt().connect { _ in }
+            c = object.sourceForKeyPath("count").asInt.connect { _ in }
         }
 
         XCTAssertNotNil(weakObject)
@@ -175,7 +205,7 @@ class KVOSupportTests: XCTestCase {
         let countSource = object.sourceForKeyPath("count")
 
         var s = ""
-        let c = countSource.toInt().connect { i in
+        let c = countSource.asInt.connect { i in
             s += " (\(i)"
             if i > 0 {
                 object.count = i - 1
@@ -234,14 +264,14 @@ class KVOSupportTests: XCTestCase {
         let countSource = object.sourceForKeyPath("count")
 
         var s = ""
-        let c1 = countSource.toInt().connect { i in
+        let c1 = countSource.asInt.connect { i in
             s += " (\(i)"
             if i > 0 {
                 object.count = i - 1
             }
             s += ")"
         }
-        let c2 = countSource.toInt().connect { i in
+        let c2 = countSource.asInt.connect { i in
             s += " (\(i)"
             if i > 0 {
                 object.count = i - 1

@@ -11,8 +11,15 @@ import Foundation
 public extension NSObject {
     /// Returns an observable source for a KVO-compatible key path.
     /// Note that the object is retained by the returned source.
-    public func sourceForKeyPath(keyPath: String) -> Source<AnyObject> {
+    public func sourceForKeyPath(keyPath: String) -> Source<AnyObject?> {
         return KVOObserver.observerForObject(self)._sourceForKeyPath(keyPath)
+    }
+
+    public func observableForKeyPath(keyPath: String) -> Observable<AnyObject?> {
+        return Observable(
+            getter: { self.valueForKeyPath(keyPath) },
+            futureValues: { self.sourceForKeyPath(keyPath) }
+        )
     }
 }
 
@@ -24,7 +31,7 @@ public extension NSObject {
     let object: NSObject
 
     let mutex = Mutex()
-    var signals: [String: UnownedReference<Signal<AnyObject>>] = [:]
+    var signals: [String: UnownedReference<Signal<AnyObject?>>] = [:]
     var observerContext: Int8 = 0
 
     static func observerForObject(object: NSObject) -> KVOObserver {
@@ -48,12 +55,12 @@ public extension NSObject {
         mutex.destroy()
     }
 
-    func _sourceForKeyPath(keyPath: String) -> Source<AnyObject> {
+    func _sourceForKeyPath(keyPath: String) -> Source<AnyObject?> {
         return mutex.withLock {
             if let signal = signals[keyPath] {
                 return signal.value.source
             }
-            let signal = Signal<AnyObject>(
+            let signal = Signal<AnyObject?>(
                 start: { signal in self.startObservingKeyPath(keyPath, signal: signal) },
                 stop: { signal in self.stopObservingKeyPath(keyPath) })
             // Note that signal now holds strong references to this KVOObserver
@@ -62,7 +69,7 @@ public extension NSObject {
         }
     }
 
-    private func startObservingKeyPath(keyPath: String, signal: Signal<AnyObject>) {
+    private func startObservingKeyPath(keyPath: String, signal: Signal<AnyObject?>) {
         mutex.withLock {
             self.signals[keyPath] = UnownedReference(signal)
             self.object.addObserver(self, forKeyPath: keyPath, options: .New, context: &self.observerContext)
@@ -78,9 +85,15 @@ public extension NSObject {
 
     override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
         if context == &observerContext {
-            if let keyPath = keyPath, change = change, newValue = change[NSKeyValueChangeNewKey] {
+            if let keyPath = keyPath, change = change {
+                let newValue = change[NSKeyValueChangeNewKey]
                 if let signal = mutex.withLock({ self.signals[keyPath]?.value }) {
-                    signal.send(newValue)
+                    if let value = newValue where !(value is NSNull) {
+                        signal.send(value)
+                    }
+                    else {
+                        signal.send(nil)
+                    }
                 }
             }
             else {
