@@ -10,12 +10,16 @@ import UIKit
 
 private var associatedObjectKey: UInt8 = 0
 
-extension UIGestureRecognizer {
+extension UIGestureRecognizer: SourceType {
     public class func create() -> Self {
         let target = GestureRecognizerTarget()
         let result = self.init(target: target, action: #selector(GestureRecognizerTarget.gestureRecognizerDidFire))
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
         return result
+    }
+
+    public var connecter: Sink<Void> -> Connection {
+        return recognizedSource.connecter
     }
 
     public var recognizedSource: Source<Void> {
