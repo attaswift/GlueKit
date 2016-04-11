@@ -158,6 +158,10 @@
 		BBB55BEB1C8FD25F0050DDA9 /* GlueKitPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BEA1C8FD25F0050DDA9 /* GlueKitPerformanceTests.swift */; };
 		BBB55C0B1C8FD5D60050DDA9 /* SampleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55C0A1C8FD5D60050DDA9 /* SampleModel.swift */; };
 		BBC3C84E1C93164200E10D59 /* UIControl Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */; };
+		BBFA2C441CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
+		BBFA2C451CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
+		BBFA2C461CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
+		BBFA2C471CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -259,6 +263,7 @@
 		BBB55BF71C8FD5A30050DDA9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BBB55C0A1C8FD5D60050DDA9 /* SampleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleModel.swift; sourceTree = "<group>"; };
 		BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIControl Extensions.swift"; sourceTree = "<group>"; };
+		BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSUserDefaults Support.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -339,6 +344,7 @@
 				BBB55B241C8FCC810050DDA9 /* KVO Support.swift */,
 				BBAA827C1C91D43700586903 /* AnyObject Helpers.swift */,
 				BBB55B271C8FCC810050DDA9 /* NSNotificationCenter Support.swift */,
+				BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */,
 			);
 			name = "Foundation Extensions";
 			sourceTree = "<group>";
@@ -881,6 +887,7 @@
 				BBB55B721C8FCC820050DDA9 /* Signal.swift in Sources */,
 				BBB55B6A1C8FCC820050DDA9 /* Select.swift in Sources */,
 				BBB55B5A1C8FCC820050DDA9 /* Observable Transformations.swift in Sources */,
+				BBFA2C441CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BBB55B521C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BBB55B8A1C8FCC820050DDA9 /* UpdatableArray.swift in Sources */,
 				BBB55B4E1C8FCC820050DDA9 /* Locks.swift in Sources */,
@@ -933,6 +940,7 @@
 				BBB55B771C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
 				BBB55B7F1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BBAA826E1C91D17400586903 /* Updatable.swift in Sources */,
+				BBFA2C451CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BBAA82731C91D19E00586903 /* ObservableArray.swift in Sources */,
 				BBAA82751C91D1F800586903 /* ArrayVariable.swift in Sources */,
 				BBAA82761C91D20500586903 /* SelectEach.swift in Sources */,
@@ -993,6 +1001,7 @@
 				BBB55B5C1C8FCC820050DDA9 /* Observable Transformations.swift in Sources */,
 				BBB55B541C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BBB55B8C1C8FCC820050DDA9 /* UpdatableArray.swift in Sources */,
+				BBFA2C461CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BBB55B501C8FCC820050DDA9 /* Locks.swift in Sources */,
 				BBB55B901C8FCC820050DDA9 /* Variable.swift in Sources */,
 				BBB55B581C8FCC820050DDA9 /* NSNotificationCenter Support.swift in Sources */,
@@ -1014,6 +1023,7 @@
 				BBB55B651C8FCC820050DDA9 /* ObservableArray.swift in Sources */,
 				BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */,
 				BBB55B611C8FCC820050DDA9 /* Observable.swift in Sources */,
+				BBFA2C471CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BBB55B851C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BBB55B791C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
 				BBB55B391C8FCC820050DDA9 /* ArrayChange.swift in Sources */,
