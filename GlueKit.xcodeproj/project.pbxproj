@@ -156,7 +156,7 @@
 		BBB55BD71C8FCE2C0050DDA9 /* VariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BA71C8FCE2C0050DDA9 /* VariableTests.swift */; };
 		BBB55BEB1C8FD25F0050DDA9 /* GlueKitPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BEA1C8FD25F0050DDA9 /* GlueKitPerformanceTests.swift */; };
 		BBB55C0B1C8FD5D60050DDA9 /* SampleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55C0A1C8FD5D60050DDA9 /* SampleModel.swift */; };
-		BBC3C84E1C93164200E10D59 /* UIControl extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC3C84D1C93164200E10D59 /* UIControl extensions.swift */; };
+		BBC3C84E1C93164200E10D59 /* UIControl Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -256,7 +256,7 @@
 		BBB55BF31C8FD5A30050DDA9 /* SampleModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SampleModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBB55BF71C8FD5A30050DDA9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BBB55C0A1C8FD5D60050DDA9 /* SampleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleModel.swift; sourceTree = "<group>"; };
-		BBC3C84D1C93164200E10D59 /* UIControl extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIControl extensions.swift"; sourceTree = "<group>"; };
+		BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIControl Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -522,7 +522,7 @@
 		BBC3C84F1C93164700E10D59 /* UIKit Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				BBC3C84D1C93164200E10D59 /* UIControl extensions.swift */,
+				BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */,
 				BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */,
 				BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */,
 				BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */,
@@ -888,7 +888,7 @@
 				BBB55B861C8FCC820050DDA9 /* Updatable.swift in Sources */,
 				BBB55B3E1C8FCC820050DDA9 /* Connection.swift in Sources */,
 				BBB55B7A1C8FCC820050DDA9 /* Source.swift in Sources */,
-				BBC3C84E1C93164200E10D59 /* UIControl extensions.swift in Sources */,
+				BBC3C84E1C93164200E10D59 /* UIControl Extensions.swift in Sources */,
 				BBB55B6E1C8FCC820050DDA9 /* SelectEach.swift in Sources */,
 				BBB4F26F1C99E6CC002532CC /* UIGestureRecognizer Extensions.swift in Sources */,
 				BBB55B3A1C8FCC820050DDA9 /* ArrayVariable.swift in Sources */,
