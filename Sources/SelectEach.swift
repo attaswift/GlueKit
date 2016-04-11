@@ -142,7 +142,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
     private var active = false
     private var parentConnection: Connection? = nil
     private var fieldConnections: [Connection] = []
-    private var startIndexes: [Int] = [0] // This always has an extra element at the end with the count of all elements
+    private var startIndices: [Int] = [0] // This always has an extra element at the end with the count of all elements
     private var fieldIndexByFieldID: [Int: Int] = [:]
     private var _nextFieldID: Int = 0
 
@@ -153,7 +153,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
 
     var count: Int {
         if active {
-            return startIndexes.last!
+            return startIndices.last!
         }
         else {
             return parent.reduce(0) { c, pe in c + self.key(pe).count }
@@ -191,12 +191,12 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
         assert(active == false)
         assert(parentConnection == nil && fieldConnections.isEmpty)
         let fields = parent.value.map(key)
-        startIndexes = [0]
+        startIndices = [0]
         var start = 0
         fieldConnections = fields.enumerate().map { index, field in
             let c = connectField(field, fieldIndex:index, signal: signal)
             start += field.count
-            startIndexes.append(start)
+            startIndices.append(start)
             return c
         }
         parentConnection = parent.futureChanges.connect { change in
@@ -211,7 +211,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
         fieldConnections.forEach { $0.disconnect() }
         parentConnection = nil
         fieldConnections.removeAll()
-        startIndexes.removeAll()
+        startIndices.removeAll()
         fieldIndexByFieldID.removeAll()
         active = false
     }
@@ -238,24 +238,24 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
 
     private func applyFieldChange(change: ArrayChange<FieldElement>, id: Int, signal: Signal<Change>) {
         let fieldIndex = fieldIndexByFieldID[id]!
-        let startIndex = startIndexes[fieldIndex]
-        let widenedChange = change.widen(startIndex, count: startIndexes.last!)
+        let startIndex = startIndices[fieldIndex]
+        let widenedChange = change.widen(startIndex, count: startIndices.last!)
         let deltaCount = change.deltaCount
         if deltaCount != 0 {
-            adjustIndicesAfter(startIndex, by: deltaCount)
+            adjustIndicesAfter(fieldIndex, by: deltaCount)
         }
         signal.send(widenedChange)
     }
 
     private func adjustIndicesAfter(startIndex: Int, by delta: Int) {
-        for index in (startIndex + 1)..<startIndexes.count {
-            startIndexes[index] += delta
+        for index in (startIndex + 1)..<startIndices.count {
+            startIndices[index] += delta
         }
     }
 
     private func applyParentChange(change: ArrayChange<ParentElement>, signal: Signal<Change>) {
         assert(fieldConnections.count == change.initialCount)
-        var result = ArrayChange<FieldElement>(initialCount: startIndexes.last!, modifications: [])
+        var result = ArrayChange<FieldElement>(initialCount: startIndices.last!, modifications: [])
         for mod in change.modifications {
             let fieldRange = mod.range
             let newFields = mod.elements.map { self.key($0) }
@@ -268,7 +268,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
             self.fieldConnections.replaceRange(fieldRange, with: newConnections)
 
             // Update start indexes.
-            let oldFieldIndexRange = startIndexes[fieldRange.startIndex] ..< startIndexes[fieldRange.endIndex]
+            let oldFieldIndexRange = startIndices[fieldRange.startIndex] ..< startIndices[fieldRange.endIndex]
             var newFieldIndexRange = oldFieldIndexRange.startIndex ..< oldFieldIndexRange.startIndex
             let newIndexes: [Int] = newFields.map { field in
                 let start = newFieldIndexRange.endIndex
@@ -277,11 +277,11 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
             }
             let deltaCount = newFieldIndexRange.count - oldFieldIndexRange.count
             if deltaCount != 0 {
-                for fieldIndex in fieldRange.endIndex..<self.startIndexes.count {
-                    startIndexes[fieldIndex] += deltaCount
+                for fieldIndex in fieldRange.endIndex..<self.startIndices.count {
+                    startIndices[fieldIndex] += deltaCount
                 }
             }
-            self.startIndexes.replaceRange(fieldRange, with: newIndexes)
+            self.startIndices.replaceRange(fieldRange, with: newIndexes)
 
             // Collect new values.
             var fieldValues: [FieldElement] = []
