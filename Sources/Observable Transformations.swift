@@ -175,10 +175,38 @@ public class BinaryCompositeObservable<Input1: ObservableType, Input2: Observabl
 }
 
 public extension ObservableType {
+    public func combine<Other: ObservableType>(other: Other) -> Observable<(Value, Other.Value)> {
+        return BinaryCompositeObservable(first: self, second: other, combinator: { ($0, $1) }).observable
+    }
+
     public func combine<Other: ObservableType, Output>(other: Other, via combinator: (Value, Other.Value)->Output) -> Observable<Output> {
         return BinaryCompositeObservable(first: self, second: other, combinator: combinator).observable
     }
 }
+
+public func combine<O1: ObservableType, O2: ObservableType>(o1: O1, _ o2: O2) -> Observable<(O1.Value, O2.Value)> {
+    return o1.combine(o2)
+}
+
+public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType>(o1: O1, _ o2: O2, _ o3: O3) -> Observable<(O1.Value, O2.Value, O3.Value)> {
+    return o1.combine(o2).combine(o3, via: { a, b in (a.0, a.1, b) })
+}
+
+public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value)> {
+
+    return combine(o1, o2, o3).combine(o4, via: { a, b in (a.0, a.1, a.2, b) })
+}
+
+public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType, O5: ObservableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value)> {
+
+    return combine(o1, o2, o3, o4).combine(o5, via: { a, b in (a.0, a.1, a.2, a.3, b) })
+}
+
+public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType, O5: ObservableType, O6: ObservableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5, _ o6: O6) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value, O6.Value)> {
+
+    return combine(o1, o2, o3, o4, o5).combine(o6, via: { a, b in (a.0, a.1, a.2, a.3, a.4, b) })
+}
+
 
 //MARK: Operations with observables of equatable values
 
