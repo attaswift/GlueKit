@@ -89,6 +89,10 @@ internal struct LazySignal<Value> {
         }
     }
 
+    internal var connecter: Sink<Value> -> Connection {
+        mutating get { return self.signal.connecter }
+    }
+
     internal var source: Source<Value> {
         mutating get { return self.signal.source }
     }
