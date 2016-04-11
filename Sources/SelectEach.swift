@@ -219,7 +219,9 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
     private func connectField(field: Field, fieldIndex: Int, signal: Signal<Change>) -> Connection {
         let id = self.nextFieldID
         self.fieldIndexByFieldID[id] = fieldIndex
-        let c = field.futureChanges.connect { change in self.applyFieldChange(change, id: id, signal: signal) }
+        let c = field.futureChanges.connect { change in
+            self.applyFieldChange(change, id: id, signal: signal)
+        }
         c.addCallback { [unowned self] _ in self.fieldIndexByFieldID[id] = nil }
         return c
     }
