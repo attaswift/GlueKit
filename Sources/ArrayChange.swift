@@ -133,6 +133,21 @@ public enum ArrayModification<Element> {
         }
     }
 
+    /// Call `body` on each element in this modification.
+    public func forEach(@noescape body: Element->Void) {
+        switch self {
+        case .Insert(let e, at: _):
+            body(e)
+        case .RemoveAt(_):
+            break
+        case .ReplaceAt(_, with: let e):
+            body(e)
+        case .ReplaceRange(_, with: let es):
+            es.forEach(body)
+        }
+    }
+
+
     /// Add the specified delta to all indices in this modification.
     public func shift(delta: Int) -> ArrayModification<Element> {
         switch self {
@@ -305,6 +320,11 @@ public struct ArrayChange<Element>: ChangeType {
     /// Transform all element values contained in this change using the `transform` function.
     public func map<Result>(@noescape transform: Element->Result) -> ArrayChange<Result> {
         return ArrayChange<Result>(initialCount: initialCount, modifications: modifications.map { $0.map(transform) })
+    }
+
+    /// Call `body` on each element value contained in this change.
+    public func forEach(@noescape body: Element -> Void) {
+        modifications.forEach { $0.forEach(body) }
     }
 
     /// Convert this change so that it modifies a range of items in a larger array.
