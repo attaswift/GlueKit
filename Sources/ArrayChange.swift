@@ -340,6 +340,79 @@ public struct ArrayChange<Element>: ChangeType {
         let mods = modifications.map { $0.shift(startIndex) }
         return ArrayChange(initialCount: count, modifications: mods)
     }
+
+    /// Return the set of indices at which elements will be deleted from the array when this change is applied.
+    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block.
+    public var deletedIndices: NSIndexSet {
+        let result = NSMutableIndexSet()
+        var delta = 0
+        for modification in modifications {
+            switch modification {
+            case .Insert(_, at: _):
+                break
+            case .RemoveAt(let index):
+                result.addIndex(index - delta)
+            case .ReplaceAt(_, with: _):
+                break
+            case .ReplaceRange(let indices, with: let elements):
+                if elements.count < indices.count {
+                    result.addIndexesInRange(NSRange(indices.startIndex + elements.count - delta ..< indices.endIndex - delta))
+                }
+            }
+            delta += modification.deltaCount
+        }
+        return result
+    }
+
+    /// Return the set of indices at which elements will be replaced in the array when this change is applied.
+    /// The returned indices assume deletions were already done, but not insertions.
+    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block.
+    public var reloadedIndices: NSIndexSet {
+        let result = NSMutableIndexSet()
+        var delta = 0
+        for modification in modifications {
+            switch modification {
+            case .Insert(_, at: _):
+                delta += modification.deltaCount
+            case .RemoveAt(_):
+                break
+            case .ReplaceAt(let index, with: _):
+                result.addIndex(index - delta)
+                break
+            case .ReplaceRange(let indices, with: let elements):
+                let commonCount = min(elements.count, indices.count)
+                if commonCount > 0 {
+                    result.addIndexesInRange(NSRange(indices.startIndex - delta ..< indices.startIndex + commonCount - delta))
+                }
+                if commonCount < indices.count {
+                    delta += modification.deltaCount
+                }
+            }
+        }
+        return result
+    }
+
+    /// Return the set of indices at which elements will be inserted in the array when this change is applied.
+    /// The returned indices assume deletions were already done.
+    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block.
+    public var insertedIndices: NSIndexSet {
+        let result = NSMutableIndexSet()
+        for modification in modifications {
+            switch modification {
+            case .Insert(_, at: let index):
+                result.addIndex(index)
+            case .RemoveAt(_):
+                break
+            case .ReplaceAt(_, with: _):
+                break
+            case .ReplaceRange(let indices, with: let elements):
+                if indices.count < elements.count {
+                    result.addIndexesInRange(NSRange(indices.startIndex + elements.count ..< indices.endIndex))
+                }
+            }
+        }
+        return result
+    }
 }
 
 extension ArrayChange: CustomStringConvertible {
