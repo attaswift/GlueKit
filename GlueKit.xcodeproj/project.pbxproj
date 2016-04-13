@@ -157,6 +157,10 @@
 		BBB55BD71C8FCE2C0050DDA9 /* VariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BA71C8FCE2C0050DDA9 /* VariableTests.swift */; };
 		BBB55BEB1C8FD25F0050DDA9 /* GlueKitPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BEA1C8FD25F0050DDA9 /* GlueKitPerformanceTests.swift */; };
 		BBB55C0B1C8FD5D60050DDA9 /* SampleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55C0A1C8FD5D60050DDA9 /* SampleModel.swift */; };
+		BBC2A8291CBC14C600394D24 /* NSObject extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */; };
+		BBC2A82A1CBC14C600394D24 /* NSObject extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */; };
+		BBC2A82B1CBC14C600394D24 /* NSObject extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */; };
+		BBC2A82C1CBC14C600394D24 /* NSObject extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */; };
 		BBC3C84E1C93164200E10D59 /* UIControl Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */; };
 		BBFA2C441CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
 		BBFA2C451CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
@@ -262,6 +266,7 @@
 		BBB55BF31C8FD5A30050DDA9 /* SampleModel.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SampleModel.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBB55BF71C8FD5A30050DDA9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BBB55C0A1C8FD5D60050DDA9 /* SampleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleModel.swift; sourceTree = "<group>"; };
+		BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSObject extensions.swift"; sourceTree = "<group>"; };
 		BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIControl Extensions.swift"; sourceTree = "<group>"; };
 		BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSUserDefaults Support.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -345,6 +350,7 @@
 				BBAA827C1C91D43700586903 /* AnyObject Helpers.swift */,
 				BBB55B271C8FCC810050DDA9 /* NSNotificationCenter Support.swift */,
 				BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */,
+				BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */,
 			);
 			name = "Foundation Extensions";
 			sourceTree = "<group>";
@@ -881,6 +887,7 @@
 				BBB55B5E1C8FCC820050DDA9 /* Observable.swift in Sources */,
 				BBB55B821C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BBB55B761C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
+				BBC2A8291CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BBB55B361C8FCC820050DDA9 /* ArrayChange.swift in Sources */,
 				BBB55B7E1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BBB55B661C8FCC820050DDA9 /* Reference.swift in Sources */,
@@ -940,6 +947,7 @@
 				BBB55B771C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
 				BBB55B7F1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BBAA826E1C91D17400586903 /* Updatable.swift in Sources */,
+				BBC2A82A1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BBFA2C451CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BBAA82731C91D19E00586903 /* ObservableArray.swift in Sources */,
 				BBAA82751C91D1F800586903 /* ArrayVariable.swift in Sources */,
@@ -1013,6 +1021,7 @@
 				BBB55B701C8FCC820050DDA9 /* SelectEach.swift in Sources */,
 				BBB55B3C1C8FCC820050DDA9 /* ArrayVariable.swift in Sources */,
 				BBB55B4C1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
+				BBC2A82B1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1044,6 +1053,7 @@
 				BBB55B7D1C8FCC820050DDA9 /* Source.swift in Sources */,
 				BBB55B711C8FCC820050DDA9 /* SelectEach.swift in Sources */,
 				BBB55B3D1C8FCC820050DDA9 /* ArrayVariable.swift in Sources */,
+				BBC2A82C1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BBB55B4D1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
