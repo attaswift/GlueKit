@@ -11,7 +11,9 @@ import Foundation
 extension NSUserDefaults {
     public func updatable(for key: String) -> Updatable<AnyObject?> {
         let defaults = NSUserDefaults.standardUserDefaults()
-        return Updatable(observable: defaults.observableForKeyPath(key), setter: { defaults.setObject($0, forKey: key) })
+        return Updatable(
+            observable: defaults.observableForKeyPath(key).distinct { a, b in a?.isEqual(b) == true },
+            setter: { defaults.setObject($0, forKey: key) })
     }
 
     public func updatableBool(for key: String, defaultValue: Bool = false) -> Updatable<Bool> {
