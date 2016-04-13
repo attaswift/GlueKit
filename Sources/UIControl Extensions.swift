@@ -9,11 +9,11 @@
 import UIKit
 
 extension UIControl {
-    public var sourceForPrimaryAction: Source<UIEvent> {
+    public var sourceForPrimaryAction: Source<Void> {
         return self.sourceForControlEvents(.PrimaryActionTriggered)
     }
 
-    public func sourceForControlEvents(events: UIControlEvents) -> Source<UIEvent> {
+    public func sourceForControlEvents(events: UIControlEvents) -> Source<Void> {
         let registry = ControlEventsObserverRegistry.registry(for: self)
         let observer = registry.observer(for: events)
         return observer.source
@@ -24,7 +24,7 @@ internal final class ControlEventsObserverRegistry {
     static private var associatedObjectKey: Int8 = 0
 
     unowned let control: UIControl
-    var observers: [UIControlEvents.RawValue: UnownedReference<ControlEventsObserver>] = [:]
+    var observers: [UIControlEvents.RawValue: ControlEventsObserver] = [:]
 
     static func registry(for control: UIControl) -> ControlEventsObserverRegistry {
         if let registry = objc_getAssociatedObject(control, &associatedObjectKey) as? ControlEventsObserverRegistry {
@@ -40,11 +40,11 @@ internal final class ControlEventsObserverRegistry {
     }
 
     func observer(for events: UIControlEvents) -> ControlEventsObserver {
-        if let observer = observers[events.rawValue]?.value {
+        if let observer = observers[events.rawValue] {
             return observer
         }
         let observer = ControlEventsObserver(registry: self, events: events)
-        observers[events.rawValue] = UnownedReference(observer)
+        observers[events.rawValue] = observer
         return observer
     }
 
@@ -53,34 +53,28 @@ internal final class ControlEventsObserverRegistry {
     }
 }
 
-@objc internal final class ControlEventsObserver: NSObject, SignalDelegate {
+@objc internal final class ControlEventsObserver: NSObject {
     let registry: ControlEventsObserverRegistry
     let events: UIControlEvents
-    var signal = OwningSignal<UIEvent, ControlEventsObserver>()
+    let signal = Signal<Void>()
 
     init(registry: ControlEventsObserverRegistry, events: UIControlEvents) {
         self.registry = registry
         self.events = events
         super.init()
+        registry.control.addTarget(self, action: #selector(eventDidTrigger(_:)), forControlEvents: events)
     }
 
     deinit {
+        registry.control.removeTarget(self, action: #selector(eventDidTrigger(_:)), forControlEvents: events)
         registry.removeObserver(for: events)
     }
 
-    var source: Source<UIEvent> {
-        return signal.with(self).source
+    var source: Source<Void> {
+        return signal.source
     }
 
-    @objc func eventDidTrigger(sender: AnyObject, forEvent event: UIEvent) {
-        signal.send(event)
-    }
-
-    func start(signal: Signal<UIEvent>) {
-        registry.control.addTarget(self, action: #selector(eventDidTrigger(_:forEvent:)), forControlEvents: events)
-    }
-
-    func stop(signal: Signal<UIEvent>) {
-        registry.control.removeTarget(self, action: #selector(eventDidTrigger(_:forEvent:)), forControlEvents: events)
+    @objc func eventDidTrigger(sender: AnyObject) {
+        signal.send()
     }
 }
