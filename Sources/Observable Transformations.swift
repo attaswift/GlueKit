@@ -174,6 +174,28 @@ public class BinaryCompositeObservable<Input1: ObservableType, Input2: Observabl
     }
 }
 
+/// An Updatable that is calculated from two other observables.
+public class BinaryCompositeUpdatable<A: UpdatableType, B: UpdatableType>: BinaryCompositeObservable<A, B, (A.Value, B.Value)>, UpdatableType {
+    public init(first: A, second: B) {
+        super.init(first: first, second: second, combinator: { a, b in (a, b) })
+    }
+
+    public override var value: (A.Value, B.Value) {
+        get { return super.value }
+        set {
+            // Updating a composite updatable is tricky, because updating the components will trigger a synchronous update,
+            // which can lead to us broadcasting intermediate states, which can result in infinite feedback loops.
+            // To prevent this, we update our idea of most recent values before setting our component updatables.
+
+            firstValue = newValue.0
+            secondValue = newValue.1
+
+            first.value = newValue.0
+            second.value = newValue.1
+        }
+    }
+}
+
 public extension ObservableType {
     public func combine<Other: ObservableType>(other: Other) -> Observable<(Value, Other.Value)> {
         return BinaryCompositeObservable(first: self, second: other, combinator: { ($0, $1) }).observable
@@ -207,6 +229,43 @@ public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, 
     return combine(o1, o2, o3, o4, o5).combine(o6, via: { a, b in (a.0, a.1, a.2, a.3, a.4, b) })
 }
 
+public extension UpdatableType {
+    public func combine<Other: UpdatableType>(other: Other) -> Updatable<(Value, Other.Value)> {
+        return BinaryCompositeUpdatable(first: self, second: other).updatable
+    }
+}
+
+public func combine<O1: UpdatableType, O2: UpdatableType>(o1: O1, _ o2: O2) -> Updatable<(O1.Value, O2.Value)> {
+    return o1.combine(o2)
+}
+
+public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType>(o1: O1, _ o2: O2, _ o3: O3) -> Updatable<(O1.Value, O2.Value, O3.Value)> {
+    let result = o1.combine(o2).combine(o3)
+    return Updatable(
+        observable: result.observable.map { a, b in (a.0, a.1, b) },
+        setter: { v in result.value = ((v.0, v.1), v.2) })
+}
+
+public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value)> {
+    let result = combine(o1, o2, o3).combine(o4)
+    return Updatable(
+        observable: result.observable.map { a, b in (a.0, a.1, a.2, b) },
+        setter: { v in result.value = ((v.0, v.1, v.2), v.3) })
+}
+
+public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType, O5: UpdatableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value)> {
+    let result = combine(o1, o2, o3, o4).combine(o5)
+    return Updatable(
+        observable: result.observable.map { a, b in (a.0, a.1, a.2, a.3, b) },
+        setter: { v in result.value = ((v.0, v.1, v.2, v.3), v.4) })
+}
+
+public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType, O5: UpdatableType, O6: UpdatableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5, _ o6: O6) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value, O6.Value)> {
+    let result = combine(o1, o2, o3, o4, o5).combine(o6)
+    return Updatable(
+        observable: result.observable.map { a, b in (a.0, a.1, a.2, a.3, a.4, b) },
+        setter: { v in result.value = ((v.0, v.1, v.2, v.3, v.4), v.5) })
+}
 
 //MARK: Operations with observables of equatable values
 
