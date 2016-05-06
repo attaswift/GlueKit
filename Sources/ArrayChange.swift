@@ -194,16 +194,22 @@ extension ArrayModification: CustomStringConvertible, CustomDebugStringConvertib
 
 extension RangeReplaceableCollectionType where Index == Int {
     /// Apply `modification` to this array in place.
-    internal mutating func apply(modification: ArrayModification<Generator.Element>) {
+    public mutating func apply(modification: ArrayModification<Generator.Element>, @noescape add: Generator.Element -> Void = { _ in }, @noescape remove: Generator.Element -> Void = { _ in }) {
         switch modification {
         case .Insert(let element, at: let index):
             self.insert(element, atIndex: index)
+            add(element)
         case .RemoveAt(let index):
+            remove(self[index])
             self.removeAtIndex(index)
         case .ReplaceAt(let index, with: let element):
+            remove(self[index])
             self.replaceRange(index ..< index + 1, with: [element])
+            add(element)
         case .ReplaceRange(let range, with: let elements):
+            range.forEach { remove(self[$0]) }
             self.replaceRange(range, with: elements)
+            elements.forEach { add($0) }
         }
     }
 }
@@ -446,10 +452,10 @@ public func ==<Element: Equatable>(a: ArrayChange<Element>, b: ArrayChange<Eleme
 extension RangeReplaceableCollectionType where Index == Int {
     /// Apply `change` to this array. The count of self must be the same as the initial count of `change`, or
     /// the operation will report a fatal error.
-    public mutating func apply(change: ArrayChange<Generator.Element>) {
+    public mutating func apply(change: ArrayChange<Generator.Element>, @noescape add: Generator.Element -> Void = { _ in }, @noescape remove: Generator.Element -> Void = { _ in }) {
         precondition(self.count == change.initialCount)
         for modification in change.modifications {
-            self.apply(modification)
+            self.apply(modification, add: add, remove: remove)
         }
     }
 }
