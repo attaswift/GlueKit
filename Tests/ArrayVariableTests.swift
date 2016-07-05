@@ -11,23 +11,23 @@ import XCTest
 
 private func ==<T: Equatable>(a: ArrayModificationMergeResult<T>, b: ArrayModificationMergeResult<T>) -> Bool {
     switch a {
-    case .DisjunctOrderedAfter:
-        if case .DisjunctOrderedAfter = b {
+    case .disjunctOrderedAfter:
+        if case .disjunctOrderedAfter = b {
             return true
         }
         return false
-    case .DisjunctOrderedBefore:
-        if case .DisjunctOrderedBefore = b {
+    case .disjunctOrderedBefore:
+        if case .disjunctOrderedBefore = b {
             return true
         }
         return false
-    case .CollapsedToNoChange:
-        if case .CollapsedToNoChange = b {
+    case .collapsedToNoChange:
+        if case .collapsedToNoChange = b {
             return true
         }
         return false
-    case .CollapsedTo(let ae):
-        if case .CollapsedTo(let be) = b {
+    case .collapsedTo(let ae):
+        if case .collapsedTo(let be) = b {
             return ae == be
         }
         return false
@@ -38,13 +38,13 @@ class ArrayModificationTests: XCTestCase {
 
     func testInsertion() {
         var a = [1, 2, 3]
-        let mod = ArrayModification.Insert(10, at: 2)
+        let mod = ArrayModification.insert(10, at: 2)
 
         XCTAssertEqual(mod.deltaCount, 1)
         XCTAssertEqual(mod.range, 2..<2)
         XCTAssertEqual(mod.elements, [10])
 
-        XCTAssert(mod.map { "\($0)" } == ArrayModification.Insert("10", at: 2))
+        XCTAssert(mod.map { "\($0)" } == ArrayModification.insert("10", at: 2))
 
         a.apply(mod)
 
@@ -53,7 +53,7 @@ class ArrayModificationTests: XCTestCase {
 
     func testRemoval() {
         var a = [1, 2, 3]
-        let mod = ArrayModification<Int>.RemoveAt(1)
+        let mod = ArrayModification<Int>.removeAt(1)
 
         XCTAssertEqual(mod.deltaCount, -1)
         XCTAssertEqual(mod.range, 1..<2)
@@ -61,14 +61,14 @@ class ArrayModificationTests: XCTestCase {
 
         a.apply(mod)
 
-        XCTAssert(mod.map { "\($0)" } == ArrayModification<String>.RemoveAt(1))
+        XCTAssert(mod.map { "\($0)" } == ArrayModification<String>.removeAt(1))
 
         XCTAssertEqual(a, [1, 3])
     }
 
     func testReplacement() {
         var a = [1, 2, 3]
-        let mod = ArrayModification.ReplaceAt(1, with: 10)
+        let mod = ArrayModification.replaceAt(1, with: 10)
 
         XCTAssertEqual(mod.deltaCount, 0)
         XCTAssertEqual(mod.range, 1..<2)
@@ -76,14 +76,14 @@ class ArrayModificationTests: XCTestCase {
 
         a.apply(mod)
 
-        XCTAssert(mod.map { "\($0)" } == ArrayModification.ReplaceAt(1, with: "10"))
+        XCTAssert(mod.map { "\($0)" } == ArrayModification.replaceAt(1, with: "10"))
 
         XCTAssertEqual(a, [1, 10, 3])
     }
 
     func testRangeReplacement() {
         var a = [1, 2, 3]
-        let mod = ArrayModification.ReplaceRange(1...1, with: [10, 20])
+        let mod = ArrayModification.replaceRange(1..<2, with: [10, 20])
 
         XCTAssertEqual(mod.deltaCount, 1)
         XCTAssertEqual(mod.range, 1..<2)
@@ -91,66 +91,66 @@ class ArrayModificationTests: XCTestCase {
 
         a.apply(mod)
 
-        XCTAssert(mod.map { "\($0)" } == ArrayModification.ReplaceRange(1...1, with: ["10", "20"]))
+        XCTAssert(mod.map { "\($0)" } == ArrayModification.replaceRange(1..<2, with: ["10", "20"]))
 
         XCTAssertEqual(a, [1, 10, 20, 3])
     }
 
     func testMergeIntoEmpty() {
-        let first = ArrayModification.ReplaceRange(10..<10, with: ["a", "b", "c"])
+        let first = ArrayModification.replaceRange(10..<10, with: ["a", "b", "c"])
 
-        let m1 = ArrayModification<String>.ReplaceRange(10..<13, with: [])
-        XCTAssert(first.merge(m1) == ArrayModificationMergeResult.CollapsedToNoChange)
+        let m1 = ArrayModification<String>.replaceRange(10..<13, with: [])
+        XCTAssert(first.merge(m1) == ArrayModificationMergeResult.collapsedToNoChange)
     }
 
     func testMergeIntoNonEmpty() {
-        let first = ArrayModification.ReplaceRange(10..<20, with: ["a", "b", "c"])
+        let first = ArrayModification.replaceRange(10..<20, with: ["a", "b", "c"])
         // final range of first: 10..<13
 
-        let m1 = ArrayModification.ReplaceRange(1..<5, with: ["1", "2"])
-        XCTAssert(first.merge(m1) == ArrayModificationMergeResult.DisjunctOrderedBefore)
+        let m1 = ArrayModification.replaceRange(1..<5, with: ["1", "2"])
+        XCTAssert(first.merge(m1) == ArrayModificationMergeResult.disjunctOrderedBefore)
 
-        let m2 = ArrayModification.ReplaceRange(5..<10, with: ["1", "2"])
-        XCTAssert(first.merge(m2) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(5..<20, with: ["1", "2", "a", "b", "c"])))
+        let m2 = ArrayModification.replaceRange(5..<10, with: ["1", "2"])
+        XCTAssert(first.merge(m2) == ArrayModificationMergeResult.collapsedTo(.replaceRange(5..<20, with: ["1", "2", "a", "b", "c"])))
 
-        let m3 = ArrayModification.ReplaceRange(5..<11, with: ["1", "2"])
-        XCTAssert(first.merge(m3) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(5..<20, with: ["1", "2", "b", "c"])))
+        let m3 = ArrayModification.replaceRange(5..<11, with: ["1", "2"])
+        XCTAssert(first.merge(m3) == ArrayModificationMergeResult.collapsedTo(.replaceRange(5..<20, with: ["1", "2", "b", "c"])))
 
-        let m4 = ArrayModification.ReplaceRange(9..<15, with: ["1", "2"])
-        XCTAssert(first.merge(m4) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(9..<22, with: ["1", "2"])))
+        let m4 = ArrayModification.replaceRange(9..<15, with: ["1", "2"])
+        XCTAssert(first.merge(m4) == ArrayModificationMergeResult.collapsedTo(.replaceRange(9..<22, with: ["1", "2"])))
 
-        let m5 = ArrayModification.ReplaceRange(10..<10, with: ["1", "2"])
-        XCTAssert(first.merge(m5) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(10..<20, with: ["1", "2", "a", "b", "c"])))
+        let m5 = ArrayModification.replaceRange(10..<10, with: ["1", "2"])
+        XCTAssert(first.merge(m5) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["1", "2", "a", "b", "c"])))
 
-        let m6 = ArrayModification.ReplaceRange(10..<11, with: ["1", "2"])
-        XCTAssert(first.merge(m6) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(10..<20, with: ["1", "2", "b", "c"])))
+        let m6 = ArrayModification.replaceRange(10..<11, with: ["1", "2"])
+        XCTAssert(first.merge(m6) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["1", "2", "b", "c"])))
 
-        let m7 = ArrayModification.ReplaceRange(10..<13, with: ["1", "2"])
-        XCTAssert(first.merge(m7) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(10..<20, with: ["1", "2"])))
+        let m7 = ArrayModification.replaceRange(10..<13, with: ["1", "2"])
+        XCTAssert(first.merge(m7) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["1", "2"])))
 
-        let m8 = ArrayModification.ReplaceRange(10..<14, with: ["1", "2"])
-        XCTAssert(first.merge(m8) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(10..<21, with: ["1", "2"])))
+        let m8 = ArrayModification.replaceRange(10..<14, with: ["1", "2"])
+        XCTAssert(first.merge(m8) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<21, with: ["1", "2"])))
 
-        let m9 = ArrayModification.ReplaceRange(11..<12, with: ["1", "2"])
-        XCTAssert(first.merge(m9) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(10..<20, with: ["a", "1", "2", "c"])))
+        let m9 = ArrayModification.replaceRange(11..<12, with: ["1", "2"])
+        XCTAssert(first.merge(m9) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["a", "1", "2", "c"])))
 
-        let m10 = ArrayModification.ReplaceRange(11..<15, with: ["1", "2"])
-        XCTAssert(first.merge(m10) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(10..<22, with: ["a", "1", "2"])))
+        let m10 = ArrayModification.replaceRange(11..<15, with: ["1", "2"])
+        XCTAssert(first.merge(m10) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<22, with: ["a", "1", "2"])))
 
-        let m11 = ArrayModification.ReplaceRange(11..<20, with: ["1", "2"])
-        XCTAssert(first.merge(m11) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(10..<27, with: ["a", "1", "2"])))
+        let m11 = ArrayModification.replaceRange(11..<20, with: ["1", "2"])
+        XCTAssert(first.merge(m11) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<27, with: ["a", "1", "2"])))
 
-        let m12 = ArrayModification.ReplaceRange(13..<13, with: ["1", "2"])
-        XCTAssert(first.merge(m12) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(10..<20, with: ["a", "b", "c", "1", "2"])))
+        let m12 = ArrayModification.replaceRange(13..<13, with: ["1", "2"])
+        XCTAssert(first.merge(m12) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["a", "b", "c", "1", "2"])))
 
-        let m13 = ArrayModification.ReplaceRange(13..<14, with: ["1", "2"])
-        XCTAssert(first.merge(m13) == ArrayModificationMergeResult.CollapsedTo(.ReplaceRange(10..<21, with: ["a", "b", "c", "1", "2"])))
+        let m13 = ArrayModification.replaceRange(13..<14, with: ["1", "2"])
+        XCTAssert(first.merge(m13) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<21, with: ["a", "b", "c", "1", "2"])))
 
-        let m14 = ArrayModification.ReplaceRange(14..<14, with: ["1", "2"])
-        XCTAssert(first.merge(m14) == ArrayModificationMergeResult.DisjunctOrderedAfter)
+        let m14 = ArrayModification.replaceRange(14..<14, with: ["1", "2"])
+        XCTAssert(first.merge(m14) == ArrayModificationMergeResult.disjunctOrderedAfter)
 
-        let m15 = ArrayModification.ReplaceRange(25...30, with: ["1", "2"])
-        XCTAssert(first.merge(m15) == ArrayModificationMergeResult.DisjunctOrderedAfter)
+        let m15 = ArrayModification.replaceRange(25..<31, with: ["1", "2"])
+        XCTAssert(first.merge(m15) == ArrayModificationMergeResult.disjunctOrderedAfter)
     }
 }
 
@@ -162,13 +162,13 @@ class ArrayChangeTests: XCTestCase {
         let maxLevels = 4
         let maxInsertionLength = 2
 
-        func insertionsAtLevel(level: Int) -> [[Int]] {
+        func insertionsAtLevel(_ level: Int) -> [[Int]] {
             // Returns an array of [], [31], [31, 32], ..., up to maxInsertionLength
             let s = 10 * level
             return (1...maxInsertionLength).map { (1...$0).map { s + $0 } }
         }
 
-        func printTrace(input: [Int], change: ArrayChange<Int>, output: [Int], trace: [ArrayModification<Int>], applied: [Int]) {
+        func printTrace(_ input: [Int], change: ArrayChange<Int>, output: [Int], trace: [ArrayModification<Int>], applied: [Int]) {
             print("Given this input:")
             print("    \(input)")
             print("This sequence of changes:")
@@ -185,7 +185,7 @@ class ArrayChangeTests: XCTestCase {
             print("     \(output)")
         }
 
-        func recurse(level: Int, input: [Int], change: ArrayChange<Int>, output: [Int], trace: [ArrayModification<Int>]) {
+        func recurse(_ level: Int, input: [Int], change: ArrayChange<Int>, output: [Int], trace: [ArrayModification<Int>]) {
             let applied = change.applyOn(input)
             if applied != output {
                 XCTAssertEqual(applied, output)
@@ -202,8 +202,8 @@ class ArrayChangeTests: XCTestCase {
                                 continue
                             }
                             var nextOutput = output
-                            nextOutput.replaceRange(startIndex..<endIndex, with: insertion)
-                            let mod = ArrayModification.ReplaceRange(startIndex..<endIndex, with: insertion)
+                            nextOutput.replaceSubrange(startIndex..<endIndex, with: insertion)
+                            let mod = ArrayModification.replaceRange(startIndex..<endIndex, with: insertion)
                             let nextChange = change.merge(ArrayChange(initialCount: output.count, modification: mod))
                             recurse(level + 1, input: input, change: nextChange, output: nextOutput, trace: trace + [mod])
                         }
@@ -217,15 +217,15 @@ class ArrayChangeTests: XCTestCase {
     }
 
     func testMap() {
-        let c1 = ArrayChange<Int>(initialCount: 10, modification: .Insert(1, at: 3))
-            .merge(ArrayChange<Int>(initialCount: 11, modification: .ReplaceAt(1, with: 2)))
-            .merge(ArrayChange<Int>(initialCount: 11, modification: .RemoveAt(4)))
-            .merge(ArrayChange<Int>(initialCount: 10, modification: .ReplaceRange(8...9, with: [5, 6])))
+        let c1 = ArrayChange<Int>(initialCount: 10, modification: .insert(1, at: 3))
+            .merge(ArrayChange<Int>(initialCount: 11, modification: .replaceAt(1, with: 2)))
+            .merge(ArrayChange<Int>(initialCount: 11, modification: .removeAt(4)))
+            .merge(ArrayChange<Int>(initialCount: 10, modification: .replaceRange(8..<10, with: [5, 6])))
 
-        let c2 = ArrayChange<String>(initialCount: 10, modification: .Insert("1", at: 3))
-            .merge(ArrayChange<String>(initialCount: 11, modification: .ReplaceAt(1, with: "2")))
-            .merge(ArrayChange<String>(initialCount: 11, modification: .RemoveAt(4)))
-            .merge(ArrayChange<String>(initialCount: 10, modification: .ReplaceRange(8...9, with: ["5", "6"])))
+        let c2 = ArrayChange<String>(initialCount: 10, modification: .insert("1", at: 3))
+            .merge(ArrayChange<String>(initialCount: 11, modification: .replaceAt(1, with: "2")))
+            .merge(ArrayChange<String>(initialCount: 11, modification: .removeAt(4)))
+            .merge(ArrayChange<String>(initialCount: 10, modification: .replaceRange(8..<10, with: ["5", "6"])))
 
         let m = c1.map { "\($0)" }
         XCTAssertEqual(m.initialCount, c2.initialCount)
@@ -289,7 +289,7 @@ class ArrayVariableTests: XCTestCase {
 
     func testGenerate() {
         let array: ArrayVariable<Int> = [1, 2, 3, 4]
-        var g = array.generate()
+        var g = array.makeIterator()
         XCTAssertEqual(g.next(), 1)
         XCTAssertEqual(g.next(), 2)
         XCTAssertEqual(g.next(), 3)
@@ -314,13 +314,13 @@ class ArrayVariableTests: XCTestCase {
 
         XCTAssertEqual(array[1...2], [2, 3])
 
-        array[1...2] = [20, 30, 40]
+        array[1..<3] = [20, 30, 40]
 
         XCTAssertEqual(array, [1, 20, 30, 40, 4])
     }
 
     func testChangeNotifications() {
-        func tryCase(input: [Int], op: ArrayVariable<Int>->(), expectedOutput: [Int], expectedChange: ArrayChange<Int>) {
+        func tryCase(_ input: [Int], op: (ArrayVariable<Int>) -> (), expectedOutput: [Int], expectedChange: ArrayChange<Int>) {
             let array = ArrayVariable<Int>(input)
 
             var changes = [ArrayChange<Int>]()
@@ -340,37 +340,37 @@ class ArrayVariableTests: XCTestCase {
         }
 
         tryCase([1, 2, 3], op: { $0[1] = 20 },
-            expectedOutput: [1, 20, 3], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceAt(1, with: 20)))
+            expectedOutput: [1, 20, 3], expectedChange: ArrayChange(initialCount: 3, modification: .replaceAt(1, with: 20)))
 
         tryCase([1, 2, 3], op: { $0[1..<2] = [20, 30] },
-            expectedOutput: [1, 20, 30, 3], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceRange(1..<2, with: [20, 30])))
+            expectedOutput: [1, 20, 30, 3], expectedChange: ArrayChange(initialCount: 3, modification: .replaceRange(1..<2, with: [20, 30])))
 
         tryCase([1, 2, 3], op: { $0.setValue([4, 5]) },
-            expectedOutput: [4, 5], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceRange(0..<3, with: [4, 5])))
+            expectedOutput: [4, 5], expectedChange: ArrayChange(initialCount: 3, modification: .replaceRange(0..<3, with: [4, 5])))
 
         tryCase([1, 2, 3], op: { $0.value = [4, 5] },
-            expectedOutput: [4, 5], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceRange(0..<3, with: [4, 5])))
+            expectedOutput: [4, 5], expectedChange: ArrayChange(initialCount: 3, modification: .replaceRange(0..<3, with: [4, 5])))
 
-        tryCase([1, 2, 3], op: { $0.replaceRange(0..<2, with: [5, 6, 7]) },
-            expectedOutput: [5, 6, 7, 3], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceRange(0..<2, with: [5, 6, 7])))
+        tryCase([1, 2, 3], op: { $0.replaceSubrange(0..<2, with: [5, 6, 7]) },
+            expectedOutput: [5, 6, 7, 3], expectedChange: ArrayChange(initialCount: 3, modification: .replaceRange(0..<2, with: [5, 6, 7])))
 
         tryCase([1, 2, 3], op: { $0.append(10) },
-            expectedOutput: [1, 2, 3, 10], expectedChange: ArrayChange(initialCount: 3, modification: .Insert(10, at: 3)))
+            expectedOutput: [1, 2, 3, 10], expectedChange: ArrayChange(initialCount: 3, modification: .insert(10, at: 3)))
 
         tryCase([1, 2, 3], op: { $0.insert(10, at: 2) },
-            expectedOutput: [1, 2, 10, 3], expectedChange: ArrayChange(initialCount: 3, modification: .Insert(10, at: 2)))
+            expectedOutput: [1, 2, 10, 3], expectedChange: ArrayChange(initialCount: 3, modification: .insert(10, at: 2)))
 
-        tryCase([1, 2, 3], op: { $0.removeAtIndex(1) },
-            expectedOutput: [1, 3], expectedChange: ArrayChange(initialCount: 3, modification: .RemoveAt(1)))
+        tryCase([1, 2, 3], op: { $0.remove(at: 1) },
+            expectedOutput: [1, 3], expectedChange: ArrayChange(initialCount: 3, modification: .removeAt(1)))
 
         tryCase([1, 2, 3], op: { $0.removeFirst() },
-            expectedOutput: [2, 3], expectedChange: ArrayChange(initialCount: 3, modification: .RemoveAt(0)))
+            expectedOutput: [2, 3], expectedChange: ArrayChange(initialCount: 3, modification: .removeAt(0)))
 
         tryCase([1, 2, 3], op: { $0.removeLast() },
-            expectedOutput: [1, 2], expectedChange: ArrayChange(initialCount: 3, modification: .RemoveAt(2)))
+            expectedOutput: [1, 2], expectedChange: ArrayChange(initialCount: 3, modification: .removeAt(2)))
 
         tryCase([1, 2, 3], op: { $0.removeAll() },
-            expectedOutput: [], expectedChange: ArrayChange(initialCount: 3, modification: .ReplaceRange(0..<3, with: [])))
+            expectedOutput: [], expectedChange: ArrayChange(initialCount: 3, modification: .replaceRange(0..<3, with: [])))
 
     }
 

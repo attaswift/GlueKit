@@ -45,7 +45,7 @@ var change = ArrayChange<String>(initialCount: filenames.count)
 func changeToString(change: ArrayChange<String>) -> String {
     var desc = ""
     let mods = change.modifications.map { m in "\n\(m)" }.joinWithSeparator("")
-    desc.appendContentsOf(mods)
+    desc.append(contentsOf: mods)
     return desc
 }
 let connection = filenames.futureChanges.connect { c in

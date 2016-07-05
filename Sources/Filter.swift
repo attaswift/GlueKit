@@ -9,8 +9,8 @@
 import Foundation
 
 extension ObservableArrayType {
-    public func filter<TestResult: ObservableType where TestResult.Value == Bool>(test: Generator.Element->TestResult) -> ObservableFilter<Generator.Element, TestResult> {
-        return ObservableFilter<Generator.Element, TestResult>(parent: self, test: test)
+    public func filter<TestResult: ObservableType where TestResult.Value == Bool>(test: Iterator.Element->TestResult) -> ObservableFilter<Iterator.Element, TestResult> {
+        return ObservableFilter<Iterator.Element, TestResult>(parent: self, test: test)
     }
 }
 
@@ -28,7 +28,7 @@ public class ObservableFilter<Element, TestResult: ObservableType where TestResu
     private var active = false
     private var includedIndexes: Set<Int> = []
 
-    public init<Parent: ObservableArrayType where Parent.Generator.Element == Element>(parent: Parent, test: Element->TestResult) {
+    public init<Parent: ObservableArrayType where Parent.Iterator.Element == Element>(parent: Parent, test: Element->TestResult) {
         self.parent = parent.observableArray
         self.test = test
     }

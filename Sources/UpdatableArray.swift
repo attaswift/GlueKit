@@ -25,62 +25,68 @@ public protocol UpdatableArrayType: ObservableArrayType {
     // Required members
 
     var count: Int { get }
-    func lookup(range: Range<Index>) -> SubSequence
-    func apply(change: ArrayChange<Generator.Element>)
-    var futureChanges: Source<ArrayChange<Generator.Element>> { get }
+    func lookup(_ range: Range<Index>) -> SubSequence
+    func apply(_ change: ArrayChange<Iterator.Element>)
+    var futureChanges: Source<ArrayChange<Iterator.Element>> { get }
 
     // The following are defined in extensions but may be specialized in implementations:
 
-    func setValue(value: [Generator.Element])
-    var value: [Generator.Element] { get nonmutating set }
-    subscript(index: Index) -> Generator.Element { get nonmutating set }
+    func setValue(_ value: [Iterator.Element])
+    var value: [Iterator.Element] { get nonmutating set }
+    subscript(index: Index) -> Iterator.Element { get nonmutating set }
     subscript(bounds: Range<Index>) -> SubSequence { get nonmutating set }
 
-    var updatableArray: UpdatableArray<Generator.Element> { get }
+    var updatableArray: UpdatableArray<Iterator.Element> { get }
 
-    func modify(@noescape block: ArrayVariable<Generator.Element>->Void) -> Void
+    func modify(_ block: @noescape (ArrayVariable<Iterator.Element>) -> Void) -> Void
 
     // RangeReplaceableCollectionType
-    func replaceRange<C: CollectionType where C.Generator.Element == Generator.Element>(range: Range<Index>, with elements: C)
-    func append(newElement: Self.Generator.Element)
-    func appendContentsOf<C: CollectionType where C.Generator.Element == Generator.Element>(newElements: C)
-    func insert(newElement: Self.Generator.Element, atIndex i: Self.Index)
-    func insertContentsOf<C: CollectionType where C.Generator.Element == Generator.Element>(newElements: C, at i: Self.Index)
-    func removeAtIndex(index: Self.Index) -> Self.Generator.Element
-    func removeRange(subRange: Range<Self.Index>)
-    func removeFirst(n: Int)
-    func removeFirst() -> Self.Generator.Element
+    func replaceSubrange<C: Collection where C.Iterator.Element == Iterator.Element>(_ range: Range<Index>, with elements: C)
+    func append(_ newElement: Self.Iterator.Element)
+    func append<C: Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C)
+    func insert(_ newElement: Self.Iterator.Element, atIndex i: Self.Index)
+    func insert<C: Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C, at i: Self.Index)
+
+    @discardableResult
+    func remove(at index: Self.Index) -> Self.Iterator.Element
+
+    func removeSubrange(_ subrange: Range<Self.Index>)
+    func removeFirst(_ n: Int)
+
+    @discardableResult
+    func removeFirst() -> Self.Iterator.Element
     func removeAll()
-    func removeLast() -> Self.Generator.Element
+
+    @discardableResult
+    func removeLast() -> Self.Iterator.Element
 }
 
 extension UpdatableArrayType where
     Index == Int,
-    Change == ArrayChange<Generator.Element>,
-    BaseCollection == Array<Generator.Element>,
-    SubSequence: CollectionType,
-    SubSequence.Generator.Element == Generator.Element {
+    Change == ArrayChange<Iterator.Element>,
+    BaseCollection == Array<Iterator.Element>,
+    SubSequence: Collection,
+    SubSequence.Iterator.Element == Iterator.Element {
 
-    public func setValue(value: [Generator.Element]) {
-        replaceRange(0 ..< count, with: value)
+    public func setValue(_ value: [Iterator.Element]) {
+        replaceSubrange(0 ..< count, with: value)
     }
 
-    public var value: [Generator.Element] {
+    public var value: [Iterator.Element] {
         get {
             let result = lookup(0 ..< count)
-            return result as? Array<Generator.Element> ?? Array(result)
+            return result as? Array<Iterator.Element> ?? Array(result)
         }
         nonmutating set {
-            replaceRange(0 ..< count, with: newValue)
+            replaceSubrange(0 ..< count, with: newValue)
         }
     }
-    public subscript(index: Index) -> Generator.Element {
+    public subscript(index: Index) -> Iterator.Element {
         get {
-            let range = index ..< index
-            return lookup(range).first!
+            return lookup(index ..< index).first!
         }
         nonmutating set {
-            apply(ArrayChange(initialCount: self.count, modification: .Insert(newValue, at: index)))
+            apply(ArrayChange(initialCount: self.count, modification: .insert(newValue, at: index)))
         }
     }
 
@@ -89,7 +95,7 @@ extension UpdatableArrayType where
             return lookup(bounds)
         }
         nonmutating set {
-            replaceRange(bounds, with: Array(newValue))
+            replaceSubrange(bounds, with: Array(newValue))
         }
     }
 
@@ -97,13 +103,13 @@ extension UpdatableArrayType where
         return Updatable(observable: observable, setter: { v in self.value = v })
     }
 
-    public var updatableArray: UpdatableArray<Generator.Element> {
+    public var updatableArray: UpdatableArray<Iterator.Element> {
         return UpdatableArray(self)
     }
 
-    public func modify(@noescape block: ArrayVariable<Generator.Element>->Void) -> Void {
-        let array = ArrayVariable<Generator.Element>(self.value)
-        var change = ArrayChange<Generator.Element>(initialCount: array.count)
+    public func modify(_ block: @noescape (ArrayVariable<Iterator.Element>) -> Void) -> Void {
+        let array = ArrayVariable<Iterator.Element>(self.value)
+        var change = ArrayChange<Iterator.Element>(initialCount: array.count)
         let connection = array.futureChanges.connect { c in change.mergeInPlace(c) }
         block(array)
         connection.disconnect()
@@ -111,60 +117,63 @@ extension UpdatableArrayType where
     }
 
 
-    public func replaceRange<C: CollectionType where C.Generator.Element == Generator.Element>(range: Range<Index>, with elements: C) {
-        let elements = elements as? Array<Generator.Element> ?? Array(elements)
-        apply(ArrayChange(initialCount: self.count, modification: .ReplaceRange(range, with: elements)))
+    public func replaceSubrange<C: Collection where C.Iterator.Element == Iterator.Element>(_ range: Range<Index>, with elements: C) {
+        let elements = elements as? Array<Iterator.Element> ?? Array(elements)
+        apply(ArrayChange(initialCount: self.count, modification: .replaceRange(range.lowerBound ..< range.upperBound, with: elements)))
     }
 
-    public func append(newElement: Generator.Element) {
+    public func append(_ newElement: Iterator.Element) {
         let c = count
-        replaceRange(c ..< c, with: CollectionOfOne(newElement))
+        replaceSubrange(c ..< c, with: CollectionOfOne(newElement))
     }
 
-    public func appendContentsOf<C : CollectionType where C.Generator.Element == Generator.Element>(newElements: C) {
+    public func append<C : Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C) {
         let c = count
-        replaceRange(c ..< c, with: newElements)
+        replaceSubrange(c ..< c, with: newElements)
     }
 
-    public func insert(newElement: Generator.Element, atIndex i: Index) {
-        let change = ArrayChange(initialCount: self.count, modification: .Insert(newElement, at: i))
+    public func insert(_ newElement: Iterator.Element, atIndex i: Index) {
+        let change = ArrayChange(initialCount: self.count, modification: .insert(newElement, at: i))
         apply(change)
     }
 
-    public func insertContentsOf<C : CollectionType where C.Generator.Element == Generator.Element>(newElements: C, at i: Index) {
-        replaceRange(i ..< i, with: newElements)
+    public func insert<C : Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C, at i: Index) {
+        replaceSubrange(i ..< i, with: newElements)
     }
 
-    public func removeAtIndex(index: Index) -> Generator.Element {
+    @discardableResult
+    public func remove(at index: Index) -> Iterator.Element {
         let element = lookup(index ..< index + 1).first!
-        apply(ArrayChange(initialCount: self.count, modification: .RemoveAt(index)))
+        apply(ArrayChange(initialCount: self.count, modification: .removeAt(index)))
         return element
     }
 
-    public func removeRange(subRange: Range<Index>) {
-        replaceRange(subRange, with: EmptyCollection())
+    public func removeSubrange(_ subRange: Range<Index>) {
+        replaceSubrange(subRange, with: EmptyCollection())
     }
 
-    public func removeFirst(n: Int) {
-        replaceRange(0 ..< n, with: EmptyCollection())
+    public func removeFirst(_ n: Int) {
+        replaceSubrange(0 ..< n, with: EmptyCollection())
     }
 
-    public func removeFirst() -> Generator.Element {
-        let range = 0 ..< 1
+    @discardableResult
+    public func removeFirst() -> Iterator.Element {
+        let range: Range<Int> = 0 ..< 1
         let first = lookup(range)
-        replaceRange(range, with: EmptyCollection())
+        replaceSubrange(range, with: EmptyCollection())
         return first.first!
     }
 
     public func removeAll() {
-        replaceRange(0 ..< count, with: EmptyCollection())
+        replaceSubrange(0 ..< count, with: EmptyCollection())
     }
 
-    public func removeLast() -> Generator.Element {
+    @discardableResult
+    public func removeLast() -> Iterator.Element {
         let count = self.count
-        let range = count - 1 ..< count
+        let range: Range<Int> = count - 1 ..< count
         let last = lookup(range)
-        replaceRange(range, with: EmptyCollection())
+        replaceSubrange(range, with: EmptyCollection())
         return last.first!
     }
 }
@@ -177,25 +186,27 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
     public typealias ObservableValue = [Element]
 
     public typealias Index = Int
-    public typealias Generator = Array<Element>.Generator
+    public typealias Indices = CountableRange<Int>
+    public typealias IndexDistance = Int
+    public typealias Iterator = Array<Element>.Iterator
     public typealias SubSequence = [Element]
 
     private let _observableArray: ObservableArray<Element>
-    private let _apply: ArrayChange<Element>->Void
+    private let _apply: (ArrayChange<Element>) -> Void
 
-    public init(count: Void->Int, lookup: Range<Int>->Array<Element>, apply: ArrayChange<Element>->Void, futureChanges: Void->Source<ArrayChange<Element>>) {
+    public init(count: (Void) -> Int, lookup: (Range<Int>) -> Array<Element>, apply: (ArrayChange<Element>) -> Void, futureChanges: (Void) -> Source<ArrayChange<Element>>) {
         _observableArray = ObservableArray(count: count, lookup: lookup, futureChanges: futureChanges)
         _apply = apply
     }
 
-    public init<A: UpdatableArrayType where A.Index == Int, A.Generator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Generator.Element == Element>(_ array: A) {
+    public init<A: UpdatableArrayType where A.Index == Int, A.Iterator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Iterator.Element == Element>(_ array: A) {
         _observableArray = ObservableArray(array)
         _apply = { change in array.apply(change) }
     }
 
     public var count: Int { return _observableArray.count }
-    public func lookup(range: Range<Index>) -> [Element] { return _observableArray.lookup(range) }
-    public func apply(change: ArrayChange<Generator.Element>) { _apply(change) }
+    public func lookup(_ range: Range<Index>) -> [Element] { return _observableArray.lookup(range) }
+    public func apply(_ change: ArrayChange<Iterator.Element>) { _apply(change) }
     public var futureChanges: Source<ArrayChange<Element>> { return _observableArray.futureChanges }
 
     public var observableCount: Observable<Int> { return _observableArray.observableCount }

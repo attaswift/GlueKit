@@ -18,7 +18,7 @@ extension UIBarButtonItem: SourceType {
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
     }
 
-    public var connecter: Sink<Void> -> Connection {
+    public var connecter: (Sink<Void>) -> Connection {
         if let target = objc_getAssociatedObject(self, &associatedObjectKey) as? TargetActionListener {
             return target.signal.source.connecter
         }

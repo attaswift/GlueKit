@@ -66,7 +66,7 @@ public class Property<Storage: StorageType>: UpdatableType {
 
     /// Update the value of this variable, and send the new value to all sinks that are currently connected.
     /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
-    public final func setValue(value: Value) {
+    public final func setValue(_ value: Value) {
         storage.value = value
         signal.sendIfConnected(value)
     }
@@ -104,7 +104,7 @@ public class WeakVariable<Object: AnyObject>: Property<WeakStorage<Object>> {
 
 // It would be so much more convenient if Swift allowed me to define these as extensions...
 
-public final class BoolVariable: Variable<Bool>, BooleanLiteralConvertible, BooleanType {
+public final class BoolVariable: Variable<Bool>, BooleanLiteralConvertible, Boolean {
     public override init(_ value: Bool) {
         super.init(value)
     }

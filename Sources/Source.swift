@@ -24,7 +24,7 @@ public protocol SinkType {
     associatedtype SinkValue
 
     /// Receive a new value.
-    var receive: SinkValue -> Void { get }
+    var receive: (SinkValue) -> Void { get }
 }
 
 /// A Sink is anything that can receive a value, typically from a Source.
@@ -37,10 +37,10 @@ public protocol SinkType {
 public struct Sink<Value>: SinkType {
     public typealias SinkValue = Value
 
-    public let receive: Value->Void
+    public let receive: (Value) -> Void
 
     /// Initialize a new `Sink<Value>` from the given closure.
-    public init(_ receive: Value->Void) {
+    public init(_ receive: (Value) -> Void) {
         self.receive = receive
     }
 
@@ -78,7 +78,7 @@ public protocol SourceType {
     /// The type of values produced by this source.
     associatedtype SourceValue
 
-    var connecter: Sink<SourceValue> -> Connection { get }
+    var connecter: (Sink<SourceValue>) -> Connection { get }
 }
 
 /// A Source is an entity that is able to produce values to other entities (called Sinks) that are connected to it.
@@ -101,9 +101,9 @@ public protocol SourceType {
 public struct Source<Value>: SourceType {
     public typealias SourceValue = Value
 
-    public let connecter: Sink<Value> -> Connection
+    public let connecter: (Sink<Value>) -> Connection
 
-    public init(_ connecter: Sink<Value> -> Connection) {
+    public init(_ connecter: (Sink<Value>) -> Connection) {
         self.connecter = connecter
     }
 
@@ -121,8 +121,8 @@ extension SourceType {
     ///
     /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
     /// alive at least as long as they have an active connection.
-    @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection {
+    @warn_unused_result(message: "You probably want to keep the connection alive by retaining it")
+    public func connect<S: SinkType where S.SinkValue == SourceValue>(_ sink: S) -> Connection {
         return connecter(sink.sink)
     }
 
@@ -131,8 +131,8 @@ extension SourceType {
     ///
     /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
     /// alive at least as long as they have an active connection.
-    @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func connect(sink: SourceValue->Void) -> Connection {
+    @warn_unused_result(message: "You probably want to keep the connection alive by retaining it")
+    public func connect(_ sink: (SourceValue) -> Void) -> Connection {
         return self.connect(Sink(sink))
     }
 }

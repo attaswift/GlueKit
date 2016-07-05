@@ -17,13 +17,13 @@ extension UIDevice {
         if let signal = objc_getAssociatedObject(self, &orientationKey) as? Signal<UIDeviceOrientation> {
             return signal.source
         }
-        let nc = NSNotificationCenter.defaultCenter()
+        let nc = NotificationCenter.default()
         var observer: NSObjectProtocol? = nil
         let signal = Signal<UIDeviceOrientation>(
             start: { [unowned self] signal in
                 precondition(observer == nil)
                 self.beginGeneratingDeviceOrientationNotifications()
-                observer = nc.addObserverForName(UIDeviceOrientationDidChangeNotification, object: self, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
+                observer = nc.addObserver(forName: NSNotification.Name.UIDeviceOrientationDidChange, object: self, queue: OperationQueue.main()) { [unowned signal] notification in
                     signal.send(self.orientation)
                 }
             },
@@ -45,18 +45,18 @@ extension UIDevice {
         if let signal = objc_getAssociatedObject(self, &batteryKey) as? Signal<(UIDeviceBatteryState, Float)> {
             return signal.source
         }
-        let nc = NSNotificationCenter.defaultCenter()
+        let nc = NotificationCenter.default()
         var stateObserver: NSObjectProtocol? = nil
         var levelObserver: NSObjectProtocol? = nil
         let signal = Signal<(UIDeviceBatteryState, Float)>(
             start: { [unowned self] signal in
                 precondition(stateObserver == nil && levelObserver == nil)
-                precondition(!self.batteryMonitoringEnabled)
-                self.batteryMonitoringEnabled = true
-                stateObserver = nc.addObserverForName(UIDeviceBatteryStateDidChangeNotification, object: self, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
+                precondition(!self.isBatteryMonitoringEnabled)
+                self.isBatteryMonitoringEnabled = true
+                stateObserver = nc.addObserver(forName: NSNotification.Name.UIDeviceBatteryStateDidChange, object: self, queue: OperationQueue.main()) { [unowned signal] notification in
                     signal.send((self.batteryState, self.batteryLevel))
                 }
-                levelObserver = nc.addObserverForName(UIDeviceBatteryLevelDidChangeNotification, object: self, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
+                levelObserver = nc.addObserver(forName: NSNotification.Name.UIDeviceBatteryLevelDidChange, object: self, queue: OperationQueue.main()) { [unowned signal] notification in
                     signal.send((self.batteryState, self.batteryLevel))
                 }
             },
@@ -65,7 +65,7 @@ extension UIDevice {
                 nc.removeObserver(levelObserver!)
                 stateObserver = nil
                 levelObserver = nil
-                self.batteryMonitoringEnabled = false
+                self.isBatteryMonitoringEnabled = false
             }
         )
         objc_setAssociatedObject(self, &batteryKey, signal, .OBJC_ASSOCIATION_RETAIN)
@@ -77,21 +77,21 @@ extension UIDevice {
             return signal.source
         }
 
-        let nc = NSNotificationCenter.defaultCenter()
+        let nc = NotificationCenter.default()
         var observer: NSObjectProtocol? = nil
         let signal = Signal<Bool>(
             start: { [unowned self] signal in
                 precondition(observer == nil)
-                precondition(!self.proximityMonitoringEnabled)
-                self.proximityMonitoringEnabled = true
-                observer = nc.addObserverForName(UIDeviceProximityStateDidChangeNotification, object: self, queue: NSOperationQueue.mainQueue()) { [unowned signal] notification in
+                precondition(!self.isProximityMonitoringEnabled)
+                self.isProximityMonitoringEnabled = true
+                observer = nc.addObserver(forName: NSNotification.Name.UIDeviceProximityStateDidChange, object: self, queue: OperationQueue.main()) { [unowned signal] notification in
                     signal.send(self.proximityState)
                 }
             },
             stop: { [unowned self] signal in
                 nc.removeObserver(observer!)
                 observer = nil
-                self.proximityMonitoringEnabled = false
+                self.isProximityMonitoringEnabled = false
             }
         )
         objc_setAssociatedObject(self, &proximityKey, signal, .OBJC_ASSOCIATION_RETAIN)

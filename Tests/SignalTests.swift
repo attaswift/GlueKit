@@ -95,7 +95,7 @@ class SignalTests: XCTestCase {
                 let signal = Signal<Int>()
                 weakSignal = signal
                 connection = signal.connect { i in values.append(i) }
-                weakConnection = .Some(connection)
+                weakConnection = .some(connection)
 
                 signal.send(1)
             }
@@ -122,7 +122,7 @@ class SignalTests: XCTestCase {
             weakResource = resource
 
             connection = signal.connect { i in
-                resource.addObject(i)
+                resource.add(i)
             }
             signal.send(1)
         }
@@ -261,8 +261,8 @@ class SignalTests: XCTestCase {
         var c1: Connection? = nil
         var c2: Connection? = nil
 
-        var sink1: (Int->Void)!
-        var sink2: (Int->Void)!
+        var sink1: ((Int) -> Void)!
+        var sink2: ((Int) -> Void)!
 
         sink1 = { i in
             r1.append(i)
@@ -291,7 +291,7 @@ class SignalTests: XCTestCase {
 
         var r = [Int]()
         var c: Connection? = nil
-        var sink: (Int->Void)!
+        var sink: ((Int) -> Void)!
 
         sink = { i in
             r.append(i)
@@ -620,10 +620,11 @@ private class Counter: SourceType {
         mutex.destroy()
     }
 
-    var connecter: Sink<Int> -> Connection {
+    var connecter: (Sink<Int>) -> Connection {
         return signal.connecter
     }
 
+    @discardableResult
     func increment() -> Int {
         let value: Int = mutex.withLock {
             self.counter += 1

@@ -8,37 +8,38 @@
 
 import Foundation
 
-// Some convenient overloads for dispatch_time stuff:
-internal func dispatch_time(date: NSDate) -> dispatch_time_t {
-    let secsSinceEpoch = date.timeIntervalSince1970
-    var spec = timespec(
-        tv_sec: __darwin_time_t(secsSinceEpoch),
-        tv_nsec: Int((secsSinceEpoch - floor(secsSinceEpoch)) * Double(NSEC_PER_SEC))
-    )
-    return dispatch_walltime(&spec, 0)
+// Some convenient extensions for DispatchTime, making it understand Foundation types
+
+extension DispatchWallTime {
+    internal init(_ date: Date) {
+        let secsSinceEpoch = date.timeIntervalSince1970
+        let spec = timespec(
+            tv_sec: __darwin_time_t(secsSinceEpoch),
+            tv_nsec: Int((secsSinceEpoch - floor(secsSinceEpoch)) * Double(NSEC_PER_SEC))
+        )
+        self.init(time: spec)
+    }
 }
 
-internal func dispatch_time(intervalFromNow: NSTimeInterval) -> dispatch_time_t {
-    return dispatch_time(DISPATCH_TIME_NOW, Int64(intervalFromNow * NSTimeInterval(NSEC_PER_SEC)))
-}
+extension DispatchQueue {
+    func after(when interval: TimeInterval, execute block: @convention(block) () -> Void) {
+        self.after(when: DispatchTime.now() + interval, execute: block)
+    }
 
-internal func dispatch_after(date: NSDate, _ queue: dispatch_queue_t, _ block: dispatch_block_t) {
-    dispatch_after(dispatch_time(date), queue, block)
+    func after(walltime date: Date, execute block: @convention(block) () -> Void) {
+        self.after(walltime: DispatchWallTime(date), execute: block)
+    }
 }
-
-internal func dispatch_after(interval: NSTimeInterval, _ queue: dispatch_queue_t, _ block: dispatch_block_t) {
-    dispatch_after(dispatch_time(interval), queue, block)
-}
-
 
 private class AtomicToken {
     private var token: Int32 = 0
 
+    @discardableResult
     func increment() -> Int32 {
         return OSAtomicIncrement32Barrier(&token)
     }
 
-    func equals(value: Int32) -> Bool {
+    func equals(_ value: Int32) -> Bool {
         return OSAtomicCompareAndSwap32Barrier(value, value, &token)
     }
 }
@@ -51,8 +52,8 @@ private class AtomicToken {
 public final class TimerSource: SourceType, SignalDelegate {
     public typealias SourceValue = Void
 
-    private let queue: dispatch_queue_t
-    private let next: Void->NSDate?
+    private let queue: DispatchQueue
+    private let next: (Void) -> Date?
     private var token = AtomicToken()
     private var signal = OwningSignal<Void, TimerSource>()
 
@@ -64,12 +65,12 @@ public final class TimerSource: SourceType, SignalDelegate {
     ///
     /// Note that the `next` closure will not be called immediately; the source waits for the first connection 
     /// before establishing a timer.
-    public init(queue: dispatch_queue_t = dispatch_get_main_queue(), next: Void->NSDate?) {
+    public init(queue: DispatchQueue = DispatchQueue.main, next: (Void) -> Date?) {
         self.queue = queue
         self.next = next
     }
 
-    public var connecter: Sink<Void> -> Connection {
+    public var connecter: (Sink<Void>) -> Connection {
         return self.signal.with(self).connecter
     }
 
@@ -84,26 +85,26 @@ public final class TimerSource: SourceType, SignalDelegate {
     public func start() {
         // Start a new scheduling chain.
         let frozenToken = token.increment()
-        dispatch_async(queue) {
+        queue.async {
             self.scheduleNext(frozenToken)
         }
     }
 
-    internal func start(signal: Signal<Void>) {
+    internal func start(_ signal: Signal<Void>) {
         self.start()
     }
-    internal func stop(signal: Signal<Void>) {
+    internal func stop(_ signal: Signal<Void>) {
         self.stop()
     }
 
-    private func scheduleNext(frozenToken: Int32) {
+    private func scheduleNext(_ frozenToken: Int32) {
         guard token.equals(frozenToken) else { return }
         if let nextDate = next() {
-            dispatch_after(nextDate, queue) { [weak self] in self?.fireWithToken(frozenToken) }
+            queue.after(walltime: nextDate) { [weak self] in self?.fireWithToken(frozenToken) }
         }
     }
 
-    private func fireWithToken(frozenToken: Int32) {
+    private func fireWithToken(_ frozenToken: Int32) {
         guard token.equals(frozenToken) else { return }
         self.signal.send()
         scheduleNext(frozenToken)
@@ -113,18 +114,18 @@ public final class TimerSource: SourceType, SignalDelegate {
 /// Encapsulates information on a periodic timer and associated logic to determine firing dates.
 /// Tries to prevent timer drift by using walltime-based, absolute firing dates instead of relative ones.
 private struct PeriodicTimerData {
-    private let start: NSDate
-    private let interval: NSTimeInterval
+    private let start: Date
+    private let interval: TimeInterval
 
     private var currentTick: Int {
-        let now = NSDate()
-        let elapsed = max(0, now.timeIntervalSinceDate(start))
+        let now = Date()
+        let elapsed = max(0, now.timeIntervalSince(start))
         let tick = floor(elapsed / interval)
         return Int(tick)
     }
 
-    private var dateOfNextTick: NSDate {
-        return start.dateByAddingTimeInterval(NSTimeInterval(currentTick + 1) * interval)
+    private var dateOfNextTick: Date {
+        return start.addingTimeInterval(TimeInterval(currentTick + 1) * interval)
     }
 }
 
@@ -139,10 +140,10 @@ public extension TimerSource {
     /// @param queue: The queue on which to schedule the timer. The signal will fire on this queue. If unspecified, the main queue is used.
     /// @param start: The time at which the source should fire first, or nil to begin firing `interval` seconds from now.
     /// @param interval: The minimum time period between the beginnings of subsequent firings.
-    public convenience init(queue: dispatch_queue_t = dispatch_get_main_queue(), start: NSDate? = nil, interval: NSTimeInterval) {
+    public convenience init(queue: DispatchQueue = DispatchQueue.main, start: Date? = nil, interval: TimeInterval) {
         assert(interval > 0)
 
-        let data = PeriodicTimerData(start: start ?? NSDate().dateByAddingTimeInterval(interval), interval: interval)
+        let data = PeriodicTimerData(start: start ?? Date().addingTimeInterval(interval), interval: interval)
         self.init(queue: queue, next: { [data] in data.dateOfNextTick })
     }
 }

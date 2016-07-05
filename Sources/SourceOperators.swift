@@ -9,17 +9,17 @@
 import Foundation
 
 extension SourceType {
-    public func sourceOperator<Output>(operation: (SourceValue, Sink<Output>)->Void) -> Source<Output> {
+    public func sourceOperator<Output>(_ operation: (SourceValue, Sink<Output>) -> Void) -> Source<Output> {
         return Source<Output> { sink in self.connect { value in operation(value, sink) } }
     }
 
-    public func map<Output>(transform: SourceValue->Output) -> Source<Output> {
+    public func map<Output>(_ transform: (SourceValue) -> Output) -> Source<Output> {
         return sourceOperator { input, sink in
             sink.receive(transform(input))
         }
     }
 
-    public func filter(predicate: SourceValue->Bool) -> Source<SourceValue> {
+    public func filter(_ predicate: (SourceValue) -> Bool) -> Source<SourceValue> {
         return sourceOperator { input, sink in
             if predicate(input) {
                 sink.receive(input)
@@ -27,7 +27,7 @@ extension SourceType {
         }
     }
 
-    public func flatMap<Output>(transform: SourceValue->Output?) -> Source<Output> {
+    public func flatMap<Output>(_ transform: (SourceValue) -> Output?) -> Source<Output> {
         return sourceOperator { input, sink in
             if let output = transform(input) {
                 sink.receive(output)
@@ -35,7 +35,7 @@ extension SourceType {
         }
     }
 
-    public func flatMap<Output>(transform: SourceValue->[Output]) -> Source<Output> {
+    public func flatMap<Output>(_ transform: (SourceValue) -> [Output]) -> Source<Output> {
         return sourceOperator { input, sink in
             for output in transform(input) {
                 sink.receive(output)
@@ -43,24 +43,24 @@ extension SourceType {
         }
     }
 
-    public func dispatch(queue: dispatch_queue_t) -> Source<SourceValue> {
+    public func dispatch(_ queue: DispatchQueue) -> Source<SourceValue> {
         return sourceOperator { input, sink in
-            dispatch_async(queue, { sink.receive(input) })
+            queue.async(execute: { sink.receive(input) })
         }
     }
 
-    public func dispatch(queue: NSOperationQueue) -> Source<SourceValue> {
+    public func dispatch(_ queue: OperationQueue) -> Source<SourceValue> {
         return sourceOperator { input, sink in
-            if NSOperationQueue.currentQueue() == queue {
+            if OperationQueue.current() == queue {
                 sink.receive(input)
             }
             else {
-                queue.addOperationWithBlock { sink.receive(input) }
+                queue.addOperation { sink.receive(input) }
             }
         }
     }
 
-    public func everyNth(n: Int) -> Source<SourceValue> {
+    public func everyNth(_ n: Int) -> Source<SourceValue> {
         assert(n > 0)
         return Source { sink in
             var count = 0
@@ -76,7 +76,7 @@ extension SourceType {
 }
 
 extension SourceType {
-    public static func latestOf<B: SourceType>(a: Self, _ b: B) -> MergedSource<(SourceValue, B.SourceValue)> {
+    public static func latestOf<B: SourceType>(_ a: Self, _ b: B) -> MergedSource<(SourceValue, B.SourceValue)> {
         typealias A = Self
         typealias Result = (A.SourceValue, B.SourceValue)
         let mutex = Mutex()

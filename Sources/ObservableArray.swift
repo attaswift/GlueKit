@@ -28,17 +28,17 @@ public protocol ChangeType {
 
     /// Applies this change on `value`, returning the new value.
     /// Note that `value` must be the same value as the one this change was created from.
-    func applyOn(value: Value) -> Value
+    func applyOn(_ value: Value) -> Value
 
     /// Merge this change with the `next` change. The result is a single change description that describes the
     /// change of performing `self` followed by `next`.
     ///
     /// The resulting instance may take a shortcut when producing the result value if some information in `self`
     /// is overwritten by `next`.
-    func merge(next: Self) -> Self
+    func merge(_ next: Self) -> Self
 }
 
-//MARK: ObservableCollectionType
+//MARK: ObservableCollection
 
 /// An observable collection type; i.e., a read-only view into an observable collection of elements.
 ///
@@ -48,14 +48,14 @@ public protocol ChangeType {
 /// Note that observable collections do not implement `ObservableType`, but they do provide the `observable` getter to
 /// explicitly convert them to one. This is because observing the value of the entire collection is expensive enough
 /// to make sure you won't do it by accident.
-public protocol ObservableCollectionType: CollectionType {
+public protocol ObservableCollection: Collection {
     /// The collection type underlying this observable collection.
-    associatedtype BaseCollection: CollectionType
+    associatedtype BaseCollection: Collection
     /// The type of this observable collection's change descriptions.
     associatedtype Change: ChangeType
 
-    associatedtype Generator = BaseCollection.Generator
-    func generate() -> BaseCollection.Generator
+    associatedtype Iterator = BaseCollection.Iterator
+    func makeIterator() -> BaseCollection.Iterator
 
     var count: Int { get }
     var observableCount: Observable<Int> { get }
@@ -65,16 +65,81 @@ public protocol ObservableCollectionType: CollectionType {
     var observable: Observable<BaseCollection> { get }
 }
 
-extension ObservableCollectionType {
-    public func generate() -> BaseCollection.Generator {
-        return self.value.generate()
+extension ObservableCollection {
+    public func makeIterator() -> BaseCollection.Iterator {
+        return self.value.makeIterator()
+    }
+}
+
+public protocol ArrayLikeCollection: RandomAccessCollection {
+    associatedtype Index = Int
+    associatedtype IndexDistance = Int
+    associatedtype Indices = CountableRange<Int>
+    
+    func distance(from start: Int, to end: Int) -> Int
+    func index(after i: Int) -> Int
+    func index(before i: Int) -> Int
+    func index(_ i: Int, offsetBy n: Int) -> Int
+    func index(_ i: Int, offsetBy n: Int, limitedBy limit: Int) -> Int?
+    func formIndex(after i: inout Int)
+    func formIndex(before i: inout Int)
+    func formIndex(_ i: inout Int, offsetBy n: Int)
+    func formIndex(_ i: inout Int, offsetBy n: Int, limitedBy limit: Int) -> Bool
+}
+
+extension ArrayLikeCollection where Index == Int, IndexDistance == Int, Indices == CountableRange<Int> {
+    public func distance(from start: Int, to end: Int) -> Int {
+        return end - start
+    }
+
+    public func index(after i: Int) -> Int {
+        return i + 1
+    }
+
+    public func index(before i: Int) -> Int {
+        return i - 1
+    }
+
+    public func index(_ i: Int, offsetBy n: Int) -> Int {
+        return i + n
+    }
+
+    public func index(_ i: Int, offsetBy n: Int, limitedBy limit: Int) -> Int? {
+        let r = i + n
+        if n < 0 {
+            return r > limit ? r : nil
+        }
+        else {
+            return r < limit ? r : nil
+        }
+    }
+
+    public func formIndex(after i: inout Int) {
+        i += 1
+    }
+
+    public func formIndex(before i: inout Int) {
+        i -= 1
+    }
+
+    public func formIndex(_ i: inout Int, offsetBy n: Int) {
+        i += n
+    }
+
+    public func formIndex(_ i: inout Int, offsetBy n: Int, limitedBy limit: Int) -> Bool {
+        if (n >= 0 && i + n > limit) || (n < 0 && i + n < limit) {
+            i = limit
+            return false
+        }
+        i += n
+        return true
     }
 }
 
 
 //MARK: ObservableArrayType
 
-/// An observable array type; i.e., a read-only, array-like `ObservableCollectionType` that provides efficient change
+/// An observable array type; i.e., a read-only, array-like `ObservableCollection` that provides efficient change
 /// notifications.
 ///
 /// Changes to an observable array are broadcast as a sequence of `ArrayChange` values, which describe insertions,
@@ -84,45 +149,36 @@ extension ObservableCollectionType {
 /// For a concrete observable array, see `ArrayVariable`.
 ///
 /// - SeeAlso: ObservableType, ObservableArray, UpdatableArrayType, ArrayVariable
-public protocol ObservableArrayType: ObservableCollectionType { // Sadly there is no ArrayType in the standard library :-(
-    associatedtype BaseCollection = Array<Generator.Element>
-    associatedtype Change = ArrayChange<Generator.Element>
-    associatedtype Index = Int
+public protocol ObservableArrayType: ObservableCollection, ArrayLikeCollection {
+    associatedtype BaseCollection = Array<Iterator>
+    associatedtype Change = ArrayChange<Iterator.Element>
 
     // Required methods
 
     var count: Int { get }
-    func lookup(range: Range<Int>) -> SubSequence
-    var futureChanges: Source<ArrayChange<Generator.Element>> { get }
+    func lookup(_ range: Range<Int>) -> SubSequence
+    var futureChanges: Source<ArrayChange<Iterator.Element>> { get }
 
-    // The following are defined in extensions but may be specialized in implementations:
-
-    var startIndex: Int { get }
-    var endIndex: Int { get }
-
-    subscript(index: Int) -> Generator.Element { get }
-    subscript(bounds: Range<Int>) -> SubSequence { get }
-
-    // From ObservableCollectionType
+    // From ObservableCollection
     var observableCount: Observable<Int> { get }
-    var value: [Generator.Element] { get }
+    var value: [Iterator.Element] { get }
     var observable: Observable<BaseCollection> { get }
 
     // Extras
-    var observableArray: ObservableArray<Generator.Element> { get }
+    var observableArray: ObservableArray<Iterator.Element> { get }
 }
 
 extension ObservableArrayType where
     Index == Int,
-    BaseCollection == Array<Generator.Element>,
-    Change == ArrayChange<Generator.Element>,
-    SubSequence: CollectionType,
-    SubSequence.Generator.Element == Generator.Element {
+    BaseCollection == Array<Iterator.Element>,
+    Change == ArrayChange<Iterator.Element>,
+    SubSequence: Collection,
+    SubSequence.Iterator.Element == Iterator.Element {
 
     public var startIndex: Int { return 0 }
     public var endIndex: Int { return count }
 
-    public subscript(index: Int) -> Generator.Element {
+    public subscript(index: Int) -> Iterator.Element {
         return lookup(index ..< index + 1).first!
     }
     public subscript(bounds: Range<Int>) -> SubSequence {
@@ -130,30 +186,30 @@ extension ObservableArrayType where
     }
 
     public var observableCount: Observable<Int> {
-        let fv: Void -> Source<Int> = { self.futureChanges.map { change in change.initialCount + change.deltaCount } }
+        let fv: (Void) -> Source<Int> = { self.futureChanges.map { change in change.initialCount + change.deltaCount } }
         return Observable(
             getter: { self.count },
             futureValues: fv)
     }
 
-    public var value: [Generator.Element] {
+    public var value: [Iterator.Element] {
         let result = lookup(0 ..< count)
-        return result as? Array<Generator.Element> ?? Array(result)
+        return result as? Array<Iterator.Element> ?? Array(result)
     }
 
-    public var observable: Observable<Array<Generator.Element>> {
-        return Observable<Array<Generator.Element>>(
+    public var observable: Observable<Array<Iterator.Element>> {
+        return Observable<Array<Iterator.Element>>(
             getter: { self.value },
             futureValues: { return ValueSourceForObservableArray(array: self).source })
     }
 
-    public var observableArray: ObservableArray<Generator.Element> {
+    public var observableArray: ObservableArray<Iterator.Element> {
         return ObservableArray(self)
     }
 }
 
-internal class ValueSourceForObservableArray<A: ObservableArrayType where A.Change == ArrayChange<A.Generator.Element>>: SignalDelegate {
-    internal typealias Element = A.Generator.Element
+internal class ValueSourceForObservableArray<A: ObservableArrayType where A.Change == ArrayChange<A.Iterator.Element>>: SignalDelegate {
+    internal typealias Element = A.Iterator.Element
 
     private let array: A
 
@@ -168,7 +224,7 @@ internal class ValueSourceForObservableArray<A: ObservableArrayType where A.Chan
 
     internal var source: Source<[Element]> { return _signal.with(self).source }
 
-    internal func start(signal: Signal<[Element]>) {
+    internal func start(_ signal: Signal<[Element]>) {
         assert(_values.count == 0 && _connection == nil)
         _values = Array(array)
         _connection = array.futureChanges.connect { change in
@@ -176,7 +232,7 @@ internal class ValueSourceForObservableArray<A: ObservableArrayType where A.Chan
             signal.send(self._values)
         }
     }
-    internal func stop(signal: Signal<[Element]>) {
+    internal func stop(_ signal: Signal<[Element]>) {
         _connection?.disconnect()
         _values.removeAll()
     }
@@ -185,28 +241,24 @@ internal class ValueSourceForObservableArray<A: ObservableArrayType where A.Chan
 
 /// Elementwise comparison of two instances of an ObservableArrayType.
 /// This overload allows us to compare ObservableArrayTypes to array literals.
-@warn_unused_result
-public func ==<E: Equatable, A: ObservableArrayType where A.Generator.Element == E>(a: A, b: A) -> Bool {
+public func ==<E: Equatable, A: ObservableArrayType where A.Iterator.Element == E>(a: A, b: A) -> Bool {
     return a.elementsEqual(b, isEquivalent: ==)
 }
 
 /// Elementwise comparison of any two ObservableArrayTypes.
-@warn_unused_result
 public func ==<E: Equatable, A: ObservableArrayType, B: ObservableArrayType
-    where A.Generator.Element == E, B.Generator.Element == E>
+    where A.Iterator.Element == E, B.Iterator.Element == E>
     (a: A, b: B) -> Bool {
         return a.elementsEqual(b, isEquivalent: ==)
 }
 
 /// Elementwise comparison of any ObservableArrayType to an array.
-@warn_unused_result
-public func ==<E: Equatable, A: ObservableArrayType where A.Generator.Element == E>(a: A, b: [E]) -> Bool {
+public func ==<E: Equatable, A: ObservableArrayType where A.Iterator.Element == E>(a: A, b: [E]) -> Bool {
     return a.elementsEqual(b, isEquivalent: ==)
 }
 
 /// Elementwise comparison of an array to any ObservableArrayType.
-@warn_unused_result
-public func ==<E: Equatable, A: ObservableArrayType where A.Generator.Element == E>(a: [E], b: A) -> Bool {
+public func ==<E: Equatable, A: ObservableArrayType where A.Iterator.Element == E>(a: [E], b: A) -> Bool {
     return a.elementsEqual(b, isEquivalent: ==)
 }
 
@@ -226,20 +278,22 @@ public struct ObservableArray<Element>: ObservableArrayType {
     public typealias Change = ArrayChange<Element>
 
     public typealias Index = Int
-    public typealias Generator = Array<Element>.Generator
+    public typealias IndexDistance = Int
+    public typealias Indices = CountableRange<Int>
+    public typealias Iterator = Array<Element>.Iterator
     public typealias SubSequence = Array<Element>
 
-    private let _count: Void->Int
-    private let _lookup: Range<Int> -> Array<Element>
-    private let _futureChanges: Void -> Source<ArrayChange<Element>>
+    private let _count: (Void) -> Int
+    private let _lookup: (Range<Int>) -> Array<Element>
+    private let _futureChanges: (Void) -> Source<ArrayChange<Element>>
 
-    public init(count: Void->Int, lookup: Range<Int>->Array<Element>, futureChanges: Void->Source<ArrayChange<Element>>) {
+    public init(count: (Void) -> Int, lookup: (Range<Int>) -> Array<Element>, futureChanges: (Void) -> Source<ArrayChange<Element>>) {
         _count = count
         _lookup = lookup
         _futureChanges = futureChanges
     }
 
-    public init<A: ObservableArrayType where A.Index == Int, A.Generator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Generator.Element == Element>(_ array: A) {
+    public init<A: ObservableArrayType where A.Index == Int, A.Iterator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Iterator.Element == Element>(_ array: A) {
         _count = { array.count }
         _lookup = { range in
             let result = array.lookup(range)
@@ -249,7 +303,7 @@ public struct ObservableArray<Element>: ObservableArrayType {
     }
 
     public var count: Int { return _count() }
-    public func lookup(range: Range<Int>) -> SubSequence { return _lookup(range) }
+    public func lookup(_ range: Range<Int>) -> SubSequence { return _lookup(range) }
     public var futureChanges: Source<ArrayChange<Element>> { return _futureChanges() }
 
     public var observableArray: ObservableArray<Element> { return self }

@@ -12,12 +12,12 @@ import Foundation
 internal class TransformedObservable<Input: ObservableType, Value>: ObservableType, SignalDelegate {
 
     private let input: Input
-    private let transform: Input.Value -> Value
+    private let transform: (Input.Value) -> Value
 
     private var signal = OwningSignal<Value, TransformedObservable<Input, Value>>()
     private var connection: Connection? = nil
 
-    internal init(input: Input, transform: Input.Value->Value) {
+    internal init(input: Input, transform: (Input.Value) -> Value) {
         self.input = input
         self.transform = transform
     }
@@ -29,14 +29,14 @@ internal class TransformedObservable<Input: ObservableType, Value>: ObservableTy
     internal var value: Value { return transform(input.value) }
     internal var futureValues: Source<Value> { return signal.with(self).source }
 
-    internal func start(signal: Signal<Value>) {
+    internal func start(_ signal: Signal<Value>) {
         assert(connection == nil)
         connection = input.futureValues.connect { value in
             signal.send(self.transform(value))
         }
     }
 
-    internal func stop(signal: Signal<Value>) {
+    internal func stop(_ signal: Signal<Value>) {
         assert(connection != nil)
         connection?.disconnect()
         connection = nil
@@ -45,7 +45,7 @@ internal class TransformedObservable<Input: ObservableType, Value>: ObservableTy
 
 public extension ObservableType {
     /// Returns an observable that calculates `transform` on all current and future values of this observable.
-    public func map<Output>(transform: Value->Output) -> Observable<Output> {
+    public func map<Output>(_ transform: (Value) -> Output) -> Observable<Output> {
         return TransformedObservable(input: self, transform: transform).observable
     }
 }
@@ -60,7 +60,7 @@ internal class DistinctValueSource<Input: ObservableType>: SignalDelegate {
     private var signal = OwningSignal<Value, DistinctValueSource<Input>>()
     private var connection: Connection? = nil
 
-    internal init(input: Input, equalityTest: (Value, Value)->Bool) {
+    internal init(input: Input, equalityTest: (Value, Value) -> Bool) {
         self.input = input
         self.equalityTest = equalityTest
     }
@@ -74,7 +74,7 @@ internal class DistinctValueSource<Input: ObservableType>: SignalDelegate {
 
     private var lastValue: Value? = nil
 
-    internal func start(signal: Signal<Value>) {
+    internal func start(_ signal: Signal<Value>) {
         assert(connection == nil)
         lastValue = input.value
         connection = input.futureValues.connect { value in
@@ -86,7 +86,7 @@ internal class DistinctValueSource<Input: ObservableType>: SignalDelegate {
         }
     }
 
-    internal func stop(signal: Signal<Value>) {
+    internal func stop(_ signal: Signal<Value>) {
         assert(connection != nil)
         connection?.disconnect()
         connection = nil
@@ -95,7 +95,7 @@ internal class DistinctValueSource<Input: ObservableType>: SignalDelegate {
 }
 
 public extension ObservableType {
-    public func distinct(equalityTest: (Value, Value)->Bool) -> Observable<Value> {
+    public func distinct(_ equalityTest: (Value, Value) -> Bool) -> Observable<Value> {
         return Observable(
             getter: { self.value },
             futureValues: { DistinctValueSource(input: self, equalityTest: equalityTest).source })
@@ -109,7 +109,7 @@ public extension ObservableType where Value: Equatable {
 }
 
 public extension UpdatableType {
-    public func distinct(equalityTest: (Value, Value)->Bool) -> Updatable<Value> {
+    public func distinct(_ equalityTest: (Value, Value) -> Bool) -> Updatable<Value> {
         return Updatable(
             getter: { self.value },
             setter: { v in self.value = v },
@@ -122,6 +122,7 @@ public extension UpdatableType where Value: Equatable {
         return distinct(==)
     }
 }
+
 
 /// An Observable that is calculated from two other observables.
 public class BinaryCompositeObservable<Input1: ObservableType, Input2: ObservableType, Value>: ObservableType, SignalDelegate {
@@ -147,7 +148,7 @@ public class BinaryCompositeObservable<Input1: ObservableType, Input2: Observabl
     private var secondValue: Input2.Value? = nil
     private var connections: [Connection] = []
 
-    internal func start(signal: Signal<Value>) {
+    internal func start(_ signal: Signal<Value>) {
         assert(connections.count == 0)
         firstValue = first.value
         secondValue = second.value
@@ -166,7 +167,7 @@ public class BinaryCompositeObservable<Input1: ObservableType, Input2: Observabl
         connections = [c1, c2]
     }
 
-    internal func stop(signal: Signal<Value>) {
+    internal func stop(_ signal: Signal<Value>) {
         connections.forEach { $0.disconnect() }
         firstValue = nil
         secondValue = nil
@@ -174,14 +175,19 @@ public class BinaryCompositeObservable<Input1: ObservableType, Input2: Observabl
     }
 }
 
-/// An Updatable that is calculated from two other observables.
+#if false
+/// An Updatable that is a composite of two other updatables.
 public class BinaryCompositeUpdatable<A: UpdatableType, B: UpdatableType>: BinaryCompositeObservable<A, B, (A.Value, B.Value)>, UpdatableType {
+    public typealias Value = (A.Value, B.Value)
+
     public init(first: A, second: B) {
         super.init(first: first, second: second, combinator: { a, b in (a, b) })
     }
 
-    public override var value: (A.Value, B.Value) {
-        get { return super.value }
+    public override var value: Value {
+        get {
+            return (first.value, second.value)
+        }
         set {
             // Updating a composite updatable is tricky, because updating the components will trigger a synchronous update,
             // which can lead to us broadcasting intermediate states, which can result in infinite feedback loops.
@@ -195,77 +201,82 @@ public class BinaryCompositeUpdatable<A: UpdatableType, B: UpdatableType>: Binar
         }
     }
 }
+#endif
 
 public extension ObservableType {
-    public func combine<Other: ObservableType>(other: Other) -> Observable<(Value, Other.Value)> {
+    public func combine<Other: ObservableType>(_ other: Other) -> Observable<(Value, Other.Value)> {
         return BinaryCompositeObservable(first: self, second: other, combinator: { ($0, $1) }).observable
     }
 
-    public func combine<Other: ObservableType, Output>(other: Other, via combinator: (Value, Other.Value)->Output) -> Observable<Output> {
+    public func combine<Other: ObservableType, Output>(_ other: Other, via combinator: (Value, Other.Value) -> Output) -> Observable<Output> {
         return BinaryCompositeObservable(first: self, second: other, combinator: combinator).observable
     }
 }
 
-public func combine<O1: ObservableType, O2: ObservableType>(o1: O1, _ o2: O2) -> Observable<(O1.Value, O2.Value)> {
+public func combine<O1: ObservableType, O2: ObservableType>(_ o1: O1, _ o2: O2) -> Observable<(O1.Value, O2.Value)> {
     return o1.combine(o2)
 }
 
-public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType>(o1: O1, _ o2: O2, _ o3: O3) -> Observable<(O1.Value, O2.Value, O3.Value)> {
+public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType>(_ o1: O1, _ o2: O2, _ o3: O3) -> Observable<(O1.Value, O2.Value, O3.Value)> {
     return o1.combine(o2).combine(o3, via: { a, b in (a.0, a.1, b) })
 }
 
-public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value)> {
+public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value)> {
 
     return combine(o1, o2, o3).combine(o4, via: { a, b in (a.0, a.1, a.2, b) })
 }
 
-public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType, O5: ObservableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value)> {
+public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType, O5: ObservableType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value)> {
 
     return combine(o1, o2, o3, o4).combine(o5, via: { a, b in (a.0, a.1, a.2, a.3, b) })
 }
 
-public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType, O5: ObservableType, O6: ObservableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5, _ o6: O6) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value, O6.Value)> {
+public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, O4: ObservableType, O5: ObservableType, O6: ObservableType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5, _ o6: O6) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value, O6.Value)> {
 
     return combine(o1, o2, o3, o4, o5).combine(o6, via: { a, b in (a.0, a.1, a.2, a.3, a.4, b) })
 }
 
+#if false
+
 public extension UpdatableType {
-    public func combine<Other: UpdatableType>(other: Other) -> Updatable<(Value, Other.Value)> {
+    public func combine<Other: UpdatableType>(_ other: Other) -> Updatable<(Value, Other.Value)> {
         return BinaryCompositeUpdatable(first: self, second: other).updatable
     }
 }
 
-public func combine<O1: UpdatableType, O2: UpdatableType>(o1: O1, _ o2: O2) -> Updatable<(O1.Value, O2.Value)> {
+public func combine<O1: UpdatableType, O2: UpdatableType>(_ o1: O1, _ o2: O2) -> Updatable<(O1.Value, O2.Value)> {
     return o1.combine(o2)
 }
 
-public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType>(o1: O1, _ o2: O2, _ o3: O3) -> Updatable<(O1.Value, O2.Value, O3.Value)> {
+public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType>(_ o1: O1, _ o2: O2, _ o3: O3) -> Updatable<(O1.Value, O2.Value, O3.Value)> {
     let result = o1.combine(o2).combine(o3)
     return Updatable(
         observable: result.observable.map { a, b in (a.0, a.1, b) },
         setter: { v in result.value = ((v.0, v.1), v.2) })
 }
 
-public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value)> {
+public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value)> {
     let result = combine(o1, o2, o3).combine(o4)
     return Updatable(
         observable: result.observable.map { a, b in (a.0, a.1, a.2, b) },
         setter: { v in result.value = ((v.0, v.1, v.2), v.3) })
 }
 
-public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType, O5: UpdatableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value)> {
+public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType, O5: UpdatableType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value)> {
     let result = combine(o1, o2, o3, o4).combine(o5)
     return Updatable(
         observable: result.observable.map { a, b in (a.0, a.1, a.2, a.3, b) },
         setter: { v in result.value = ((v.0, v.1, v.2, v.3), v.4) })
 }
 
-public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType, O5: UpdatableType, O6: UpdatableType>(o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5, _ o6: O6) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value, O6.Value)> {
+public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType, O5: UpdatableType, O6: UpdatableType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5, _ o6: O6) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value, O6.Value)> {
     let result = combine(o1, o2, o3, o4, o5).combine(o6)
     return Updatable(
         observable: result.observable.map { a, b in (a.0, a.1, a.2, a.3, a.4, b) },
         setter: { v in result.value = ((v.0, v.1, v.2, v.3, v.4), v.5) })
 }
+
+#endif
 
 //MARK: Operations with observables of equatable values
 
@@ -295,11 +306,11 @@ public func >= <Value: Comparable>(a: Observable<Value>, b: Observable<Value>) -
     return a.combine(b, via: >=)
 }
 
-public func min<Value: Comparable>(a: Observable<Value>, _ b: Observable<Value>) -> Observable<Value> {
+public func min<Value: Comparable>(_ a: Observable<Value>, _ b: Observable<Value>) -> Observable<Value> {
     return a.combine(b, via: min)
 }
 
-public func max<Value: Comparable>(a: Observable<Value>, _ b: Observable<Value>) -> Observable<Value> {
+public func max<Value: Comparable>(_ a: Observable<Value>, _ b: Observable<Value>) -> Observable<Value> {
     return a.combine(b, via: max)
 }
 
@@ -319,27 +330,27 @@ public func ||(a: Observable<Bool>, b: Observable<Bool>) -> Observable<Bool> {
 
 //MARK: Operations with observables of integer arithmetic values
 
-public prefix func - <Num: SignedNumberType>(v: Observable<Num>) -> Observable<Num> {
+public prefix func - <Num: SignedNumber>(v: Observable<Num>) -> Observable<Num> {
     return v.map { -$0 }
 }
 
-public func + <Num: IntegerArithmeticType>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
+public func + <Num: IntegerArithmetic>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
     return a.combine(b, via: +)
 }
 
-public func - <Num: IntegerArithmeticType>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
+public func - <Num: IntegerArithmetic>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
     return a.combine(b, via: -)
 }
 
-public func * <Num: IntegerArithmeticType>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
+public func * <Num: IntegerArithmetic>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
     return a.combine(b, via: *)
 }
 
-public func / <Num: IntegerArithmeticType>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
+public func / <Num: IntegerArithmetic>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
     return a.combine(b, via: /)
 }
 
-public func % <Num: IntegerArithmeticType>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
+public func % <Num: IntegerArithmetic>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
     return a.combine(b, via: %)
 }
 
@@ -365,10 +376,6 @@ public func /(a: Observable<Double>, b: Observable<Double>) -> Observable<Double
     return a.combine(b, via: /)
 }
 
-public func %(a: Observable<Double>, b: Observable<Double>) -> Observable<Double> {
-    return a.combine(b, via: %)
-}
-
 //MARK: Operations with CGFloat values
 
 #if USE_COREGRAPHICS
@@ -391,10 +398,6 @@ public func *(a: Observable<CGFloat>, b: Observable<CGFloat>) -> Observable<CGFl
 
 public func /(a: Observable<CGFloat>, b: Observable<CGFloat>) -> Observable<CGFloat> {
     return a.combine(b, via: /)
-}
-
-public func %(a: Observable<CGFloat>, b: Observable<CGFloat>) -> Observable<CGFloat> {
-    return a.combine(b, via: %)
 }
 
 #endif

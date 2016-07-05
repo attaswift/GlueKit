@@ -296,7 +296,9 @@ class ObservableTransformationTests: XCTestCase {
         let b = TestUpdatable()
         let c = TestUpdatable()
 
-        let expression = a.observable % Observable.constant(10) + b.observable * c.observable / (a.observable + Observable.constant(1)) - c.observable
+        let e1 = a.observable % Observable.constant(10)
+        let e2 = b.observable * c.observable / (a.observable + Observable.constant(1))
+        let expression = e1 + e2 - c.observable
 
         var r = [Int]()
         let connection = expression.values.connect { r.append($0) }

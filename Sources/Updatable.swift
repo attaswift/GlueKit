@@ -18,7 +18,7 @@ public protocol UpdatableType: ObservableType, SinkType {
 }
 
 extension UpdatableType {
-    public var receive: Value -> Void {
+    public var receive: (Value) -> Void {
         return { self.value = $0 }
     }
 
@@ -33,13 +33,13 @@ public struct Updatable<Value>: UpdatableType {
     public typealias SinkValue = Value
     
     /// The getter closure for the current value of this updatable.
-    public let getter: Void->Value
+    public let getter: (Void) -> Value
     /// The setter closure for updating the current value of this updatable.
-    public let setter: Value->Void
+    public let setter: (Value) -> Void
     /// A closure returning a source providing the values of future updates to this updatable.
-    private let valueSource: Void->Source<Value>
+    private let valueSource: (Void) -> Source<Value>
 
-    public init(getter: Void->Value, setter: Value->Void, futureValues: Void->Source<Value>) {
+    public init(getter: (Void) -> Value, setter: (Value) -> Void, futureValues: (Void) -> Source<Value>) {
         self.getter = getter
         self.setter = setter
         self.valueSource = futureValues
@@ -59,7 +59,7 @@ public struct Updatable<Value>: UpdatableType {
         return valueSource()
     }
 
-    public var receive: Value -> Void {
+    public var receive: (Value) -> Void {
         return self.setter
     }
 }
@@ -69,8 +69,8 @@ extension UpdatableType {
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, you must provide an equality test that returns true if two values are to be
     /// considered equivalent.
-    @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func bind<Target: UpdatableType where Target.Value == Value>(target: Target, equalityTest: (Value, Value) -> Bool) -> Connection {
+    @warn_unused_result(message: "You probably want to keep the connection alive by retaining it")
+    public func bind<Target: UpdatableType where Target.Value == Value>(_ target: Target, equalityTest: (Value, Value) -> Bool) -> Connection {
         let forward = self.futureValues.connect { value in
             if !equalityTest(value, target.value) {
                 target.value = value
@@ -92,8 +92,8 @@ extension UpdatableType where Value: Equatable {
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, the variables aren't synched when a bound variable is set to a value that is equal
     /// to the value of its counterpart.
-    @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func bind<Target: UpdatableType where Target.Value == Value>(target: Target) -> Connection {
+    @warn_unused_result(message: "You probably want to keep the connection alive by retaining it")
+    public func bind<Target: UpdatableType where Target.Value == Value>(_ target: Target) -> Connection {
         return self.bind(target, equalityTest: ==)
     }
 }

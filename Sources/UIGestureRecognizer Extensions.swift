@@ -18,7 +18,7 @@ extension UIGestureRecognizer: SourceType {
         return result
     }
 
-    public var connecter: Sink<Void> -> Connection {
+    public var connecter: (Sink<Void>) -> Connection {
         return recognizedSource.connecter
     }
 
