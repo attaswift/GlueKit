@@ -125,7 +125,7 @@ public extension UpdatableType where Value: Equatable {
 
 
 /// An Observable that is calculated from two other observables.
-public class BinaryCompositeObservable<Input1: ObservableType, Input2: ObservableType, Value>: ObservableType, SignalDelegate {
+public final class BinaryCompositeObservable<Input1: ObservableType, Input2: ObservableType, Value>: ObservableType, SignalDelegate {
     private let first: Input1
     private let second: Input2
     private let combinator: (Input1.Value, Input2.Value) -> Value
@@ -175,16 +175,28 @@ public class BinaryCompositeObservable<Input1: ObservableType, Input2: Observabl
     }
 }
 
-#if false
 /// An Updatable that is a composite of two other updatables.
-public class BinaryCompositeUpdatable<A: UpdatableType, B: UpdatableType>: BinaryCompositeObservable<A, B, (A.Value, B.Value)>, UpdatableType {
+public final class BinaryCompositeUpdatable<A: UpdatableType, B: UpdatableType>: UpdatableType, SignalDelegate {
+    // Note: This could also be a subclass BinaryCompositeObservable, but the Swift 3 beta compiler crashes on the value override.
+
     public typealias Value = (A.Value, B.Value)
 
+    private let first: A
+    private let second: B
+    private var signal = OwningSignal<Value, BinaryCompositeUpdatable<A, B>>()
+
+    private var firstValue: A.Value? = nil
+    private var secondValue: B.Value? = nil
+    private var connections: [Connection] = []
+
     public init(first: A, second: B) {
-        super.init(first: first, second: second, combinator: { a, b in (a, b) })
+        self.first = first
+        self.second = second
     }
 
-    public override var value: Value {
+    public var futureValues: Source<Value> { return signal.with(self).source }
+
+    public var value: Value {
         get {
             return (first.value, second.value)
         }
@@ -200,8 +212,33 @@ public class BinaryCompositeUpdatable<A: UpdatableType, B: UpdatableType>: Binar
             second.value = newValue.1
         }
     }
+
+    internal func start(_ signal: Signal<Value>) {
+        assert(connections.count == 0)
+        firstValue = first.value
+        secondValue = second.value
+        let c1 = first.futureValues.connect { value in
+            guard let secondValue = self.secondValue else { fatalError() }
+            self.firstValue = value
+            let result = (value, secondValue)
+            signal.send(result)
+        }
+        let c2 = second.futureValues.connect { value in
+            guard let firstValue = self.firstValue else { fatalError() }
+            self.secondValue = value
+            let result = (firstValue, value)
+            signal.send(result)
+        }
+        connections = [c1, c2]
+    }
+
+    internal func stop(_ signal: Signal<Value>) {
+        connections.forEach { $0.disconnect() }
+        firstValue = nil
+        secondValue = nil
+        connections = []
+    }
 }
-#endif
 
 public extension ObservableType {
     public func combine<Other: ObservableType>(_ other: Other) -> Observable<(Value, Other.Value)> {
@@ -235,8 +272,6 @@ public func combine<O1: ObservableType, O2: ObservableType, O3: ObservableType, 
 
     return combine(o1, o2, o3, o4, o5).combine(o6, via: { a, b in (a.0, a.1, a.2, a.3, a.4, b) })
 }
-
-#if false
 
 public extension UpdatableType {
     public func combine<Other: UpdatableType>(_ other: Other) -> Updatable<(Value, Other.Value)> {
@@ -275,8 +310,6 @@ public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4:
         observable: result.observable.map { a, b in (a.0, a.1, a.2, a.3, a.4, b) },
         setter: { v in result.value = ((v.0, v.1, v.2, v.3, v.4), v.5) })
 }
-
-#endif
 
 //MARK: Operations with observables of equatable values
 

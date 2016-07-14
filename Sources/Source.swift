@@ -121,7 +121,6 @@ extension SourceType {
     ///
     /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
     /// alive at least as long as they have an active connection.
-    @warn_unused_result(message: "You probably want to keep the connection alive by retaining it")
     public func connect<S: SinkType where S.SinkValue == SourceValue>(_ sink: S) -> Connection {
         return connecter(sink.sink)
     }
@@ -131,7 +130,6 @@ extension SourceType {
     ///
     /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
     /// alive at least as long as they have an active connection.
-    @warn_unused_result(message: "You probably want to keep the connection alive by retaining it")
     public func connect(_ sink: (SourceValue) -> Void) -> Connection {
         return self.connect(Sink(sink))
     }

@@ -51,7 +51,7 @@ extension SourceType {
 
     public func dispatch(_ queue: OperationQueue) -> Source<SourceValue> {
         return sourceOperator { input, sink in
-            if OperationQueue.current() == queue {
+            if OperationQueue.current == queue {
                 sink.receive(input)
             }
             else {

@@ -69,7 +69,6 @@ extension UpdatableType {
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, you must provide an equality test that returns true if two values are to be
     /// considered equivalent.
-    @warn_unused_result(message: "You probably want to keep the connection alive by retaining it")
     public func bind<Target: UpdatableType where Target.Value == Value>(_ target: Target, equalityTest: (Value, Value) -> Bool) -> Connection {
         let forward = self.futureValues.connect { value in
             if !equalityTest(value, target.value) {
@@ -92,7 +91,6 @@ extension UpdatableType where Value: Equatable {
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, the variables aren't synched when a bound variable is set to a value that is equal
     /// to the value of its counterpart.
-    @warn_unused_result(message: "You probably want to keep the connection alive by retaining it")
     public func bind<Target: UpdatableType where Target.Value == Value>(_ target: Target) -> Connection {
         return self.bind(target, equalityTest: ==)
     }

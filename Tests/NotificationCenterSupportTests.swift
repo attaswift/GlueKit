@@ -8,7 +8,7 @@
 
 import XCTest
 
-private let center = NotificationCenter.default()
+private let center = NotificationCenter.default
 
 private func post(_ value: Int) { post("TestNotification", value) }
 private func post(_ name: String, _ value: Int) {
