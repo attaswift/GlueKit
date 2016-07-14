@@ -44,14 +44,14 @@ private class DisplayLinkTarget: NSObject, SignalDelegate {
 
     private func start(_ signal: Signal<CADisplayLink>) {
         precondition(self.runLoop == nil)
-        let runLoop = RunLoop.current()
+        let runLoop = RunLoop.current
         self.runLoop = runLoop
-        displayLink.value.add(to: runLoop, forMode: RunLoopMode.commonModes.rawValue)
+        displayLink.value.add(to: runLoop, forMode: RunLoopMode.commonModes)
     }
 
     private func stop(_ signal: Signal<CADisplayLink>) {
         precondition(runLoop != nil)
-        displayLink.value.remove(from: runLoop!, forMode: RunLoopMode.commonModes.rawValue)
+        displayLink.value.remove(from: runLoop!, forMode: RunLoopMode.commonModes)
         runLoop = nil
     }
 }

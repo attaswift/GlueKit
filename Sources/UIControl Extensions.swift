@@ -9,19 +9,11 @@
 import UIKit
 
 extension UIControl {
-<<<<<<< Updated upstream
-    public var sourceForPrimaryAction: Source<Void> {
-        return self.sourceForControlEvents(.PrimaryActionTriggered)
-    }
-
-    public func sourceForControlEvents(events: UIControlEvents) -> Source<Void> {
-=======
     public var sourceForPrimaryAction: Source<UIEvent> {
         return self.sourceForControlEvents(.primaryActionTriggered)
     }
 
     public func sourceForControlEvents(_ events: UIControlEvents) -> Source<UIEvent> {
->>>>>>> Stashed changes
         let registry = ControlEventsObserverRegistry.registry(for: self)
         let observer = registry.observer(for: events)
         return observer.source
@@ -64,38 +56,25 @@ internal final class ControlEventsObserverRegistry {
 @objc internal final class ControlEventsObserver: NSObject {
     let registry: ControlEventsObserverRegistry
     let events: UIControlEvents
-    let signal = Signal<Void>()
+    let signal = Signal<UIEvent>()
 
     init(registry: ControlEventsObserverRegistry, events: UIControlEvents) {
         self.registry = registry
         self.events = events
         super.init()
-        registry.control.addTarget(self, action: #selector(eventDidTrigger(_:)), forControlEvents: events)
+        registry.control.addTarget(self, action: #selector(ControlEventsObserver.eventDidTrigger(_:forEvent:)), for: events)
     }
 
     deinit {
-        registry.control.removeTarget(self, action: #selector(eventDidTrigger(_:)), forControlEvents: events)
+        registry.control.removeTarget(self, action: #selector(ControlEventsObserver.eventDidTrigger(_:forEvent:)), for: events)
         registry.removeObserver(for: events)
     }
 
-    var source: Source<Void> {
+    var source: Source<UIEvent> {
         return signal.source
     }
 
-<<<<<<< Updated upstream
-    @objc func eventDidTrigger(sender: AnyObject) {
-        signal.send()
-=======
     @objc func eventDidTrigger(_ sender: AnyObject, forEvent event: UIEvent) {
         signal.send(event)
-    }
-
-    func start(_ signal: Signal<UIEvent>) {
-        registry.control.addTarget(self, action: #selector(eventDidTrigger(_:forEvent:)), for: events)
-    }
-
-    func stop(_ signal: Signal<UIEvent>) {
-        registry.control.removeTarget(self, action: #selector(eventDidTrigger(_:forEvent:)), for: events)
->>>>>>> Stashed changes
     }
 }
