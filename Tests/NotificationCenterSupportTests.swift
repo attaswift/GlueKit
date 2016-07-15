@@ -15,13 +15,15 @@ private func post(_ name: String, _ value: Int) {
     center.post(name: Notification.Name(rawValue: name), object: nil, userInfo: ["Value": value])
 }
 
+let testNotification = NSNotification.Name("TestNotification")
+
 class NotificationCenterSupportTests: XCTestCase {
 
     func testSimpleNotification() {
         var r = [Int]()
 
         post(1)
-        let c = center.sourceForNotification("TestNotification").connect { notification in
+        let c = center.sourceForNotification(testNotification).connect { notification in
             r.append((notification as NSNotification).userInfo!["Value"] as! Int)
         }
 
@@ -39,7 +41,7 @@ class NotificationCenterSupportTests: XCTestCase {
         // The notification center supports reentrancy but it is synchronous, just like KVO - except it doesn't force "latest" values
 
         var s = ""
-        let observer = center.addObserver(forName: "TestNotification" as NSNotification.Name, object: nil, queue: nil) { notification in
+        let observer = center.addObserver(forName: testNotification, object: nil, queue: nil) { notification in
             let value = (notification as NSNotification).userInfo!["Value"] as! Int
             s += " (\(value)"
             if value > 0 {
@@ -57,7 +59,7 @@ class NotificationCenterSupportTests: XCTestCase {
 
     func testReentrancyInGlueKit() {
         var s = ""
-        let c = center.sourceForNotification("TestNotification").connect { notification in
+        let c = center.sourceForNotification(testNotification).connect { notification in
             let value = (notification as NSNotification).userInfo!["Value"] as! Int
             s += " (\(value)"
             if value > 0 {
@@ -93,8 +95,8 @@ class NotificationCenterSupportTests: XCTestCase {
             }
         }
 
-        let observer1 = center.addObserver(forName: "TestNotification" as NSNotification.Name, object: nil, queue: nil, using: block(0))
-        let observer2 = center.addObserver(forName: "TestNotification" as NSNotification.Name, object: nil, queue: nil, using: block(1))
+        let observer1 = center.addObserver(forName: testNotification, object: nil, queue: nil, using: block(0))
+        let observer2 = center.addObserver(forName: testNotification, object: nil, queue: nil, using: block(1))
 
         post(2)
 
@@ -124,7 +126,7 @@ class NotificationCenterSupportTests: XCTestCase {
             }
         }
 
-        let source = center.sourceForNotification("TestNotification")
+        let source = center.sourceForNotification(testNotification)
 
         let c1 = source.connect(block(0))
         let c2 = source.connect(block(1))
