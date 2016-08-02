@@ -84,7 +84,7 @@ internal struct LazySignal<Value> {
     }
 
     internal func sendIfConnected(_ value: @autoclosure (Void) -> Value) {
-        if let s = _signal where s.isConnected {
+        if let s = _signal, s.isConnected {
             s.send(value())
         }
     }
@@ -108,7 +108,7 @@ private enum Ripening<Value> {
     case unripe(Value)
 
     var ripeValue: Value? {
-        if case ripe(let value) = self  {
+        if case .ripe(let value) = self  {
             return value
         }
         else {
@@ -117,8 +117,8 @@ private enum Ripening<Value> {
     }
 
     mutating func ripen() {
-        if case unripe(let value) = self {
-            self = ripe(value)
+        if case .unripe(let value) = self {
+            self = .ripe(value)
         }
     }
 }

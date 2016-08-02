@@ -242,24 +242,24 @@ internal class ValueSourceForObservableArray<A: ObservableArrayType where A.Chan
 /// Elementwise comparison of two instances of an ObservableArrayType.
 /// This overload allows us to compare ObservableArrayTypes to array literals.
 public func ==<E: Equatable, A: ObservableArrayType where A.Iterator.Element == E>(a: A, b: A) -> Bool {
-    return a.elementsEqual(b, isEquivalent: ==)
+    return a.elementsEqual(b, by: ==)
 }
 
 /// Elementwise comparison of any two ObservableArrayTypes.
 public func ==<E: Equatable, A: ObservableArrayType, B: ObservableArrayType
     where A.Iterator.Element == E, B.Iterator.Element == E>
     (a: A, b: B) -> Bool {
-        return a.elementsEqual(b, isEquivalent: ==)
+        return a.elementsEqual(b, by: ==)
 }
 
 /// Elementwise comparison of any ObservableArrayType to an array.
 public func ==<E: Equatable, A: ObservableArrayType where A.Iterator.Element == E>(a: A, b: [E]) -> Bool {
-    return a.elementsEqual(b, isEquivalent: ==)
+    return a.elementsEqual(b, by: ==)
 }
 
 /// Elementwise comparison of an array to any ObservableArrayType.
 public func ==<E: Equatable, A: ObservableArrayType where A.Iterator.Element == E>(a: [E], b: A) -> Bool {
-    return a.elementsEqual(b, isEquivalent: ==)
+    return a.elementsEqual(b, by: ==)
 }
 
 /// An observable array type; i.e., a read-only, array-like `CollectionType` that also provides efficient change

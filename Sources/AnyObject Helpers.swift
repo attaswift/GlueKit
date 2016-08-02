@@ -73,7 +73,7 @@ public extension SourceType where SourceValue == AnyObject? {
     var asCGPoint: Source<CGPoint> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink.receive(v.cgPointValue())
+            sink.receive(v.cgPointValue)
         }
     }
 
@@ -81,7 +81,7 @@ public extension SourceType where SourceValue == AnyObject? {
     var asCGSize: Source<CGSize> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink.receive(v.cgSizeValue())
+            sink.receive(v.cgSizeValue)
         }
     }
 
@@ -89,7 +89,7 @@ public extension SourceType where SourceValue == AnyObject? {
     var asCGRect: Source<CGRect> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink.receive(v.cgRectValue())
+            sink.receive(v.cgRectValue)
         }
     }
 
@@ -97,7 +97,7 @@ public extension SourceType where SourceValue == AnyObject? {
     var asCGAffineTransform: Source<CGAffineTransform> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink.receive(v.cgAffineTransform())
+            sink.receive(v.cgAffineTransformValue)
         }
     }
     #endif
@@ -159,7 +159,7 @@ public extension ObservableType where Value == AnyObject? {
     var asCGPoint: Observable<CGPoint> {
         return self.map {
             let v = $0 as! NSValue
-            return v.cgPointValue()
+            return v.cgPointValue
         }
     }
 
@@ -167,7 +167,7 @@ public extension ObservableType where Value == AnyObject? {
     var asCGSize: Observable<CGSize> {
         return self.map {
             let v = $0 as! NSValue
-            return v.cgSizeValue()
+            return v.cgSizeValue
         }
     }
 
@@ -175,7 +175,7 @@ public extension ObservableType where Value == AnyObject? {
     var asCGRect: Observable<CGRect> {
         return self.map {
             let v = $0 as! NSValue
-            return v.cgRectValue()
+            return v.cgRectValue
         }
     }
 
@@ -183,7 +183,7 @@ public extension ObservableType where Value == AnyObject? {
     var asCGAffineTransform: Observable<CGAffineTransform> {
         return self.map {
             let v = $0 as! NSValue
-            return v.cgAffineTransform()
+            return v.cgAffineTransformValue
         }
     }
     #endif

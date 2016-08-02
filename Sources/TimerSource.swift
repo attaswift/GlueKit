@@ -17,17 +17,17 @@ extension DispatchWallTime {
             tv_sec: __darwin_time_t(secsSinceEpoch),
             tv_nsec: Int((secsSinceEpoch - floor(secsSinceEpoch)) * Double(NSEC_PER_SEC))
         )
-        self.init(time: spec)
+        self.init(timespec: spec)
     }
 }
 
 extension DispatchQueue {
-    func after(when interval: TimeInterval, execute block: @convention(block) () -> Void) {
-        self.after(when: DispatchTime.now() + interval, execute: block)
+    func async(afterDelay interval: TimeInterval, execute block: @convention(block) () -> Void) {
+        self.asyncAfter(deadline: DispatchTime.now() + interval, execute: block)
     }
 
-    func after(walltime date: Date, execute block: @convention(block) () -> Void) {
-        self.after(walltime: DispatchWallTime(date), execute: block)
+    func async(after date: Date, execute block: @convention(block) () -> Void) {
+        self.asyncAfter(wallDeadline: DispatchWallTime(date), execute: block)
     }
 }
 
@@ -100,7 +100,7 @@ public final class TimerSource: SourceType, SignalDelegate {
     private func scheduleNext(_ frozenToken: Int32) {
         guard token.equals(frozenToken) else { return }
         if let nextDate = next() {
-            queue.after(walltime: nextDate) { [weak self] in self?.fireWithToken(frozenToken) }
+            queue.async(after: nextDate) { [weak self] in self?.fireWithToken(frozenToken) }
         }
     }
 

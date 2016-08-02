@@ -230,7 +230,7 @@ class ArrayChangeTests: XCTestCase {
         let m = c1.map { "\($0)" }
         XCTAssertEqual(m.initialCount, c2.initialCount)
         XCTAssertEqual(m.deltaCount, c2.deltaCount)
-        XCTAssert(m.modifications.elementsEqual(c2.modifications, isEquivalent: ==))
+        XCTAssert(m.modifications.elementsEqual(c2.modifications, by: ==))
     }
 }
 
@@ -241,13 +241,13 @@ class ArrayVariableTests: XCTestCase {
         XCTAssertEqual(a0.count, 0)
 
         let a1 = ArrayVariable([1, 2, 3, 4])
-        XCTAssert([1, 2, 3, 4].elementsEqual(a1, isEquivalent: ==))
+        XCTAssert([1, 2, 3, 4].elementsEqual(a1, by: ==))
 
         let a2 = ArrayVariable(elements: 1, 2, 3, 4)
-        XCTAssert([1, 2, 3, 4].elementsEqual(a2, isEquivalent: ==))
+        XCTAssert([1, 2, 3, 4].elementsEqual(a2, by: ==))
 
         let a3: ArrayVariable<Int> = [1, 2, 3, 4] // From array literal
-        XCTAssert([1, 2, 3, 4].elementsEqual(a3, isEquivalent: ==))
+        XCTAssert([1, 2, 3, 4].elementsEqual(a3, by: ==))
     }
 
     func testEquality() {
@@ -306,7 +306,7 @@ class ArrayVariableTests: XCTestCase {
 
         XCTAssertEqual(array[2], 10)
 
-        XCTAssert([1, 2, 10].elementsEqual(array, isEquivalent: ==))
+        XCTAssert([1, 2, 10].elementsEqual(array, by: ==))
     }
 
     func testIndexingWithRanges() {

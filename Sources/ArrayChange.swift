@@ -444,7 +444,7 @@ extension ArrayChange: CustomReflectable {
 
 public func ==<Element: Equatable>(a: ArrayChange<Element>, b: ArrayChange<Element>) -> Bool {
     return (a.initialCount == b.initialCount
-        && a.modifications.elementsEqual(b.modifications, isEquivalent: ==))
+        && a.modifications.elementsEqual(b.modifications, by: ==))
 }
 
 extension RangeReplaceableCollection where Index == Int, IndexDistance == Int {

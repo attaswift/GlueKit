@@ -104,7 +104,7 @@ public class WeakVariable<Object: AnyObject>: Property<WeakStorage<Object>> {
 
 // It would be so much more convenient if Swift allowed me to define these as extensions...
 
-public final class BoolVariable: Variable<Bool>, BooleanLiteralConvertible, Boolean {
+public final class BoolVariable: Variable<Bool>, ExpressibleByBooleanLiteral {
     public override init(_ value: Bool) {
         super.init(value)
     }
@@ -115,7 +115,7 @@ public final class BoolVariable: Variable<Bool>, BooleanLiteralConvertible, Bool
     public var boolValue: Bool { return self.value }
 }
 
-public final class IntVariable: Variable<Int>, IntegerLiteralConvertible {
+public final class IntVariable: Variable<Int>, ExpressibleByIntegerLiteral {
     public override init(_ value: Int) {
         super.init(value)
     }
@@ -124,7 +124,7 @@ public final class IntVariable: Variable<Int>, IntegerLiteralConvertible {
     }
 }
 
-public final class FloatVariable: Variable<Float>, FloatLiteralConvertible {
+public final class FloatVariable: Variable<Float>, ExpressibleByFloatLiteral {
     public override init(_ value: Float) {
         super.init(value)
     }
@@ -133,7 +133,7 @@ public final class FloatVariable: Variable<Float>, FloatLiteralConvertible {
     }
 }
 
-public final class DoubleVariable: Variable<Double>, FloatLiteralConvertible {
+public final class DoubleVariable: Variable<Double>, ExpressibleByFloatLiteral {
     public override init(_ value: Double) {
         super.init(value)
     }
@@ -142,7 +142,7 @@ public final class DoubleVariable: Variable<Double>, FloatLiteralConvertible {
     }
 }
 
-public final class StringVariable: Variable<String>, StringLiteralConvertible {
+public final class StringVariable: Variable<String>, ExpressibleByStringLiteral {
     public override init(_ value: String) {
         super.init(value)
     }
@@ -157,7 +157,7 @@ public final class StringVariable: Variable<String>, StringLiteralConvertible {
     }
 }
 
-public final class OptionalVariable<Wrapped>: Variable<Optional<Wrapped>>, NilLiteralConvertible {
+public final class OptionalVariable<Wrapped>: Variable<Optional<Wrapped>>, ExpressibleByNilLiteral {
     public init(nilLiteral: ()) {
         super.init(nil)
     }

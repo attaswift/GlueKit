@@ -110,7 +110,7 @@ extension ArrayVariable {
     public var updatableArray: UpdatableArray<Element> { return UpdatableArray(self) }
 }
 
-extension ArrayVariable: ArrayLiteralConvertible {
+extension ArrayVariable: ExpressibleByArrayLiteral {
     public convenience init(arrayLiteral elements: Element...) {
         self.init(elements)
     }

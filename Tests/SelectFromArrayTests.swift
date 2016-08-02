@@ -139,7 +139,7 @@ class SelectFromArrayTests: XCTestCase {
 
         expected.append(ArrayChange(initialCount: 5, modification: .insert("1/b2", at: 2)))
 
-        XCTAssertTrue(changes.elementsEqual(expected, isEquivalent: ==))
+        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b", "1/b2", "1/c", "2/a", "2/b"])
 
         // Rename a file in folder 2
@@ -147,7 +147,7 @@ class SelectFromArrayTests: XCTestCase {
 
         expected.append(ArrayChange(initialCount: 6, modification: .replaceAt(4, with: "2/a.renamed")))
 
-        XCTAssertTrue(changes.elementsEqual(expected, isEquivalent: ==))
+        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b", "1/b2", "1/c", "2/a.renamed", "2/b"])
 
         // Delete a file from folder 1
@@ -155,7 +155,7 @@ class SelectFromArrayTests: XCTestCase {
 
         expected.append(ArrayChange(initialCount: 6, modification: .removeAt(1)))
 
-        XCTAssertTrue(changes.elementsEqual(expected, isEquivalent: ==))
+        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "2/a.renamed", "2/b"])
 
         // Add a new subfolder between folders 1 and 2
@@ -166,7 +166,7 @@ class SelectFromArrayTests: XCTestCase {
 
         expected.append(ArrayChange(initialCount: 5, modification: .insert("3/1", at: 3)))
 
-        XCTAssertTrue(changes.elementsEqual(expected, isEquivalent: ==))
+        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1", "2/a.renamed", "2/b"])
 
         // Delete folder 2
@@ -174,29 +174,29 @@ class SelectFromArrayTests: XCTestCase {
 
         expected.append(ArrayChange(initialCount: 6, modification: .replaceRange(4 ..< 6, with: [])))
 
-        XCTAssertTrue(changes.elementsEqual(expected, isEquivalent: ==))
+        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
 
         // Add a file to the root folder. (This should be an unrelated change.)
         root.files.append(File(name: "/a"))
 
-        XCTAssertTrue(changes.elementsEqual(expected, isEquivalent: ==))
+        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
 
         // Rename folder 1. (This should be an unrelated change.)
         folder1.name.value = "Foobar"
 
-        XCTAssertTrue(changes.elementsEqual(expected, isEquivalent: ==))
+        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
 
         c1.disconnect()
 
-        let reducedChanges = changes.reduce(ArrayChange(initialCount: 5), combine: { m, c in m.merge(c) })
+        let reducedChanges = changes.reduce(ArrayChange(initialCount: 5)) { m, c in m.merge(c) }
         let expectedreducedMods: [ArrayModification<String>] = [
             .replaceAt(1, with: "1/b2"),
             .replaceRange(3 ..< 5, with: ["3/1"])
         ]
-        XCTAssertTrue(reducedChanges.modifications.elementsEqual(expectedreducedMods, isEquivalent: ==))
+        XCTAssertTrue(reducedChanges.modifications.elementsEqual(expectedreducedMods, by: ==))
     }
 }
 

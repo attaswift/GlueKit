@@ -85,10 +85,10 @@ public extension NSObject {
 
     override func observeValue(forKeyPath keyPath: String?, of object: AnyObject?, change: [NSKeyValueChangeKey : AnyObject]?, context: UnsafeMutablePointer<Void>?) {
         if context == &observerContext {
-            if let keyPath = keyPath, change = change {
+            if let keyPath = keyPath, let change = change {
                 let newValue = change[NSKeyValueChangeKey.newKey]
                 if let signal = mutex.withLock({ self.signals[keyPath]?.value }) {
-                    if let value = newValue where !(value is NSNull) {
+                    if let value = newValue, !(value is NSNull) {
                         signal.send(value)
                     }
                     else {

@@ -115,7 +115,7 @@ class KVOSupportTests: XCTestCase {
         object.optional = nil
 
         let expected: [String?] = ["Alice", nil, "Bob", nil, nil]
-        XCTAssert(r.elementsEqual(expected, isEquivalent: { $0 == $1 }))
+        XCTAssert(r.elementsEqual(expected, by: { $0 == $1 }))
     }
 
 

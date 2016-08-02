@@ -32,7 +32,7 @@ class TimerSourceTests: XCTestCase {
             sinkSemaphore.signal()
         }
 
-        XCTAssertEqual(timerSemaphore.wait(timeout: DispatchTime.now() + 3.0), .Success, "Timer source should call timer closure when it is first connected")
+        XCTAssertEqual(timerSemaphore.wait(timeout: DispatchTime.now() + 3.0), .success, "Timer source should call timer closure when it is first connected")
 
         XCTAssertEqual(timerTimes.count, 1)
         XCTAssertEqual(sinkTimes, [])
@@ -81,7 +81,7 @@ class TimerSourceTests: XCTestCase {
 
         // Timer should return non-nil, clear triggerDate  and signal the semaphore.
 
-        XCTAssertEqual(.Success, timerSemaphore.wait(timeout: DispatchTime.now() + 3.0))
+        XCTAssertEqual(.success, timerSemaphore.wait(timeout: DispatchTime.now() + 3.0))
 
         XCTAssertEqual(timerTimes.count, 3) // 1: connect, 2: start, 3: after first firing
         XCTAssertEqual(sinkTimes.count, 1) // Should fire only once
@@ -109,7 +109,7 @@ class TimerSourceTests: XCTestCase {
             }
         }
 
-        XCTAssertEqual(.Success, sem.wait(timeout: DispatchTime.now() + 3.0))
+        XCTAssertEqual(.success, sem.wait(timeout: DispatchTime.now() + 3.0))
         connection.disconnect()
 
         let diffs: [TimeInterval] = ticks.enumerated().map { tick, elapsed in

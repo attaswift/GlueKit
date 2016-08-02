@@ -66,14 +66,14 @@ internal class Mutex: Lockable {
     }
 }
 
-extension Lock: Lockable {
+extension NSLock: Lockable {
     internal convenience init(name: String) {
         self.init()
         self.name = name
     }
 }
 
-extension RecursiveLock: Lockable {
+extension NSRecursiveLock: Lockable {
     internal convenience init(name: String) {
         self.init()
         self.name = name
