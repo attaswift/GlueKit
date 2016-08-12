@@ -14,7 +14,7 @@ extension SourceType {
     ///
     /// It is fine to chain multiple merges together: `MergedSource` has its own, specialized `merge` method to 
     /// collapse multiple merges into a single source.
-    public func merge<S: SourceType where S.SourceValue == SourceValue>(_ source: S) -> MergedSource<SourceValue> {
+    public func merged<S: SourceType where S.SourceValue == SourceValue>(with source: S) -> MergedSource<SourceValue> {
         return MergedSource(sources: [self.source, source.source])
     }
 

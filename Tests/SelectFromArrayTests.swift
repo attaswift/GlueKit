@@ -191,7 +191,7 @@ class SelectFromArrayTests: XCTestCase {
 
         c1.disconnect()
 
-        let reducedChanges = changes.reduce(ArrayChange(initialCount: 5)) { m, c in m.merge(c) }
+        let reducedChanges = changes.reduce(ArrayChange(initialCount: 5)) { m, c in m.merged(with: c) }
         let expectedreducedMods: [ArrayModification<String>] = [
             .replaceAt(1, with: "1/b2"),
             .replaceRange(3 ..< 5, with: ["3/1"])

@@ -15,7 +15,7 @@ class MergedSourceTests: XCTestCase {
         let s1 = Signal<Int>()
         let s2 = Signal<Int>()
 
-        let source = s1.merge(s2)
+        let source = s1.merged(with: s2)
 
         var r = [Int]()
         let c = source.connect { r.append($0) }
@@ -54,7 +54,7 @@ class MergedSourceTests: XCTestCase {
         let s1 = Signal<Int>()
         let s2 = Signal<Int>()
 
-        let source = s1.merge(s2)
+        let source = s1.merged(with: s2)
 
         var s = ""
         let c = source.connect { i in
@@ -78,7 +78,7 @@ class MergedSourceTests: XCTestCase {
         let s4 = Signal<Int>()
 
         // This does not chain three merged sources together; it creates a single merged source containing all sources.
-        let merge = s1.merge(s2).merge(s3).merge(s4)
+        let merge = s1.merged(with: s2).merged(with: s3).merged(with: s4)
 
         var r = [Int]()
         let c = merge.connect { i in r.append(i) }

@@ -100,7 +100,7 @@ class ArrayModificationTests: XCTestCase {
         let first = ArrayModification.replaceRange(10..<10, with: ["a", "b", "c"])
 
         let m1 = ArrayModification<String>.replaceRange(10..<13, with: [])
-        XCTAssert(first.merge(m1) == ArrayModificationMergeResult.collapsedToNoChange)
+        XCTAssert(first.merged(with: m1) == ArrayModificationMergeResult.collapsedToNoChange)
     }
 
     func testMergeIntoNonEmpty() {
@@ -108,49 +108,49 @@ class ArrayModificationTests: XCTestCase {
         // final range of first: 10..<13
 
         let m1 = ArrayModification.replaceRange(1..<5, with: ["1", "2"])
-        XCTAssert(first.merge(m1) == ArrayModificationMergeResult.disjunctOrderedBefore)
+        XCTAssert(first.merged(with: m1) == ArrayModificationMergeResult.disjunctOrderedBefore)
 
         let m2 = ArrayModification.replaceRange(5..<10, with: ["1", "2"])
-        XCTAssert(first.merge(m2) == ArrayModificationMergeResult.collapsedTo(.replaceRange(5..<20, with: ["1", "2", "a", "b", "c"])))
+        XCTAssert(first.merged(with: m2) == ArrayModificationMergeResult.collapsedTo(.replaceRange(5..<20, with: ["1", "2", "a", "b", "c"])))
 
         let m3 = ArrayModification.replaceRange(5..<11, with: ["1", "2"])
-        XCTAssert(first.merge(m3) == ArrayModificationMergeResult.collapsedTo(.replaceRange(5..<20, with: ["1", "2", "b", "c"])))
+        XCTAssert(first.merged(with: m3) == ArrayModificationMergeResult.collapsedTo(.replaceRange(5..<20, with: ["1", "2", "b", "c"])))
 
         let m4 = ArrayModification.replaceRange(9..<15, with: ["1", "2"])
-        XCTAssert(first.merge(m4) == ArrayModificationMergeResult.collapsedTo(.replaceRange(9..<22, with: ["1", "2"])))
+        XCTAssert(first.merged(with: m4) == ArrayModificationMergeResult.collapsedTo(.replaceRange(9..<22, with: ["1", "2"])))
 
         let m5 = ArrayModification.replaceRange(10..<10, with: ["1", "2"])
-        XCTAssert(first.merge(m5) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["1", "2", "a", "b", "c"])))
+        XCTAssert(first.merged(with: m5) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["1", "2", "a", "b", "c"])))
 
         let m6 = ArrayModification.replaceRange(10..<11, with: ["1", "2"])
-        XCTAssert(first.merge(m6) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["1", "2", "b", "c"])))
+        XCTAssert(first.merged(with: m6) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["1", "2", "b", "c"])))
 
         let m7 = ArrayModification.replaceRange(10..<13, with: ["1", "2"])
-        XCTAssert(first.merge(m7) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["1", "2"])))
+        XCTAssert(first.merged(with: m7) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["1", "2"])))
 
         let m8 = ArrayModification.replaceRange(10..<14, with: ["1", "2"])
-        XCTAssert(first.merge(m8) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<21, with: ["1", "2"])))
+        XCTAssert(first.merged(with: m8) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<21, with: ["1", "2"])))
 
         let m9 = ArrayModification.replaceRange(11..<12, with: ["1", "2"])
-        XCTAssert(first.merge(m9) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["a", "1", "2", "c"])))
+        XCTAssert(first.merged(with: m9) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["a", "1", "2", "c"])))
 
         let m10 = ArrayModification.replaceRange(11..<15, with: ["1", "2"])
-        XCTAssert(first.merge(m10) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<22, with: ["a", "1", "2"])))
+        XCTAssert(first.merged(with: m10) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<22, with: ["a", "1", "2"])))
 
         let m11 = ArrayModification.replaceRange(11..<20, with: ["1", "2"])
-        XCTAssert(first.merge(m11) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<27, with: ["a", "1", "2"])))
+        XCTAssert(first.merged(with: m11) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<27, with: ["a", "1", "2"])))
 
         let m12 = ArrayModification.replaceRange(13..<13, with: ["1", "2"])
-        XCTAssert(first.merge(m12) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["a", "b", "c", "1", "2"])))
+        XCTAssert(first.merged(with: m12) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<20, with: ["a", "b", "c", "1", "2"])))
 
         let m13 = ArrayModification.replaceRange(13..<14, with: ["1", "2"])
-        XCTAssert(first.merge(m13) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<21, with: ["a", "b", "c", "1", "2"])))
+        XCTAssert(first.merged(with: m13) == ArrayModificationMergeResult.collapsedTo(.replaceRange(10..<21, with: ["a", "b", "c", "1", "2"])))
 
         let m14 = ArrayModification.replaceRange(14..<14, with: ["1", "2"])
-        XCTAssert(first.merge(m14) == ArrayModificationMergeResult.disjunctOrderedAfter)
+        XCTAssert(first.merged(with: m14) == ArrayModificationMergeResult.disjunctOrderedAfter)
 
         let m15 = ArrayModification.replaceRange(25..<31, with: ["1", "2"])
-        XCTAssert(first.merge(m15) == ArrayModificationMergeResult.disjunctOrderedAfter)
+        XCTAssert(first.merged(with: m15) == ArrayModificationMergeResult.disjunctOrderedAfter)
     }
 }
 
@@ -186,7 +186,7 @@ class ArrayChangeTests: XCTestCase {
         }
 
         func recurse(_ level: Int, input: [Int], change: ArrayChange<Int>, output: [Int], trace: [ArrayModification<Int>]) {
-            let applied = change.applyOn(input)
+            let applied = change.apply(on: input)
             if applied != output {
                 XCTAssertEqual(applied, output)
                 printTrace(input, change: change, output: output, trace: trace, applied: applied)
@@ -204,7 +204,7 @@ class ArrayChangeTests: XCTestCase {
                             var nextOutput = output
                             nextOutput.replaceSubrange(startIndex..<endIndex, with: insertion)
                             let mod = ArrayModification.replaceRange(startIndex..<endIndex, with: insertion)
-                            let nextChange = change.merge(ArrayChange(initialCount: output.count, modification: mod))
+                            let nextChange = change.merged(with: ArrayChange(initialCount: output.count, modification: mod))
                             recurse(level + 1, input: input, change: nextChange, output: nextOutput, trace: trace + [mod])
                         }
                     }
@@ -218,14 +218,14 @@ class ArrayChangeTests: XCTestCase {
 
     func testMap() {
         let c1 = ArrayChange<Int>(initialCount: 10, modification: .insert(1, at: 3))
-            .merge(ArrayChange<Int>(initialCount: 11, modification: .replaceAt(1, with: 2)))
-            .merge(ArrayChange<Int>(initialCount: 11, modification: .removeAt(4)))
-            .merge(ArrayChange<Int>(initialCount: 10, modification: .replaceRange(8..<10, with: [5, 6])))
+            .merged(with: ArrayChange<Int>(initialCount: 11, modification: .replaceAt(1, with: 2)))
+            .merged(with: ArrayChange<Int>(initialCount: 11, modification: .removeAt(4)))
+            .merged(with: ArrayChange<Int>(initialCount: 10, modification: .replaceRange(8..<10, with: [5, 6])))
 
         let c2 = ArrayChange<String>(initialCount: 10, modification: .insert("1", at: 3))
-            .merge(ArrayChange<String>(initialCount: 11, modification: .replaceAt(1, with: "2")))
-            .merge(ArrayChange<String>(initialCount: 11, modification: .removeAt(4)))
-            .merge(ArrayChange<String>(initialCount: 10, modification: .replaceRange(8..<10, with: ["5", "6"])))
+            .merged(with: ArrayChange<String>(initialCount: 11, modification: .replaceAt(1, with: "2")))
+            .merged(with: ArrayChange<String>(initialCount: 11, modification: .removeAt(4)))
+            .merged(with: ArrayChange<String>(initialCount: 10, modification: .replaceRange(8..<10, with: ["5", "6"])))
 
         let m = c1.map { "\($0)" }
         XCTAssertEqual(m.initialCount, c2.initialCount)

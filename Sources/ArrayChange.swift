@@ -86,7 +86,7 @@ public enum ArrayModification<Element> {
     }
 
     /// Try to merge `mod` into this modification and return the result.
-    func merge(_ mod: ArrayModification<Element>) -> ArrayModificationMergeResult<Element> {
+    func merged(with mod: ArrayModification<Element>) -> ArrayModificationMergeResult<Element> {
         let range1 = self.range
         let range2 = mod.range
 
@@ -275,7 +275,7 @@ public struct ArrayChange<Element>: ChangeType {
         var m = new
         while pos >= 0 {
             let old = modifications[pos]
-            let res = old.merge(m)
+            let res = old.merged(with: m)
             switch res {
             case .disjunctOrderedAfter:
                 modifications.insert(m, at: pos + 1)
@@ -298,7 +298,7 @@ public struct ArrayChange<Element>: ChangeType {
     }
 
     /// Apply this change on `value`, which must have a count equal to the `initialCount` of this change.
-    public func applyOn(_ value: [Element]) -> [Element] {
+    public func apply(on value: [Element]) -> [Element] {
         precondition(value.count == initialCount)
         var result = value
         result.apply(self)
@@ -316,7 +316,7 @@ public struct ArrayChange<Element>: ChangeType {
 
     /// Returns a new change that contains all changes in this change plus all changes in `other`.
     /// `other.initialCount` must be equal to `self.finalCount`, or the merge will report a fatal error.
-    public func merge(_ other: ArrayChange<Element>) -> ArrayChange<Element> {
+    public func merged(with other: ArrayChange<Element>) -> ArrayChange<Element> {
         var result = self
         result.mergeInPlace(other)
         return result

@@ -28,14 +28,14 @@ public protocol ChangeType {
 
     /// Applies this change on `value`, returning the new value.
     /// Note that `value` must be the same value as the one this change was created from.
-    func applyOn(_ value: Value) -> Value
+    func apply(on value: Value) -> Value
 
     /// Merge this change with the `next` change. The result is a single change description that describes the
     /// change of performing `self` followed by `next`.
     ///
     /// The resulting instance may take a shortcut when producing the result value if some information in `self`
     /// is overwritten by `next`.
-    func merge(_ next: Self) -> Self
+    func merged(with next: Self) -> Self
 }
 
 //MARK: ObservableCollection
