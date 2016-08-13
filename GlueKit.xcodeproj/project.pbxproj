@@ -12,10 +12,26 @@
 		BB4052021C958712003D8F5B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB4052011C958712003D8F5B /* UIKit.framework */; };
 		BB67E5521C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
 		BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
+		BB8990031D5DF2D20097F350 /* SetChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990021D5DF2D20097F350 /* SetChange.swift */; };
 		BB8990051D5DF8630097F350 /* ObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990041D5DF8630097F350 /* ObservableCollection.swift */; };
 		BB8990061D5DF8630097F350 /* ObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990041D5DF8630097F350 /* ObservableCollection.swift */; };
 		BB8990071D5DF8630097F350 /* ObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990041D5DF8630097F350 /* ObservableCollection.swift */; };
 		BB8990081D5DF8630097F350 /* ObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990041D5DF8630097F350 /* ObservableCollection.swift */; };
+		BB89900E1D5F61020097F350 /* SetChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990021D5DF2D20097F350 /* SetChange.swift */; };
+		BB89900F1D5F61020097F350 /* SetChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990021D5DF2D20097F350 /* SetChange.swift */; };
+		BB8990101D5F61030097F350 /* SetChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990021D5DF2D20097F350 /* SetChange.swift */; };
+		BB8990111D5F61080097F350 /* ObservableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990091D5DF88C0097F350 /* ObservableSet.swift */; };
+		BB8990121D5F61090097F350 /* ObservableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990091D5DF88C0097F350 /* ObservableSet.swift */; };
+		BB8990131D5F610A0097F350 /* ObservableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990091D5DF88C0097F350 /* ObservableSet.swift */; };
+		BB8990141D5F610B0097F350 /* ObservableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990091D5DF88C0097F350 /* ObservableSet.swift */; };
+		BB89901B1D5F6AAE0097F350 /* UpdatableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB89901A1D5F6AAE0097F350 /* UpdatableSet.swift */; };
+		BB89901C1D5F6AAE0097F350 /* UpdatableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB89901A1D5F6AAE0097F350 /* UpdatableSet.swift */; };
+		BB89901D1D5F6AAE0097F350 /* UpdatableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB89901A1D5F6AAE0097F350 /* UpdatableSet.swift */; };
+		BB89901E1D5F6AAE0097F350 /* UpdatableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB89901A1D5F6AAE0097F350 /* UpdatableSet.swift */; };
+		BB8990201D5F6F980097F350 /* SetVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB89901F1D5F6F980097F350 /* SetVariable.swift */; };
+		BB8990211D5F6F980097F350 /* SetVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB89901F1D5F6F980097F350 /* SetVariable.swift */; };
+		BB8990221D5F6F980097F350 /* SetVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB89901F1D5F6F980097F350 /* SetVariable.swift */; };
+		BB8990231D5F6F980097F350 /* SetVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB89901F1D5F6F980097F350 /* SetVariable.swift */; };
 		BBAA826D1C91D16600586903 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* Observable.swift */; };
 		BBAA826E1C91D17400586903 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* Updatable.swift */; };
 		BBAA826F1C91D17A00586903 /* Observable Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */; };
@@ -208,7 +224,11 @@
 		BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIBarButtonItem Extensions.swift"; sourceTree = "<group>"; };
 		BB4052011C958712003D8F5B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.3.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CADisplayLink Extensions.swift"; sourceTree = "<group>"; };
+		BB8990021D5DF2D20097F350 /* SetChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetChange.swift; sourceTree = "<group>"; };
 		BB8990041D5DF8630097F350 /* ObservableCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableCollection.swift; sourceTree = "<group>"; };
+		BB8990091D5DF88C0097F350 /* ObservableSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableSet.swift; sourceTree = "<group>"; };
+		BB89901A1D5F6AAE0097F350 /* UpdatableSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdatableSet.swift; sourceTree = "<group>"; };
+		BB89901F1D5F6F980097F350 /* SetVariable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetVariable.swift; sourceTree = "<group>"; };
 		BBAA827C1C91D43700586903 /* AnyObject Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AnyObject Helpers.swift"; sourceTree = "<group>"; };
 		BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice Extensions.swift"; sourceTree = "<group>"; };
 		BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIGestureRecognizer Extensions.swift"; sourceTree = "<group>"; };
@@ -348,6 +368,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BB8990011D5DF2BD0097F350 /* Observable Sets */ = {
+			isa = PBXGroup;
+			children = (
+				BB8990021D5DF2D20097F350 /* SetChange.swift */,
+				BB8990091D5DF88C0097F350 /* ObservableSet.swift */,
+				BB89901A1D5F6AAE0097F350 /* UpdatableSet.swift */,
+				BB89901F1D5F6F980097F350 /* SetVariable.swift */,
+			);
+			name = "Observable Sets";
+			sourceTree = "<group>";
+		};
 		BBB4F2531C9594E0002532CC /* Foundation Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -411,6 +442,7 @@
 				BBB55B931C8FCD010050DDA9 /* Sources and Signals */,
 				BBB55B941C8FCD320050DDA9 /* Observable Values */,
 				BBB55B951C8FCD4E0050DDA9 /* Observable Arrays */,
+				BB8990011D5DF2BD0097F350 /* Observable Sets */,
 				BBB4F2531C9594E0002532CC /* Foundation Extensions */,
 				BBC3C84F1C93164700E10D59 /* UIKit Extensions */,
 			);
@@ -909,6 +941,7 @@
 				BBC2A8291CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BBB55B361C8FCC820050DDA9 /* ArrayChange.swift in Sources */,
 				BB8990051D5DF8630097F350 /* ObservableCollection.swift in Sources */,
+				BB89901B1D5F6AAE0097F350 /* UpdatableSet.swift in Sources */,
 				BBB55B7E1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BBB55B661C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BBB55B721C8FCC820050DDA9 /* Signal.swift in Sources */,
@@ -920,6 +953,7 @@
 				BBB55B4E1C8FCC820050DDA9 /* Locks.swift in Sources */,
 				BBB55B8E1C8FCC820050DDA9 /* Variable.swift in Sources */,
 				BB318F6B1CB992300086EE83 /* UIBarButtonItem Extensions.swift in Sources */,
+				BB8990111D5F61080097F350 /* ObservableSet.swift in Sources */,
 				BBB55B561C8FCC820050DDA9 /* NSNotificationCenter Support.swift in Sources */,
 				BBAA827D1C91D43700586903 /* AnyObject Helpers.swift in Sources */,
 				BBB55B421C8FCC820050DDA9 /* Connector.swift in Sources */,
@@ -927,9 +961,11 @@
 				BBB55B3E1C8FCC820050DDA9 /* Connection.swift in Sources */,
 				BBB55B7A1C8FCC820050DDA9 /* Source.swift in Sources */,
 				BBC3C84E1C93164200E10D59 /* UIControl Extensions.swift in Sources */,
+				BB8990031D5DF2D20097F350 /* SetChange.swift in Sources */,
 				BBB55B6E1C8FCC820050DDA9 /* SelectEach.swift in Sources */,
 				BBB4F26F1C99E6CC002532CC /* UIGestureRecognizer Extensions.swift in Sources */,
 				BBB55B3A1C8FCC820050DDA9 /* ArrayVariable.swift in Sources */,
+				BB8990201D5F6F980097F350 /* SetVariable.swift in Sources */,
 				BBB55B4A1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
 				BB67E5521C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */,
 				BBB4F2521C9594A9002532CC /* UIDevice Extensions.swift in Sources */,
@@ -976,8 +1012,10 @@
 				BB8990061D5DF8630097F350 /* ObservableCollection.swift in Sources */,
 				BBB55B671C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BBAA82711C91D18900586903 /* Select.swift in Sources */,
+				BB89900E1D5F61020097F350 /* SetChange.swift in Sources */,
 				BBB55B731C8FCC820050DDA9 /* Signal.swift in Sources */,
 				BBAA827E1C91D43700586903 /* AnyObject Helpers.swift in Sources */,
+				BB8990211D5F6F980097F350 /* SetVariable.swift in Sources */,
 				BBAA826D1C91D16600586903 /* Observable.swift in Sources */,
 				BBB55B531C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BBAA82701C91D18100586903 /* Variable.swift in Sources */,
@@ -987,8 +1025,10 @@
 				BBAA82721C91D19300586903 /* ArrayChange.swift in Sources */,
 				BBB55B3F1C8FCC820050DDA9 /* Connection.swift in Sources */,
 				BBB55B7B1C8FCC820050DDA9 /* Source.swift in Sources */,
+				BB89901C1D5F6AAE0097F350 /* UpdatableSet.swift in Sources */,
 				BBAA82781C91D24200586903 /* TimerSource.swift in Sources */,
 				BBAA82791C91D24F00586903 /* NSNotificationCenter Support.swift in Sources */,
+				BB8990121D5F61090097F350 /* ObservableSet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1032,8 +1072,10 @@
 				BB8990071D5DF8630097F350 /* ObservableCollection.swift in Sources */,
 				BBB55B541C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BBB55B8C1C8FCC820050DDA9 /* UpdatableArray.swift in Sources */,
+				BB89900F1D5F61020097F350 /* SetChange.swift in Sources */,
 				BBFA2C461CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BBB55B501C8FCC820050DDA9 /* Locks.swift in Sources */,
+				BB8990221D5F6F980097F350 /* SetVariable.swift in Sources */,
 				BBB55B901C8FCC820050DDA9 /* Variable.swift in Sources */,
 				BBB55B581C8FCC820050DDA9 /* NSNotificationCenter Support.swift in Sources */,
 				BBAA827F1C91D43700586903 /* AnyObject Helpers.swift in Sources */,
@@ -1043,8 +1085,10 @@
 				BBB55B7C1C8FCC820050DDA9 /* Source.swift in Sources */,
 				BBB55B701C8FCC820050DDA9 /* SelectEach.swift in Sources */,
 				BBB55B3C1C8FCC820050DDA9 /* ArrayVariable.swift in Sources */,
+				BB89901D1D5F6AAE0097F350 /* UpdatableSet.swift in Sources */,
 				BBB55B4C1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
 				BBC2A82B1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
+				BB8990131D5F610A0097F350 /* ObservableSet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1052,6 +1096,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB8990101D5F61030097F350 /* SetChange.swift in Sources */,
 				BBB55B651C8FCC820050DDA9 /* ObservableArray.swift in Sources */,
 				BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */,
 				BBB55B611C8FCC820050DDA9 /* Observable.swift in Sources */,
@@ -1060,6 +1105,7 @@
 				BBB55B851C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BBB55B791C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
 				BBB55B391C8FCC820050DDA9 /* ArrayChange.swift in Sources */,
+				BB8990141D5F610B0097F350 /* ObservableSet.swift in Sources */,
 				BBB55B811C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BBB55B691C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BBB55B751C8FCC820050DDA9 /* Signal.swift in Sources */,
@@ -1070,9 +1116,11 @@
 				BBB55B511C8FCC820050DDA9 /* Locks.swift in Sources */,
 				BBB55B911C8FCC820050DDA9 /* Variable.swift in Sources */,
 				BBB55B591C8FCC820050DDA9 /* NSNotificationCenter Support.swift in Sources */,
+				BB8990231D5F6F980097F350 /* SetVariable.swift in Sources */,
 				BBAA82801C91D43700586903 /* AnyObject Helpers.swift in Sources */,
 				BBB55B451C8FCC820050DDA9 /* Connector.swift in Sources */,
 				BBB55B891C8FCC820050DDA9 /* Updatable.swift in Sources */,
+				BB89901E1D5F6AAE0097F350 /* UpdatableSet.swift in Sources */,
 				BBB55B411C8FCC820050DDA9 /* Connection.swift in Sources */,
 				BBB55B7D1C8FCC820050DDA9 /* Source.swift in Sources */,
 				BBB55B711C8FCC820050DDA9 /* SelectEach.swift in Sources */,

@@ -60,7 +60,6 @@ internal struct LazySignal<Value> {
     internal typealias SourceValue = Value
 
     private weak var _signal: Signal<Value>? = nil
-    private var connected = false
 
     internal init() {
     }
@@ -76,6 +75,13 @@ internal struct LazySignal<Value> {
                 return s
             }
         }
+    }
+
+    internal var isConnected: Bool {
+        if let s = _signal, s.isConnected {
+            return true
+        }
+        return false
     }
 
     /// Send value to the signal (if it exists).
