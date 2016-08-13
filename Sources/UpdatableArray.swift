@@ -110,7 +110,7 @@ extension UpdatableArrayType where
     public func modify(_ block: @noescape (ArrayVariable<Iterator.Element>) -> Void) -> Void {
         let array = ArrayVariable<Iterator.Element>(self.value)
         var change = ArrayChange<Iterator.Element>(initialCount: array.count)
-        let connection = array.futureChanges.connect { c in change.mergeInPlace(c) }
+        let connection = array.futureChanges.connect { c in change.merge(with: c) }
         block(array)
         connection.disconnect()
         self.apply(change)

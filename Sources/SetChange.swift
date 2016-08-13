@@ -32,6 +32,11 @@ public struct SetChange<Element: Hashable>: ChangeType {
         return inserted.union(value.subtracting(removed))
     }
 
+    public mutating func merge(with next: SetChange) {
+        removed = next.removed.union(removed)
+        inserted = next.inserted.union(inserted.subtracting(next.removed))
+    }
+
     public func merged(with next: SetChange) -> SetChange {
         return SetChange(removed: next.removed.union(removed),
                          inserted: next.inserted.union(inserted.subtracting(next.removed)))

@@ -307,7 +307,7 @@ public struct ArrayChange<Element>: ChangeType {
 
     /// Merge `other` into this change, modifying it in place.
     /// `other.initialCount` must be equal to `self.finalCount`, or the merge will report a fatal error.
-    public mutating func mergeInPlace(_ other: ArrayChange<Element>) {
+    public mutating func merge(with other: ArrayChange<Element>) {
         precondition(initialCount + deltaCount == other.initialCount)
         for m in other.modifications {
             addModification(m)
@@ -318,7 +318,7 @@ public struct ArrayChange<Element>: ChangeType {
     /// `other.initialCount` must be equal to `self.finalCount`, or the merge will report a fatal error.
     public func merged(with other: ArrayChange<Element>) -> ArrayChange<Element> {
         var result = self
-        result.mergeInPlace(other)
+        result.merge(with: other)
         return result
     }
 
