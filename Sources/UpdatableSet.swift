@@ -9,6 +9,7 @@
 import Foundation
 
 public protocol UpdatableSetType: ObservableSetType {
+    var value: Base { get set }
     func apply(_ change: SetChange<Element>)
 
     func remove(_ member: Iterator.Element)
@@ -26,6 +27,17 @@ extension UpdatableSetType {
         if !contains(member) {
             apply(SetChange(removed: [], inserted: [member]))
         }
+    }
+}
+
+extension UpdatableSetType where Base == Set<Element> {
+    public func modify(_ block: (SetVariable<Element>)->Void) {
+        let set = SetVariable<Self.Element>(self.value)
+        var change = SetChange<Self.Element>()
+        let connection = set.futureChanges.connect { c in change.merge(with: c) }
+        block(set)
+        connection.disconnect()
+        self.apply(change)
     }
 }
 
@@ -48,7 +60,10 @@ public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
         _apply = { change in s.apply(change) }
     }
 
-    public var value: Value { return observableSet.value }
+    public var value: Value {
+        get { return observableSet.value }
+        set { _apply(SetChange(removed: value, inserted: newValue)) }
+    }
     public var observableCount: Observable<Int> { return observableSet.observableCount }
     public var observable: Observable<Set<Element>> { return observableSet.observable }
     public var futureChanges: Source<SetChange<Element>> { return observableSet.futureChanges }

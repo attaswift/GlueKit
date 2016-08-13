@@ -11,10 +11,10 @@ import Foundation
 public struct SetChange<Element: Hashable>: ChangeType {
     public typealias Value = Set<Element>
 
-    public private(set) var removed: Set<Element> = []
-    public private(set) var inserted: Set<Element> = []
+    public private(set) var removed: Set<Element>
+    public private(set) var inserted: Set<Element>
 
-    public init(removed: Set<Element>, inserted: Set<Element>) {
+    public init(removed: Set<Element> = [], inserted: Set<Element> = []) {
         self.inserted = inserted
         self.removed = removed
     }

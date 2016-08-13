@@ -10,7 +10,7 @@ import Foundation
 
 /// This protocol defines an immutable set-like type, with only essential methods.
 public protocol SetLikeCollection: Collection, Equatable {
-    associatedtype Element: Equatable
+    associatedtype Element
 
     func contains(_ member: Element) -> Bool
     func isSubset(of other: Self) -> Bool
@@ -25,7 +25,6 @@ public protocol ObservableSetType: ObservableCollection, SetLikeCollection {
 
     associatedtype Element: Hashable
 
-    var value: Base { get }
     var futureChanges: Source<SetChange<Element>> { get }
     var observableSet: ObservableSet<Element> { get }
 }

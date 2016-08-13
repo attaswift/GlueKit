@@ -44,7 +44,15 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
     }
 
     public var value: Value {
-        return _value
+        get {
+            return _value
+        }
+        set {
+            let v = _value
+            _value = newValue
+            _changeSignal.sendIfConnected(SetChange(removed: v, inserted: newValue))
+            _valueSignal.sendIfConnected(_value)
+        }
     }
 
     public var count: Int {
