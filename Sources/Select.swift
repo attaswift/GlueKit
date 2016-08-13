@@ -92,7 +92,7 @@ private final class ValueSelectorForObservableField<Parent: ObservableType, Fiel
 }
 
 /// A source of changes for an ObservableArray field.
-private final class ValueSelectorForArrayField<Parent: ObservableType, Field: ObservableArrayType where Field.Change == ArrayChange<Field.Iterator.Element>, Field.Index == Int, Field.BaseCollection == [Field.Iterator.Element]>: SignalDelegate {
+private final class ValueSelectorForArrayField<Parent: ObservableType, Field: ObservableArrayType where Field.Change == ArrayChange<Field.Iterator.Element>, Field.Index == Int, Field.Base == [Field.Iterator.Element]>: SignalDelegate {
     typealias Element = Field.Iterator.Element
     typealias Change = Field.Change
     typealias SourceValue = Change
@@ -316,14 +316,14 @@ extension ObservableType {
     public func select<Field: ObservableArrayType where
         Field.Change == ArrayChange<Field.Iterator.Element>,
         Field.Index == Int,
-        Field.BaseCollection == [Field.Iterator.Element],
+        Field.Base == [Field.Iterator.Element],
         Field.SubSequence: Sequence,
         Field.SubSequence.Iterator.Element == Field.Iterator.Element>
         (_ key: (Value) -> Field) -> ObservableArray<Field.Iterator.Element> {
         let selector = ValueSelectorForArrayField(parent: self, key: key)
         return ObservableArray<Field.Iterator.Element>(
             count: { selector.count },
-            lookup: { range in Array(selector.field[range]) },
+            lookup: { range in ArraySlice(selector.field[range]) },
             futureChanges: { selector.changeSource }
         )
     }
@@ -331,14 +331,14 @@ extension ObservableType {
     public func select<Field: UpdatableArrayType where
         Field.Change == ArrayChange<Field.Iterator.Element>,
         Field.Index == Int,
-        Field.BaseCollection == [Field.Iterator.Element],
+        Field.Base == [Field.Iterator.Element],
         Field.SubSequence: Sequence,
         Field.SubSequence.Iterator.Element == Field.Iterator.Element>
         (_ key: (Value) -> Field) -> UpdatableArray<Field.Iterator.Element> {
             let selector = ValueSelectorForArrayField(parent: self, key: key)
             return UpdatableArray<Field.Iterator.Element>(
                 count: { selector.count },
-                lookup: { range in Array(selector.field[range]) },
+                lookup: { range in ArraySlice(selector.field[range]) },
                 apply: { change in selector.field.apply(change) },
                 futureChanges: { selector.changeSource }
             )

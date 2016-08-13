@@ -12,6 +12,10 @@
 		BB4052021C958712003D8F5B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB4052011C958712003D8F5B /* UIKit.framework */; };
 		BB67E5521C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
 		BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
+		BB8990051D5DF8630097F350 /* ObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990041D5DF8630097F350 /* ObservableCollection.swift */; };
+		BB8990061D5DF8630097F350 /* ObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990041D5DF8630097F350 /* ObservableCollection.swift */; };
+		BB8990071D5DF8630097F350 /* ObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990041D5DF8630097F350 /* ObservableCollection.swift */; };
+		BB8990081D5DF8630097F350 /* ObservableCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990041D5DF8630097F350 /* ObservableCollection.swift */; };
 		BBAA826D1C91D16600586903 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* Observable.swift */; };
 		BBAA826E1C91D17400586903 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* Updatable.swift */; };
 		BBAA826F1C91D17A00586903 /* Observable Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */; };
@@ -204,6 +208,7 @@
 		BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIBarButtonItem Extensions.swift"; sourceTree = "<group>"; };
 		BB4052011C958712003D8F5B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.3.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CADisplayLink Extensions.swift"; sourceTree = "<group>"; };
+		BB8990041D5DF8630097F350 /* ObservableCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableCollection.swift; sourceTree = "<group>"; };
 		BBAA827C1C91D43700586903 /* AnyObject Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AnyObject Helpers.swift"; sourceTree = "<group>"; };
 		BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice Extensions.swift"; sourceTree = "<group>"; };
 		BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIGestureRecognizer Extensions.swift"; sourceTree = "<group>"; };
@@ -462,6 +467,7 @@
 		BBB55B951C8FCD4E0050DDA9 /* Observable Arrays */ = {
 			isa = PBXGroup;
 			children = (
+				BB8990041D5DF8630097F350 /* ObservableCollection.swift */,
 				BBB55B1F1C8FCC810050DDA9 /* ArrayChange.swift */,
 				BBB55B2A1C8FCC810050DDA9 /* ObservableArray.swift */,
 				BBB55B341C8FCC820050DDA9 /* UpdatableArray.swift */,
@@ -902,6 +908,7 @@
 				BBB55B761C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
 				BBC2A8291CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BBB55B361C8FCC820050DDA9 /* ArrayChange.swift in Sources */,
+				BB8990051D5DF8630097F350 /* ObservableCollection.swift in Sources */,
 				BBB55B7E1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BBB55B661C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BBB55B721C8FCC820050DDA9 /* Signal.swift in Sources */,
@@ -966,6 +973,7 @@
 				BBAA82751C91D1F800586903 /* ArrayVariable.swift in Sources */,
 				BBCBAA9C1CBEB7BD004A1BD5 /* Connector.swift in Sources */,
 				BBAA82761C91D20500586903 /* SelectEach.swift in Sources */,
+				BB8990061D5DF8630097F350 /* ObservableCollection.swift in Sources */,
 				BBB55B671C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BBAA82711C91D18900586903 /* Select.swift in Sources */,
 				BBB55B731C8FCC820050DDA9 /* Signal.swift in Sources */,
@@ -1021,6 +1029,7 @@
 				BBB55B681C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BBB55B741C8FCC820050DDA9 /* Signal.swift in Sources */,
 				BBB55B5C1C8FCC820050DDA9 /* Observable Transformations.swift in Sources */,
+				BB8990071D5DF8630097F350 /* ObservableCollection.swift in Sources */,
 				BBB55B541C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BBB55B8C1C8FCC820050DDA9 /* UpdatableArray.swift in Sources */,
 				BBFA2C461CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
@@ -1046,6 +1055,7 @@
 				BBB55B651C8FCC820050DDA9 /* ObservableArray.swift in Sources */,
 				BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */,
 				BBB55B611C8FCC820050DDA9 /* Observable.swift in Sources */,
+				BB8990081D5DF8630097F350 /* ObservableCollection.swift in Sources */,
 				BBFA2C471CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BBB55B851C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BBB55B791C8FCC820050DDA9 /* SimpleSources.swift in Sources */,

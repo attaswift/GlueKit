@@ -64,7 +64,7 @@ public protocol UpdatableArrayType: ObservableArrayType {
 extension UpdatableArrayType where
     Index == Int,
     Change == ArrayChange<Iterator.Element>,
-    BaseCollection == Array<Iterator.Element>,
+    Base == Array<Iterator.Element>,
     SubSequence: Collection,
     SubSequence.Iterator.Element == Iterator.Element {
 
@@ -99,7 +99,7 @@ extension UpdatableArrayType where
         }
     }
 
-    public var updatable: Updatable<BaseCollection> {
+    public var updatable: Updatable<Base> {
         return Updatable(observable: observable, setter: { v in self.value = v })
     }
 
@@ -181,20 +181,20 @@ extension UpdatableArrayType where
 
 public struct UpdatableArray<Element>: UpdatableArrayType {
     public typealias Value = [Element]
-    public typealias BaseCollection = [Element]
+    public typealias Base = [Element]
     public typealias Change = ArrayChange<Element>
     public typealias ObservableValue = [Element]
 
     public typealias Index = Int
     public typealias Indices = CountableRange<Int>
     public typealias IndexDistance = Int
-    public typealias Iterator = Array<Element>.Iterator
-    public typealias SubSequence = [Element]
+    public typealias Iterator = Base.Iterator
+    public typealias SubSequence = Base.SubSequence
 
     private let _observableArray: ObservableArray<Element>
     private let _apply: (ArrayChange<Element>) -> Void
 
-    public init(count: (Void) -> Int, lookup: (Range<Int>) -> Array<Element>, apply: (ArrayChange<Element>) -> Void, futureChanges: (Void) -> Source<ArrayChange<Element>>) {
+    public init(count: (Void) -> Int, lookup: (Range<Int>) -> ArraySlice<Element>, apply: (ArrayChange<Element>) -> Void, futureChanges: (Void) -> Source<ArrayChange<Element>>) {
         _observableArray = ObservableArray(count: count, lookup: lookup, futureChanges: futureChanges)
         _apply = apply
     }
@@ -205,7 +205,7 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
     }
 
     public var count: Int { return _observableArray.count }
-    public func lookup(_ range: Range<Index>) -> [Element] { return _observableArray.lookup(range) }
+    public func lookup(_ range: Range<Index>) -> ArraySlice<Element> { return _observableArray.lookup(range) }
     public func apply(_ change: ArrayChange<Iterator.Element>) { _apply(change) }
     public var futureChanges: Source<ArrayChange<Element>> { return _observableArray.futureChanges }
 

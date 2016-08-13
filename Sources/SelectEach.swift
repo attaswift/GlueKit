@@ -8,17 +8,17 @@
 
 import Foundation
 
-extension ObservableArrayType where Index == Int, SubSequence: Sequence, SubSequence.Iterator.Element == Iterator.Element {
+extension ObservableArrayType where Index == Int, SubSequence.Iterator.Element == Iterator.Element {
     public func selectCount() -> Observable<Int> {
         return observableCount
     }
 }
 
-extension ObservableArrayType where Index == Int, SubSequence: Sequence, SubSequence.Iterator.Element == Iterator.Element {
+extension ObservableArrayType where Index == Int, SubSequence.Iterator.Element == Iterator.Element {
     public func selectEach<Field: ObservableType>(_ key: (Iterator.Element) -> Field) -> ObservableArray<Field.Value> {
         return ObservableArray<Field.Value>(
             count: { self.count },
-            lookup: { range in self[range].map { key($0).value } },
+            lookup: { range in ArraySlice(self[range].map { key($0).value }) },
             futureChanges: { ArraySelectorForObservableField(parent: self.observableArray, key: key).source })
     }
 }
@@ -160,7 +160,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
         }
     }
 
-    func lookup(_ range: Range<Int>) -> [FieldElement] {
+    func lookup(_ range: Range<Int>) -> ArraySlice<FieldElement> {
         var result: [FieldElement] = []
         result.reserveCapacity(range.count)
         var startIndex: Int = 0
@@ -177,12 +177,12 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
             }
             else if start > end {
                 // This element starts after the lookup range ends. We're done.
-                return result
+                return ArraySlice(result)
             }
 
             startIndex += field.count
         }
-        return result
+        return ArraySlice(result)
     }
 
     var changeSource: Source<Change> { return signal.with(self).source }

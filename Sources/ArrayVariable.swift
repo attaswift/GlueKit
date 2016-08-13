@@ -14,7 +14,7 @@ public final class ArrayVariable<Element>: UpdatableArrayType {
     public typealias Index = Int
     public typealias IndexDistance = Int
     public typealias Indices = CountableRange<Int>
-    public typealias BaseCollection = Array<Element>
+    public typealias Base = Array<Element>
     public typealias Change = ArrayChange<Element>
     public typealias Iterator = Array<Element>.Iterator
     public typealias SubSequence = Array<Element>.SubSequence
