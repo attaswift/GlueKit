@@ -24,14 +24,16 @@ public struct SetChange<Element: Hashable>: ChangeType {
         self.inserted = newValue.subtracting(oldValue)
     }
 
-    public var isEmpty: Bool { return inserted.isEmpty && removed.isEmpty }
+    public var isEmpty: Bool {
+        return inserted.isEmpty && removed.isEmpty
+    }
 
     public func apply(on value: Value) -> Value {
         return inserted.union(value.subtracting(removed))
     }
 
     public func merged(with next: SetChange) -> SetChange {
-        return SetChange(removed: next.removed.union(removed.subtracting(next.inserted)),
+        return SetChange(removed: next.removed.union(removed),
                          inserted: next.inserted.union(inserted.subtracting(next.removed)))
     }
 }
