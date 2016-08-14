@@ -32,15 +32,22 @@ extension DispatchQueue {
 }
 
 private class AtomicToken {
-    private var token: Int32 = 0
+    // TODO: This should use atomics, which are currently (Xcode 8 beta 5) unavailable in Swift
+    private let lock = NSLock()
+    private var token: Int = 0
 
     @discardableResult
-    func increment() -> Int32 {
-        return OSAtomicIncrement32Barrier(&token)
+    func increment() -> Int {
+        return lock.withLock {
+            token += 1
+            return token
+        }
     }
 
-    func equals(_ value: Int32) -> Bool {
-        return OSAtomicCompareAndSwap32Barrier(value, value, &token)
+    func equals(_ value: Int) -> Bool {
+        return lock.withLock {
+            return token == value
+        }
     }
 }
 
@@ -97,14 +104,14 @@ public final class TimerSource: SourceType, SignalDelegate {
         self.stop()
     }
 
-    private func scheduleNext(_ frozenToken: Int32) {
+    private func scheduleNext(_ frozenToken: Int) {
         guard token.equals(frozenToken) else { return }
         if let nextDate = next() {
             queue.async(after: nextDate) { [weak self] in self?.fireWithToken(frozenToken) }
         }
     }
 
-    private func fireWithToken(_ frozenToken: Int32) {
+    private func fireWithToken(_ frozenToken: Int) {
         guard token.equals(frozenToken) else { return }
         self.signal.send()
         scheduleNext(frozenToken)
