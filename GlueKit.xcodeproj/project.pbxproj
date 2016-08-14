@@ -835,7 +835,7 @@
 					BBB55AD31C8F88F20050DDA9 = {
 						CreatedOnToolsVersion = 7.3;
 						LastSwiftMigration = 0800;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 					BBB55ADC1C8F88F20050DDA9 = {
 						CreatedOnToolsVersion = 7.3;
