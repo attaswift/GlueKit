@@ -11,7 +11,7 @@ import Foundation
 public protocol SignalType: SourceType, SinkType /* where SourceType.SourceValue == SinkType.SinkValue */ {
     associatedtype SinkValue = SourceValue
 
-    func connect<S: SinkType where S.SinkValue == SourceValue>(_ sink: S) -> Connection
+    func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == SourceValue
     var receive: (SourceValue) -> Void { get }
 }
 
@@ -28,7 +28,7 @@ internal protocol SignalDelegate: class {
 /// - Dependants hold strong references to their dependencies
 /// - Dependants only activate their dependencies while someone is interested in them
 ///
-internal struct OwningSignal<Value, Delegate: SignalDelegate where Delegate.SignalValue == Value> {
+internal struct OwningSignal<Value, Delegate: SignalDelegate> where Delegate.SignalValue == Value {
     internal typealias SourceValue = Value
 
     private weak var signal: Signal<Value>? = nil
@@ -103,7 +103,7 @@ internal struct LazySignal<Value> {
         mutating get { return self.signal.source }
     }
 
-    internal mutating func connect<S: SinkType where S.SinkValue == Value>(_ sink: S) -> Connection {
+    internal mutating func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == Value {
         return signal.connect(sink)
     }
 }
@@ -189,24 +189,24 @@ public final class Signal<Value>: SignalType {
     ///     single connection. (Executed on the thread that connects the first sink.)
     /// @param stop: A closure that is run whenever this signal transitions from having at least one connection to
     ///     having no connections. (Executed on the thread that disconnects the last sink.)
-    internal init(start: (Signal<Value>) -> Void, stop: (Signal<Value>) -> Void) {
+    internal init(start: @escaping (Signal<Value>) -> Void, stop: @escaping (Signal<Value>) -> Void) {
         self.startCallback = start
         self.stopCallback = stop
     }
 
-    internal convenience init(delegateCallback: (signal: Signal<Value>, started: Bool) -> Void) {
+    internal convenience init(delegateCallback: @escaping (_ signal: Signal<Value>, _ started: Bool) -> Void) {
         self.init(
-            start: { s in delegateCallback(signal: s, started: true) },
-            stop: { s in delegateCallback(signal: s, started: false) })
+            start: { s in delegateCallback(s, true) },
+            stop: { s in delegateCallback(s, false) })
     }
 
-    internal convenience init<Delegate: SignalDelegate where Delegate.SignalValue == Value>(delegate: Delegate) {
+    internal convenience init<Delegate: SignalDelegate>(delegate: Delegate) where Delegate.SignalValue == Value {
         self.init(
             start: { [weak delegate] s in delegate?.start(s) },
             stop: { [weak delegate] s in delegate?.stop(s) })
     }
 
-    internal convenience init<Delegate: SignalDelegate where Delegate.SignalValue == Value>(stronglyHeldDelegate delegate: Delegate) {
+    internal convenience init<Delegate: SignalDelegate>(stronglyHeldDelegate delegate: Delegate) where Delegate.SignalValue == Value {
         self.init(
             start: { s in delegate.start(s) },
             stop: { s in delegate.stop(s) })

@@ -19,9 +19,9 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
     public typealias Indices = Base.Indices
     public typealias SubSequence = Base.SubSequence
 
-    private var _value: Base
-    private var _changeSignal = LazySignal<Change>()
-    private var _valueSignal = LazySignal<Value>()
+    fileprivate var _value: Base
+    fileprivate var _changeSignal = LazySignal<Change>()
+    fileprivate var _valueSignal = LazySignal<Value>()
 
     public init() {
         _value = []

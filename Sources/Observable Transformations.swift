@@ -17,7 +17,7 @@ internal class TransformedObservable<Input: ObservableType, Value>: ObservableTy
     private var signal = OwningSignal<Value, TransformedObservable<Input, Value>>()
     private var connection: Connection? = nil
 
-    internal init(input: Input, transform: (Input.Value) -> Value) {
+    internal init(input: Input, transform: @escaping (Input.Value) -> Value) {
         self.input = input
         self.transform = transform
     }
@@ -45,7 +45,7 @@ internal class TransformedObservable<Input: ObservableType, Value>: ObservableTy
 
 public extension ObservableType {
     /// Returns an observable that calculates `transform` on all current and future values of this observable.
-    public func map<Output>(_ transform: (Value) -> Output) -> Observable<Output> {
+    public func map<Output>(_ transform: @escaping (Value) -> Output) -> Observable<Output> {
         return TransformedObservable(input: self, transform: transform).observable
     }
 }
@@ -60,7 +60,7 @@ internal class DistinctValueSource<Input: ObservableType>: SignalDelegate {
     private var signal = OwningSignal<Value, DistinctValueSource<Input>>()
     private var connection: Connection? = nil
 
-    internal init(input: Input, equalityTest: (Value, Value) -> Bool) {
+    internal init(input: Input, equalityTest: @escaping (Value, Value) -> Bool) {
         self.input = input
         self.equalityTest = equalityTest
     }
@@ -95,7 +95,7 @@ internal class DistinctValueSource<Input: ObservableType>: SignalDelegate {
 }
 
 public extension ObservableType {
-    public func distinct(_ equalityTest: (Value, Value) -> Bool) -> Observable<Value> {
+    public func distinct(_ equalityTest: @escaping (Value, Value) -> Bool) -> Observable<Value> {
         return Observable(
             getter: { self.value },
             futureValues: { DistinctValueSource(input: self, equalityTest: equalityTest).source })
@@ -109,7 +109,7 @@ public extension ObservableType where Value: Equatable {
 }
 
 public extension UpdatableType {
-    public func distinct(_ equalityTest: (Value, Value) -> Bool) -> Updatable<Value> {
+    public func distinct(_ equalityTest: @escaping (Value, Value) -> Bool) -> Updatable<Value> {
         return Updatable(
             getter: { self.value },
             setter: { v in self.value = v },
@@ -131,7 +131,7 @@ public final class BinaryCompositeObservable<Input1: ObservableType, Input2: Obs
     private let combinator: (Input1.Value, Input2.Value) -> Value
     private var signal = OwningSignal<Value, BinaryCompositeObservable<Input1, Input2, Value>>()
 
-    public init(first: Input1, second: Input2, combinator: (Input1.Value, Input2.Value) -> Value) {
+    public init(first: Input1, second: Input2, combinator: @escaping (Input1.Value, Input2.Value) -> Value) {
         self.first = first
         self.second = second
         self.combinator = combinator
@@ -245,7 +245,7 @@ public extension ObservableType {
         return BinaryCompositeObservable(first: self, second: other, combinator: { ($0, $1) }).observable
     }
 
-    public func combine<Other: ObservableType, Output>(_ other: Other, via combinator: (Value, Other.Value) -> Output) -> Observable<Output> {
+    public func combine<Other: ObservableType, Output>(_ other: Other, via combinator: @escaping (Value, Other.Value) -> Output) -> Observable<Output> {
         return BinaryCompositeObservable(first: self, second: other, combinator: combinator).observable
     }
 }

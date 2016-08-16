@@ -20,7 +20,7 @@ public class Connector {
     }
 
 
-    private func add(_ connection: Connection) {
+    fileprivate func add(_ connection: Connection) {
         let id = connection.connectionID
         assert(connections[id] == nil)
         connections[id] = connection
@@ -36,30 +36,30 @@ public class Connector {
     }
 
     @discardableResult
-    public func connect<Source: SourceType>(_ source: Source, to sink: (Source.SourceValue) -> Void) -> Connection {
+    public func connect<Source: SourceType>(_ source: Source, to sink: @escaping (Source.SourceValue) -> Void) -> Connection {
         return source.connect(sink).putInto(self)
     }
 
     @discardableResult
-    public func connect<Source: SourceType, Target: SinkType where Source.SourceValue == Target.SinkValue>(_ source: Source, to sink: Target) -> Connection {
+    public func connect<Source: SourceType, Target: SinkType>(_ source: Source, to sink: Target) -> Connection where Source.SourceValue == Target.SinkValue {
         return source.connect(sink).putInto(self)
     }
 
     @discardableResult
-    public func connect<Source: ObservableType>(_ source: Source, to sink: (Source.Value) -> Void) -> Connection {
+    public func connect<Source: ObservableType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
         return source.values.connect(sink).putInto(self)
     }
 
     @discardableResult
-    public func connect<Source: ObservableType, Target: SinkType where Source.Value == Target.SinkValue>(_ source: Source, to sink: Target) -> Connection {
+    public func connect<Source: ObservableType, Target: SinkType>(_ source: Source, to sink: Target) -> Connection where Source.Value == Target.SinkValue {
         return source.values.connect(sink).putInto(self)
     }
 
-    public func bind<Source: UpdatableType, Target: UpdatableType where Source.Value == Target.Value>(_ source: Source, to target: Target, withEqualityTest equalityTest: (Source.Value, Source.Value) -> Bool) {
+    public func bind<Source: UpdatableType, Target: UpdatableType>(_ source: Source, to target: Target, withEqualityTest equalityTest: @escaping (Source.Value, Source.Value) -> Bool) where Source.Value == Target.Value {
         source.bind(target, equalityTest: equalityTest).putInto(self)
     }
 
-    public func bind<Value: Equatable, Source: UpdatableType, Target: UpdatableType where Source.Value == Value, Target.Value == Value>(_ source: Source, to target: Target) {
+    public func bind<Value: Equatable, Source: UpdatableType, Target: UpdatableType>(_ source: Source, to target: Target) where Source.Value == Value, Target.Value == Value {
         source.bind(target).putInto(self)
     }
 }

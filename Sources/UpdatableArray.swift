@@ -38,14 +38,14 @@ public protocol UpdatableArrayType: ObservableArrayType {
 
     var updatableArray: UpdatableArray<Iterator.Element> { get }
 
-    func modify(_ block: @noescape (ArrayVariable<Iterator.Element>) -> Void) -> Void
+    func modify(_ block: (ArrayVariable<Iterator.Element>) -> Void) -> Void
 
     // RangeReplaceableCollectionType
-    func replaceSubrange<C: Collection where C.Iterator.Element == Iterator.Element>(_ range: Range<Index>, with elements: C)
+    func replaceSubrange<C: Collection>(_ range: Range<Index>, with elements: C) where C.Iterator.Element == Iterator.Element
     func append(_ newElement: Self.Iterator.Element)
-    func append<C: Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C)
+    func append<C: Collection>(contentsOf newElements: C) where C.Iterator.Element == Iterator.Element
     func insert(_ newElement: Self.Iterator.Element, atIndex i: Self.Index)
-    func insert<C: Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C, at i: Self.Index)
+    func insert<C: Collection>(contentsOf newElements: C, at i: Self.Index) where C.Iterator.Element == Iterator.Element
 
     @discardableResult
     func remove(at index: Self.Index) -> Self.Iterator.Element
@@ -107,7 +107,7 @@ extension UpdatableArrayType where
         return UpdatableArray(self)
     }
 
-    public func modify(_ block: @noescape (ArrayVariable<Iterator.Element>) -> Void) -> Void {
+    public func modify(_ block: (ArrayVariable<Iterator.Element>) -> Void) -> Void {
         let array = ArrayVariable<Iterator.Element>(self.value)
         var change = ArrayChange<Iterator.Element>(initialCount: array.count)
         let connection = array.futureChanges.connect { c in change.merge(with: c) }
@@ -117,7 +117,7 @@ extension UpdatableArrayType where
     }
 
 
-    public func replaceSubrange<C: Collection where C.Iterator.Element == Iterator.Element>(_ range: Range<Index>, with elements: C) {
+    public func replaceSubrange<C: Collection>(_ range: Range<Index>, with elements: C) where C.Iterator.Element == Iterator.Element {
         let elements = elements as? Array<Iterator.Element> ?? Array(elements)
         apply(ArrayChange(initialCount: self.count, modification: .replaceRange(range.lowerBound ..< range.upperBound, with: elements)))
     }
@@ -127,7 +127,7 @@ extension UpdatableArrayType where
         replaceSubrange(c ..< c, with: CollectionOfOne(newElement))
     }
 
-    public func append<C : Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C) {
+    public func append<C : Collection>(contentsOf newElements: C) where C.Iterator.Element == Iterator.Element {
         let c = count
         replaceSubrange(c ..< c, with: newElements)
     }
@@ -137,7 +137,7 @@ extension UpdatableArrayType where
         apply(change)
     }
 
-    public func insert<C : Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C, at i: Index) {
+    public func insert<C : Collection>(contentsOf newElements: C, at i: Index) where C.Iterator.Element == Iterator.Element {
         replaceSubrange(i ..< i, with: newElements)
     }
 
@@ -194,12 +194,12 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
     private let _observableArray: ObservableArray<Element>
     private let _apply: (ArrayChange<Element>) -> Void
 
-    public init(count: (Void) -> Int, lookup: (Range<Int>) -> ArraySlice<Element>, apply: (ArrayChange<Element>) -> Void, futureChanges: (Void) -> Source<ArrayChange<Element>>) {
+    public init(count: @escaping (Void) -> Int, lookup: @escaping (Range<Int>) -> ArraySlice<Element>, apply: @escaping (ArrayChange<Element>) -> Void, futureChanges: @escaping (Void) -> Source<ArrayChange<Element>>) {
         _observableArray = ObservableArray(count: count, lookup: lookup, futureChanges: futureChanges)
         _apply = apply
     }
 
-    public init<A: UpdatableArrayType where A.Index == Int, A.Iterator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Iterator.Element == Element>(_ array: A) {
+    public init<A: UpdatableArrayType>(_ array: A) where A.Index == Int, A.Iterator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Iterator.Element == Element {
         _observableArray = ObservableArray(array)
         _apply = { change in array.apply(change) }
     }

@@ -60,7 +60,7 @@ public struct ObservableSet<Element: Hashable>: ObservableSetType {
 
     private let _value: () -> Set<Element>
     private let _futureChanges: () -> Source<Change>
-    public init(value: () -> Set<Element>, futureChanges: () -> Source<Change>) {
+    public init(value: @escaping () -> Set<Element>, futureChanges: @escaping () -> Source<Change>) {
         _value = value
         _futureChanges = futureChanges
     }

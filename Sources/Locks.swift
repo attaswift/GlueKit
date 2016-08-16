@@ -12,11 +12,11 @@ internal protocol Lockable {
     func lock()
     func unlock()
     func tryLock() -> Bool
-    func withLock<Result>(_ block: @noescape (Void) -> Result) -> Result
+    func withLock<Result>(_ block: (Void) -> Result) -> Result
 }
 
 extension Lockable {
-    func withLock<Result>(_ block: @noescape (Void) -> Result) -> Result {
+    func withLock<Result>(_ block: (Void) -> Result) -> Result {
         lock()
         defer { unlock() }
         return block()

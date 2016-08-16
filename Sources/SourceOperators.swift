@@ -9,17 +9,17 @@
 import Foundation
 
 extension SourceType {
-    public func sourceOperator<Output>(_ operation: (SourceValue, Sink<Output>) -> Void) -> Source<Output> {
+    public func sourceOperator<Output>(_ operation: @escaping (SourceValue, Sink<Output>) -> Void) -> Source<Output> {
         return Source<Output> { sink in self.connect { value in operation(value, sink) } }
     }
 
-    public func map<Output>(_ transform: (SourceValue) -> Output) -> Source<Output> {
+    public func map<Output>(_ transform: @escaping (SourceValue) -> Output) -> Source<Output> {
         return sourceOperator { input, sink in
             sink.receive(transform(input))
         }
     }
 
-    public func filter(_ predicate: (SourceValue) -> Bool) -> Source<SourceValue> {
+    public func filter(_ predicate: @escaping (SourceValue) -> Bool) -> Source<SourceValue> {
         return sourceOperator { input, sink in
             if predicate(input) {
                 sink.receive(input)
@@ -27,7 +27,7 @@ extension SourceType {
         }
     }
 
-    public func flatMap<Output>(_ transform: (SourceValue) -> Output?) -> Source<Output> {
+    public func flatMap<Output>(_ transform: @escaping (SourceValue) -> Output?) -> Source<Output> {
         return sourceOperator { input, sink in
             if let output = transform(input) {
                 sink.receive(output)
@@ -35,7 +35,7 @@ extension SourceType {
         }
     }
 
-    public func flatMap<Output>(_ transform: (SourceValue) -> [Output]) -> Source<Output> {
+    public func flatMap<Output>(_ transform: @escaping (SourceValue) -> [Output]) -> Source<Output> {
         return sourceOperator { input, sink in
             for output in transform(input) {
                 sink.receive(output)

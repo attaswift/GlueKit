@@ -21,7 +21,7 @@ private final class ValueSelectorForSourceField<Parent: ObservableType, Field: S
 
     var source: Source<Value> { return signal.with(self).source }
 
-    init(parent: Parent, key: (Parent.Value) -> Field) {
+    init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
@@ -61,7 +61,7 @@ private final class ValueSelectorForObservableField<Parent: ObservableType, Fiel
 
     var source: Source<Value> { return signal.with(self).source }
 
-    init(parent: Parent, key: (Parent.Value) -> Field) {
+    init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
@@ -92,7 +92,8 @@ private final class ValueSelectorForObservableField<Parent: ObservableType, Fiel
 }
 
 /// A source of changes for an ObservableArray field.
-private final class ValueSelectorForArrayField<Parent: ObservableType, Field: ObservableArrayType where Field.Change == ArrayChange<Field.Iterator.Element>, Field.Index == Int, Field.Base == [Field.Iterator.Element]>: SignalDelegate {
+private final class ValueSelectorForArrayField<Parent: ObservableType, Field: ObservableArrayType>: SignalDelegate
+where Field.Change == ArrayChange<Field.Iterator.Element>, Field.Index == Int, Field.Base == [Field.Iterator.Element] {
     typealias Element = Field.Iterator.Element
     typealias Change = Field.Change
     typealias SourceValue = Change
@@ -124,7 +125,7 @@ private final class ValueSelectorForArrayField<Parent: ObservableType, Field: Ob
         }
     }
 
-    init(parent: Parent, key: (Parent.Value) -> Field) {
+    init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
@@ -193,7 +194,7 @@ extension ObservableType {
     /// Sinks connected to `source` will fire whenever the current room changes and whenever a new
     /// message is posted in the current room.
     ///
-    public func select<S: SourceType>(_ key: (Value) -> S) -> Source<S.SourceValue> {
+    public func select<S: SourceType>(_ key: @escaping (Value) -> S) -> Source<S.SourceValue> {
         return ValueSelectorForSourceField(parent: self, key: key).source
     }
 
@@ -231,7 +232,7 @@ extension ObservableType {
     /// message is posted in the current room. The observable can also be used to simply retrieve the latest 
     /// message at any time.
     ///
-    public func select<O: ObservableType>(_ key: (Value) -> O) -> Observable<O.Value> {
+    public func select<O: ObservableType>(_ key: @escaping (Value) -> O) -> Observable<O.Value> {
             return Observable<O.Value>(
                 getter: { key(self.value).value },
                 futureValues: { ValueSelectorForObservableField(parent: self, key: key).source })
@@ -272,7 +273,7 @@ extension ObservableType {
     /// author changes their avatar. The updatable can also be used to simply retrieve the avatar at any time,
     /// or to update it.
     ///
-    public func select<U: UpdatableType>(_ key: (Value) -> U) -> Updatable<U.Value> {
+    public func select<U: UpdatableType>(_ key: @escaping (Value) -> U) -> Updatable<U.Value> {
         return Updatable<U.Value>(
             getter: { key(self.value).value },
             setter: { key(self.value).value = $0 },
@@ -313,13 +314,14 @@ extension ObservableType {
     /// messages is updated in the current room.  The observable can also be used to simply retrieve the list of messages
     /// at any time.
     ///
-    public func select<Field: ObservableArrayType where
+    public func select<Field: ObservableArrayType>
+        (_ key: @escaping (Value) -> Field) -> ObservableArray<Field.Iterator.Element>
+    where
         Field.Change == ArrayChange<Field.Iterator.Element>,
         Field.Index == Int,
         Field.Base == [Field.Iterator.Element],
         Field.SubSequence: Sequence,
-        Field.SubSequence.Iterator.Element == Field.Iterator.Element>
-        (_ key: (Value) -> Field) -> ObservableArray<Field.Iterator.Element> {
+        Field.SubSequence.Iterator.Element == Field.Iterator.Element {
         let selector = ValueSelectorForArrayField(parent: self, key: key)
         return ObservableArray<Field.Iterator.Element>(
             count: { selector.count },
@@ -328,13 +330,14 @@ extension ObservableType {
         )
     }
 
-    public func select<Field: UpdatableArrayType where
+    public func select<Field: UpdatableArrayType>
+        (_ key: @escaping (Value) -> Field) -> UpdatableArray<Field.Iterator.Element>
+    where
         Field.Change == ArrayChange<Field.Iterator.Element>,
         Field.Index == Int,
         Field.Base == [Field.Iterator.Element],
         Field.SubSequence: Sequence,
-        Field.SubSequence.Iterator.Element == Field.Iterator.Element>
-        (_ key: (Value) -> Field) -> UpdatableArray<Field.Iterator.Element> {
+        Field.SubSequence.Iterator.Element == Field.Iterator.Element {
             let selector = ValueSelectorForArrayField(parent: self, key: key)
             return UpdatableArray<Field.Iterator.Element>(
                 count: { selector.count },

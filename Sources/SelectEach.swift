@@ -15,7 +15,7 @@ extension ObservableArrayType where Index == Int, SubSequence.Iterator.Element =
 }
 
 extension ObservableArrayType where Index == Int, SubSequence.Iterator.Element == Iterator.Element {
-    public func selectEach<Field: ObservableType>(_ key: (Iterator.Element) -> Field) -> ObservableArray<Field.Value> {
+    public func selectEach<Field: ObservableType>(_ key: @escaping (Iterator.Element) -> Field) -> ObservableArray<Field.Value> {
         return ObservableArray<Field.Value>(
             count: { self.count },
             lookup: { range in ArraySlice(self[range].map { key($0).value }) },
@@ -42,7 +42,7 @@ private final class ArraySelectorForObservableField<Element, Field: ObservableTy
     private var fieldIndices: [Int: Int] = [:] // ID -> Index
     private var _nextFieldID: Int = 0
 
-    init(parent: ObservableArray<Element>, key: (Element) -> Field) {
+    init(parent: ObservableArray<Element>, key: @escaping (Element) -> Field) {
         self.parent = parent
         self.key = key
     }
@@ -118,9 +118,7 @@ private final class ArraySelectorForObservableField<Element, Field: ObservableTy
 
 extension ObservableArrayType where Index == Int, Change == ArrayChange<Iterator.Element> {
         // Concatenation
-    public func selectEach<Field: ObservableArrayType
-        where Field.Index == Int, Field.Change == ArrayChange<Field.Iterator.Element>, Field.SubSequence.Iterator.Element == Field.Iterator.Element>
-        (_ key: (Iterator.Element) -> Field) -> ObservableArray<Field.Iterator.Element> {
+    public func selectEach<Field: ObservableArrayType>(_ key: @escaping (Iterator.Element) -> Field) -> ObservableArray<Field.Iterator.Element> where Field.Index == Int, Field.Change == ArrayChange<Field.Iterator.Element>, Field.SubSequence.Iterator.Element == Field.Iterator.Element {
         let selector = ArraySelectorForArrayField<Iterator.Element, Field>(parent: self.observableArray, key: key)
         return ObservableArray<Field.Iterator.Element>(
             count: { selector.count },
@@ -129,8 +127,8 @@ extension ObservableArrayType where Index == Int, Change == ArrayChange<Iterator
     }
 }
 
-private final class ArraySelectorForArrayField<ParentElement, Field: ObservableArrayType where Field.Index == Int, Field.Change == ArrayChange<Field.Iterator.Element>, Field.SubSequence.Iterator.Element == Field.Iterator.Element>
-: SignalDelegate {
+private final class ArraySelectorForArrayField<ParentElement, Field: ObservableArrayType>
+: SignalDelegate where Field.Index == Int, Field.Change == ArrayChange<Field.Iterator.Element>, Field.SubSequence.Iterator.Element == Field.Iterator.Element {
     typealias FieldElement = Field.Iterator.Element
     typealias Change = ArrayChange<FieldElement>
 
@@ -146,7 +144,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
     private var fieldIndexByFieldID: [Int: Int] = [:]
     private var _nextFieldID: Int = 0
 
-    init(parent: ObservableArray<ParentElement>, key: (ParentElement) -> Field) {
+    init(parent: ObservableArray<ParentElement>, key: @escaping (ParentElement) -> Field) {
         self.parent = parent
         self.key = key
     }

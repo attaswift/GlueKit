@@ -118,7 +118,7 @@ extension ObservableArrayType where
     }
 }
 
-internal class ValueSourceForObservableArray<A: ObservableArrayType where A.Change == ArrayChange<A.Iterator.Element>>: SignalDelegate {
+internal class ValueSourceForObservableArray<A: ObservableArrayType>: SignalDelegate where A.Change == ArrayChange<A.Iterator.Element> {
     internal typealias Element = A.Iterator.Element
 
     private let array: A
@@ -196,13 +196,13 @@ public struct ObservableArray<Element>: ObservableArrayType {
     private let _lookup: (Range<Int>) -> Base.SubSequence
     private let _futureChanges: (Void) -> Source<ArrayChange<Element>>
 
-    public init(count: (Void) -> Int, lookup: (Range<Int>) -> Base.SubSequence, futureChanges: (Void) -> Source<ArrayChange<Element>>) {
+    public init(count: @escaping (Void) -> Int, lookup: @escaping (Range<Int>) -> Base.SubSequence, futureChanges: @escaping (Void) -> Source<ArrayChange<Element>>) {
         _count = count
         _lookup = lookup
         _futureChanges = futureChanges
     }
 
-    public init<A: ObservableArrayType where A.Index == Int, A.Iterator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Iterator.Element == Element>(_ array: A) {
+    public init<A: ObservableArrayType>(_ array: A) where A.Index == Int, A.Iterator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Iterator.Element == Element {
         _count = { array.count }
         _lookup = { range in
             let result = array.lookup(range)

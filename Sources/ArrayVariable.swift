@@ -19,9 +19,9 @@ public final class ArrayVariable<Element>: UpdatableArrayType {
     public typealias Iterator = Array<Element>.Iterator
     public typealias SubSequence = Array<Element>.SubSequence
 
-    private var _value: [Element]
-    private var _changeSignal = LazySignal<Change>()
-    private var _valueSignal = LazySignal<[Element]>()
+    fileprivate var _value: [Element]
+    fileprivate var _changeSignal = LazySignal<Change>()
+    fileprivate var _valueSignal = LazySignal<[Element]>()
 
     public init() {
         _value = []
@@ -29,7 +29,7 @@ public final class ArrayVariable<Element>: UpdatableArrayType {
     public init(_ elements: [Element]) {
         _value = elements
     }
-    public init<S: Sequence where S.Iterator.Element == Element>(_ elements: S) {
+    public init<S: Sequence>(_ elements: S) where S.Iterator.Element == Element {
         _value = Array(elements)
     }
     public init(elements: Element...) {
@@ -117,7 +117,7 @@ extension ArrayVariable: ExpressibleByArrayLiteral {
 }
 
 extension ArrayVariable {
-    public func replaceSubrange<C: Collection where C.Iterator.Element == Iterator.Element>(_ subRange: Range<Int>, with newElements: C) {
+    public func replaceSubrange<C: Collection>(_ subRange: Range<Int>, with newElements: C) where C.Iterator.Element == Iterator.Element {
         let oldCount = count
         _value.replaceSubrange(subRange, with: newElements)
         _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount,
@@ -129,7 +129,7 @@ extension ArrayVariable {
         self.insert(newElement, at: self.count)
     }
 
-    public func append<C: Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C) {
+    public func append<C: Collection>(contentsOf newElements: C) where C.Iterator.Element == Iterator.Element {
         let oldCount = _value.count
         _value.append(contentsOf: newElements)
         _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount,
@@ -144,7 +144,7 @@ extension ArrayVariable {
         _valueSignal.sendIfConnected(value)
     }
 
-    public func insert<C: Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C, at i: Int)
+    public func insert<C: Collection>(contentsOf newElements: C, at i: Int) where C.Iterator.Element == Iterator.Element
     {
         let oldCount = _value.count
         _value.append(contentsOf: newElements)

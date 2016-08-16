@@ -72,15 +72,15 @@ extension ObservableType {
 /// The type lifted representation of an ObservableType that contains a single value with simple changes.
 public struct Observable<Value>: ObservableType {
     /// The getter closure for the current value of this observable.
-    private let getter: (Void) -> Value
+    fileprivate let getter: (Void) -> Value
 
     /// A closure providing a source providing the values of future updates to this observable.
-    private let valueSource: (Void) -> Source<Value>
+    fileprivate let valueSource: (Void) -> Source<Value>
 
     /// Initializes an Observable from the given getter closure and source of future changes.
     /// @param getter A closure that returns the current value of the observable at the time of the call.
     /// @param futureValues A closure that returns a source that triggers whenever the observable changes.
-    public init(getter: (Void) -> Value, futureValues: (Void) -> Source<Value>) {
+    public init(getter: @escaping (Void) -> Value, futureValues: @escaping (Void) -> Source<Value>) {
         self.getter = getter
         self.valueSource = futureValues
     }
@@ -99,7 +99,7 @@ public extension ObservableType {
 }
 
 public extension Updatable {
-    public init(observable: Observable<Value>, setter: (Value) -> Void) {
+    public init(observable: Observable<Value>, setter: @escaping (Value) -> Void) {
         self.init(getter: observable.getter, setter: setter, futureValues: observable.valueSource)
     }
 }

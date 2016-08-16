@@ -316,7 +316,7 @@ class ArrayVariableTests: XCTestCase {
 
         array[1..<3] = [20, 30, 40]
 
-        XCTAssertEqual(array, [1, 20, 30, 40, 4])
+        XCTAssertEqual(array.value, [1, 20, 30, 40, 4])
     }
 
     func testChangeNotifications() {
@@ -334,7 +334,7 @@ class ArrayVariableTests: XCTestCase {
 
             op(array)
 
-            XCTAssertEqual(array, expectedOutput)
+            XCTAssertEqual(array.value, expectedOutput)
             XCTAssertEqual(values, [expectedOutput])
             XCTAssertTrue(changes.count == 1 && changes[0] == expectedChange)
         }

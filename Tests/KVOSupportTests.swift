@@ -22,7 +22,7 @@ private class RawKVOObserver: NSObject {
     var observerContext: Int8 = 0
     var observing: Bool
 
-    init(object: NSObject, keyPath: String, sink: (AnyObject) -> Void) {
+    init(object: NSObject, keyPath: String, sink: @escaping (AnyObject) -> Void) {
         self.object = object
         self.keyPath = keyPath
         self.sink = sink
@@ -42,10 +42,10 @@ private class RawKVOObserver: NSObject {
         }
     }
 
-    override func observeValue(forKeyPath keyPath: String?, of object: AnyObject?, change: [NSKeyValueChangeKey : AnyObject]?, context: UnsafeMutablePointer<Void>?) {
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if context == &self.observerContext {
             let newValue = change![NSKeyValueChangeKey.newKey]!
-            sink(newValue)
+            sink(newValue as AnyObject)
         }
         else {
             super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)

@@ -72,7 +72,7 @@ public final class Connection {
     /// Callbacks added before the connection is disconnected are executed in the order in which they were registered.
     ///
     /// The callbacks are called synchronously on the thread that called disconnect().
-    internal func addCallback(_ callback: (ConnectionID) -> Void) {
+    internal func addCallback(_ callback: @escaping (ConnectionID) -> Void) {
         let disconnected = mutex.withLock { () -> Bool in
             if !self.disconnected {
                 self.callbacks.append(callback)

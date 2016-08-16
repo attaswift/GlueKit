@@ -37,19 +37,19 @@ private class DisplayLinkTarget: NSObject, SignalDelegate {
 
     lazy var signal: Signal<CADisplayLink> = { Signal<CADisplayLink>(delegate: self) }()
 
-    @objc private func tick(_ displayLink: CADisplayLink) {
+    @objc fileprivate func tick(_ displayLink: CADisplayLink) {
         precondition(displayLink == self.displayLink.value)
         signal.send(displayLink)
     }
 
-    private func start(_ signal: Signal<CADisplayLink>) {
+    fileprivate func start(_ signal: Signal<CADisplayLink>) {
         precondition(self.runLoop == nil)
         let runLoop = RunLoop.current
         self.runLoop = runLoop
         displayLink.value.add(to: runLoop, forMode: RunLoopMode.commonModes)
     }
 
-    private func stop(_ signal: Signal<CADisplayLink>) {
+    fileprivate func stop(_ signal: Signal<CADisplayLink>) {
         precondition(runLoop != nil)
         displayLink.value.remove(from: runLoop!, forMode: RunLoopMode.commonModes)
         runLoop = nil

@@ -39,7 +39,7 @@ public struct Updatable<Value>: UpdatableType {
     /// A closure returning a source providing the values of future updates to this updatable.
     private let valueSource: (Void) -> Source<Value>
 
-    public init(getter: (Void) -> Value, setter: (Value) -> Void, futureValues: (Void) -> Source<Value>) {
+    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, futureValues: @escaping (Void) -> Source<Value>) {
         self.getter = getter
         self.setter = setter
         self.valueSource = futureValues
@@ -69,7 +69,7 @@ extension UpdatableType {
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, you must provide an equality test that returns true if two values are to be
     /// considered equivalent.
-    public func bind<Target: UpdatableType where Target.Value == Value>(_ target: Target, equalityTest: (Value, Value) -> Bool) -> Connection {
+    public func bind<Target: UpdatableType>(_ target: Target, equalityTest: @escaping (Value, Value) -> Bool) -> Connection where Target.Value == Value {
         let forward = self.futureValues.connect { value in
             if !equalityTest(value, target.value) {
                 target.value = value
@@ -91,7 +91,7 @@ extension UpdatableType where Value: Equatable {
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, the variables aren't synched when a bound variable is set to a value that is equal
     /// to the value of its counterpart.
-    public func bind<Target: UpdatableType where Target.Value == Value>(_ target: Target) -> Connection {
+    public func bind<Target: UpdatableType>(_ target: Target) -> Connection where Target.Value == Value {
         return self.bind(target, equalityTest: ==)
     }
 }

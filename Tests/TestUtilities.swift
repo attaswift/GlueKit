@@ -13,10 +13,10 @@ import GlueKit
 func noop<Value>(_ value: Value) {
 }
 
-func XCTAssertEqual<E: Equatable, A: ObservableArrayType, B: Sequence where A.Iterator.Element == E, B.Iterator.Element == E>(_ a: @autoclosure () -> A, _ b: @autoclosure () -> B, message: String = "", file: StaticString = #file, line: UInt = #line) {
-    XCTAssertEqual(Array(a()), Array(b()), message, file: file, line: line)
-}
-
-func XCTAssertEqual<E: Equatable, A: Sequence, B: ObservableArrayType where A.Iterator.Element == E, B.Iterator.Element == E>(_ a: @autoclosure () -> A, _ b: @autoclosure () -> B, message: String = "", file: StaticString = #file, line: UInt = #line) {
-    XCTAssertEqual(Array(a()), Array(b()), message, file: file, line: line)
+func XCTAssertEqual<E: Equatable>(_ a: @autoclosure () -> [[E]], _ b: @autoclosure () -> [[E]], message: String? = nil, file: StaticString = #file, line: UInt = #line) {
+    let av = a()
+    let bv = b()
+    if !av.elementsEqual(bv, by: ==) {
+        XCTFail(message ?? "\(av) is not equal to \(bv)", file: file, line: line)
+    }
 }

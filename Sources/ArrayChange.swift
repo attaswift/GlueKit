@@ -120,7 +120,7 @@ public enum ArrayModification<Element> {
     }
 
     /// Transform each element in this modification using the function `transform`.
-    public func map<Result>(_ transform: @noescape (Element) -> Result) -> ArrayModification<Result> {
+    public func map<Result>(_ transform: (Element) -> Result) -> ArrayModification<Result> {
         switch self {
         case .insert(let e, at: let i):
             return .insert(transform(e), at: i)
@@ -134,7 +134,7 @@ public enum ArrayModification<Element> {
     }
 
     /// Call `body` on each element in this modification.
-    public func forEach(_ body: @noescape (Element) -> Void) {
+    public func forEach(_ body: (Element) -> Void) {
         switch self {
         case .insert(let e, at: _):
             body(e)
@@ -194,7 +194,7 @@ extension ArrayModification: CustomStringConvertible, CustomDebugStringConvertib
 
 extension RangeReplaceableCollection where Index == Int {
     /// Apply `modification` to this array in place.
-    public mutating func apply(_ modification: ArrayModification<Iterator.Element>, add: @noescape (Iterator.Element) -> Void = { _ in }, remove: @noescape (Iterator.Element) -> Void = { _ in }) {
+    public mutating func apply(_ modification: ArrayModification<Iterator.Element>, add: (Iterator.Element) -> Void = { _ in }, remove: (Iterator.Element) -> Void = { _ in }) {
         switch modification {
         case .insert(let element, at: let index):
             self.insert(element, at: index)
@@ -323,12 +323,12 @@ public struct ArrayChange<Element>: ChangeType {
     }
 
     /// Transform all element values contained in this change using the `transform` function.
-    public func map<Result>(_ transform: @noescape (Element) -> Result) -> ArrayChange<Result> {
+    public func map<Result>(_ transform: (Element) -> Result) -> ArrayChange<Result> {
         return ArrayChange<Result>(initialCount: initialCount, modifications: modifications.map { $0.map(transform) })
     }
 
     /// Call `body` on each element value contained in this change.
-    public func forEach(_ body: @noescape (Element) -> Void) {
+    public func forEach(_ body: (Element) -> Void) {
         modifications.forEach { $0.forEach(body) }
     }
 
@@ -422,7 +422,7 @@ public struct ArrayChange<Element>: ChangeType {
 
 extension ArrayChange: CustomStringConvertible {
     public var description: String {
-        let type = String(ArrayChange.self)
+        let type = String(describing: ArrayChange.self)
         let c = modifications.count
         return "\(type) initialCount: \(initialCount), \(c) modifications"
     }
@@ -450,7 +450,7 @@ public func ==<Element: Equatable>(a: ArrayChange<Element>, b: ArrayChange<Eleme
 extension RangeReplaceableCollection where Index == Int, IndexDistance == Int {
     /// Apply `change` to this array. The count of self must be the same as the initial count of `change`, or
     /// the operation will report a fatal error.
-    public mutating func apply(_ change: ArrayChange<Generator.Element>, add: @noescape (Iterator.Element) -> Void = { _ in }, remove: @noescape (Generator.Element) -> Void = { _ in }) {
+    public mutating func apply(_ change: ArrayChange<Generator.Element>, add: (Iterator.Element) -> Void = { _ in }, remove: (Generator.Element) -> Void = { _ in }) {
         precondition(self.count == change.initialCount)
         for modification in change.modifications {
             self.apply(modification, add: add, remove: remove)

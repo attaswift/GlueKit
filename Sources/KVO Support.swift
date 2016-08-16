@@ -17,7 +17,7 @@ public extension NSObject {
 
     public func observableForKeyPath(_ keyPath: String) -> Observable<AnyObject?> {
         return Observable(
-            getter: { self.value(forKeyPath: keyPath) },
+            getter: { self.value(forKeyPath: keyPath) as AnyObject? },
             futureValues: { self.sourceForKeyPath(keyPath) }
         )
     }
@@ -83,13 +83,13 @@ public extension NSObject {
         }
     }
 
-    override func observeValue(forKeyPath keyPath: String?, of object: AnyObject?, change: [NSKeyValueChangeKey : AnyObject]?, context: UnsafeMutablePointer<Void>?) {
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if context == &observerContext {
             if let keyPath = keyPath, let change = change {
                 let newValue = change[NSKeyValueChangeKey.newKey]
                 if let signal = mutex.withLock({ self.signals[keyPath]?.value }) {
                     if let value = newValue, !(value is NSNull) {
-                        signal.send(value)
+                        signal.send(value as AnyObject)
                     }
                     else {
                         signal.send(nil)

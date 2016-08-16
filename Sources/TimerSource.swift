@@ -22,11 +22,11 @@ extension DispatchWallTime {
 }
 
 extension DispatchQueue {
-    func async(afterDelay interval: TimeInterval, execute block: @convention(block) () -> Void) {
+    func async(afterDelay interval: TimeInterval, execute block: @escaping @convention(block) () -> Void) {
         self.asyncAfter(deadline: DispatchTime.now() + interval, execute: block)
     }
 
-    func async(after date: Date, execute block: @convention(block) () -> Void) {
+    func async(after date: Date, execute block: @escaping @convention(block) () -> Void) {
         self.asyncAfter(wallDeadline: DispatchWallTime(date), execute: block)
     }
 }
@@ -72,7 +72,7 @@ public final class TimerSource: SourceType, SignalDelegate {
     ///
     /// Note that the `next` closure will not be called immediately; the source waits for the first connection 
     /// before establishing a timer.
-    public init(queue: DispatchQueue = DispatchQueue.main, next: (Void) -> Date?) {
+    public init(queue: DispatchQueue = DispatchQueue.main, next: @escaping (Void) -> Date?) {
         self.queue = queue
         self.next = next
     }
@@ -121,17 +121,17 @@ public final class TimerSource: SourceType, SignalDelegate {
 /// Encapsulates information on a periodic timer and associated logic to determine firing dates.
 /// Tries to prevent timer drift by using walltime-based, absolute firing dates instead of relative ones.
 private struct PeriodicTimerData {
-    private let start: Date
-    private let interval: TimeInterval
+    let start: Date
+    let interval: TimeInterval
 
-    private var currentTick: Int {
+    var currentTick: Int {
         let now = Date()
         let elapsed = max(0, now.timeIntervalSince(start))
         let tick = floor(elapsed / interval)
         return Int(tick)
     }
 
-    private var dateOfNextTick: Date {
+    var dateOfNextTick: Date {
         return start.addingTimeInterval(TimeInterval(currentTick + 1) * interval)
     }
 }
