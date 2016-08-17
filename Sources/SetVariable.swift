@@ -78,10 +78,6 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         return Observable(getter: { self._value }, futureValues: { self._valueSignal.source })
     }
 
-    public var observableSet: ObservableSet<Element> {
-        return ObservableSet(value: { self._value }, futureChanges: { self._changeSignal.source })
-    }
-
     public static func ==(a: SetVariable, b: SetVariable) -> Bool {
         return a.value == b.value
     }

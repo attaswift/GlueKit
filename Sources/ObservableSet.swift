@@ -46,6 +46,26 @@ extension ObservableSetType where Element == Base.Element, IndexDistance == Base
     public func contains(_ member: Element) -> Bool { return value.contains(member) }
     public func isSubset(of other: Self) -> Bool { return value.isSubset(of: other.value) }
     public func isSuperset(of other: Self) -> Bool { return value.isSuperset(of: other.value) }
+
+    public static func ==(a: Self, b: Self) -> Bool { return a.value == b.value }
+}
+
+extension ObservableSetType where Base == Set<Element>, Change == SetChange<Element> {
+    public var observable: Observable<Base> {
+        return Observable(
+            getter: { return self.value },
+            futureValues: {
+                var value = self.value
+                return self.futureChanges.map { (c: Change) -> Base in
+                    value.apply(c)
+                    return value
+                }
+        })
+    }
+
+    public var observableSet: ObservableSet<Element> {
+        return ObservableSet(value: { self.value }, futureChanges: { self.futureChanges })
+    }
 }
 
 public struct ObservableSet<Element: Hashable>: ObservableSetType {
@@ -69,20 +89,4 @@ public struct ObservableSet<Element: Hashable>: ObservableSetType {
     public var futureChanges: Source<Change> { return _futureChanges() }
 
     public var observableSet: ObservableSet<Element> { return self }
-
-    public var observable: Observable<Set<Element>> {
-        return Observable(
-            getter: { return self.value },
-            futureValues: {
-                var value: Set<Element> = self.value
-                return self.futureChanges.map { (c: Change) -> Base in
-                    value.apply(c)
-                    return value
-                }
-        })
-    }
-
-    public static func ==(a: ObservableSet, b: ObservableSet) -> Bool {
-        return a.value == b.value
-    }
 }
