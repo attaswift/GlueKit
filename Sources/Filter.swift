@@ -8,34 +8,161 @@
 
 import Foundation
 
-extension ObservableArrayType {
-    public func filter<TestResult: ObservableType where TestResult.Value == Bool>(test: Iterator.Element->TestResult) -> ObservableFilter<Iterator.Element, TestResult> {
-        return ObservableFilter<Iterator.Element, TestResult>(parent: self, test: test)
+extension ObservableSetType {
+    public func filter(test: @escaping (Element) -> Bool) -> ObservableSet<Element> {
+        return ObservableSetSimpleFilter<Self>(parent: self, test: test).observableSet
+    }
+
+    public func filter<TestResult: ObservableType>(test: @escaping (Element) -> TestResult) -> ObservableSet<Element> where TestResult.Value == Bool {
+        return ObservableSetComplexFilter<Self, TestResult>(parent: self, test: test).observableSet
     }
 }
 
-public class ObservableFilter<Element, TestResult: ObservableType where TestResult.Value == Bool>: SignalDelegate {
-    typealias Change = ArrayChange<Element>
+private class ObservableSetSimpleFilter<Parent: ObservableSetType>: ObservableSetType, SignalDelegate {
+    public typealias Element = Parent.Element
+    public typealias Change = SetChange<Element>
 
-    private let parent: ObservableArray<Element>
-    private let test: Element->TestResult
+    private let parent: Parent
+    private let test: (Element) -> Bool
 
-    private var changeSignal = OwningSignal<Change, ObservableFilter<Element, TestResult>>()
-
-    private var parentConnection: Connection? = nil
-    private var elementConnections: [Connection] = []
+    private var changeSignal = OwningSignal<Change, ObservableSetSimpleFilter<Parent>>()
 
     private var active = false
-    private var includedIndexes: Set<Int> = []
+    private var parentConnection: Connection? = nil
+    private var matchingElements: Set<Element> = []
 
-    public init<Parent: ObservableArrayType where Parent.Iterator.Element == Element>(parent: Parent, test: Element->TestResult) {
-        self.parent = parent.observableArray
+    init(parent: Parent, test: @escaping (Element) -> Bool) {
+        self.parent = parent
         self.test = test
     }
 
+    var isBuffered: Bool { return false }
+    var value: Set<Element> {
+        if active { return matchingElements }
+        return Set(self.parent.value.filter(test))
+    }
+    var futureChanges: Source<SetChange<Parent.Element>> { return changeSignal.with(self).source }
+    func contains(_ member: Element) -> Bool {
+        if active { return matchingElements.contains(member) }
+        return self.parent.contains(member) && test(member)
+    }
 
-    public var count: Int {
-        if active { return includedIndexes.count }
+    func isSubset(of other: Set<Element>) -> Bool {
+        if active { return matchingElements.isSubset(of: other) }
+        for member in self.parent.value {
+            guard test(member) else { continue }
+            guard other.contains(member) else { return false }
+        }
+        return true
+    }
+
+    func isSuperset(of other: Set<Element>) -> Bool {
+        if active { return matchingElements.isSuperset(of: other) }
+        for member in other {
+            guard test(member) && parent.contains(member) else { return false }
+        }
+        return true
+    }
+
+    var count: Int {
+        if active { return matchingElements.count }
+
+        var count = 0
+        for element in parent.value {
+            if test(element) {
+                count += 1
+            }
+        }
+        return count
+    }
+
+    internal func start(_ signal: Signal<Change>) {
+        active = true
+        for e in parent.value {
+            if test(e) {
+                matchingElements.insert(e)
+            }
+        }
+        parentConnection = parent.futureChanges.connect { change in
+            var c = SetChange<Element>()
+            for e in change.removed {
+                if let old = self.matchingElements.remove(e) {
+                    c.remove(old)
+                }
+            }
+            for e in change.inserted {
+                if self.test(e) {
+                    self.matchingElements.insert(e)
+                    c.insert(e)
+                }
+            }
+            if !c.isEmpty {
+                self.changeSignal.send(c)
+            }
+        }
+    }
+
+    internal func stop(_ signal: Signal<Change>) {
+        active = false
+        parentConnection?.disconnect()
+        parentConnection = nil
+        matchingElements = []
+    }
+}
+
+private class ObservableSetComplexFilter<Parent: ObservableSetType, TestResult: ObservableType>: ObservableSetType, SignalDelegate where TestResult.Value == Bool {
+    typealias Element = Parent.Element
+    typealias Change = SetChange<Element>
+    typealias SignalValue = Change
+
+    private let parent: Parent
+    private let test: (Element) -> TestResult
+
+    private var changeSignal = OwningSignal<Change, ObservableSetComplexFilter<Parent, TestResult>>()
+
+    private var active = false
+    private var parentConnection: Connection? = nil
+    private var elementConnections: [Element: Connection] = [:]
+    private var matchingElements: Set<Element> = []
+
+    init(parent: Parent, test: @escaping (Element) -> TestResult) {
+        self.parent = parent
+        self.test = test
+    }
+
+    var isBuffered: Bool { return false }
+
+    var value: Set<Element> {
+        if active { return matchingElements }
+        return Set(self.parent.value.filter { test($0).value })
+    }
+
+    var futureChanges: Source<SetChange<Parent.Element>> { return changeSignal.with(self).source }
+
+    func contains(_ member: Element) -> Bool {
+        if active { return matchingElements.contains(member) }
+        return self.parent.contains(member) && test(member).value
+    }
+
+    func isSubset(of other: Set<Element>) -> Bool {
+        if active { return matchingElements.isSubset(of: other) }
+        for member in self.parent.value {
+            guard test(member).value else { continue }
+            guard other.contains(member) else { return false }
+        }
+        return true
+    }
+
+    func isSuperset(of other: Set<Element>) -> Bool {
+        if active { return matchingElements.isSuperset(of: other) }
+        for member in other {
+            guard test(member).value && parent.contains(member) else { return false }
+        }
+        return true
+    }
+
+    var count: Int {
+        if active { return matchingElements.count }
 
         var count = 0
         for element in parent.value {
@@ -46,40 +173,60 @@ public class ObservableFilter<Element, TestResult: ObservableType where TestResu
         return count
     }
 
-    internal func start(signal: Signal<Change>) {
+    internal func start(_ signal: Signal<Change>) {
         active = true
-        let elements = parent.value
-        for i in 0..<elements.count {
-            let e = elements[i]
-
+        for e in parent.value {
             let test = self.test(e)
-
             if test.value {
-                includedIndexes.insert(i)
+                matchingElements.insert(e)
             }
-
             let c = test.futureValues.connect { value in
-                self.testResultDidChangeOnElement(e, result: value, signal: signal)
+                self.testResultDidChange(on: e, result: value, signal: signal)
             }
-            elementConnections.append(c)
+            elementConnections[e] = c
+        }
+        parentConnection = parent.futureChanges.connect { change in
+            var c = SetChange<Element>()
+            for e in change.removed {
+                self.elementConnections.removeValue(forKey: e)!.disconnect()
+                if let old = self.matchingElements.remove(e) {
+                    c.remove(old)
+                }
+            }
+            for e in change.inserted {
+                let test = self.test(e)
+                self.elementConnections[e] = test.futureValues.connect { value in
+                    self.testResultDidChange(on: e, result: value, signal: signal)
+                }
+                if test.value {
+                    self.matchingElements.insert(e)
+                    c.insert(e)
+                }
+            }
+            if !c.isEmpty {
+                self.changeSignal.send(c)
+            }
         }
     }
 
-    private func testResultDidChangeOnElement(element: Element, result: Bool, signal: Signal<Change>) {
-        let i = indexOfElement(element)
-        guard result != self.includedIndexes.contains(i) else { return }
-
-        if result {
-            self.includedIndexes.insert(i)
-            let index = self.includedIndexes.reduce(0, combine: { s, i in 0 })
-            signal.send(ArrayChange(initialCount: self.includedIndexes.count - 1, modification: .Insert(element, at: index)))
-        }
-        else {
-            self.includedIndexes.remove(i)
-        }
-    }
-
-    internal func stop(signal: Signal<Change>) {
+    internal func stop(_ signal: Signal<Change>) {
         active = false
+        parentConnection?.disconnect()
+        parentConnection = nil
+        elementConnections.forEach { $0.1.disconnect() }
+        elementConnections = [:]
+        matchingElements = []
+    }
+
+    private func testResultDidChange(on element: Parent.Element, result: Bool, signal: Signal<Change>) {
+        let old = matchingElements.contains(element)
+        if result && !old {
+            matchingElements.insert(element)
+            signal.send(SetChange(inserted: [element]))
+        }
+        else if !result && old {
+            matchingElements.remove(element)
+            signal.send(SetChange(removed: [element]))
+        }
     }
 }

@@ -58,7 +58,7 @@ class KVOSupportTests: XCTestCase {
     func testBasicKVOWithIntegers() {
         let object = Fixture()
 
-        let countSource = object.sourceForKeyPath("count")
+        let countSource = object.source(forKeyPath: "count")
 
         var r = [Int]()
         let c = countSource.asInt.connect { r.append($0) }
@@ -76,7 +76,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String]()
-        let c = object.sourceForKeyPath("name").asString.connect { (s: String) -> Void in r.append(s) }
+        let c = object.source(forKeyPath: "name").asString.connect { (s: String) -> Void in r.append(s) }
 
         object.name = "Alice"
         object.name = "Bob"
@@ -93,7 +93,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String?]()
-        let c = object.sourceForKeyPath("optional").connect { (v: AnyObject?) -> Void in
+        let c = object.source(forKeyPath: "optional").connect { (v: Any?) -> Void in
             if let s = v as? String {
                 r.append(s)
             }
@@ -122,7 +122,7 @@ class KVOSupportTests: XCTestCase {
     func testDisconnectActuallyDisconnects() {
         let object = Fixture()
 
-        let countSource = object.sourceForKeyPath("count")
+        let countSource = object.source(forKeyPath: "count")
 
         var r = [Int]()
         let c = countSource.asInt.connect { r.append($0) }
@@ -145,7 +145,7 @@ class KVOSupportTests: XCTestCase {
             let object = Fixture()
             weakObject = object
 
-            source = object.sourceForKeyPath("count").asInt
+            source = object.source(forKeyPath: "count").asInt
         }
 
         XCTAssertNotNil(weakObject)
@@ -163,7 +163,7 @@ class KVOSupportTests: XCTestCase {
             let object = Fixture()
             weakObject = object
 
-            c = object.sourceForKeyPath("count").asInt.connect { _ in }
+            c = object.source(forKeyPath: "count").asInt.connect { _ in }
         }
 
         XCTAssertNotNil(weakObject)
@@ -202,7 +202,7 @@ class KVOSupportTests: XCTestCase {
 
         let object = Fixture()
 
-        let countSource = object.sourceForKeyPath("count")
+        let countSource = object.source(forKeyPath: "count")
 
         var s = ""
         let c = countSource.asInt.connect { i in
@@ -261,7 +261,7 @@ class KVOSupportTests: XCTestCase {
 
         let object = Fixture()
 
-        let countSource = object.sourceForKeyPath("count")
+        let countSource = object.source(forKeyPath: "count")
 
         var s = ""
         let c1 = countSource.asInt.connect { i in

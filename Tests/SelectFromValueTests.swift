@@ -78,7 +78,7 @@ class SelectFromValuesTests: XCTestCase {
         foo.remove(at: 0)
 
         let upd = foo.updatableArray
-        upd.insert(3, atIndex: 0)
+        upd.insert(3, at: 0)
         upd.remove(at: 0)
 
         XCTAssertEqual(path.value, [1.0])
@@ -127,14 +127,14 @@ private class Company: CustomStringConvertible {
     var description: String { return self.name.value }
 
     func fire(_ employee: Person) {
-        if let index = employees.index(where: { $0 === self }) {
+        if let index = employees.value.index(where: { $0 === self }) {
             employees.remove(at: index)
             print("\(employee) has been fired from \(self).")
         }
     }
 
     func sell(_ app: App, to buyer: Company) {
-        if let index = apps.index(where: { $0 === app }) {
+        if let index = apps.value.index(where: { $0 === app }) {
             print("\(self) has sold \(app) to \(buyer)")
             app.developer.value = buyer
             buyer.apps.append(app)
@@ -176,7 +176,7 @@ private class Person: CustomStringConvertible {
 
     func quit() {
         if let employer = self.employer.value {
-            if let index = employer.employees.index(where: { $0 === self }) {
+            if let index = employer.employees.value.index(where: { $0 === self }) {
                 employer.employees.remove(at: index)
             }
             self.employer.value = nil

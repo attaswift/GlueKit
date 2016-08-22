@@ -8,18 +8,10 @@
 
 import Foundation
 
-extension ObservableArrayType where Index == Int, SubSequence.Iterator.Element == Iterator.Element {
-    public func selectCount() -> Observable<Int> {
-        return observableCount
-    }
-}
-
-extension ObservableArrayType where Index == Int, SubSequence.Iterator.Element == Iterator.Element {
-    public func selectEach<Field: ObservableType>(_ key: @escaping (Iterator.Element) -> Field) -> ObservableArray<Field.Value> {
-        return ObservableArray<Field.Value>(
-            count: { self.count },
-            lookup: { range in ArraySlice(self[range].map { key($0).value }) },
-            futureChanges: { ArraySelectorForObservableField(parent: self.observableArray, key: key).source })
+extension ObservableArrayType {
+    /// Return an observable array that consists of the values for the field specified by `key` for each element of this array.
+    public func selectEach<Field: ObservableType>(_ key: @escaping (Element) -> Field) -> ObservableArray<Field.Value> {
+        return ArraySelectorForObservableField(parent: self.observableArray, key: key).observableArray
     }
 }
 
@@ -28,28 +20,55 @@ extension ObservableArrayType where Index == Int, SubSequence.Iterator.Element =
 ///
 /// It keeps track of the current index of each field, and updates this mapping whenever something
 /// changes in the parent.
-private final class ArraySelectorForObservableField<Element, Field: ObservableType>
-: SignalDelegate {
-    typealias Value = ArrayChange<Field.Value>
+private final class ArraySelectorForObservableField<Entity, Field: ObservableType>: ObservableArrayType, SignalDelegate {
+    typealias Element = Field.Value
+    typealias Base = Array<Element>
+    typealias Change = ArrayChange<Element>
 
-    private let parent: ObservableArray<Element>
-    private let key: (Element) -> Field
+    private let parent: ObservableArray<Entity>
+    private let key: (Entity) -> Field
 
-    private var signal = OwningSignal<Value, ArraySelectorForObservableField<Element, Field>>()
+    private var _changeSignal = OwningSignal<Change, ArraySelectorForObservableField<Entity, Field>>()
 
     private var parentConnection: Connection? = nil
     private var fieldConnections: [Connection] = []
     private var fieldIndices: [Int: Int] = [:] // ID -> Index
     private var _nextFieldID: Int = 0
 
-    init(parent: ObservableArray<Element>, key: @escaping (Element) -> Field) {
+    init(parent: ObservableArray<Entity>, key: @escaping (Entity) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    var source: Source<Value> { return signal.with(self).source }
+    var isBuffered: Bool { return false }
 
-    func start(_ signal: Signal<Value>) {
+    var value: Array<Element> {
+        return parent.value.map { key($0).value }
+    }
+
+    subscript(index: Int) -> Element {
+        return key(parent[index]).value
+    }
+
+    subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+        return ArraySlice(parent[bounds].map { key($0).value })
+    }
+
+    var count: Int {
+        return parent.count
+    }
+
+    var futureChanges: Source<Change> { return _changeSignal.with(self).source }
+
+    var observable: Observable<[Element]> {
+        return self.buffered().observable
+    }
+
+    var observableCount: Observable<Int> {
+        return Observable(getter: { self.parent.count }, futureValues: { self.parent.futureChanges.map { $0.finalCount } })
+    }
+
+    func start(_ signal: Signal<Change>) {
         assert(parentConnection == nil && fieldConnections.isEmpty)
         let fields = parent.value.map(key)
         fieldConnections = fields.enumerated().map { index, field in
@@ -60,7 +79,7 @@ private final class ArraySelectorForObservableField<Element, Field: ObservableTy
         }
     }
 
-    func stop(_ signal: Signal<Value>) {
+    func stop(_ signal: Signal<Change>) {
         assert(parentConnection != nil)
         parentConnection?.disconnect()
         fieldConnections.forEach { $0.disconnect() }
@@ -69,7 +88,7 @@ private final class ArraySelectorForObservableField<Element, Field: ObservableTy
         fieldIndices.removeAll()
     }
 
-    private func connectField(_ field: Field, index: Int, signal: Signal<Value>) -> Connection {
+    private func connectField(_ field: Field, index: Int, signal: Signal<Change>) -> Connection {
         let id = self.nextFieldID
         self.fieldIndices[id] = index
         let c = field.futureValues.connect { value in self.sendValue(value, forFieldWithID: id, toSignal: signal) }
@@ -87,14 +106,14 @@ private final class ArraySelectorForObservableField<Element, Field: ObservableTy
         return result
     }
     
-    private func sendValue(_ value: Field.Value, forFieldWithID id: Int, toSignal signal: Signal<Value>) {
+    private func sendValue(_ value: Field.Value, forFieldWithID id: Int, toSignal signal: Signal<Change>) {
         let index = fieldIndices[id]!
-        let mod = ArrayModification<Field.Value>.replaceAt(index, with: value)
+        let mod = ArrayModification<Field.Value>.replaceElement(at: index, with: value)
         let change = ArrayChange<Field.Value>(initialCount: self.fieldConnections.count, modification: mod)
         signal.send(change)
     }
 
-    private func applyParentChange(_ change: ArrayChange<Element>, signal: Signal<Value>) {
+    private func applyParentChange(_ change: ArrayChange<Entity>, signal: Signal<Change>) {
         assert(fieldConnections.count == change.initialCount)
         for mod in change.modifications {
             let range = mod.range
@@ -116,26 +135,25 @@ private final class ArraySelectorForObservableField<Element, Field: ObservableTy
     }
 }
 
-extension ObservableArrayType where Index == Int, Change == ArrayChange<Iterator.Element> {
-        // Concatenation
-    public func selectEach<Field: ObservableArrayType>(_ key: @escaping (Iterator.Element) -> Field) -> ObservableArray<Field.Iterator.Element> where Field.Index == Int, Field.Change == ArrayChange<Field.Iterator.Element>, Field.SubSequence.Iterator.Element == Field.Iterator.Element {
-        let selector = ArraySelectorForArrayField<Iterator.Element, Field>(parent: self.observableArray, key: key)
-        return ObservableArray<Field.Iterator.Element>(
-            count: { selector.count },
-            lookup: selector.lookup,
-            futureChanges: { selector.changeSource })
+extension ObservableArrayType {
+    // Concatenation
+    public func selectEach<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> ObservableArray<Field.Element> {
+        let selector = ArraySelectorForArrayField<Element, Field>(parent: self.observableArray, key: key)
+        return selector.observableArray
     }
 }
 
-private final class ArraySelectorForArrayField<ParentElement, Field: ObservableArrayType>
-: SignalDelegate where Field.Index == Int, Field.Change == ArrayChange<Field.Iterator.Element>, Field.SubSequence.Iterator.Element == Field.Iterator.Element {
-    typealias FieldElement = Field.Iterator.Element
-    typealias Change = ArrayChange<FieldElement>
+private final class ArraySelectorForArrayField<ParentElement, Field: ObservableArrayType>: ObservableArrayType, SignalDelegate {
+    typealias Element = FieldElement
+    typealias Base = [Element]
+    typealias Change = ArrayChange<Element>
+
+    typealias FieldElement = Field.Element
 
     private let parent: ObservableArray<ParentElement>
     private let key: (ParentElement) -> Field
 
-    private var signal = OwningSignal<Change, ArraySelectorForArrayField<ParentElement, Field>>()
+    private var changeSignal = OwningSignal<Change, ArraySelectorForArrayField<ParentElement, Field>>()
 
     private var active = false
     private var parentConnection: Connection? = nil
@@ -149,20 +167,42 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
         self.key = key
     }
 
+    var isBuffered: Bool {
+        return false
+    }
+
+    var value: Array<Element> {
+        return parent.value.flatMap { key($0).value }
+    }
+
+    subscript(index: Int) -> Element {
+        return lookup(index ..< index + 1).first!
+    }
+
+    subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+        return ArraySlice(lookup(bounds))
+    }
+
     var count: Int {
-        if active {
-            return startIndices.last!
+        if self.active {
+            return self.startIndices.last!
         }
         else {
-            return parent.reduce(0) { c, pe in c + self.key(pe).count }
+            return self.parent.value.reduce(0) { c, pe in c + self.key(pe).count }
         }
     }
 
-    func lookup(_ range: Range<Int>) -> ArraySlice<FieldElement> {
+    var futureChanges: Source<Change> { return changeSignal.with(self).source }
+
+    var observable: Observable<[Element]> {
+        return self.buffered().observable
+    }
+
+    func lookup(_ range: Range<Int>) -> [FieldElement] {
         var result: [FieldElement] = []
         result.reserveCapacity(range.count)
         var startIndex: Int = 0
-        for pe in parent {
+        for pe in parent.value {
             let field = key(pe)
             let endIndex = startIndex + field.count
 
@@ -175,15 +215,13 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
             }
             else if start > end {
                 // This element starts after the lookup range ends. We're done.
-                return ArraySlice(result)
+                return result
             }
 
             startIndex += field.count
         }
-        return ArraySlice(result)
+        return result
     }
-
-    var changeSource: Source<Change> { return signal.with(self).source }
 
     func start(_ signal: Signal<Change>) {
         assert(active == false)
@@ -285,7 +323,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
             // Collect new values.
             var fieldValues: [FieldElement] = []
             for field in newFields {
-                fieldValues.append(contentsOf: field)
+                fieldValues.append(contentsOf: field.value)
             }
 
             // Create new change component.
@@ -296,4 +334,3 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
         signal.send(result)
     }
 }
-

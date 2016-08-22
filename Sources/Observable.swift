@@ -34,13 +34,16 @@ public protocol ObservableType {
 
     /// A source that delivers new values whenever this observable changes.
     var futureValues: Source<Value> { get }
+
+    /// Returns the type-lifted version of this ObservableType.
+    var observable: Observable<Value> { get }
 }
 
 extension ObservableType {
 
     /// Returns the type-lifted version of this ObservableType.
     public var observable: Observable<Value> {
-        return Observable<Value>(getter: { self.value }, futureValues: { self.futureValues })
+        return Observable(self)
     }
 }
 
@@ -71,35 +74,62 @@ extension ObservableType {
 
 /// The type lifted representation of an ObservableType that contains a single value with simple changes.
 public struct Observable<Value>: ObservableType {
-    /// The getter closure for the current value of this observable.
-    fileprivate let getter: (Void) -> Value
+    private let box: ObservableBoxBase<Value>
 
-    /// A closure providing a source providing the values of future updates to this observable.
-    fileprivate let valueSource: (Void) -> Source<Value>
-
+    init(box: ObservableBoxBase<Value>) {
+        self.box = box
+    }
+    
     /// Initializes an Observable from the given getter closure and source of future changes.
     /// @param getter A closure that returns the current value of the observable at the time of the call.
     /// @param futureValues A closure that returns a source that triggers whenever the observable changes.
     public init(getter: @escaping (Void) -> Value, futureValues: @escaping (Void) -> Source<Value>) {
-        self.getter = getter
-        self.valueSource = futureValues
+        self.box = ObservableClosureBox(getter: getter, futureValues: futureValues)
     }
 
-    /// The current value of the observable.
-    public var value: Value { return getter() }
+    public init<Base: ObservableType>(_ base: Base) where Base.Value == Value {
+        self.box = ObservableBox(base)
+    }
 
-    public var futureValues: Source<Value> { return valueSource() }
+    public var value: Value { return box.value }
+    public var futureValues: Source<Value> { return box.futureValues }
+}
+
+internal class ObservableBoxBase<Value>: ObservableType {
+    var value: Value { abstract() }
+    var futureValues: Source<Value> { abstract() }
+
+    final var observable: Observable<Value> {
+        return Observable(box: self)
+    }
+}
+
+internal class ObservableBox<Base: ObservableType>: ObservableBoxBase<Base.Value> {
+    private let base: Base
+
+    init(_ base: Base) {
+        self.base = base
+    }
+    override var value: Base.Value { return base.value }
+    override var futureValues: Source<Base.Value> { return base.futureValues }
+}
+
+private class ObservableClosureBox<Value>: ObservableBoxBase<Value> {
+    private let _value: () -> Value
+    private let _futureValues: () -> Source<Value>
+
+    public init(getter: @escaping (Void) -> Value, futureValues: @escaping (Void) -> Source<Value>) {
+        self._value = getter
+        self._futureValues = futureValues
+    }
+
+    override var value: Value { return _value() }
+    override var futureValues: Source<Value> { return _futureValues() }
 }
 
 public extension ObservableType {
     /// Creates a constant observable wrapping the given value. The returned observable is not modifiable and it will not ever send updates.
     public static func constant(_ value: Value) -> Observable<Value> {
         return Observable(getter: { value }, futureValues: { Source.empty() })
-    }
-}
-
-public extension Updatable {
-    public init(observable: Observable<Value>, setter: @escaping (Value) -> Void) {
-        self.init(getter: observable.getter, setter: setter, futureValues: observable.valueSource)
     }
 }

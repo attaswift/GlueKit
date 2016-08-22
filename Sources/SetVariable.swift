@@ -13,12 +13,6 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
     public typealias Base = Set<Element>
     public typealias Change = SetChange<Element>
 
-    public typealias Iterator = Base.Iterator
-    public typealias Index = Base.Index
-    public typealias IndexDistance = Base.IndexDistance
-    public typealias Indices = Base.Indices
-    public typealias SubSequence = Base.SubSequence
-
     fileprivate var _value: Base
     fileprivate var _changeSignal = LazySignal<Change>()
     fileprivate var _valueSignal = LazySignal<Value>()
@@ -43,6 +37,14 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         _value = Set(elements)
     }
 
+    public var isBuffered: Bool {
+        return true
+    }
+
+    public var count: Int {
+        return _value.count
+    }
+
     public var value: Value {
         get {
             return _value
@@ -55,19 +57,16 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         }
     }
 
-    public var count: Int {
-        return _value.count
-    }
-
     public func contains(_ member: Element) -> Bool {
         return _value.contains(member)
     }
 
-    public func apply(_ change: SetChange<Element>) {
-        guard !change.isEmpty else { return }
-        _value.apply(change)
-        _changeSignal.sendIfConnected(change)
-        _valueSignal.sendIfConnected(_value)
+    public func isSubset(of other: Set<Element>) -> Bool {
+        return _value.isSubset(of: other)
+    }
+
+    public func isSuperset(of other: Set<Element>) -> Bool {
+        return _value.isSuperset(of: other)
     }
 
     public var futureChanges: Source<SetChange<Element>> {
@@ -78,22 +77,10 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         return Observable(getter: { self._value }, futureValues: { self._valueSignal.source })
     }
 
-    public static func ==(a: SetVariable, b: SetVariable) -> Bool {
-        return a.value == b.value
-    }
-}
-
-extension SetVariable: ExpressibleByArrayLiteral {
-    public convenience init(arrayLiteral elements: Element...) {
-        self.init(elements)
-    }
-}
-
-extension SetVariable {
-    public func insert(_ member: Element) {
-        guard !_value.contains(member) else { return }
-        _value.insert(member)
-        _changeSignal.sendIfConnected(SetChange(removed: [], inserted: [member]))
+    public func apply(_ change: SetChange<Element>) {
+        guard !change.isEmpty else { return }
+        _value.apply(change)
+        _changeSignal.sendIfConnected(change)
         _valueSignal.sendIfConnected(_value)
     }
 
@@ -104,6 +91,21 @@ extension SetVariable {
         _valueSignal.sendIfConnected(value)
     }
 
+    public func insert(_ member: Element) {
+        guard !_value.contains(member) else { return }
+        _value.insert(member)
+        _changeSignal.sendIfConnected(SetChange(removed: [], inserted: [member]))
+        _valueSignal.sendIfConnected(_value)
+    }
+}
+
+extension SetVariable: ExpressibleByArrayLiteral {
+    public convenience init(arrayLiteral elements: Element...) {
+        self.init(elements)
+    }
+}
+
+extension SetVariable {
     public func update(with member: Element) -> Element? {
         let old = _value.update(with: member)
         if let old = old {
@@ -143,7 +145,7 @@ extension SetVariable {
     public func formSymmetricDifference(_ other: Set<Element>) {
         if _changeSignal.isConnected {
             let intersection = _value.intersection(other)
-            let additions = other.subtracting(self)
+            let additions = other.subtracting(self.value)
             _value.formSymmetricDifference(other)
             _changeSignal.sendIfConnected(SetChange(removed: intersection, inserted: additions))
         }

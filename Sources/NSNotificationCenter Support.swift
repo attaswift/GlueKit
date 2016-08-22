@@ -18,7 +18,7 @@ extension NotificationCenter {
     /// - Parameter sender: The sender of the notifications to observe, or nil for any object. This parameter is nil by default.
     /// - Parameter queue: The operation queue on which the source will trigger. If you pass nil, the sinks are run synchronously on the thread that posted the notification. This parameter is nil by default.
     /// - Returns: A Source that triggers when the specified notification is posted.
-    public func sourceForNotification(_ name: NSNotification.Name, sender: AnyObject? = nil, queue: OperationQueue? = nil) -> Source<Notification> {
+    public func source(forName name: NSNotification.Name, sender: AnyObject? = nil, queue: OperationQueue? = nil) -> Source<Notification> {
         let mutex = Mutex()
         var observer: NSObjectProtocol? = nil
 

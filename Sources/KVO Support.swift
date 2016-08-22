@@ -11,16 +11,38 @@ import Foundation
 public extension NSObject {
     /// Returns an observable source for a KVO-compatible key path.
     /// Note that the object is retained by the returned source.
-    public func sourceForKeyPath(_ keyPath: String) -> Source<AnyObject?> {
-        return KVOObserver.observerForObject(self)._sourceForKeyPath(keyPath)
+    public func source(forKeyPath keyPath: String) -> Source<Any?> {
+        return KVOObserver.observer(for: self)._source(forKeyPath: keyPath)
     }
 
-    public func observableForKeyPath(_ keyPath: String) -> Observable<AnyObject?> {
-        return Observable(
-            getter: { self.value(forKeyPath: keyPath) as AnyObject? },
-            futureValues: { self.sourceForKeyPath(keyPath) }
-        )
+    public func observable(forKeyPath keyPath: String) -> Observable<Any?> {
+        return KVOUpdatable(object: self, keyPath: keyPath).observable
     }
+
+    public func updatable(forKeyPath keyPath: String) -> Updatable<Any?> {
+        return KVOUpdatable(object: self, keyPath: keyPath).updatable
+    }
+}
+
+private class KVOUpdatable: UpdatableType {
+    private let object: NSObject
+    private let keyPath: String
+
+    private var observer: KVOObserver {
+        return .observer(for: object)
+    }
+
+    init(object: NSObject, keyPath: String) {
+        self.object = object
+        self.keyPath = keyPath
+    }
+
+    var value: Any? {
+        get { return object.value(forKeyPath: keyPath) }
+        set { object.setValue(newValue, forKeyPath: keyPath) }
+    }
+
+    var futureValues: Source<Any?> { return observer._source(forKeyPath: keyPath) }
 }
 
 // A single object that observes all key paths currently registered as Sources on a target object.
@@ -31,10 +53,10 @@ public extension NSObject {
     let object: NSObject
 
     let mutex = Mutex()
-    var signals: [String: UnownedReference<Signal<AnyObject?>>] = [:]
+    var signals: [String: UnownedReference<Signal<Any?>>] = [:]
     var observerContext: Int8 = 0
 
-    static func observerForObject(_ object: NSObject) -> KVOObserver {
+    static func observer(for object: NSObject) -> KVOObserver {
         if let observer = objc_getAssociatedObject(object, &associatedObjectKey) as? KVOObserver {
             return observer
         }
@@ -55,12 +77,12 @@ public extension NSObject {
         mutex.destroy()
     }
 
-    func _sourceForKeyPath(_ keyPath: String) -> Source<AnyObject?> {
+    func _source(forKeyPath keyPath: String) -> Source<Any?> {
         return mutex.withLock {
             if let signal = signals[keyPath] {
                 return signal.value.source
             }
-            let signal = Signal<AnyObject?>(
+            let signal = Signal<Any?>(
                 start: { signal in self.startObservingKeyPath(keyPath, signal: signal) },
                 stop: { signal in self.stopObservingKeyPath(keyPath) })
             // Note that signal now holds strong references to this KVOObserver
@@ -69,7 +91,7 @@ public extension NSObject {
         }
     }
 
-    private func startObservingKeyPath(_ keyPath: String, signal: Signal<AnyObject?>) {
+    private func startObservingKeyPath(_ keyPath: String, signal: Signal<Any?>) {
         mutex.withLock {
             self.signals[keyPath] = UnownedReference(signal)
             self.object.addObserver(self, forKeyPath: keyPath, options: .new, context: &self.observerContext)
@@ -89,7 +111,7 @@ public extension NSObject {
                 let newValue = change[NSKeyValueChangeKey.newKey]
                 if let signal = mutex.withLock({ self.signals[keyPath]?.value }) {
                     if let value = newValue, !(value is NSNull) {
-                        signal.send(value as AnyObject)
+                        signal.send(value)
                     }
                     else {
                         signal.send(nil)

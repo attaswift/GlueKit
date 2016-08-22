@@ -53,7 +53,7 @@ class ArrayModificationTests: XCTestCase {
 
     func testRemoval() {
         var a = [1, 2, 3]
-        let mod = ArrayModification<Int>.removeAt(1)
+        let mod = ArrayModification<Int>.removeElement(at: 1)
 
         XCTAssertEqual(mod.deltaCount, -1)
         XCTAssertEqual(mod.range, 1..<2)
@@ -61,14 +61,14 @@ class ArrayModificationTests: XCTestCase {
 
         a.apply(mod)
 
-        XCTAssert(mod.map { "\($0)" } == ArrayModification<String>.removeAt(1))
+        XCTAssert(mod.map { "\($0)" } == ArrayModification<String>.removeElement(at: 1))
 
         XCTAssertEqual(a, [1, 3])
     }
 
     func testReplacement() {
         var a = [1, 2, 3]
-        let mod = ArrayModification.replaceAt(1, with: 10)
+        let mod = ArrayModification.replaceElement(at: 1, with: 10)
 
         XCTAssertEqual(mod.deltaCount, 0)
         XCTAssertEqual(mod.range, 1..<2)
@@ -76,7 +76,7 @@ class ArrayModificationTests: XCTestCase {
 
         a.apply(mod)
 
-        XCTAssert(mod.map { "\($0)" } == ArrayModification.replaceAt(1, with: "10"))
+        XCTAssert(mod.map { "\($0)" } == ArrayModification.replaceElement(at: 1, with: "10"))
 
         XCTAssertEqual(a, [1, 10, 3])
     }
@@ -218,13 +218,13 @@ class ArrayChangeTests: XCTestCase {
 
     func testMap() {
         let c1 = ArrayChange<Int>(initialCount: 10, modification: .insert(1, at: 3))
-            .merged(with: ArrayChange<Int>(initialCount: 11, modification: .replaceAt(1, with: 2)))
-            .merged(with: ArrayChange<Int>(initialCount: 11, modification: .removeAt(4)))
+            .merged(with: ArrayChange<Int>(initialCount: 11, modification: .replaceElement(at: 1, with: 2)))
+            .merged(with: ArrayChange<Int>(initialCount: 11, modification: .removeElement(at: 4)))
             .merged(with: ArrayChange<Int>(initialCount: 10, modification: .replaceRange(8..<10, with: [5, 6])))
 
         let c2 = ArrayChange<String>(initialCount: 10, modification: .insert("1", at: 3))
-            .merged(with: ArrayChange<String>(initialCount: 11, modification: .replaceAt(1, with: "2")))
-            .merged(with: ArrayChange<String>(initialCount: 11, modification: .removeAt(4)))
+            .merged(with: ArrayChange<String>(initialCount: 11, modification: .replaceElement(at: 1, with: "2")))
+            .merged(with: ArrayChange<String>(initialCount: 11, modification: .removeElement(at: 4)))
             .merged(with: ArrayChange<String>(initialCount: 10, modification: .replaceRange(8..<10, with: ["5", "6"])))
 
         let m = c1.map { "\($0)" }
@@ -241,33 +241,33 @@ class ArrayVariableTests: XCTestCase {
         XCTAssertEqual(a0.count, 0)
 
         let a1 = ArrayVariable([1, 2, 3, 4])
-        XCTAssert([1, 2, 3, 4].elementsEqual(a1, by: ==))
+        XCTAssert([1, 2, 3, 4].elementsEqual(a1.value, by: ==))
 
         let a2 = ArrayVariable(elements: 1, 2, 3, 4)
-        XCTAssert([1, 2, 3, 4].elementsEqual(a2, by: ==))
+        XCTAssert([1, 2, 3, 4].elementsEqual(a2.value, by: ==))
 
         let a3: ArrayVariable<Int> = [1, 2, 3, 4] // From array literal
-        XCTAssert([1, 2, 3, 4].elementsEqual(a3, by: ==))
+        XCTAssert([1, 2, 3, 4].elementsEqual(a3.value, by: ==))
     }
 
     func testEquality() {
         // Equality tests between two ArrayVariables
-        XCTAssertTrue(ArrayVariable([1, 2, 3]) == ArrayVariable([1, 2, 3]))
-        XCTAssertFalse(ArrayVariable([1, 2, 3]) == ArrayVariable([1, 2]))
+        XCTAssertTrue(ArrayVariable([1, 2, 3]).value == ArrayVariable([1, 2, 3]).value)
+        XCTAssertFalse(ArrayVariable([1, 2, 3]).value == ArrayVariable([1, 2]).value)
 
         // Equality tests between ArrayVariable and an array literal
-        XCTAssertTrue(ArrayVariable([1, 2, 3]) == [1, 2, 3])
-        XCTAssertFalse(ArrayVariable([1, 2, 3]) == [1, 2])
+        XCTAssertTrue(ArrayVariable([1, 2, 3]).value == [1, 2, 3])
+        XCTAssertFalse(ArrayVariable([1, 2, 3]).value == [1, 2])
 
         // Equality tests between two different ObservableArrayTypes
-        XCTAssertTrue(ArrayVariable([1, 2, 3]) == ObservableArray(ArrayVariable([1, 2, 3])))
-        XCTAssertFalse(ArrayVariable([1, 2, 3]) == ObservableArray(ArrayVariable([1, 2])))
+        XCTAssertTrue(ArrayVariable([1, 2, 3]).value == ObservableArray(ArrayVariable([1, 2, 3])).value)
+        XCTAssertFalse(ArrayVariable([1, 2, 3]).value == ObservableArray(ArrayVariable([1, 2])).value)
 
         // Equality tests between an ArrayVariable and an Array
-        XCTAssertTrue(ArrayVariable([1, 2, 3]) == Array([1, 2, 3]))
-        XCTAssertFalse(ArrayVariable([1, 2, 3]) == Array([1, 2]))
-        XCTAssertTrue(Array([1, 2, 3]) == ArrayVariable([1, 2, 3]))
-        XCTAssertFalse(Array([1, 2]) == ArrayVariable([1, 2, 3]))
+        XCTAssertTrue(ArrayVariable([1, 2, 3]).value == Array([1, 2, 3]))
+        XCTAssertFalse(ArrayVariable([1, 2, 3]).value == Array([1, 2]))
+        XCTAssertTrue(Array([1, 2, 3]) == ArrayVariable([1, 2, 3]).value)
+        XCTAssertFalse(Array([1, 2]) == ArrayVariable([1, 2, 3]).value)
     }
 
     func testValueAndCount() {
@@ -281,20 +281,10 @@ class ArrayVariableTests: XCTestCase {
         XCTAssertEqual(array.value, [4, 5])
         XCTAssertEqual(array.count, 2)
 
-        array.setValue([6])
+        array.value = [6]
 
         XCTAssertEqual(array.value, [6])
         XCTAssertEqual(array.count, 1)
-    }
-
-    func testGenerate() {
-        let array: ArrayVariable<Int> = [1, 2, 3, 4]
-        var g = array.makeIterator()
-        XCTAssertEqual(g.next(), 1)
-        XCTAssertEqual(g.next(), 2)
-        XCTAssertEqual(g.next(), 3)
-        XCTAssertEqual(g.next(), 4)
-        XCTAssertEqual(g.next(), nil)
     }
 
     func testIndexing() {
@@ -306,13 +296,13 @@ class ArrayVariableTests: XCTestCase {
 
         XCTAssertEqual(array[2], 10)
 
-        XCTAssert([1, 2, 10].elementsEqual(array, by: ==))
+        XCTAssert([1, 2, 10].elementsEqual(array.value, by: ==))
     }
 
     func testIndexingWithRanges() {
         let array: ArrayVariable<Int> = [1, 2, 3, 4]
 
-        XCTAssertEqual(array[1...2], [2, 3])
+        XCTAssertEqual(array[1..<3], [2, 3])
 
         array[1..<3] = [20, 30, 40]
 
@@ -340,12 +330,12 @@ class ArrayVariableTests: XCTestCase {
         }
 
         tryCase([1, 2, 3], op: { $0[1] = 20 },
-            expectedOutput: [1, 20, 3], expectedChange: ArrayChange(initialCount: 3, modification: .replaceAt(1, with: 20)))
+            expectedOutput: [1, 20, 3], expectedChange: ArrayChange(initialCount: 3, modification: .replaceElement(at: 1, with: 20)))
 
         tryCase([1, 2, 3], op: { $0[1..<2] = [20, 30] },
             expectedOutput: [1, 20, 30, 3], expectedChange: ArrayChange(initialCount: 3, modification: .replaceRange(1..<2, with: [20, 30])))
 
-        tryCase([1, 2, 3], op: { $0.setValue([4, 5]) },
+        tryCase([1, 2, 3], op: { $0.value = [4, 5] },
             expectedOutput: [4, 5], expectedChange: ArrayChange(initialCount: 3, modification: .replaceRange(0..<3, with: [4, 5])))
 
         tryCase([1, 2, 3], op: { $0.value = [4, 5] },
@@ -361,13 +351,13 @@ class ArrayVariableTests: XCTestCase {
             expectedOutput: [1, 2, 10, 3], expectedChange: ArrayChange(initialCount: 3, modification: .insert(10, at: 2)))
 
         tryCase([1, 2, 3], op: { $0.remove(at: 1) },
-            expectedOutput: [1, 3], expectedChange: ArrayChange(initialCount: 3, modification: .removeAt(1)))
+            expectedOutput: [1, 3], expectedChange: ArrayChange(initialCount: 3, modification: .removeElement(at: 1)))
 
         tryCase([1, 2, 3], op: { $0.removeFirst() },
-            expectedOutput: [2, 3], expectedChange: ArrayChange(initialCount: 3, modification: .removeAt(0)))
+            expectedOutput: [2, 3], expectedChange: ArrayChange(initialCount: 3, modification: .removeElement(at: 0)))
 
         tryCase([1, 2, 3], op: { $0.removeLast() },
-            expectedOutput: [1, 2], expectedChange: ArrayChange(initialCount: 3, modification: .removeAt(2)))
+            expectedOutput: [1, 2], expectedChange: ArrayChange(initialCount: 3, modification: .removeElement(at: 2)))
 
         tryCase([1, 2, 3], op: { $0.removeAll() },
             expectedOutput: [], expectedChange: ArrayChange(initialCount: 3, modification: .replaceRange(0..<3, with: [])))

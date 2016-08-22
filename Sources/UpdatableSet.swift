@@ -9,11 +9,13 @@
 import Foundation
 
 public protocol UpdatableSetType: ObservableSetType {
-    var value: Base { get set }
+    var value: Base { get nonmutating set }
     func apply(_ change: SetChange<Element>)
 
-    func remove(_ member: Iterator.Element)
-    func insert(_ member: Iterator.Element)
+    func remove(_ member: Element)
+    func insert(_ member: Element)
+
+    var updatableSet: UpdatableSet<Element> { get }
 }
 
 extension UpdatableSetType {
@@ -28,9 +30,13 @@ extension UpdatableSetType {
             apply(SetChange(removed: [], inserted: [member]))
         }
     }
+
+    public var updatableSet: UpdatableSet<Element> {
+        return UpdatableSet(box: UpdatableSetBox(self))
+    }
 }
 
-extension UpdatableSetType where Base == Set<Element> {
+extension UpdatableSetType {
     public func modify(_ block: (SetVariable<Element>)->Void) {
         let set = SetVariable<Self.Element>(self.value)
         var change = SetChange<Self.Element>()
@@ -46,28 +52,77 @@ public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
     public typealias Base = Set<Element>
     public typealias Change = SetChange<Element>
 
-    public typealias Index = Base.Index
-    public typealias IndexDistance = Int
-    public typealias Indices = Base.Indices
-    public typealias Iterator = Base.Iterator
-    public typealias SubSequence = Base.SubSequence
+    let box: UpdatableSetBase<Element>
 
-    public let observableSet: ObservableSet<Element>
-    private let _apply: (SetChange<Element>) -> Void
-
-    public init<S: UpdatableSetType>(s: S) where S.Element == Element {
-        observableSet = s.observableSet
-        _apply = { change in s.apply(change) }
+    init(box: UpdatableSetBase<Element>) {
+        self.box = box
     }
 
-    public var value: Value {
-        get { return observableSet.value }
-        set { _apply(SetChange(removed: value, inserted: newValue)) }
+    public init<S: UpdatableSetType>(_ set: S) where S.Element == Element {
+        self = set.updatableSet
     }
-    public var observableCount: Observable<Int> { return observableSet.observableCount }
-    public var observable: Observable<Set<Element>> { return observableSet.observable }
-    public var futureChanges: Source<SetChange<Element>> { return observableSet.futureChanges }
-    public func apply(_ change: SetChange<Element>) { _apply(change) }
 
-    public static func ==(a: UpdatableSet, b: UpdatableSet) -> Bool { return a.value == b.value }
+    public var isBuffered: Bool { return box.isBuffered }
+    public var count: Int { return box.count }
+    public var value: Set<Element> {
+        get { return box.value }
+        nonmutating set { box.value = newValue }
+    }
+    public func contains(_ member: Element) -> Bool { return box.contains(member) }
+    public func isSubset(of other: Set<Element>) -> Bool { return box.isSubset(of: other) }
+    public func isSuperset(of other: Set<Element>) -> Bool { return box.isSuperset(of: other) }
+
+    public func apply(_ change: SetChange<Element>) { box.apply(change) }
+    public func remove(_ member: Element) { box.remove(member) }
+    public func insert(_ member: Element) { box.insert(member) }
+
+    public var futureChanges: Source<SetChange<Element>> { return box.futureChanges }
+    public var observable: Observable<Set<Element>> { return box.observable }
+    public var observableCount: Observable<Int> { return box.observableCount }
+
+    public var updatableSet: UpdatableSet<Element> { return self }
+}
+
+class UpdatableSetBase<Element: Hashable>: ObservableSetBase<Element>, UpdatableSetType {
+    override var value: Set<Element> {
+        get { abstract() }
+        set { abstract() }
+    }
+    func apply(_ change: SetChange<Element>) { abstract() }
+
+    func remove(_ member: Element) { abstract() }
+    func insert(_ member: Element) { abstract() }
+
+    final var updatableSet: UpdatableSet<Element> { return UpdatableSet(box: self) }
+}
+
+class UpdatableSetBox<Contents: UpdatableSetType>: UpdatableSetBase<Contents.Element> {
+    typealias Element = Contents.Element
+
+    let contents: Contents
+
+    init(_ contents: Contents) {
+        self.contents = contents
+    }
+
+    override var isBuffered: Bool { return contents.isBuffered }
+    override var count: Int { return contents.count }
+
+    override var value: Set<Element> {
+        get { return contents.value }
+        set { contents.value = newValue }
+    }
+
+    override func apply(_ change: SetChange<Element>) { contents.apply(change) }
+
+    override func remove(_ member: Element) { contents.remove(member) }
+    override func insert(_ member: Element) { contents.insert(member) }
+
+    override func contains(_ member: Element) -> Bool { return contents.contains(member) }
+    override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
+    override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
+
+    override var futureChanges: Source<SetChange<Element>> { return contents.futureChanges }
+    override var observable: Observable<Set<Element>> { return contents.observable }
+    override var observableCount: Observable<Int> { return contents.observableCount }
 }

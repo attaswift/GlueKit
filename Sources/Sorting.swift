@@ -8,23 +8,17 @@
 
 import Foundation
 
-extension ObservableSetType where Base == Set<Element>, Element == Iterator.Element {
-    public func sorted(by areInIncreasingOrder: @escaping (Iterator.Element, Iterator.Element) -> Bool) -> ObservableArray<Element> {
-        return SortedObservableSet(source: self, sortedBy: areInIncreasingOrder).observableArray
+extension ObservableSetType {
+    public func sorted(by areInIncreasingOrder: @escaping (Element, Element) -> Bool) -> ObservableArray<Element> {
+        return SortedObservableSet(input: self, sortedBy: areInIncreasingOrder).observableArray
     }
 }
 
-class SortedObservableSet<S: ObservableSetType>: ObservableArrayType where S.Base == Set<S.Element> {
+class SortedObservableSet<S: ObservableSetType>: ObservableArrayType {
     typealias Base = [Element]
     typealias Element = S.Element
 
-    typealias Iterator = Base.Iterator
-    typealias Index = Int
-    typealias IndexDistance = Int
-    typealias Indices = Base.Indices
-    typealias SubSequence = Base.SubSequence
-
-    private let source: S
+    private let input: S
     private let areInIncreasingOrder: (Element, Element) -> Bool
 
     internal private(set) var value: [Element] = []
@@ -32,23 +26,18 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType where S.Bas
 
     private let changeSignal = Signal<ArrayChange<Element>>()
 
+    internal var isBuffered: Bool { return true }
     internal var count: Int { return value.count }
-    internal func lookup(_ range: Range<Int>) -> SubSequence { return value[range] }
+    internal subscript(index: Int) -> Element { return value[index] }
+    internal subscript(bounds: Range<Int>) -> ArraySlice<Element> { return value[bounds] }
+
     internal var futureChanges: Source<ArrayChange<Element>> { return changeSignal.source }
 
-    internal var observableArray: ObservableArray<Element> {
-        return ObservableArray(
-            count: { self.value.count },
-            lookup: { self.value[$0] },
-            futureChanges: { self.changeSignal.source }
-        )
-    }
-
-    init(source: S, sortedBy areInIncreasingOrder: @escaping (Element, Element) -> Bool) {
-        self.source = source
+    init(input: S, sortedBy areInIncreasingOrder: @escaping (Element, Element) -> Bool) {
+        self.input = input
         self.areInIncreasingOrder = areInIncreasingOrder
-        self.value = source.value.sorted(by: areInIncreasingOrder)
-        self.connection = source.futureChanges.connect { [weak self] change in
+        self.value = input.value.sorted(by: areInIncreasingOrder)
+        self.connection = input.futureChanges.connect { [weak self] change in
             self?.apply(change)
         }
     }
@@ -62,7 +51,7 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType where S.Bas
         var j = 0
         while i < value.count {
             if change.removed.contains(value[i]) {
-                arrayChange.addModification(.removeAt(nextValue.count))
+                arrayChange.addModification(.removeElement(at: nextValue.count))
                 i += 1
             }
             else if j < inserted.count {

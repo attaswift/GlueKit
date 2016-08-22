@@ -14,14 +14,8 @@ public class ObservableSetReference<Element: Hashable>: ObservableSetType, Signa
     public typealias Base = Set<Element>
     public typealias Change = SetChange<Element>
 
-    public typealias Index = Base.Index
-    public typealias IndexDistance = Base.IndexDistance
-    public typealias Indices = Base.Indices
-    public typealias Iterator = Base.Iterator
-    public typealias SubSequence = Base.SubSequence
-
     private var _target: ObservableSet<Element>
-    private var _futureChanges = Signal<Change>()
+    private var _futureChanges = OwningSignal<Change, ObservableSetReference<Element>>()
     private var _connection: Connection?
 
     public init() {
@@ -45,8 +39,9 @@ public class ObservableSetReference<Element: Hashable>: ObservableSetType, Signa
         }
     }
 
+    public var isBuffered: Bool { return false }
     public var value: Set<Element> { return _target.value }
-    public var futureChanges: Source<Change> { return _futureChanges.source }
+    public var futureChanges: Source<Change> { return _futureChanges.with(self).source }
 
     internal func start(_ signal: Signal<Change>) {
         precondition(_connection == nil)

@@ -15,6 +15,9 @@ public protocol UpdatableType: ObservableType, SinkType {
         get
         nonmutating set // Nonmutating because UpdatableType needs to be a class if it holds the value directly.
     }
+
+    /// Returns the type-lifted version of this UpdatableType.
+    var updatable: Updatable<Value> { get }
 }
 
 extension UpdatableType {
@@ -24,14 +27,85 @@ extension UpdatableType {
 
     /// Returns the type-lifted version of this UpdatableType.
     public var updatable: Updatable<Value> {
-        return Updatable(getter: { self.value }, setter: { self.value = $0 }, futureValues: { self.futureValues })
+        return Updatable(self)
     }
 }
 
 /// The type lifted representation of an UpdatableType.
 public struct Updatable<Value>: UpdatableType {
     public typealias SinkValue = Value
-    
+
+    private let box: UpdatableBoxBase<Value>
+
+    init(box: UpdatableBoxBase<Value>) {
+        self.box = box
+    }
+
+    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, futureValues: @escaping (Void) -> Source<Value>) {
+        self.box = UpdatableClosureBox(getter: getter, setter: setter, futureValues: futureValues)
+    }
+
+    public init<Base: UpdatableType>(_ base: Base) where Base.Value == Value {
+        self.box = UpdatableBox(base)
+    }
+
+    /// The current value of the updatable. It's called an `Updatable` because this value is settable.
+    public var value: Value {
+        get {
+            return box.value
+        }
+        nonmutating set {
+            box.value = newValue
+        }
+    }
+
+    public var futureValues: Source<Value> {
+        return box.futureValues
+    }
+
+    public var receive: (Value) -> Void {
+        return box.receive
+    }
+
+    public var observable: Observable<Value> {
+        return box.observable
+    }
+
+    public var updatable: Updatable<Value> {
+        return self
+    }
+}
+
+internal class UpdatableBoxBase<Value>: ObservableBoxBase<Value>, UpdatableType {
+    override var value: Value {
+        get { abstract() }
+        set { abstract() }
+    }
+    override var futureValues: Source<Value> { abstract() }
+    var receive: (Value) -> Void { abstract() }
+
+    final var updatable: Updatable<Value> { return Updatable(box: self) }
+}
+
+internal class UpdatableBox<Base: UpdatableType>: UpdatableBoxBase<Base.Value> {
+    private let base: Base
+
+    init(_ base: Base) {
+        self.base = base
+    }
+
+    override var value: Base.Value {
+        get { return base.value }
+        set { base.value = newValue }
+    }
+    override var futureValues: Source<Base.Value> { return base.futureValues }
+
+    override var receive: (Base.Value) -> Void {
+        return base.receive
+    }
+}
+
+private class UpdatableClosureBox<Value>: UpdatableBoxBase<Value> {
     /// The getter closure for the current value of this updatable.
     public let getter: (Void) -> Value
     /// The setter closure for updating the current value of this updatable.
@@ -45,22 +119,17 @@ public struct Updatable<Value>: UpdatableType {
         self.valueSource = futureValues
     }
 
-    /// The current value of the updatable. It's called an `Updatable` because this value is settable.
-    public var value: Value {
-        get {
-            return getter()
-        }
-        nonmutating set {
-            setter(newValue)
-        }
+    override var value: Value {
+        get { return getter() }
+        set { setter(newValue) }
     }
 
-    public var futureValues: Source<Value> {
+    override var futureValues: Source<Value> {
         return valueSource()
     }
 
-    public var receive: (Value) -> Void {
-        return self.setter
+    override var receive: (Value) -> Void {
+        return setter
     }
 }
 

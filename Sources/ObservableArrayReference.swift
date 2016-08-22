@@ -14,21 +14,15 @@ public class ObservableArrayReference<Element>: ObservableArrayType, SignalDeleg
     public typealias Base = [Element]
     public typealias Change = ArrayChange<Element>
 
-    public typealias Iterator = Base.Iterator
-    public typealias Index = Int
-    public typealias IndexDistance = Int
-    public typealias Indices = CountableRange<Int>
-    public typealias SubSequence = Base.SubSequence
-
     private var _target: ObservableArray<Element>
     private var _futureChanges = Signal<Change>()
     private var _connection: Connection?
 
-    public init<Target: ObservableArrayType>(target: Target) where Target.Iterator.Element == Element {
+    public init<Target: ObservableArrayType>(target: Target) where Target.Element == Element {
         _target = target.observableArray
     }
 
-    public func retarget<Target: ObservableArrayType>(to target: Target) where Target.Iterator.Element == Element {
+    public func retarget<Target: ObservableArrayType>(to target: Target) where Target.Element == Element {
         if let c = _connection {
             c.disconnect()
             let change = ArrayChange(from: _target.value, to: target.value)
@@ -41,8 +35,13 @@ public class ObservableArrayReference<Element>: ObservableArrayType, SignalDeleg
         }
     }
 
+    public var isBuffered: Bool { return false }
+    public var count: Int {
+        return self._target.count
+    }
     public var value: Base { return _target.value }
-    public func lookup(_ range: Range<Int>) -> ArraySlice<Element> { return _target.lookup(range) }
+    public subscript(_ index: Int) -> Element { return _target[index] }
+    public subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _target[range] }
     public var futureChanges: Source<Change> { return _futureChanges.source }
 
     internal func start(_ signal: Signal<Change>) {

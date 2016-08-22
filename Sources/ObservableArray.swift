@@ -8,45 +8,6 @@
 
 import Foundation
 
-public protocol ArrayLikeCollection: RandomAccessCollection {
-    // These should be requirements, not defaults
-    associatedtype Index = Int
-    associatedtype IndexDistance = Int
-    associatedtype Indices = CountableRange<Int>
-}
-
-extension ArrayLikeCollection where Index == Int, IndexDistance == Int, Indices == CountableRange<Int> {
-    public var last: Iterator.Element? { return isEmpty ? nil : self[endIndex - 1] }
-
-    public func distance(from start: Int, to end: Int) -> Int { return end - start }
-
-    public func index(after i: Int) -> Int { return i + 1 }
-    public func index(before i: Int) -> Int { return i - 1 }
-    public func index(_ i: Int, offsetBy n: Int) -> Int { return i + n }
-    public func index(_ i: Int, offsetBy n: Int, limitedBy limit: Int) -> Int? {
-        let r = i + n
-        if n < 0 {
-            return r > limit ? r : nil
-        }
-        else {
-            return r < limit ? r : nil
-        }
-    }
-
-    public func formIndex(after i: inout Int) { i += 1 }
-    public func formIndex(before i: inout Int) { i -= 1 }
-    public func formIndex(_ i: inout Int, offsetBy n: Int) { i += n }
-    public func formIndex(_ i: inout Int, offsetBy n: Int, limitedBy limit: Int) -> Bool {
-        if (n >= 0 && i + n > limit) || (n < 0 && i + n < limit) {
-            i = limit
-            return false
-        }
-        i += n
-        return true
-    }
-}
-
-
 //MARK: ObservableArrayType
 
 /// An observable array type; i.e., a read-only, array-like `ObservableCollection` that provides efficient change
@@ -59,116 +20,51 @@ extension ArrayLikeCollection where Index == Int, IndexDistance == Int, Indices 
 /// For a concrete observable array, see `ArrayVariable`.
 ///
 /// - SeeAlso: ObservableType, ObservableArray, UpdatableArrayType, ArrayVariable
-public protocol ObservableArrayType: ObservableCollection, ArrayLikeCollection {
-    associatedtype Base = Array<Iterator.Element>
-    associatedtype Change = ArrayChange<Iterator.Element>
+public protocol ObservableArrayType {
+    associatedtype Element
+    typealias Base = Array<Element>
+    typealias Change = ArrayChange<Element>
 
     // Required methods
-
     var count: Int { get }
-    func lookup(_ range: Range<Int>) -> SubSequence
-    var futureChanges: Source<ArrayChange<Iterator.Element>> { get }
+    var value: Base { get }
+    var futureChanges: Source<Change> { get }
 
-    // From ObservableCollection
     var observableCount: Observable<Int> { get }
-    var value: [Iterator.Element] { get }
     var observable: Observable<Base> { get }
 
+    var isBuffered: Bool { get }
+    subscript(index: Int) -> Element { get }
+    subscript(bounds: Range<Int>) -> ArraySlice<Element> { get }
+
     // Extras
-    var observableArray: ObservableArray<Iterator.Element> { get }
+    var observableArray: ObservableArray<Element> { get }
 }
 
-extension ObservableArrayType where
-    Index == Int,
-    Base == Array<Iterator.Element>,
-    Change == ArrayChange<Iterator.Element>,
-    SubSequence: Collection,
-    SubSequence.Iterator.Element == Iterator.Element {
-
-    public var startIndex: Int { return 0 }
-    public var endIndex: Int { return count }
-
-    public subscript(index: Int) -> Iterator.Element {
-        return lookup(index ..< index + 1).first!
+extension ObservableArrayType {
+    public subscript(_ index: Int) -> Element {
+        return self[index ..< index + 1].first!
     }
-    public subscript(bounds: Range<Int>) -> SubSequence {
-        return lookup(bounds)
+
+    public var observable: Observable<Base> {
+        return Observable(
+            getter: { return self.value },
+            futureValues: {
+                var value = self.value
+                return self.futureChanges.map { (c: Change) -> Base in
+                    value.apply(c)
+                    return value
+                }
+        })
     }
 
     public var observableCount: Observable<Int> {
-        let fv: (Void) -> Source<Int> = { self.futureChanges.map { change in change.initialCount + change.deltaCount } }
-        return Observable(
-            getter: { self.count },
-            futureValues: fv)
+        return Observable(getter: { self.count }, futureValues: { self.futureChanges.map { $0.finalCount } })
     }
 
-    public var value: [Iterator.Element] {
-        let result = lookup(0 ..< count)
-        return result as? Array<Iterator.Element> ?? Array(result)
+    public var observableArray: ObservableArray<Element> {
+        return ObservableArray(box: ObservableArrayBox(self))
     }
-
-    public var observable: Observable<Array<Iterator.Element>> {
-        return Observable<Array<Iterator.Element>>(
-            getter: { self.value },
-            futureValues: { return ValueSourceForObservableArray(array: self).source })
-    }
-
-    public var observableArray: ObservableArray<Iterator.Element> {
-        return ObservableArray<Iterator.Element>(self)
-    }
-}
-
-internal class ValueSourceForObservableArray<A: ObservableArrayType>: SignalDelegate where A.Change == ArrayChange<A.Iterator.Element> {
-    internal typealias Element = A.Iterator.Element
-
-    private let array: A
-
-    private var _signal = OwningSignal<[Element], ValueSourceForObservableArray<A>>()
-
-    private var _connection: Connection? = nil
-    private var _values: [Element] = []
-
-    internal init(array: A) {
-        self.array = array
-    }
-
-    internal var source: Source<[Element]> { return _signal.with(self).source }
-
-    internal func start(_ signal: Signal<[Element]>) {
-        assert(_values.count == 0 && _connection == nil)
-        _values = Array(array)
-        _connection = array.futureChanges.connect { change in
-            self._values.apply(change)
-            signal.send(self._values)
-        }
-    }
-    internal func stop(_ signal: Signal<[Element]>) {
-        _connection?.disconnect()
-        _values.removeAll()
-    }
-}
-
-extension ObservableArrayType where Iterator.Element: Equatable {
-    /// Elementwise comparison of two instances of an ObservableArrayType.
-    /// This overload allows us to compare ObservableArrayTypes to array literals.
-    public static func ==(a: Self, b: Self) -> Bool {
-        return a.elementsEqual(b, by: ==)
-    }
-}
-
-/// Elementwise comparison of any two ObservableArrayTypes.
-public func ==<E: Equatable, A: ObservableArrayType, B: ObservableArrayType>(a: A, b: B) -> Bool where A.Iterator.Element == E, B.Iterator.Element == E {
-        return a.elementsEqual(b, by: ==)
-}
-
-/// Elementwise comparison of any ObservableArrayType to an array.
-public func ==<E: Equatable, A: ObservableArrayType>(a: A, b: [E]) -> Bool where A.Iterator.Element == E {
-    return a.elementsEqual(b, by: ==)
-}
-
-/// Elementwise comparison of an array to any ObservableArrayType.
-public func ==<E: Equatable, A: ObservableArrayType>(a: [E], b: A) -> Bool where A.Iterator.Element == E {
-    return a.elementsEqual(b, by: ==)
 }
 
 /// An observable array type; i.e., a read-only, array-like `CollectionType` that also provides efficient change
@@ -183,50 +79,87 @@ public func ==<E: Equatable, A: ObservableArrayType>(a: [E], b: A) -> Bool where
 ///
 /// - SeeAlso: ObservableType, ObservableArrayType, UpdatableArrayType, ArrayVariable
 public struct ObservableArray<Element>: ObservableArrayType {
-    public typealias Base = [Element]
+    public typealias Base = Array<Element>
     public typealias Change = ArrayChange<Element>
 
-    public typealias Iterator = Base.Iterator
-    public typealias Index = Int
-    public typealias IndexDistance = Int
-    public typealias Indices = CountableRange<Int>
-    public typealias SubSequence = Base.SubSequence
+    let box: ObservableArrayBase<Element>
 
-    private let _count: (Void) -> Int
-    private let _lookup: (Range<Int>) -> Base.SubSequence
-    private let _futureChanges: (Void) -> Source<ArrayChange<Element>>
-
-    public init(count: @escaping (Void) -> Int, lookup: @escaping (Range<Int>) -> Base.SubSequence, futureChanges: @escaping (Void) -> Source<ArrayChange<Element>>) {
-        _count = count
-        _lookup = lookup
-        _futureChanges = futureChanges
+    init(box: ObservableArrayBase<Element>) {
+        self.box = box
     }
 
-    public init<A: ObservableArrayType>(_ array: A) where A.Index == Int, A.Iterator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Iterator.Element == Element {
-        _count = { array.count }
-        _lookup = { range in
-            let result = array.lookup(range)
-            return result as? SubSequence ?? SubSequence(result)
-        }
-        _futureChanges = { array.futureChanges }
+    public init<A: ObservableArrayType>(_ array: A) where A.Element == Element {
+        self = array.observableArray
     }
 
-    public var count: Int { return _count() }
-    public func lookup(_ range: Range<Int>) -> SubSequence { return _lookup(range) }
-    public var futureChanges: Source<ArrayChange<Element>> { return _futureChanges() }
-
+    public var isBuffered: Bool { return box.isBuffered }
+    public subscript(_ index: Int) -> Element { return box[index] }
+    public subscript(_ range: Range<Int>) -> ArraySlice<Element> { return box[range] }
+    public var value: Array<Element> { return box.value }
+    public var count: Int { return box.count }
+    public var futureChanges: Source<ArrayChange<Element>> { return box.futureChanges }
+    public var observable: Observable<[Element]> { return box.observable }
+    public var observableCount: Observable<Int> { return box.observableCount }
     public var observableArray: ObservableArray<Element> { return self }
 }
 
-extension ObservableArrayType {
-    public static func constant(_ value: [Iterator.Element]) -> ObservableArray<Iterator.Element> {
-        return ObservableArray(
-            count: { 0 },
-            lookup: { value[$0] },
-            futureChanges: { Source.empty() })
+internal class ObservableArrayBase<Element>: ObservableArrayType {
+    typealias Base = Array<Element>
+    typealias Change = ArrayChange<Element>
+
+    var isBuffered: Bool { abstract() }
+    subscript(_ index: Int) -> Element { abstract() }
+    subscript(_ range: Range<Int>) -> ArraySlice<Element> { abstract() }
+    var value: Array<Element> { abstract() }
+    var count: Int { abstract() }
+    var futureChanges: Source<ArrayChange<Element>> { abstract() }
+    var observableCount: Observable<Int> { abstract() }
+    var observable: Observable<[Element]> { abstract() }
+    final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }
+}
+
+internal class ObservableArrayBox<Contents: ObservableArrayType>: ObservableArrayBase<Contents.Element> {
+    typealias Element = Contents.Element
+
+    let contents: Contents
+
+    init(_ Contents: Contents) {
+        self.contents = Contents
     }
 
-    public static func emptyConstant() -> ObservableArray<Iterator.Element> {
+    override var isBuffered: Bool { return contents.isBuffered }
+    override subscript(_ index: Int) -> Element { return contents[index] }
+    override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return contents[range] }
+    override var value: Array<Element> { return contents.value }
+    override var count: Int { return contents.count }
+    override var futureChanges: Source<ArrayChange<Element>> { return contents.futureChanges }
+    override var observableCount: Observable<Int> { return contents.observableCount }
+    override var observable: Observable<[Element]> { return contents.observable }
+}
+
+internal class ObservableArrayConstant<Element>: ObservableArrayBase<Element> {
+    let _value: Array<Element>
+
+    init(_ value: [Element]) {
+        self._value = value
+    }
+
+    override var isBuffered: Bool { return true }
+    override subscript(_ index: Int) -> Element { return _value[index] }
+    override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _value[range] }
+    override var value: Array<Element> { return _value }
+    override var count: Int { return _value.count }
+    override var futureChanges: Source<ArrayChange<Element>> { return Source.empty() }
+    override var observableCount: Observable<Int> { return Observable.constant(_value.count) }
+    override var observable: Observable<[Element]> { return Observable.constant(_value) }
+}
+
+extension ObservableArrayType {
+    public static func constant(_ value: [Element]) -> ObservableArray<Element> {
+        return ObservableArrayConstant(value).observableArray
+    }
+
+    public static func emptyConstant() -> ObservableArray<Element> {
         return constant([])
     }
 }

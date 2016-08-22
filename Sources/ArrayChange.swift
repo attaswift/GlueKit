@@ -20,9 +20,9 @@ public enum ArrayModification<Element> {
     /// The insertion of a single element at the specified position.
     case insert(Element, at: Int)
     /// The removal of a single element at the specified position.
-    case removeAt(Int)
+    case removeElement(at: Int)
     /// The replacement of a single element at the specified position with the specified new element.
-    case replaceAt(Int, with: Element)
+    case replaceElement(at: Int, with: Element)
     /// The replacement of the specified contiguous range of elements with the specified new list of elements.
     /// The count of the range need not equal the replacement element count.
     ///
@@ -38,9 +38,9 @@ public enum ArrayModification<Element> {
         case (0, 1):
             self = .insert(elements[0], at: range.lowerBound)
         case (1, 0):
-            self = .removeAt(range.lowerBound)
+            self = .removeElement(at: range.lowerBound)
         case (1, 1):
-            self = .replaceAt(range.lowerBound, with: elements[0])
+            self = .replaceElement(at: range.lowerBound, with: elements[0])
         default:
             self = .replaceRange(range, with: elements)
         }
@@ -51,8 +51,8 @@ public enum ArrayModification<Element> {
     var deltaCount: Int {
         switch self {
         case .insert(_, at: _): return 1
-        case .removeAt(_): return -1
-        case .replaceAt(_, with: _): return 0
+        case .removeElement(at: _): return -1
+        case .replaceElement(at: _, with: _): return 0
         case .replaceRange(let range, with: let es): return es.count - range.count
         }
     }
@@ -62,9 +62,9 @@ public enum ArrayModification<Element> {
         switch self {
         case .insert(_, at: let i):
             return i ..< i
-        case .removeAt(let i):
+        case .removeElement(at: let i):
             return i ..< i + 1
-        case .replaceAt(let i, with: _):
+        case .replaceElement(at: let i, with: _):
             return i ..< i + 1
         case .replaceRange(let range, with: _):
             return range
@@ -76,9 +76,9 @@ public enum ArrayModification<Element> {
         switch self {
         case .insert(let e, at: _):
             return [e]
-        case .removeAt(_):
+        case .removeElement(at: _):
             return []
-        case .replaceAt(_, with: let e):
+        case .replaceElement(at: _, with: let e):
             return [e]
         case .replaceRange(_, with: let es):
             return es
@@ -124,10 +124,10 @@ public enum ArrayModification<Element> {
         switch self {
         case .insert(let e, at: let i):
             return .insert(transform(e), at: i)
-        case .removeAt(let i):
-            return .removeAt(i)
-        case .replaceAt(let i, with: let e):
-            return .replaceAt(i, with: transform(e))
+        case .removeElement(at: let i):
+            return .removeElement(at: i)
+        case .replaceElement(at: let i, with: let e):
+            return .replaceElement(at: i, with: transform(e))
         case .replaceRange(let range, with: let es):
             return .replaceRange(range, with: es.map(transform))
         }
@@ -138,9 +138,9 @@ public enum ArrayModification<Element> {
         switch self {
         case .insert(let e, at: _):
             body(e)
-        case .removeAt(_):
+        case .removeElement(at: _):
             break
-        case .replaceAt(_, with: let e):
+        case .replaceElement(at: _, with: let e):
             body(e)
         case .replaceRange(_, with: let es):
             es.forEach(body)
@@ -153,10 +153,10 @@ public enum ArrayModification<Element> {
         switch self {
         case .insert(let e, at: let i):
             return .insert(e, at: i + delta)
-        case .removeAt(let i):
-            return .removeAt(i + delta)
-        case .replaceAt(let i, with: let e):
-            return .replaceAt(i + delta, with: e)
+        case .removeElement(at: let i):
+            return .removeElement(at: i + delta)
+        case .replaceElement(at: let i, with: let e):
+            return .replaceElement(at: i + delta, with: e)
         case .replaceRange(let range, with: let es):
             return .replaceRange(range.lowerBound + delta ..< range.upperBound + delta, with: es)
         }
@@ -180,10 +180,10 @@ extension ArrayModification: CustomStringConvertible, CustomDebugStringConvertib
         switch self {
         case .insert(let e, at: let i):
             return ".insert(\(String(reflecting: e)), at: \(i))"
-        case .removeAt(let i):
-            return ".removeAt(\(i))"
-        case .replaceAt(let i, with: let e):
-            return ".replaceAt(\(i), with: \(String(reflecting: e)))"
+        case .removeElement(at: let i):
+            return ".removeElement(at: \(i))"
+        case .replaceElement(at: let i, with: let e):
+            return ".replaceElement(at: \(i), with: \(String(reflecting: e)))"
         case .replaceRange(let range, with: let es):
             return ".replaceRange(\(range.lowerBound)..<\(range.upperBound), with: [\(es.map { String(reflecting: $0) }.joined(separator: ", "))])"
         }
@@ -199,10 +199,10 @@ extension RangeReplaceableCollection where Index == Int {
         case .insert(let element, at: let index):
             self.insert(element, at: index)
             add(element)
-        case .removeAt(let index):
+        case .removeElement(at: let index):
             remove(self[index])
             self.remove(at: index)
-        case .replaceAt(let index, with: let element):
+        case .replaceElement(at: let index, with: let element):
             remove(self[index])
             self.replaceSubrange(index ..< index + 1, with: [element])
             add(element)
@@ -237,6 +237,8 @@ public struct ArrayChange<Element>: ChangeType {
 
     /// The expected change in the count of elements in the array as a result of this change.
     public var deltaCount: Int { return modifications.reduce(0) { s, mod in s + mod.deltaCount } }
+
+    public var finalCount: Int { return initialCount + deltaCount }
 
     /// The sequence of independent modifications to apply, in order of the start indexes of their ranges.
     /// All indices are understood to be in the array resulting from the original array by applying all
@@ -308,7 +310,7 @@ public struct ArrayChange<Element>: ChangeType {
     /// Merge `other` into this change, modifying it in place.
     /// `other.initialCount` must be equal to `self.finalCount`, or the merge will report a fatal error.
     public mutating func merge(with other: ArrayChange<Element>) {
-        precondition(initialCount + deltaCount == other.initialCount)
+        precondition(finalCount == other.initialCount)
         for m in other.modifications {
             addModification(m)
         }
@@ -355,9 +357,9 @@ public struct ArrayChange<Element>: ChangeType {
             switch modification {
             case .insert(_, at: _):
                 break
-            case .removeAt(let index):
+            case .removeElement(at: let index):
                 result.insert(index - delta)
-            case .replaceAt(_, with: _):
+            case .replaceElement(at: _, with: _):
                 break
             case .replaceRange(let indices, with: let elements):
                 if elements.count < indices.count {
@@ -379,9 +381,9 @@ public struct ArrayChange<Element>: ChangeType {
             switch modification {
             case .insert(_, at: _):
                 delta += modification.deltaCount
-            case .removeAt(_):
+            case .removeElement(at: _):
                 break
-            case .replaceAt(let index, with: _):
+            case .replaceElement(at: let index, with: _):
                 result.insert(index - delta)
                 break
             case .replaceRange(let indices, with: let elements):
@@ -406,9 +408,9 @@ public struct ArrayChange<Element>: ChangeType {
             switch modification {
             case .insert(_, at: let index):
                 result.insert(index)
-            case .removeAt(_):
+            case .removeElement(at: _):
                 break
-            case .replaceAt(_, with: _):
+            case .replaceElement(at: _, with: _):
                 break
             case .replaceRange(let indices, with: let elements):
                 if indices.count < elements.count {

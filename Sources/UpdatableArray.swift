@@ -23,158 +23,105 @@ import Foundation
 public protocol UpdatableArrayType: ObservableArrayType {
 
     // Required members
-
-    var count: Int { get }
-    func lookup(_ range: Range<Index>) -> SubSequence
-    func apply(_ change: ArrayChange<Iterator.Element>)
-    var futureChanges: Source<ArrayChange<Iterator.Element>> { get }
+    func apply(_ change: ArrayChange<Element>)
+    var value: [Element] { get nonmutating set }
+    subscript(index: Int) -> Element { get nonmutating set }
+    subscript(bounds: Range<Int>) -> ArraySlice<Element> { get nonmutating set }
 
     // The following are defined in extensions but may be specialized in implementations:
 
-    func setValue(_ value: [Iterator.Element])
-    var value: [Iterator.Element] { get nonmutating set }
-    subscript(index: Index) -> Iterator.Element { get nonmutating set }
-    subscript(bounds: Range<Index>) -> SubSequence { get nonmutating set }
+    var updatable: Updatable<[Element]> { get }
+    var updatableArray: UpdatableArray<Element> { get }
 
-    var updatableArray: UpdatableArray<Iterator.Element> { get }
-
-    func modify(_ block: (ArrayVariable<Iterator.Element>) -> Void) -> Void
-
-    // RangeReplaceableCollectionType
-    func replaceSubrange<C: Collection>(_ range: Range<Index>, with elements: C) where C.Iterator.Element == Iterator.Element
-    func append(_ newElement: Self.Iterator.Element)
-    func append<C: Collection>(contentsOf newElements: C) where C.Iterator.Element == Iterator.Element
-    func insert(_ newElement: Self.Iterator.Element, atIndex i: Self.Index)
-    func insert<C: Collection>(contentsOf newElements: C, at i: Self.Index) where C.Iterator.Element == Iterator.Element
-
-    @discardableResult
-    func remove(at index: Self.Index) -> Self.Iterator.Element
-
-    func removeSubrange(_ subrange: Range<Self.Index>)
-    func removeFirst(_ n: Int)
-
-    @discardableResult
-    func removeFirst() -> Self.Iterator.Element
-    func removeAll()
-
-    @discardableResult
-    func removeLast() -> Self.Iterator.Element
+    func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void
 }
 
-extension UpdatableArrayType where
-    Index == Int,
-    Change == ArrayChange<Iterator.Element>,
-    Base == Array<Iterator.Element>,
-    SubSequence: Collection,
-    SubSequence.Iterator.Element == Iterator.Element {
-
-    public func setValue(_ value: [Iterator.Element]) {
-        replaceSubrange(0 ..< count, with: value)
+extension UpdatableArrayType {
+    public var updatable: Updatable<[Element]> {
+        return Updatable(
+            getter: { self.value },
+            setter: { self.value = $0 },
+            futureValues: { self.futureChanges.map { _ in self.value } }
+        )
     }
 
-    public var value: [Iterator.Element] {
-        get {
-            let result = lookup(0 ..< count)
-            return result as? Array<Iterator.Element> ?? Array(result)
-        }
-        nonmutating set {
-            replaceSubrange(0 ..< count, with: newValue)
-        }
-    }
-    public subscript(index: Index) -> Iterator.Element {
-        get {
-            return lookup(index ..< index).first!
-        }
-        nonmutating set {
-            apply(ArrayChange(initialCount: self.count, modification: .insert(newValue, at: index)))
-        }
+    public var updatableArray: UpdatableArray<Element> {
+        return UpdatableArray(box: UpdatableArrayBox(self))
     }
 
-    public subscript(bounds: Range<Index>) -> SubSequence {
-        get {
-            return lookup(bounds)
-        }
-        nonmutating set {
-            replaceSubrange(bounds, with: Array(newValue))
-        }
-    }
-
-    public var updatable: Updatable<Base> {
-        return Updatable(observable: observable, setter: { v in self.value = v })
-    }
-
-    public var updatableArray: UpdatableArray<Iterator.Element> {
-        return UpdatableArray(self)
-    }
-
-    public func modify(_ block: (ArrayVariable<Iterator.Element>) -> Void) -> Void {
-        let array = ArrayVariable<Iterator.Element>(self.value)
-        var change = ArrayChange<Iterator.Element>(initialCount: array.count)
+    public func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void {
+        let array = ArrayVariable<Element>(self.value)
+        var change = ArrayChange<Element>(initialCount: array.count)
         let connection = array.futureChanges.connect { c in change.merge(with: c) }
         block(array)
         connection.disconnect()
         self.apply(change)
     }
 
-
-    public func replaceSubrange<C: Collection>(_ range: Range<Index>, with elements: C) where C.Iterator.Element == Iterator.Element {
-        let elements = elements as? Array<Iterator.Element> ?? Array(elements)
+    public func replaceSubrange<C: Collection>(_ range: Range<Int>, with elements: C) where C.Iterator.Element == Element {
+        let elements = elements as? Array<Element> ?? Array(elements)
         apply(ArrayChange(initialCount: self.count, modification: .replaceRange(range.lowerBound ..< range.upperBound, with: elements)))
     }
 
-    public func append(_ newElement: Iterator.Element) {
+    public func append(_ newElement: Element) {
         let c = count
-        replaceSubrange(c ..< c, with: CollectionOfOne(newElement))
+        apply(ArrayChange(initialCount: c, modification: .insert(newElement, at: c)))
     }
 
-    public func append<C : Collection>(contentsOf newElements: C) where C.Iterator.Element == Iterator.Element {
+    public func append<C: Collection>(contentsOf newElements: C) where C.Iterator.Element == Element {
         let c = count
-        replaceSubrange(c ..< c, with: newElements)
+        let elements = newElements as? Array<Element> ?? Array(newElements)
+        apply(ArrayChange(initialCount: c, modification: .replaceRange(c ..< c, with: elements)))
     }
 
-    public func insert(_ newElement: Iterator.Element, atIndex i: Index) {
-        let change = ArrayChange(initialCount: self.count, modification: .insert(newElement, at: i))
-        apply(change)
+    public func insert(_ newElement: Element, at i: Int) {
+        let c = count
+        apply(ArrayChange(initialCount: c, modification: .insert(newElement, at: i)))
     }
 
-    public func insert<C : Collection>(contentsOf newElements: C, at i: Index) where C.Iterator.Element == Iterator.Element {
-        replaceSubrange(i ..< i, with: newElements)
+    public func insert<C: Collection>(contentsOf newElements: C, at i: Int) where C.Iterator.Element == Element {
+        let c = count
+        let elements = newElements as? Array<Element> ?? Array(newElements)
+        apply(ArrayChange(initialCount: c, modification: .replaceRange(i ..< i, with: elements)))
     }
 
     @discardableResult
-    public func remove(at index: Index) -> Iterator.Element {
-        let element = lookup(index ..< index + 1).first!
-        apply(ArrayChange(initialCount: self.count, modification: .removeAt(index)))
-        return element
+    public func remove(at index: Int) -> Element {
+        let c = count
+        let result = self[index]
+        apply(ArrayChange(initialCount: c, modification: .removeElement(at: index)))
+        return result
     }
 
-    public func removeSubrange(_ subRange: Range<Index>) {
-        replaceSubrange(subRange, with: EmptyCollection())
+    public func removeSubrange(_ subrange: Range<Int>) {
+        let c = count
+        apply(ArrayChange(initialCount: c, modification: .replaceRange(subrange.lowerBound ..< subrange.upperBound, with: [])))
+    }
+
+    @discardableResult
+    public func removeFirst() -> Element {
+        let c = count
+        let result = self[0]
+        apply(ArrayChange(initialCount: c, modification: .removeElement(at: 0)))
+        return result
     }
 
     public func removeFirst(_ n: Int) {
-        replaceSubrange(0 ..< n, with: EmptyCollection())
+        let c = count
+        apply(ArrayChange(initialCount: c, modification: .replaceRange(0 ..< n, with: [])))
     }
 
     @discardableResult
-    public func removeFirst() -> Iterator.Element {
-        let range: Range<Int> = 0 ..< 1
-        let first = lookup(range)
-        replaceSubrange(range, with: EmptyCollection())
-        return first.first!
+    public func removeLast() -> Element {
+        let c = count
+        let result = self[c - 1]
+        apply(ArrayChange(initialCount: c, modification: .removeElement(at: c - 1)))
+        return result
     }
 
     public func removeAll() {
-        replaceSubrange(0 ..< count, with: EmptyCollection())
-    }
-
-    @discardableResult
-    public func removeLast() -> Iterator.Element {
-        let count = self.count
-        let range: Range<Int> = count - 1 ..< count
-        let last = lookup(range)
-        replaceSubrange(range, with: EmptyCollection())
-        return last.first!
+        let c = count
+        apply(ArrayChange(initialCount: c, modification: .replaceRange(0 ..< c, with: [])))
     }
 }
 
@@ -183,35 +130,108 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
     public typealias Value = [Element]
     public typealias Base = [Element]
     public typealias Change = ArrayChange<Element>
-    public typealias ObservableValue = [Element]
 
-    public typealias Index = Int
-    public typealias Indices = CountableRange<Int>
-    public typealias IndexDistance = Int
-    public typealias Iterator = Base.Iterator
-    public typealias SubSequence = Base.SubSequence
+    let box: UpdatableArrayBase<Element>
 
-    private let _observableArray: ObservableArray<Element>
-    private let _apply: (ArrayChange<Element>) -> Void
-
-    public init(count: @escaping (Void) -> Int, lookup: @escaping (Range<Int>) -> ArraySlice<Element>, apply: @escaping (ArrayChange<Element>) -> Void, futureChanges: @escaping (Void) -> Source<ArrayChange<Element>>) {
-        _observableArray = ObservableArray(count: count, lookup: lookup, futureChanges: futureChanges)
-        _apply = apply
+    init(box: UpdatableArrayBase<Element>) {
+        self.box = box
     }
 
-    public init<A: UpdatableArrayType>(_ array: A) where A.Index == Int, A.Iterator.Element == Element, A.Change == ArrayChange<Element>, A.SubSequence.Iterator.Element == Element {
-        _observableArray = ObservableArray(array)
-        _apply = { change in array.apply(change) }
+    public init<Contents: UpdatableArrayType>(_ contents: Contents) where Contents.Element == Element {
+        self = contents.updatableArray
     }
 
-    public var count: Int { return _observableArray.count }
-    public func lookup(_ range: Range<Index>) -> ArraySlice<Element> { return _observableArray.lookup(range) }
-    public func apply(_ change: ArrayChange<Iterator.Element>) { _apply(change) }
-    public var futureChanges: Source<ArrayChange<Element>> { return _observableArray.futureChanges }
+    public var isBuffered: Bool { return box.isBuffered }
+    public var count: Int { return box.count }
+    public var futureChanges: Source<ArrayChange<Element>> { return box.futureChanges }
 
-    public var observableCount: Observable<Int> { return _observableArray.observableCount }
-    public var observable: Observable<[Element]> { return _observableArray.observable }
+    public func apply(_ change: ArrayChange<Element>) { box.apply(change) }
+    public var value: [Element] {
+        get { return box.value }
+        nonmutating set { box.value = newValue }
+    }
+    public subscript(index: Int) -> Element {
+        get { return box[index] }
+        nonmutating set { box[index] = newValue }
+    }
 
-    public var observableArray: ObservableArray<Element> { return _observableArray }
+    public subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+        get { return box[bounds] }
+        nonmutating set { box[bounds] = newValue }
+    }
+
+    public func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void { box.modify(block) }
+
+    public var observable: Observable<Array<Element>> { return box.observable }
+    public var observableCount: Observable<Int> { return box.observableCount }
+    public var updatable: Updatable<[Element]> { return box.updatable }
     public var updatableArray: UpdatableArray<Element> { return self }
+}
+
+internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, UpdatableArrayType {
+
+    func apply(_ change: ArrayChange<Element>) { abstract() }
+
+    override var value: [Element] {
+        get { abstract() }
+        set { abstract() }
+    }
+    override subscript(index: Int) -> Element {
+        get { abstract() }
+        set { abstract() }
+    }
+    override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+        get { abstract() }
+        set { abstract() }
+    }
+
+    func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void { abstract() }
+
+    // The following are defined in extensions but may be specialized in implementations:
+
+    var updatable: Updatable<[Element]> { abstract() }
+
+    final var updatableArray: UpdatableArray<Element> { return UpdatableArray(box: self) }
+}
+
+internal class UpdatableArrayBox<Contents: UpdatableArrayType>: UpdatableArrayBase<Contents.Element> {
+    typealias Element = Contents.Element
+
+    var contents: Contents
+
+    init(_ contents: Contents) {
+        self.contents = contents
+    }
+
+    override func apply(_ change: ArrayChange<Element>) {
+        contents.apply(change)
+    }
+
+    override var value: [Element] {
+        get { return contents.value }
+        set { contents.value = newValue }
+    }
+
+    override subscript(index: Int) -> Element {
+        get { return contents[index] }
+        set { contents[index] = newValue }
+    }
+
+    override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+        get { return contents[bounds] }
+        set { contents[bounds] = newValue }
+    }
+
+    override func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void { contents.modify(block) }
+
+
+    override var updatable: Updatable<Array<Contents.Element>> {
+        return contents.updatable
+    }
+
+    override var isBuffered: Bool { return contents.isBuffered }
+    override var count: Int { return contents.count }
+    override var futureChanges: Source<ArrayChange<Element>> { return contents.futureChanges }
+    override var observable: Observable<[Element]> { return contents.observable }
+    override var observableCount: Observable<Int> { return contents.observableCount }
 }
