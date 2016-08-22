@@ -375,3 +375,4 @@ class ArrayVariableTests: XCTestCase {
     }
 
 }
+

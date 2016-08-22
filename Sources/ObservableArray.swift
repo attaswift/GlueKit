@@ -218,3 +218,15 @@ public struct ObservableArray<Element>: ObservableArrayType {
     public var observableArray: ObservableArray<Element> { return self }
 }
 
+extension ObservableArrayType {
+    public static func constant(_ value: [Iterator.Element]) -> ObservableArray<Iterator.Element> {
+        return ObservableArray(
+            count: { 0 },
+            lookup: { value[$0] },
+            futureChanges: { Source.empty() })
+    }
+
+    public static func emptyConstant() -> ObservableArray<Iterator.Element> {
+        return constant([])
+    }
+}

@@ -24,6 +24,10 @@ public class ObservableSetReference<Element: Hashable>: ObservableSetType, Signa
     private var _futureChanges = Signal<Change>()
     private var _connection: Connection?
 
+    public init() {
+        _target = ObservableSet.emptyConstant()
+    }
+
     public init<Target: ObservableSetType>(target: Target) where Target.Element == Element {
         _target = target.observableSet
     }

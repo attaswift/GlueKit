@@ -90,3 +90,13 @@ public struct ObservableSet<Element: Hashable>: ObservableSetType {
 
     public var observableSet: ObservableSet<Element> { return self }
 }
+
+extension ObservableSetType where Base == Set<Element> {
+    public static func constant(_ value: Set<Element>) -> ObservableSet<Element> {
+        return ObservableSet(value: { value }, futureChanges: { Source.empty() })
+    }
+
+    public static func emptyConstant() -> ObservableSet<Element> {
+        return constant([])
+    }
+}
