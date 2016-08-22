@@ -18,7 +18,7 @@ and run some code whenever midnight passes:
 
 ```Swift
 let center = NSNotificationCenter.defaultCenter()
-let midnightSource = center.sourceForNotification(NSCalendarDayChangedNotification)
+let midnightSource = center.source(forName: NSCalendarDayChangedNotification)
 
 let connection = midnightSource.connect { notification in 
     print("Ding dong!") 
@@ -41,7 +41,7 @@ class ClockViewController: UIViewController {
 
     private var midnightSource: Source<NSNotification> {
         let center = NSNotificationCenter.defaultCenter()
-		return center.sourceForNotification(NSCalendarDayChangedNotification)
+		return center.source(forName: NSCalendarDayChangedNotification)
     }
     
     override func viewWillAppear() {

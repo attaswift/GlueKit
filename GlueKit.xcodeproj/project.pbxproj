@@ -84,6 +84,10 @@
 		BB69A83C1D6B90F5001D2821 /* Concatenation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83A1D6B90F5001D2821 /* Concatenation.swift */; };
 		BB69A83D1D6B90F5001D2821 /* Concatenation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83A1D6B90F5001D2821 /* Concatenation.swift */; };
 		BB69A83E1D6B90F5001D2821 /* Concatenation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83A1D6B90F5001D2821 /* Concatenation.swift */; };
+		BB69A8401D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */; };
+		BB69A8411D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */; };
+		BB69A8421D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */; };
+		BB69A8431D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */; };
 		BB8990261D5F84050097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990251D5F84050097F350 /* Foundation.framework */; };
 		BB8990271D5F84150097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990251D5F84050097F350 /* Foundation.framework */; };
 		BB8990291D5F84210097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990281D5F84210097F350 /* Foundation.framework */; };
@@ -263,6 +267,7 @@
 		BB69A7EE1D6AFF1A001D2821 /* Abstract.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Abstract.swift; sourceTree = "<group>"; };
 		BB69A7FF1D6B2377001D2821 /* BufferedArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedArray.swift; sourceTree = "<group>"; };
 		BB69A83A1D6B90F5001D2821 /* Concatenation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Concatenation.swift; sourceTree = "<group>"; };
+		BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableArrayMap.swift; sourceTree = "<group>"; };
 		BB8990021D5DF2D20097F350 /* SetChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetChange.swift; sourceTree = "<group>"; };
 		BB8990041D5DF8630097F350 /* ChangeType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChangeType.swift; sourceTree = "<group>"; };
 		BB8990091D5DF88C0097F350 /* ObservableSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableSet.swift; sourceTree = "<group>"; };
@@ -572,6 +577,7 @@
 				BBB55B2D1C8FCC810050DDA9 /* SelectEach.swift */,
 				BB3D929A1D64862D003BEDBF /* ObservableArrayReference.swift */,
 				BB69A83A1D6B90F5001D2821 /* Concatenation.swift */,
+				BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */,
 			);
 			name = "Observable Arrays";
 			sourceTree = "<group>";
@@ -1032,6 +1038,7 @@
 				BBB55B7A1C8FCC820050DDA9 /* Source.swift in Sources */,
 				BBC3C84E1C93164200E10D59 /* UIControl Extensions.swift in Sources */,
 				BB69A8211D6B7201001D2821 /* ObservableSet.swift in Sources */,
+				BB69A8401D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */,
 				BB69A8191D6B6A99001D2821 /* ObservableArrayReference.swift in Sources */,
 				BB69A82E1D6B7E35001D2821 /* Sorting.swift in Sources */,
 				BBB4F26F1C99E6CC002532CC /* UIGestureRecognizer Extensions.swift in Sources */,
@@ -1102,6 +1109,7 @@
 				BBAA826F1C91D17A00586903 /* Observable Transformations.swift in Sources */,
 				BB69A8111D6B5397001D2821 /* Select.swift in Sources */,
 				BB69A8011D6B2377001D2821 /* BufferedArray.swift in Sources */,
+				BB69A8411D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */,
 				BBAA82811C91D56600586903 /* KVO Support.swift in Sources */,
 				BB69A7F41D6B1D7B001D2821 /* ChangeType.swift in Sources */,
 				BBB55B4F1C8FCC820050DDA9 /* Locks.swift in Sources */,
@@ -1169,6 +1177,7 @@
 				BBAA827F1C91D43700586903 /* Type Helpers.swift in Sources */,
 				BB69A8141D6B539A001D2821 /* Select.swift in Sources */,
 				BB69A8021D6B2377001D2821 /* BufferedArray.swift in Sources */,
+				BB69A8421D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */,
 				BBB55B441C8FCC820050DDA9 /* Connector.swift in Sources */,
 				BB69A7F51D6B1D7C001D2821 /* ChangeType.swift in Sources */,
 				BBB55B881C8FCC820050DDA9 /* Updatable.swift in Sources */,
@@ -1199,6 +1208,7 @@
 				BBB55B691C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BB69A7FA1D6B1D83001D2821 /* ArrayChange.swift in Sources */,
 				BBB55B751C8FCC820050DDA9 /* Signal.swift in Sources */,
+				BB69A8431D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */,
 				BBB55B5D1C8FCC820050DDA9 /* Observable Transformations.swift in Sources */,
 				BB69A7FE1D6B1D95001D2821 /* ObservableArray.swift in Sources */,
 				BBB55B551C8FCC820050DDA9 /* MergedSource.swift in Sources */,

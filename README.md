@@ -224,7 +224,7 @@ class ProjectSummaryViewModel {
     var currentLocale: Observable<NSLocale> {
         let center = NSNotificationCenter.defaultCenter()
 		let localeSource = center
-		    .sourceForNotification(NSCurrentLocaleDidChangeNotification)
+		    .source(forName: NSCurrentLocaleDidChangeNotification)
 		    .map { _ in NSLocale.currentLocale() }
         return Observable(getter: { NSLocale.currentLocale() }, futureValues: localeSource)
     }

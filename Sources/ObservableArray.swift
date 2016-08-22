@@ -26,12 +26,11 @@ public protocol ObservableArrayType {
     typealias Change = ArrayChange<Element>
 
     // Required methods
+    var isBuffered: Bool { get }
     var count: Int { get }
     var value: Base { get }
-    var futureChanges: Source<Change> { get }
-
-    var isBuffered: Bool { get }
     subscript(bounds: Range<Int>) -> ArraySlice<Element> { get }
+    var futureChanges: Source<Change> { get }
 
     // Extras
     subscript(index: Int) -> Element { get }
@@ -63,6 +62,20 @@ extension ObservableArrayType {
 
     public var observableArray: ObservableArray<Element> {
         return ObservableArray(box: ObservableArrayBox(self))
+    }
+
+    public var isEmpty: Bool {
+        return count == 0
+    }
+    
+    public var first: Element? {
+        guard count > 0 else { return nil }
+        return self[0]
+    }
+
+    public var last: Element? {
+        guard count > 0 else { return nil }
+        return self[count - 1]
     }
 }
 
