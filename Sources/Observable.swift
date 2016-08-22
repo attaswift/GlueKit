@@ -94,7 +94,7 @@ public struct Observable<Value>: ObservableType {
 public extension ObservableType {
     /// Creates a constant observable wrapping the given value. The returned observable is not modifiable and it will not ever send updates.
     public static func constant(_ value: Value) -> Observable<Value> {
-        return Observable(getter: { value }, futureValues: { Source.emptySource() })
+        return Observable(getter: { value }, futureValues: { Source.empty() })
     }
 }
 

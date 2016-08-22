@@ -12,7 +12,7 @@ import GlueKit
 class SimpleSourcesTests: XCTestCase {
     
     func testEmptySource() {
-        let source = Source<Int>.emptySource()
+        let source = Source<Int>.empty()
 
         var r = [Int]()
         let connection = source.connect { i in r.append(i) }
@@ -23,7 +23,7 @@ class SimpleSourcesTests: XCTestCase {
     }
 
     func testConstantSource() {
-        let source = Source<Int>.constantSource(42)
+        let source = Source<Int>.constant(42)
 
         var r = [Int]()
         let connection = source.connect { i in r.append(i) }
