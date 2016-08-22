@@ -1,8 +1,9 @@
 //: Playground - noun: a place where people can play
 
-import UIKit
 import GlueKit
 import XCPlayground
+
+#if false
 
 class File {
     let name: Variable<String>
@@ -57,6 +58,7 @@ let connection = filenames.futureChanges.connect { c in
 }
 
 // Add a new file to folder 1
+folder1.files.value
 folder1.files.insert(File(name: "1/b2"), at: 2)
 change
 
@@ -88,7 +90,8 @@ change
 folder1.name.value = "Foobar"
 
 change
-let s = change.modifications.map { String($0) }.joined(separator: "\n")
+let s = change.modifications.map { "\($0)" }.joined(separator: "\n")
 s
 
 connection.disconnect()
+#endif
