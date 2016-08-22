@@ -10,7 +10,7 @@ import Foundation
 
 //MARK: ObservableArrayType
 
-/// An observable array type; i.e., a read-only, array-like `ObservableCollection` that provides efficient change
+/// An observable array type; i.e., a read-only, array-like observable collection that provides efficient change
 /// notifications.
 ///
 /// Changes to an observable array are broadcast as a sequence of `ArrayChange` values, which describe insertions,
@@ -30,14 +30,13 @@ public protocol ObservableArrayType {
     var value: Base { get }
     var futureChanges: Source<Change> { get }
 
-    var observableCount: Observable<Int> { get }
-    var observable: Observable<Base> { get }
-
     var isBuffered: Bool { get }
-    subscript(index: Int) -> Element { get }
     subscript(bounds: Range<Int>) -> ArraySlice<Element> { get }
 
     // Extras
+    subscript(index: Int) -> Element { get }
+    var observableCount: Observable<Int> { get }
+    var observable: Observable<Base> { get }
     var observableArray: ObservableArray<Element> { get }
 }
 

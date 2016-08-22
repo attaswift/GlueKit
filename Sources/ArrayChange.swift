@@ -342,10 +342,10 @@ public struct ArrayChange<Element>: ChangeType {
     /// - Parameter startIndex: The start index of the range to rebase this change into.
     /// - Parameter count: The element count of the wider array to rebase this change into.
     /// - Returns: A new change that applies the same modifications on a range inside a wider array.
-    public func widen(_ startIndex: Int, count: Int) -> ArrayChange<Element> {
-        precondition(startIndex + initialCount <= count)
+    public func widen(startIndex: Int, initialCount: Int) -> ArrayChange<Element> {
+        precondition(startIndex + self.initialCount <= initialCount)
         let mods = modifications.map { $0.shift(startIndex) }
-        return ArrayChange(initialCount: count, modifications: mods)
+        return ArrayChange(initialCount: initialCount, modifications: mods)
     }
 
     /// Return the set of indices at which elements will be deleted from the array when this change is applied.

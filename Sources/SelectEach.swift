@@ -275,7 +275,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
     private func applyFieldChange(_ change: ArrayChange<FieldElement>, id: Int, signal: Signal<Change>) {
         let fieldIndex = fieldIndexByFieldID[id]!
         let startIndex = startIndices[fieldIndex]
-        let widenedChange = change.widen(startIndex, count: startIndices.last!)
+        let widenedChange = change.widen(startIndex: startIndex, initialCount: startIndices.last!)
         let deltaCount = change.deltaCount
         if deltaCount != 0 {
             adjustIndicesAfter(fieldIndex, by: deltaCount)
