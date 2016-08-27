@@ -74,9 +74,11 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType, SignalDele
             }
         }
         if j < inserted.count {
-            arrayChange.addModification(.replaceRange(nextValue.count ..< nextValue.count, with: inserted))
-            nextValue.append(contentsOf: inserted.suffix(from: j))
+            let remaining = Array(inserted.suffix(from: j))
+            arrayChange.addModification(.replaceRange(nextValue.count ..< nextValue.count, with: remaining))
+            nextValue.append(contentsOf: remaining)
         }
+        precondition(arrayChange.finalCount == nextValue.count)
         self.value = nextValue
         self.changeSignal.send(arrayChange)
     }
