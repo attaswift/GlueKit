@@ -104,6 +104,10 @@
 		BBAA827F1C91D43700586903 /* Type Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAA827C1C91D43700586903 /* Type Helpers.swift */; };
 		BBAA82801C91D43700586903 /* Type Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAA827C1C91D43700586903 /* Type Helpers.swift */; };
 		BBAA82811C91D56600586903 /* KVO Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B241C8FCC810050DDA9 /* KVO Support.swift */; };
+		BBADD7A21D70985F00C32735 /* ReplacingIfEmpty.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBADD7A11D70985F00C32735 /* ReplacingIfEmpty.swift */; };
+		BBADD7A31D70985F00C32735 /* ReplacingIfEmpty.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBADD7A11D70985F00C32735 /* ReplacingIfEmpty.swift */; };
+		BBADD7A41D70985F00C32735 /* ReplacingIfEmpty.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBADD7A11D70985F00C32735 /* ReplacingIfEmpty.swift */; };
+		BBADD7A51D70985F00C32735 /* ReplacingIfEmpty.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBADD7A11D70985F00C32735 /* ReplacingIfEmpty.swift */; };
 		BBB4F2521C9594A9002532CC /* UIDevice Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */; };
 		BBB4F26F1C99E6CC002532CC /* UIGestureRecognizer Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */; };
 		BBB55ADE1C8F88F20050DDA9 /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB55AD41C8F88F20050DDA9 /* GlueKit.framework */; };
@@ -278,6 +282,7 @@
 		BB89902A1D5F842C0097F350 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		BB89902C1D5F84340097F350 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS10.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		BBAA827C1C91D43700586903 /* Type Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Type Helpers.swift"; sourceTree = "<group>"; };
+		BBADD7A11D70985F00C32735 /* ReplacingIfEmpty.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReplacingIfEmpty.swift; sourceTree = "<group>"; };
 		BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice Extensions.swift"; sourceTree = "<group>"; };
 		BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIGestureRecognizer Extensions.swift"; sourceTree = "<group>"; };
 		BBB55AB21C8F80020050DDA9 /* GlueKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GlueKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -578,6 +583,7 @@
 				BB3D929A1D64862D003BEDBF /* ObservableArrayReference.swift */,
 				BB69A83A1D6B90F5001D2821 /* Concatenation.swift */,
 				BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */,
+				BBADD7A11D70985F00C32735 /* ReplacingIfEmpty.swift */,
 			);
 			name = "Observable Arrays";
 			sourceTree = "<group>";
@@ -1026,6 +1032,7 @@
 				BB69A81D1D6B71F9001D2821 /* SetChange.swift in Sources */,
 				BB69A8101D6B5397001D2821 /* Select.swift in Sources */,
 				BBB55B4E1C8FCC820050DDA9 /* Locks.swift in Sources */,
+				BBADD7A21D70985F00C32735 /* ReplacingIfEmpty.swift in Sources */,
 				BBB55B8E1C8FCC820050DDA9 /* Variable.swift in Sources */,
 				BB69A82A1D6B7CAD001D2821 /* SetVariable.swift in Sources */,
 				BB318F6B1CB992300086EE83 /* UIBarButtonItem Extensions.swift in Sources */,
@@ -1100,6 +1107,7 @@
 				BB69A82B1D6B7CAE001D2821 /* SetVariable.swift in Sources */,
 				BBB55B731C8FCC820050DDA9 /* Signal.swift in Sources */,
 				BB69A82F1D6B7E36001D2821 /* Sorting.swift in Sources */,
+				BBADD7A31D70985F00C32735 /* ReplacingIfEmpty.swift in Sources */,
 				BBAA827E1C91D43700586903 /* Type Helpers.swift in Sources */,
 				BB69A8221D6B7202001D2821 /* ObservableSet.swift in Sources */,
 				BBAA826D1C91D16600586903 /* Observable.swift in Sources */,
@@ -1168,6 +1176,7 @@
 				BB69A82C1D6B7CAE001D2821 /* SetVariable.swift in Sources */,
 				BBB55B541C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BB69A8301D6B7E36001D2821 /* Sorting.swift in Sources */,
+				BBADD7A41D70985F00C32735 /* ReplacingIfEmpty.swift in Sources */,
 				BBFA2C461CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BB69A8231D6B7203001D2821 /* ObservableSet.swift in Sources */,
 				BBB55B501C8FCC820050DDA9 /* Locks.swift in Sources */,
@@ -1228,6 +1237,7 @@
 				BBC2A82C1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BB69A81C1D6B6A9B001D2821 /* ObservableArrayReference.swift in Sources */,
 				BB69A8391D6B7F9E001D2821 /* Filter.swift in Sources */,
+				BBADD7A51D70985F00C32735 /* ReplacingIfEmpty.swift in Sources */,
 				BBB55B4D1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
 				BB69A8241D6B7203001D2821 /* ObservableSet.swift in Sources */,
 				BB69A8291D6B779B001D2821 /* UpdatableSet.swift in Sources */,
