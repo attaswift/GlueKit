@@ -348,8 +348,12 @@ public struct ArrayChange<Element>: ChangeType {
         return ArrayChange(initialCount: initialCount, modifications: mods)
     }
 
-    /// Return the set of indices at which elements will be deleted from the array when this change is applied.
-    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block.
+    /// Return the set of indices at which elements will be deleted or updated from the array when this change is applied.
+    ///
+    /// The returned indices are relative to the original state of the array.
+    ///
+    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block or a `UICollectionView` inside
+    /// a `performBatchUpdates` block.
     public var deletedIndices: IndexSet {
         var result = IndexSet()
         var delta = 0
@@ -359,49 +363,22 @@ public struct ArrayChange<Element>: ChangeType {
                 break
             case .removeElement(at: let index):
                 result.insert(index - delta)
-            case .replaceElement(at: _, with: _):
-                break
-            case .replaceRange(let indices, with: let elements):
-                if elements.count < indices.count {
-                    result.insert(integersIn: indices.lowerBound + elements.count - delta ..< indices.upperBound - delta)
-                }
+            case .replaceElement(at: let index, with: _):
+                result.insert(index - delta)
+            case .replaceRange(let indices, with: _):
+                result.insert(integersIn: indices.lowerBound - delta ..< indices.upperBound - delta)
             }
             delta += modification.deltaCount
         }
         return result
     }
 
-    /// Return the set of indices at which elements will be replaced in the array when this change is applied.
-    /// The returned indices assume deletions were already done, but not insertions.
-    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block.
-    public var reloadedIndices: IndexSet {
-        var result = IndexSet()
-        var delta = 0
-        for modification in modifications {
-            switch modification {
-            case .insert(_, at: _):
-                delta += modification.deltaCount
-            case .removeElement(at: _):
-                break
-            case .replaceElement(at: let index, with: _):
-                result.insert(index - delta)
-                break
-            case .replaceRange(let indices, with: let elements):
-                let commonCount = min(elements.count, indices.count)
-                if commonCount > 0 {
-                    result.insert(integersIn: indices.lowerBound - delta ..< indices.lowerBound + commonCount - delta)
-                }
-                if commonCount < indices.count {
-                    delta += modification.deltaCount
-                }
-            }
-        }
-        return result
-    }
-
-    /// Return the set of indices at which elements will be inserted in the array when this change is applied.
+    /// Return the set of indices at which elements will be inserted or updated in the array when this change is applied.
+    ///
     /// The returned indices assume deletions were already done.
-    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block.
+    ///
+    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block or a `UICollectionView` inside
+    /// a `performBatchUpdates` block.
     public var insertedIndices: IndexSet {
         var result = IndexSet()
         for modification in modifications {
@@ -410,13 +387,10 @@ public struct ArrayChange<Element>: ChangeType {
                 result.insert(index)
             case .removeElement(at: _):
                 break
-            case .replaceElement(at: _, with: _):
-                break
+            case .replaceElement(at: let index, with: _):
+                result.insert(index)
             case .replaceRange(let indices, with: let elements):
-                let delta = elements.count - indices.count
-                if delta > 0 {
-                    result.insert(integersIn: indices.upperBound ..< indices.upperBound + delta)
-                }
+                result.insert(integersIn: indices.lowerBound ..< indices.lowerBound + elements.count)
             }
         }
         return result
