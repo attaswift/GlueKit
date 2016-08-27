@@ -413,8 +413,9 @@ public struct ArrayChange<Element>: ChangeType {
             case .replaceElement(at: _, with: _):
                 break
             case .replaceRange(let indices, with: let elements):
-                if indices.count < elements.count {
-                    result.insert(integersIn: indices.lowerBound + elements.count ..< indices.upperBound)
+                let delta = elements.count - indices.count
+                if delta > 0 {
+                    result.insert(integersIn: indices.upperBound ..< indices.upperBound + delta)
                 }
             }
         }
