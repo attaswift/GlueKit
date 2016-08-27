@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BB1657E71D71D65900094BAC /* BatchedChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1657E61D71D65900094BAC /* BatchedChanges.swift */; };
+		BB1657E81D71D65900094BAC /* BatchedChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1657E61D71D65900094BAC /* BatchedChanges.swift */; };
+		BB1657E91D71D65900094BAC /* BatchedChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1657E61D71D65900094BAC /* BatchedChanges.swift */; };
+		BB1657EA1D71D65900094BAC /* BatchedChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1657E61D71D65900094BAC /* BatchedChanges.swift */; };
 		BB23E63D1C90DEB6005EFD0A /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB55AB21C8F80020050DDA9 /* GlueKit.framework */; };
 		BB318F6B1CB992300086EE83 /* UIBarButtonItem Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */; };
 		BB4052021C958712003D8F5B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB4052011C958712003D8F5B /* UIKit.framework */; };
@@ -262,6 +266,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BB1657E61D71D65900094BAC /* BatchedChanges.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BatchedChanges.swift; sourceTree = "<group>"; };
 		BB1E4D691D61EA5200F1831F /* Sorting.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sorting.swift; sourceTree = "<group>"; };
 		BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIBarButtonItem Extensions.swift"; sourceTree = "<group>"; };
 		BB3D92951D647E83003BEDBF /* ObservableSetReference.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableSetReference.swift; sourceTree = "<group>"; };
@@ -584,6 +589,7 @@
 				BB69A83A1D6B90F5001D2821 /* Concatenation.swift */,
 				BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */,
 				BBADD7A11D70985F00C32735 /* ReplacingIfEmpty.swift */,
+				BB1657E61D71D65900094BAC /* BatchedChanges.swift */,
 			);
 			name = "Observable Arrays";
 			sourceTree = "<group>";
@@ -1014,6 +1020,7 @@
 			files = (
 				BBB55B5E1C8FCC820050DDA9 /* Observable.swift in Sources */,
 				BBB55B821C8FCC820050DDA9 /* TimerSource.swift in Sources */,
+				BB1657E71D71D65900094BAC /* BatchedChanges.swift in Sources */,
 				BB69A83B1D6B90F5001D2821 /* Concatenation.swift in Sources */,
 				BBB55B761C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
 				BBC2A8291CBC14C600394D24 /* NSObject extensions.swift in Sources */,
@@ -1113,6 +1120,7 @@
 				BBAA826D1C91D16600586903 /* Observable.swift in Sources */,
 				BBB55B531C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BBAA82701C91D18100586903 /* Variable.swift in Sources */,
+				BB1657E81D71D65900094BAC /* BatchedChanges.swift in Sources */,
 				BB69A8371D6B7F9C001D2821 /* Filter.swift in Sources */,
 				BBAA826F1C91D17A00586903 /* Observable Transformations.swift in Sources */,
 				BB69A8111D6B5397001D2821 /* Select.swift in Sources */,
@@ -1182,6 +1190,7 @@
 				BBB55B501C8FCC820050DDA9 /* Locks.swift in Sources */,
 				BBB55B901C8FCC820050DDA9 /* Variable.swift in Sources */,
 				BBB55B581C8FCC820050DDA9 /* NSNotificationCenter Support.swift in Sources */,
+				BB1657E91D71D65900094BAC /* BatchedChanges.swift in Sources */,
 				BB69A8381D6B7F9D001D2821 /* Filter.swift in Sources */,
 				BBAA827F1C91D43700586903 /* Type Helpers.swift in Sources */,
 				BB69A8141D6B539A001D2821 /* Select.swift in Sources */,
@@ -1222,6 +1231,7 @@
 				BB69A7FE1D6B1D95001D2821 /* ObservableArray.swift in Sources */,
 				BBB55B551C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BB69A80F1D6B472F001D2821 /* SelectEach.swift in Sources */,
+				BB1657EA1D71D65900094BAC /* BatchedChanges.swift in Sources */,
 				BB69A8351D6B7F12001D2821 /* ObservableSetReference.swift in Sources */,
 				BBB55B511C8FCC820050DDA9 /* Locks.swift in Sources */,
 				BB69A8071D6B344E001D2821 /* UpdatableArray.swift in Sources */,
