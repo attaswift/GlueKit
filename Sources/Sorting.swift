@@ -14,9 +14,10 @@ extension ObservableSetType {
     }
 }
 
-class SortedObservableSet<S: ObservableSetType>: ObservableArrayType {
+class SortedObservableSet<S: ObservableSetType>: ObservableArrayType, SignalDelegate {
     typealias Base = [Element]
     typealias Element = S.Element
+    typealias Change = ArrayChange<Element>
 
     private let input: S
     private let areInIncreasingOrder: (Element, Element) -> Bool
@@ -24,14 +25,14 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType {
     internal private(set) var value: [Element] = []
     private var connection: Connection? = nil
 
-    private let changeSignal = Signal<ArrayChange<Element>>()
+    private var changeSignal = OwningSignal<Change, SortedObservableSet>()
 
     internal var isBuffered: Bool { return true }
     internal var count: Int { return value.count }
     internal subscript(index: Int) -> Element { return value[index] }
     internal subscript(bounds: Range<Int>) -> ArraySlice<Element> { return value[bounds] }
 
-    internal var futureChanges: Source<ArrayChange<Element>> { return changeSignal.source }
+    internal var futureChanges: Source<ArrayChange<Element>> { return changeSignal.with(self).source }
 
     init(input: S, sortedBy areInIncreasingOrder: @escaping (Element, Element) -> Bool) {
         self.input = input
@@ -78,5 +79,13 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType {
         }
         self.value = nextValue
         self.changeSignal.send(arrayChange)
+    }
+
+    func start(_ signal: Signal<Change>) {
+        // We're always running
+    }
+
+    func stop(_ signal: Signal<Change>) {
+        // We're always running
     }
 }
