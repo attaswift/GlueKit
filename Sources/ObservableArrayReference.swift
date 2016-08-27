@@ -15,9 +15,13 @@ public class ObservableArrayReference<Element>: ObservableArrayType, SignalDeleg
     public typealias Change = ArrayChange<Element>
 
     private var _target: ObservableArray<Element>
-    private var _futureChanges = Signal<Change>()
+    private var _futureChanges = OwningSignal<Change, ObservableArrayReference>()
     private var _connection: Connection?
 
+    public init() {
+        _target = ObservableArray.emptyConstant()
+    }
+    
     public init<Target: ObservableArrayType>(target: Target) where Target.Element == Element {
         _target = target.observableArray
     }
@@ -42,7 +46,7 @@ public class ObservableArrayReference<Element>: ObservableArrayType, SignalDeleg
     public var value: Base { return _target.value }
     public subscript(_ index: Int) -> Element { return _target[index] }
     public subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _target[range] }
-    public var futureChanges: Source<Change> { return _futureChanges.source }
+    public var futureChanges: Source<Change> { return _futureChanges.with(self).source }
 
     internal func start(_ signal: Signal<Change>) {
         precondition(_connection == nil)
