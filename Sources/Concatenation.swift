@@ -28,6 +28,8 @@ class ConcatenatedObservableArray<First: ObservableArrayType, Second: Observable
     private var changeSignal = OwningSignal<Change, ConcatenatedObservableArray<First, Second>>()
     private var c1: Connection? = nil
     private var c2: Connection? = nil
+    private var firstCount = 0
+    private var secondCount = 0
 
     init(first: First, second: Second) {
         self.first = first
@@ -60,12 +62,17 @@ class ConcatenatedObservableArray<First: ObservableArrayType, Second: Observable
     }
 
     func start(_ signal: Signal<Change>) {
+        firstCount = first.count
+        secondCount = second.count
         c1 = first.futureChanges.connect { change in
-            self.changeSignal.send(change.widen(startIndex: 0, initialCount: change.initialCount + self.second.count))
+            precondition(self.firstCount == change.initialCount)
+            self.firstCount = change.finalCount
+            self.changeSignal.send(change.widen(startIndex: 0, initialCount: change.initialCount + self.secondCount))
         }
         c2 = second.futureChanges.connect { change in
-            let fc = self.first.count
-            self.changeSignal.send(change.widen(startIndex: fc, initialCount: fc + change.initialCount))
+            precondition(self.secondCount == change.initialCount)
+            self.secondCount = change.finalCount
+            self.changeSignal.send(change.widen(startIndex: self.firstCount, initialCount: self.firstCount + change.initialCount))
         }
     }
 
@@ -74,5 +81,7 @@ class ConcatenatedObservableArray<First: ObservableArrayType, Second: Observable
         c2!.disconnect()
         c1 = nil
         c2 = nil
+        firstCount = 0
+        secondCount = 0
     }
 }
