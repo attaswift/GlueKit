@@ -173,7 +173,7 @@ public final class Signal<Value>: SignalType {
     public typealias SinkValue = Value
 
     private let mutex = Mutex()
-    private var sending = false
+    private var sending = AtomicBool(false)
     private var sinks: Dictionary<ConnectionID, Ripening<Sink<Value>>> = [:]
     private var pendingItems: [PendingItem<Value>] = []
 
@@ -223,20 +223,14 @@ public final class Signal<Value>: SignalType {
     /// Atomically enter sending state if the signal wasn't already in it.
     /// @returns true if the signal entered sending state due to this call.
     private func _enterSendingState() -> Bool {
-        if self.sending {
-            return false
-        }
-        else {
-            self.sending = true
-            return true
-        }
+        return self.sending.set(true) == false
     }
 
     /// Atomically return the pending value that needs to be sent next, or nil. 
     /// If there are no more values, exit the sending state.
     private func _nextValueToSendOrElseLeaveSendingState() -> Value? {
         return mutex.withLock {
-            assert(self.sending)
+            assert(self.sending.get())
             while case .some(let item) = self.pendingItems.first {
                 self.pendingItems.removeFirst()
                 switch item {
@@ -250,14 +244,14 @@ public final class Signal<Value>: SignalType {
                 }
             }
             // There are no more items to process.
-            self.sending = false
+            self.sending.set(false)
             return nil
         }
     }
 
     /// Synchronously send a value to all connected sinks.
     private func _sendValueNow(_ value: Value) {
-        assert(sending)
+        assert(sending.get())
 
         // Note that sinks are allowed to freely add or remove connections. 
         // This loop is constructed to support this correctly:
