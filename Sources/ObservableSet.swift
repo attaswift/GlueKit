@@ -86,9 +86,19 @@ public struct ObservableSet<Element: Hashable>: ObservableSetType {
     public var futureChanges: Source<SetChange<Element>> { return box.futureChanges }
     public var observable: Observable<Set<Element>> { return box.observable }
     public var observableCount: Observable<Int> { return box.observableCount }
+
+    func holding(_ connection: Connection) -> ObservableSet<Element> { box.hold(connection); return self }
 }
 
 class ObservableSetBase<Element: Hashable>: ObservableSetType {
+    private var connections: [Connection] = []
+
+    deinit {
+        for connection in connections {
+            connection.disconnect()
+        }
+    }
+
     var isBuffered: Bool { abstract() }
     var count: Int { abstract() }
     var value: Set<Element> { abstract() }
@@ -100,6 +110,10 @@ class ObservableSetBase<Element: Hashable>: ObservableSetType {
     var observable: Observable<Set<Element>> { abstract() }
     var observableCount: Observable<Int> { abstract() }
     final var observableSet: ObservableSet<Element> { return ObservableSet(box: self) }
+
+    final func hold(_ connection: Connection) {
+        connections.append(connection)
+    }
 }
 
 class ObservableSetBox<Contents: ObservableSetType>: ObservableSetBase<Contents.Element> {

@@ -113,11 +113,21 @@ public struct ObservableArray<Element>: ObservableArrayType {
     public var observable: Observable<[Element]> { return box.observable }
     public var observableCount: Observable<Int> { return box.observableCount }
     public var observableArray: ObservableArray<Element> { return self }
+
+    func holding(_ connection: Connection) -> ObservableArray<Element> { box.hold(connection); return self }
 }
 
 internal class ObservableArrayBase<Element>: ObservableArrayType {
     typealias Base = Array<Element>
     typealias Change = ArrayChange<Element>
+
+    private var connections: [Connection] = []
+
+    deinit {
+        for connection in connections {
+            connection.disconnect()
+        }
+    }
 
     var isBuffered: Bool { abstract() }
     subscript(_ index: Int) -> Element { abstract() }
@@ -128,6 +138,10 @@ internal class ObservableArrayBase<Element>: ObservableArrayType {
     var observableCount: Observable<Int> { abstract() }
     var observable: Observable<[Element]> { abstract() }
     final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }
+
+    final func hold(_ connection: Connection) {
+        connections.append(connection)
+    }
 }
 
 internal class ObservableArrayBox<Contents: ObservableArrayType>: ObservableArrayBase<Contents.Element> {
