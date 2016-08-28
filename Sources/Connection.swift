@@ -38,7 +38,6 @@ public final class Connection {
 
     deinit {
         disconnect()
-        mutex.destroy()
     }
 
     internal var connectionID: ConnectionID { return ObjectIdentifier(self) }

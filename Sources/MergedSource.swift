@@ -45,10 +45,6 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
         self.inputs = sources.map { $0.source }
     }
 
-    deinit {
-        mutex.destroy()
-    }
-
     public var connecter: (Sink<Value>) -> Connection {
         return signal.with(self).connecter
     }

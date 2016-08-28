@@ -74,7 +74,6 @@ private class KVOUpdatable: UpdatableType {
 
     deinit {
         objc_setAssociatedObject(object, &KVOObserver.associatedObjectKey, nil, .OBJC_ASSOCIATION_ASSIGN)
-        mutex.destroy()
     }
 
     func _source(forKeyPath keyPath: String) -> Source<Any?> {

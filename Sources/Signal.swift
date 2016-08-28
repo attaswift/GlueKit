@@ -216,10 +216,6 @@ public final class Signal<Value>: SignalType {
         self.init(start: { s in }, stop: { s in })
     }
 
-    deinit {
-        mutex.destroy()
-    }
-
     /// Atomically enter sending state if the signal wasn't already in it.
     /// @returns true if the signal entered sending state due to this call.
     private func _enterSendingState() -> Bool {

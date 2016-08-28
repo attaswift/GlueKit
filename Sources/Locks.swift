@@ -33,7 +33,7 @@ internal class Mutex: Lockable {
         }
     }
 
-    func destroy() {
+    deinit {
         let result = pthread_mutex_destroy(&mutex)
         if result != 0 {
             preconditionFailure("pthread_mutex_destroy returned \(result)")
