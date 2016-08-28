@@ -10,15 +10,19 @@ import Foundation
 
 public extension NSObject {
     /// Returns an observable source for a KVO-compatible key path.
-    /// Note that the object is retained by the returned source.
+    /// Note that the object is not retained by the returned source.
     public func source(forKeyPath keyPath: String) -> Source<Any?> {
         return KVOObserver.observer(for: self)._source(forKeyPath: keyPath)
     }
 
+    /// Returns an observable for the value of a KVO-compatible key path.
+    /// Note that the object is *not* retained by the returned source.
     public func observable(forKeyPath keyPath: String) -> Observable<Any?> {
         return KVOUpdatable(object: self, keyPath: keyPath).observable
     }
 
+    /// Returns an updatable for the value of a KVO-compatible key path.
+    /// The object is retained by the returned source.
     public func updatable(forKeyPath keyPath: String) -> Updatable<Any?> {
         return KVOUpdatable(object: self, keyPath: keyPath).updatable
     }
@@ -50,7 +54,7 @@ private class KVOUpdatable: UpdatableType {
 @objc private class KVOObserver: NSObject {
     static private var associatedObjectKey: Int8 = 0
 
-    let object: NSObject
+    weak var object: NSObject?
 
     let mutex = Mutex()
     var signals: [String: UnownedReference<Signal<Any?>>] = [:]
@@ -93,14 +97,14 @@ private class KVOUpdatable: UpdatableType {
     private func startObservingKeyPath(_ keyPath: String, signal: Signal<Any?>) {
         mutex.withLock {
             self.signals[keyPath] = UnownedReference(signal)
-            self.object.addObserver(self, forKeyPath: keyPath, options: .new, context: &self.observerContext)
+            self.object?.addObserver(self, forKeyPath: keyPath, options: .new, context: &self.observerContext)
         }
     }
 
     private func stopObservingKeyPath(_ keyPath: String) {
         mutex.withLock {
             self.signals[keyPath] = nil
-            self.object.removeObserver(self, forKeyPath: keyPath, context: &self.observerContext)
+            self.object?.removeObserver(self, forKeyPath: keyPath, context: &self.observerContext)
         }
     }
 
