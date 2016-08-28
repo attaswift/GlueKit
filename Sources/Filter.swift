@@ -9,12 +9,26 @@
 import Foundation
 
 extension ObservableSetType {
-    public func filter(test: @escaping (Element) -> Bool) -> ObservableSet<Element> {
+    public typealias ElementFilter = @escaping (Element) -> Bool
+    public func filtered(test: ElementFilter) -> ObservableSet<Element> {
         return ObservableSetSimpleFilter<Self>(parent: self, test: test).observableSet
     }
 
-    public func filter<TestResult: ObservableType>(test: @escaping (Element) -> TestResult) -> ObservableSet<Element> where TestResult.Value == Bool {
+    public func filtered<TestResult: ObservableType>(test: @escaping (Element) -> TestResult) -> ObservableSet<Element> where TestResult.Value == Bool {
         return ObservableSetComplexFilter<Self, TestResult>(parent: self, test: test).observableSet
+    }
+
+    public func filtered(test: Observable<ElementFilter?>) -> ObservableSet<Element> {
+        let reference = ObservableSetReference<Element>()
+        let connection = test.values.connect { testValue in
+            if let testValue = testValue {
+                reference.retarget(to: self.filtered(test: testValue))
+            }
+            else {
+                reference.retarget(to: self)
+            }
+        }
+        return reference.observableSet.holding(connection)
     }
 }
 

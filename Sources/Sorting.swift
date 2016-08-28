@@ -9,8 +9,19 @@
 import Foundation
 
 extension ObservableSetType {
-    public func sorted(by areInIncreasingOrder: @escaping (Element, Element) -> Bool) -> ObservableArray<Element> {
+    public typealias ElementComparator = @escaping (Element, Element) -> Bool
+
+    public func sorted(by areInIncreasingOrder: ElementComparator) -> ObservableArray<Element> {
         return SortedObservableSet(input: self, sortedBy: areInIncreasingOrder).observableArray
+    }
+
+    public func sorted(by comparator: Observable<ElementComparator>) -> ObservableArray<Element> {
+        let reference = ObservableArrayReference<Element>()
+
+        let connection = comparator.values.connect { comparatorValue in
+            reference.retarget(to: self.sorted(by: comparatorValue))
+        }
+        return reference.observableArray.holding(connection)
     }
 }
 
