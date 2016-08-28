@@ -41,6 +41,10 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         return true
     }
 
+    public var isEmpty: Bool {
+        return _value.isEmpty
+    }
+
     public var count: Int {
         return _value.count
     }
@@ -88,7 +92,16 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         guard _value.contains(member) else { return }
         _value.remove(member)
         _changeSignal.sendIfConnected(SetChange(removed: [member], inserted: []))
-        _valueSignal.sendIfConnected(value)
+        _valueSignal.sendIfConnected(_value)
+    }
+
+    public func removeAll() {
+        guard !isEmpty else { return }
+        let value = self._value
+        _value.removeAll()
+        _changeSignal.sendIfConnected(SetChange(removed: value, inserted: []))
+        _valueSignal.sendIfConnected(_value)
+
     }
 
     public func insert(_ member: Element) {
