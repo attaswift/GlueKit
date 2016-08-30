@@ -78,6 +78,7 @@ public class BatchedArray<Element: Hashable>: ObservableArrayType, SignalDelegat
     func stop(_ signal: Signal<ChangeBatch>) {
         precondition(connection != nil)
         connection?.disconnect()
+        connection = nil
         _value = []
     }
 
