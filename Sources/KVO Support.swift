@@ -16,7 +16,7 @@ public extension NSObject {
     }
 
     /// Returns an observable for the value of a KVO-compatible key path.
-    /// Note that the object is *not* retained by the returned source.
+    /// Note that the object is retained by the returned source.
     public func observable(forKeyPath keyPath: String) -> Observable<Any?> {
         return KVOUpdatable(object: self, keyPath: keyPath).observable
     }
