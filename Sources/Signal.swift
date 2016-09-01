@@ -56,7 +56,7 @@ internal struct OwningSignal<Value, Delegate: SignalDelegate> where Delegate.Sig
     }
 }
 
-internal struct LazySignal<Value> {
+internal struct LazySignal<Value> { // Can't be SourceType because connecter is mutating.
     internal typealias SourceValue = Value
 
     private weak var _signal: Signal<Value>? = nil

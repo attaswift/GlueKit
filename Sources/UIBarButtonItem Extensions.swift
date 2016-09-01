@@ -12,12 +12,6 @@ private var associatedObjectKey: UInt8 = 0
 private let listenerAction = #selector(TargetActionListener.actionDidFire)
 
 extension UIBarButtonItem: SourceType {
-    public convenience init(barButtonSystemItem systemItem: UIBarButtonSystemItem) {
-        let target = TargetActionListener()
-        self.init(barButtonSystemItem: systemItem, target: target, action: listenerAction)
-        objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
-    }
-
     public var connecter: (Sink<Void>) -> Connection {
         if let target = objc_getAssociatedObject(self, &associatedObjectKey) as? TargetActionListener {
             return target.signal.source.connecter
@@ -29,22 +23,44 @@ extension UIBarButtonItem: SourceType {
         return target.signal.connecter
     }
 
-    public convenience init(image: UIImage?, style: UIBarButtonItemStyle) {
+    public convenience init(barButtonSystemItem systemItem: UIBarButtonSystemItem, actionBlock: (() -> ())? = nil) {
+        let target = TargetActionListener()
+        self.init(barButtonSystemItem: systemItem, target: target, action: listenerAction)
+        objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
+
+        if let actionBlock = actionBlock {
+            self.connector.connect(target.signal.source, to: actionBlock)
+        }
+    }
+
+    public convenience init(image: UIImage?, style: UIBarButtonItemStyle, actionBlock: (() -> ())? = nil) {
         let target = TargetActionListener()
         self.init(image: image, style: style, target: target, action: listenerAction)
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
+
+        if let actionBlock = actionBlock {
+            self.connector.connect(target.signal.source, to: actionBlock)
+        }
     }
 
-    public convenience init(image: UIImage?, landscapeImagePhone: UIImage?, style: UIBarButtonItemStyle) {
+    public convenience init(image: UIImage?, landscapeImagePhone: UIImage?, style: UIBarButtonItemStyle, actionBlock: (() -> ())? = nil) {
         let target = TargetActionListener()
         self.init(image: image, landscapeImagePhone: landscapeImagePhone, style: style, target: target, action: listenerAction)
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
+
+        if let actionBlock = actionBlock {
+            self.connector.connect(target.signal.source, to: actionBlock)
+        }
     }
 
-    public convenience init(title: String?, style: UIBarButtonItemStyle) {
+    public convenience init(title: String?, style: UIBarButtonItemStyle, actionBlock: (() -> ())? = nil) {
         let target = TargetActionListener()
         self.init(title: title, style: style, target: target, action: listenerAction)
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
+
+        if let actionBlock = actionBlock {
+            self.connector.connect(target.signal.source, to: actionBlock)
+        }
     }
 }
 
