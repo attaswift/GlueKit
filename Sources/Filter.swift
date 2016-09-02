@@ -39,7 +39,7 @@ private class ObservableSetSimpleFilter<Parent: ObservableSetType>: ObservableSe
     private let parent: Parent
     private let test: (Element) -> Bool
 
-    private var changeSignal = OwningSignal<Change, ObservableSetSimpleFilter<Parent>>()
+    private var changeSignal = OwningSignal<Change>()
 
     private var active = false
     private var parentConnection: Connection? = nil
@@ -132,7 +132,7 @@ private class ObservableSetComplexFilter<Parent: ObservableSetType, TestResult: 
     private let parent: Parent
     private let test: (Element) -> TestResult
 
-    private var changeSignal = OwningSignal<Change, ObservableSetComplexFilter<Parent, TestResult>>()
+    private var changeSignal = OwningSignal<Change>()
 
     private var active = false
     private var parentConnection: Connection? = nil

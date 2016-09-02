@@ -35,7 +35,7 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
 
     private let inputs: [Source<Value>]
 
-    private var signal = OwningSignal<Value, MergedSource<Value>>()
+    private var signal = OwningSignal<Value>()
 
     private let mutex = Mutex()
     private var connections: [Connection] = []

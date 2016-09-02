@@ -15,7 +15,7 @@ private final class ValueSelectorForSourceField<Parent: ObservableType, Field: S
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    var signal = OwningSignal<Value, ValueSelectorForSourceField<Parent, Field>>()
+    var signal = OwningSignal<Value>()
     var fieldConnection: Connection? = nil
     var parentConnection: Connection? = nil
 
@@ -53,7 +53,7 @@ private class FutureValueSelectorForObservableField<Parent: ObservableType, Fiel
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var signal = OwningSignal<Value, FutureValueSelectorForObservableField<Parent, Field>>()
+    private var signal = OwningSignal<Value>()
     private var currentValue: Field.Value? = nil
     private var fieldConnection: Connection? = nil
     private var parentConnection: Connection? = nil
@@ -99,7 +99,7 @@ private class FutureChangesSelectorForObservableArrayField<Parent: ObservableTyp
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var signal = OwningSignal<Change, FutureChangesSelectorForObservableArrayField<Parent, Field>>()
+    private var signal = OwningSignal<Change>()
     private var fieldConnection: Connection? = nil
     private var parentConnection: Connection? = nil
     private var _field: Field? = nil
@@ -129,13 +129,14 @@ private class FutureChangesSelectorForObservableArrayField<Parent: ObservableTyp
             signal.send(change)
         }
         parentConnection = parent.futureValues.connect { parentValue in
+            let oldValue = self._field!.value
             let field = self.key(parentValue)
             self._field = field
             self.fieldConnection?.disconnect()
             self.fieldConnection = field.futureChanges.connect(signal)
             let count = self._count
             self._count = field.count
-            let mod = ArrayModification<Element>.replaceRange(0..<count, with: field.value)
+            let mod = ArrayModification<Element>.replaceSlice(oldValue, at: 0, with: field.value)
             signal.send(ArrayChange<Element>(initialCount: count, modification: mod))
         }
     }

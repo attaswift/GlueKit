@@ -12,6 +12,11 @@ extension ObservableArrayType {
     public func map<Output>(_ transform: @escaping (Element) -> Output) -> ObservableArray<Output> {
         return ObservableArrayMap(input: self, transform: transform).observableArray
     }
+
+
+    public func bufferedMap<Output>(_ transform: @escaping (Element) -> Output) -> ObservableArray<Output> {
+        return BufferedObservableArrayMap(self, transform: transform).observableArray
+    }
 }
 
 class ObservableArrayMap<Element, Input: ObservableArrayType>: ObservableArrayType {
@@ -51,5 +56,95 @@ class ObservableArrayMap<Element, Input: ObservableArrayType>: ObservableArrayTy
 
     var observableCount: Observable<Int> {
         return input.observableCount
+    }
+}
+
+internal class BufferedObservableArrayMap<Input, Output, Content: ObservableArrayType>: ObservableArrayType, ObservableType where Content.Element == Input {
+    typealias Element = Output
+    typealias Change = ArrayChange<Output>
+
+    let content: Content
+    let transform: (Input) -> Output
+    private(set) var value: [Output]
+    private var connection: Connection!
+    private var changeSignal = OwningSignal<Change>()
+    private var valueSignal = OwningSignal<[Output]>()
+
+    init(_ content: Content, transform: @escaping (Input) -> Output) {
+        self.content = content
+        self.transform = transform
+        self.value = content.value.map(transform)
+        self.connection = content.futureChanges.connect { [weak self] change in self?.apply(change) }
+    }
+
+    private func apply(_ change: ArrayChange<Input>) {
+        precondition(change.initialCount == value.count)
+        if changeSignal.isConnected {
+            var mappedChange = Change(initialCount: value.count)
+            for modification in change.modifications {
+                switch modification {
+                case .insert(let new, at: let index):
+                    let tnew = transform(new)
+                    mappedChange.addModification(.insert(tnew, at: index))
+                    value.insert(tnew, at: index)
+                case .remove(_, at: let index):
+                    let old = value.remove(at: index)
+                    mappedChange.addModification(.remove(old, at: index))
+                case .replace(_, at: let index, with: let new):
+                    let old = value[index]
+                    let tnew = transform(new)
+                    value[index] = tnew
+                    mappedChange.addModification(.replace(old, at: index, with: tnew))
+                case .replaceSlice(let old, at: let index, with: let new):
+                    let told = Array(value[index ..< index + old.count])
+                    let tnew = new.map(transform)
+                    mappedChange.addModification(.replaceSlice(told, at: index, with: tnew))
+                    value.replaceSubrange(index ..< told.count, with: tnew)
+                }
+            }
+            changeSignal.send(mappedChange)
+        }
+        else {
+            for modification in change.modifications {
+                switch modification {
+                case .insert(let new, at: let index):
+                    value.insert(transform(new), at: index)
+                case .remove(_, at: let index):
+                    value.remove(at: index)
+                case .replace(_, at: let index, with: let new):
+                    value[index] = transform(new)
+                case .replaceSlice(let old, at: let index, with: let new):
+                    value.replaceSubrange(index ..< old.count, with: new.map(transform))
+                }
+            }
+        }
+        valueSignal.sendIfConnected(value)
+    }
+
+    var isBuffered: Bool { return true }
+
+
+    subscript(_ index: Int) -> Element {
+        return value[index]
+    }
+
+    subscript(_ range: Range<Int>) -> ArraySlice<Element> {
+        return value[range]
+    }
+
+    var count: Int {
+        return value.count
+    }
+
+    var futureChanges: Source<ArrayChange<Element>> {
+        return changeSignal.with(retained: self).source
+    }
+
+    var futureValues: Source<[Element]> {
+        return valueSignal.with(retained: self).source
+    }
+
+    var observable: Observable<Array<Element>> {
+        return Observable(self)
     }
 }

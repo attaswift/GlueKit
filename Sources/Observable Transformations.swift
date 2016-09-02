@@ -46,7 +46,7 @@ internal class TransformedObservable<Input: ObservableType, Value>: ObservableTy
     fileprivate let input: Input
     fileprivate let transform: (Input.Value) -> Value
 
-    private var signal = OwningSignal<Value, TransformedObservable<Input, Value>>()
+    private var signal = OwningSignal<Value>()
     private var connection: Connection? = nil
 
     internal init(input: Input, transform: @escaping (Input.Value) -> Value) {
@@ -111,7 +111,7 @@ internal class DistinctObservable<Input: ObservableType>: ObservableType, Signal
     fileprivate let input: Input
     fileprivate let equalityTest: (Value, Value) -> Bool
 
-    private var signal = OwningSignal<Value, DistinctObservable<Input>>()
+    private var signal = OwningSignal<Value>()
     private var connection: Connection? = nil
 
     internal init(input: Input, equalityTest: @escaping (Value, Value) -> Bool) {
@@ -154,7 +154,7 @@ class DistinctUpdatable<Input: UpdatableType>: UpdatableType, SignalDelegate {
     fileprivate let input: Input
     fileprivate let equalityTest: (Value, Value) -> Bool
 
-    private var signal = OwningSignal<Value, DistinctUpdatable<Input>>()
+    private var signal = OwningSignal<Value>()
     private var connection: Connection? = nil
 
     internal init(input: Input, equalityTest: @escaping (Value, Value) -> Bool) {
@@ -230,7 +230,7 @@ public final class BinaryCompositeObservable<Input1: ObservableType, Input2: Obs
     private let first: Input1
     private let second: Input2
     private let combinator: (Input1.Value, Input2.Value) -> Value
-    private var signal = OwningSignal<Value, BinaryCompositeObservable<Input1, Input2, Value>>()
+    private var signal = OwningSignal<Value>()
 
     public init(first: Input1, second: Input2, combinator: @escaping (Input1.Value, Input2.Value) -> Value) {
         self.first = first
@@ -315,7 +315,7 @@ internal final class CompositeUpdatable<A: UpdatableType, B: UpdatableType>: Upd
     typealias Value = (A.Value, B.Value)
     private let first: A
     private let second: B
-    private var signal = OwningSignal<Value, CompositeUpdatable<A, B>>()
+    private var signal = OwningSignal<Value>()
 
     private var firstValue: A.Value? = nil
     private var secondValue: B.Value? = nil

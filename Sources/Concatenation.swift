@@ -25,7 +25,7 @@ class ConcatenatedObservableArray<First: ObservableArrayType, Second: Observable
     let first: First
     let second: Second
 
-    private var changeSignal = OwningSignal<Change, ConcatenatedObservableArray<First, Second>>()
+    private var changeSignal = OwningSignal<Change>()
     private var c1: Connection? = nil
     private var c2: Connection? = nil
     private var firstCount = 0

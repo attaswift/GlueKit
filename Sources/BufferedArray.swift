@@ -8,14 +8,25 @@
 
 import Foundation
 
+extension ObservableArrayType {
+    public func buffered() -> ObservableArray<Element> {
+        if isBuffered {
+            return observableArray
+        }
+        else {
+            return BufferedObservableArray(self).observableArray
+        }
+    }
+}
+
 internal class BufferedObservableArray<Content: ObservableArrayType>: ObservableArrayType, ObservableType {
     typealias Element = Content.Element
     typealias Change = ArrayChange<Element>
 
     let content: Content
     private(set) var value: [Element]
-    private var connection: Connection? = nil
-    private var valueSignal = LazySignal<[Element]>()
+    private var connection: Connection!
+    private var valueSignal = OwningSignal<[Element]>()
 
     init(_ content: Content) {
         self.content = content
@@ -46,7 +57,7 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: Observable
     }
 
     var futureValues: Source<[Element]> {
-        return valueSignal.source
+        return valueSignal.with(retained: self).source
     }
 
     var observable: Observable<Array<Content.Element>> {
@@ -54,13 +65,3 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: Observable
     }
 }
 
-extension ObservableArrayType {
-    public func buffered() -> ObservableArray<Element> {
-        if isBuffered {
-            return observableArray
-        }
-        else {
-            return BufferedObservableArray(self).observableArray
-        }
-    }
-}

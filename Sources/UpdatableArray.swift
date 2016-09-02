@@ -59,8 +59,9 @@ extension UpdatableArrayType {
     }
 
     public func replaceSubrange<C: Collection>(_ range: Range<Int>, with elements: C) where C.Iterator.Element == Element {
-        let elements = elements as? Array<Element> ?? Array(elements)
-        apply(ArrayChange(initialCount: self.count, modification: .replaceRange(range.lowerBound ..< range.upperBound, with: elements)))
+        let old = Array(self[range])
+        let new = elements as? Array<Element> ?? Array(elements)
+        apply(ArrayChange(initialCount: self.count, modification: .replaceSlice(old, at: range.lowerBound, with: new)))
     }
 
     public func append(_ newElement: Element) {
@@ -70,8 +71,8 @@ extension UpdatableArrayType {
 
     public func append<C: Collection>(contentsOf newElements: C) where C.Iterator.Element == Element {
         let c = count
-        let elements = newElements as? Array<Element> ?? Array(newElements)
-        apply(ArrayChange(initialCount: c, modification: .replaceRange(c ..< c, with: elements)))
+        let new = newElements as? Array<Element> ?? Array(newElements)
+        apply(ArrayChange(initialCount: c, modification: .replaceSlice([], at: c, with: new)))
     }
 
     public func insert(_ newElement: Element, at i: Int) {
@@ -81,47 +82,50 @@ extension UpdatableArrayType {
 
     public func insert<C: Collection>(contentsOf newElements: C, at i: Int) where C.Iterator.Element == Element {
         let c = count
-        let elements = newElements as? Array<Element> ?? Array(newElements)
-        apply(ArrayChange(initialCount: c, modification: .replaceRange(i ..< i, with: elements)))
+        let new = newElements as? Array<Element> ?? Array(newElements)
+        apply(ArrayChange(initialCount: c, modification: .replaceSlice([], at: i, with: new)))
     }
 
     @discardableResult
     public func remove(at index: Int) -> Element {
         let c = count
-        let result = self[index]
-        apply(ArrayChange(initialCount: c, modification: .removeElement(at: index)))
-        return result
+        let old = self[index]
+        apply(ArrayChange(initialCount: c, modification: .remove(old, at: index)))
+        return old
     }
 
     public func removeSubrange(_ subrange: Range<Int>) {
         let c = count
-        apply(ArrayChange(initialCount: c, modification: .replaceRange(subrange.lowerBound ..< subrange.upperBound, with: [])))
+        let old = Array(self[subrange])
+        apply(ArrayChange(initialCount: c, modification: .replaceSlice(old, at: subrange.lowerBound, with: [])))
     }
 
     @discardableResult
     public func removeFirst() -> Element {
         let c = count
-        let result = self[0]
-        apply(ArrayChange(initialCount: c, modification: .removeElement(at: 0)))
-        return result
+        let old = self[0]
+        apply(ArrayChange(initialCount: c, modification: .remove(old, at: 0)))
+        return old
     }
 
     public func removeFirst(_ n: Int) {
         let c = count
-        apply(ArrayChange(initialCount: c, modification: .replaceRange(0 ..< n, with: [])))
+        let old = Array(self[0 ..< n])
+        apply(ArrayChange(initialCount: c, modification: .replaceSlice(old, at: 0, with: [])))
     }
 
     @discardableResult
     public func removeLast() -> Element {
         let c = count
-        let result = self[c - 1]
-        apply(ArrayChange(initialCount: c, modification: .removeElement(at: c - 1)))
-        return result
+        let old = self[c - 1]
+        apply(ArrayChange(initialCount: c, modification: .remove(old, at: c - 1)))
+        return old
     }
 
     public func removeAll() {
         let c = count
-        apply(ArrayChange(initialCount: c, modification: .replaceRange(0 ..< c, with: [])))
+        let old = self.value
+        apply(ArrayChange(initialCount: c, modification: .replaceSlice(old, at: 0, with: [])))
     }
 }
 

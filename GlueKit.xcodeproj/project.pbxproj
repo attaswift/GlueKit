@@ -590,12 +590,12 @@
 				BBB55B341C8FCC820050DDA9 /* UpdatableArray.swift */,
 				BBB55B201C8FCC810050DDA9 /* ArrayVariable.swift */,
 				BB69A7FF1D6B2377001D2821 /* BufferedArray.swift */,
-				BBB55B2D1C8FCC810050DDA9 /* SelectEach.swift */,
+				BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */,
 				BB3D929A1D64862D003BEDBF /* ObservableArrayReference.swift */,
 				BB69A83A1D6B90F5001D2821 /* Concatenation.swift */,
-				BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */,
 				BBADD7A11D70985F00C32735 /* ReplacingIfEmpty.swift */,
 				BB1657E61D71D65900094BAC /* BatchedChanges.swift */,
+				BBB55B2D1C8FCC810050DDA9 /* SelectEach.swift */,
 			);
 			name = "Observable Arrays";
 			sourceTree = "<group>";

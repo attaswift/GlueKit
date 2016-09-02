@@ -616,10 +616,6 @@ private class Counter: SourceType {
     private var counter: Int = 0
     private var signal = Signal<Int>()
 
-    deinit {
-        mutex.destroy()
-    }
-
     var connecter: (Sink<Int>) -> Connection {
         return signal.connecter
     }

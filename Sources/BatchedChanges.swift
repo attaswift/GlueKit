@@ -8,118 +8,44 @@
 
 import Foundation
 
-extension ObservableArrayType where Element: Hashable {
-    public typealias ChangeBatch = (change: Change, deleted: IndexSet, inserted: IndexSet, moved: [(from: Int, to: Int)])
+public struct BatchedArrayChange<Element: Hashable> {
+    public var change: ArrayChange<Element>
+    public var deleted = IndexSet()
+    public var inserted = IndexSet()
+    public var moved: [(from: Int, to: Int)] = []
 
-    /// Return a source that describes changes in this array in terms of moved elements in addition to insertions and deletions.
-    /// The reported changes can be directly fed as batch updates to a `UITableView` or a `UICollectionView`.
-    public func batched() -> BatchedArray<Element> {
-        return BatchedArray(inner: self)
-    }
-}
-
-extension ArrayChange where Element: Hashable {
-    var insertedElements: [Element: Int] {
-        var insertedElements: [Element: Int] = [:]
-        for modification in modifications {
-            switch modification {
-            case .insert(let element, at: let index):
-                insertedElements[element] = index
-            case .removeElement(at: _):
-                break
-            case .replaceElement(at: let index, with: let element):
-                insertedElements[element] = index
-            case .replaceRange(let range, with: let elements):
-                for i in 0 ..< elements.count {
-                    insertedElements[elements[i]] = range.lowerBound + i
-                }
-            }
-        }
-        return insertedElements
-    }
-}
-
-public class BatchedArray<Element: Hashable>: ObservableArrayType, SignalDelegate {
-    public typealias Change = ArrayChange<Element>
-    public typealias ChangeBatch = (change: Change, deleted: IndexSet, inserted: IndexSet, moved: [(from: Int, to: Int)])
-
-    private let inner: ObservableArray<Element>
-    private var _futureBatches = OwningSignal<ChangeBatch, BatchedArray>()
-
-    private var connection: Connection? = nil
-    private var _value: [Element] = []
-
-    init<Inner: ObservableArrayType>(inner: Inner) where Inner.Element == Element {
-        self.inner = inner.observableArray
-    }
-
-    private var isActive: Bool { return connection != nil }
-
-    public var isBuffered: Bool { return true }
-
-    public var count: Int { return isActive ? _value.count : inner.count }
-    public var value: [Element] { return isActive ? _value : inner.value }
-
-    public subscript(index: Int) -> Element { return isActive ? _value[index] : inner[index] }
-    public subscript(bounds: Range<Int>) -> ArraySlice<Element> { return isActive ? _value[bounds] : inner[bounds] }
-
-    public var futureChanges: Source<Change> { return _futureBatches.with(self).map { $0.change } }
-
-    public var futureBatches: Source<ChangeBatch> {
-        return _futureBatches.with(self).source
-    }
-
-    func start(_ signal: Signal<ChangeBatch>) {
-        precondition(connection == nil)
-        _value = inner.value
-        connection = inner.futureChanges.connect { change in self.process(change) }
-    }
-
-    func stop(_ signal: Signal<ChangeBatch>) {
-        precondition(connection != nil)
-        connection?.disconnect()
-        connection = nil
-        _value = []
-    }
-
-    private func process(_ change: ArrayChange<Element>) {
-        precondition(change.initialCount == _value.count)
-
+    init(_ change: ArrayChange<Element>) {
+        self.change = change
 
         var deletedElements: [Element: Int] = [:]
         var insertedElements: [Element: Int] = [:]
-        var moves: [(from: Int, to: Int)] = []
         var delta = 0
+
         for modification in change.modifications {
             switch modification {
-            case .insert(let element, at: let index):
-                insertedElements[element] = index
-            case .removeElement(at: let index):
-                deletedElements[_value[index - delta]] = index - delta
-            case .replaceElement(at: let index, with: let element):
-                let old = _value[index - delta]
+            case .insert(let new, at: let index):
+                insertedElements[new] = index
+            case .remove(let old, at: let index):
                 deletedElements[old] = index - delta
-                insertedElements[element] = index
-            case .replaceRange(let range, with: let elements):
-                for i in 0 ..< min(range.count, elements.count) {
-                    let index = range.lowerBound + i
-                    let old = _value[index - delta]
-                    let new = elements[i]
-                    deletedElements[old] = index - delta
-                    insertedElements[new] = index
+            case .replace(let old, at: let index, with: let new):
+                deletedElements[old] = index - delta
+                insertedElements[new] = index
+            case .replaceSlice(let old, at: let index, with: let new):
+                for i in 0 ..< min(old.count, new.count) {
+                    let o = old[i]
+                    let n = new[i]
+                    deletedElements[o] = index + i - delta
+                    insertedElements[n] = index + i
                 }
-                if range.count < elements.count {
-                    for i in range.count ..< elements.count {
-                        let new = elements[i]
-                        let index = range.lowerBound + i
-                        insertedElements[new] = index
+
+                if old.count < new.count {
+                    for i in old.count ..< new.count {
+                        insertedElements[new[i]] = index + i
                     }
                 }
-                else if range.count > elements.count {
-                    for i in elements.count ..< range.count {
-                        let index = range.lowerBound + i
-                        let old = _value[index - delta]
-                        deletedElements[old] = index - delta
+                else if old.count > new.count {
+                    for i in new.count ..< old.count {
+                        deletedElements[old[i]] = index + i - delta
                     }
                 }
             }
@@ -128,19 +54,21 @@ public class BatchedArray<Element: Hashable>: ObservableArrayType, SignalDelegat
 
         for (element, from) in deletedElements {
             if let to = insertedElements[element] {
-                moves.append((from, to))
+                moved.append((from, to))
                 deletedElements.removeValue(forKey: element)
                 insertedElements.removeValue(forKey: element)
             }
         }
 
-        _value.apply(change)
-        precondition(change.finalCount == _value.count)
+        self.deleted = IndexSet(deletedElements.values)
+        self.inserted = IndexSet(insertedElements.values)
+    }
+}
 
-        let batch: ChangeBatch = (change: change,
-                                  deleted: IndexSet(deletedElements.values),
-                                  inserted: IndexSet(insertedElements.values),
-                                  moved: moves)
-        self._futureBatches.send(batch)
+extension ObservableArrayType where Element: Hashable {
+    /// Return a source that describes changes in this array in terms of moved elements in addition to insertions and deletions.
+    /// The reported changes can be directly fed as batch updates to a `UITableView` or a `UICollectionView`.
+    public var batchedChanges: Source<BatchedArrayChange<Element>> {
+        return futureChanges.map { BatchedArrayChange($0) }
     }
 }

@@ -36,7 +36,7 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType, SignalDele
     internal private(set) var value: [Element] = []
     private var connection: Connection? = nil
 
-    private var changeSignal = OwningSignal<Change, SortedObservableSet>()
+    private var changeSignal = OwningSignal<Change>()
 
     internal var isBuffered: Bool { return true }
     internal var count: Int { return value.count }
@@ -62,12 +62,13 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType, SignalDele
         var i = 0
         var j = 0
         while i < value.count {
-            if change.removed.contains(value[i]) {
-                arrayChange.addModification(.removeElement(at: nextValue.count))
+            let v = value[i]
+            if change.removed.contains(v) {
+                arrayChange.addModification(.remove(v, at: nextValue.count))
                 i += 1
             }
             else if j < inserted.count {
-                let nextOld = value[i]
+                let nextOld = v
                 let nextNew = inserted[j]
                 if areInIncreasingOrder(nextOld, nextNew) {
                     nextValue.append(nextOld)
@@ -80,13 +81,13 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType, SignalDele
                 }
             }
             else {
-                nextValue.append(value[i])
+                nextValue.append(v)
                 i += 1
             }
         }
         if j < inserted.count {
             let remaining = Array(inserted.suffix(from: j))
-            arrayChange.addModification(.replaceRange(nextValue.count ..< nextValue.count, with: remaining))
+            arrayChange.addModification(.replaceSlice([], at: nextValue.count, with: remaining))
             nextValue.append(contentsOf: remaining)
         }
         precondition(arrayChange.finalCount == nextValue.count)

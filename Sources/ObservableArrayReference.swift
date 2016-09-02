@@ -15,7 +15,7 @@ public class ObservableArrayReference<Element>: ObservableArrayType, SignalDeleg
     public typealias Change = ArrayChange<Element>
 
     private var _target: ObservableArray<Element>
-    private var _futureChanges = OwningSignal<Change, ObservableArrayReference>()
+    private var _futureChanges = OwningSignal<Change>()
     private var _connection: Connection?
 
     public init() {

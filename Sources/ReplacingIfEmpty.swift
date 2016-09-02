@@ -30,14 +30,14 @@ where Inner.Element == Element {
             return nil
         }
         if change.finalCount == 0 {
-            return ArrayChange(initialCount: change.initialCount,
-                               modification: .replaceRange(0 ..< change.initialCount, with: substitution))
+            var result = change
+            result.addModification(.replaceSlice([], at: 0, with: substitution))
+            return result
         }
         else if change.initialCount == 0 {
-            var c = ArrayChange<Element>(initialCount: substitution.count)
-            c.addModification(.replaceRange(0 ..< substitution.count, with: []))
-            c.merge(with: change)
-            return c
+            var result = ArrayChange<Element>(initialCount: substitution.count, modification: .replaceSlice(substitution, at: 0, with: []))
+            result.merge(with: change)
+            return result
         }
         else {
             return change

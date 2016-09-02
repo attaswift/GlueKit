@@ -15,7 +15,7 @@ public class ObservableSetReference<Element: Hashable>: ObservableSetType, Signa
     public typealias Change = SetChange<Element>
 
     private var _target: ObservableSet<Element>
-    private var _futureChanges = OwningSignal<Change, ObservableSetReference<Element>>()
+    private var _futureChanges = OwningSignal<Change>()
     private var _connection: Connection?
 
     public init() {

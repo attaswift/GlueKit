@@ -43,8 +43,9 @@ public final class ArrayVariable<E>: UpdatableArrayType {
         }
         set {
             let c = _value.count
+            let old = _value
             _value = newValue
-            _changeSignal.sendIfConnected(ArrayChange(initialCount: c, modification: .replaceRange(0 ..< c, with: newValue)))
+            _changeSignal.sendIfConnected(ArrayChange(initialCount: c, modification: .replaceSlice(old, at: 0, with: newValue)))
             _valueSignal.sendIfConnected(newValue)
         }
     }
@@ -71,8 +72,14 @@ public final class ArrayVariable<E>: UpdatableArrayType {
             return _value[index]
         }
         set {
-            _value[index] = newValue
-            _changeSignal.sendIfConnected(ArrayChange(initialCount: _value.count, modification: .replaceElement(at: index, with: newValue)))
+            if _changeSignal.isConnected {
+                let old = _value[index]
+                _value[index] = newValue
+                _changeSignal.send(ArrayChange(initialCount: _value.count, modification: .replace(old, at: index, with: newValue)))
+            }
+            else {
+                _value[index] = newValue
+            }
             _valueSignal.sendIfConnected(_value)
         }
     }
@@ -82,9 +89,15 @@ public final class ArrayVariable<E>: UpdatableArrayType {
             return value[bounds]
         }
         set {
-            let oldCount = _value.count
-            _value[bounds] = newValue
-            _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount, modification: .replaceRange(bounds.lowerBound ..< bounds.upperBound, with: Array<Element>(newValue))))
+            if _changeSignal.isConnected {
+                let oldCount = _value.count
+                let old = Array(_value[bounds])
+                _value[bounds] = newValue
+                _changeSignal.send(ArrayChange(initialCount: oldCount, modification: .replaceSlice(old, at: bounds.lowerBound, with: Array(newValue))))
+            }
+            else {
+                _value[bounds] = newValue
+            }
             _valueSignal.sendIfConnected(_value)
         }
     }

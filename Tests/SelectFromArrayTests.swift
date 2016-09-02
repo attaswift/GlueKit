@@ -145,7 +145,7 @@ class SelectFromArrayTests: XCTestCase {
         // Rename a file in folder 2
         folder2.files[0].name.value = "2/a.renamed"
 
-        expected.append(ArrayChange(initialCount: 6, modification: .replaceElement(at: 4, with: "2/a.renamed")))
+        expected.append(ArrayChange(initialCount: 6, modification: .replace("2/a", at: 4, with: "2/a.renamed")))
 
         XCTAssertTrue(changes.elementsEqual(expected, by: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b", "1/b2", "1/c", "2/a.renamed", "2/b"])
@@ -153,7 +153,7 @@ class SelectFromArrayTests: XCTestCase {
         // Delete a file from folder 1
         folder1.files.remove(at: 1)
 
-        expected.append(ArrayChange(initialCount: 6, modification: .removeElement(at: 1)))
+        expected.append(ArrayChange(initialCount: 6, modification: .remove("1/b", at: 1)))
 
         XCTAssertTrue(changes.elementsEqual(expected, by: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "2/a.renamed", "2/b"])
@@ -172,7 +172,7 @@ class SelectFromArrayTests: XCTestCase {
         // Delete folder 2
         root.subfolders.remove(at: 2)
 
-        expected.append(ArrayChange(initialCount: 6, modification: .replaceRange(4 ..< 6, with: [])))
+        expected.append(ArrayChange(initialCount: 6, modification: .replaceSlice(["2/a.renamed", "2/b"], at: 4, with: [])))
 
         XCTAssertTrue(changes.elementsEqual(expected, by: ==))
         XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
@@ -193,8 +193,8 @@ class SelectFromArrayTests: XCTestCase {
 
         let reducedChanges = changes.reduce(ArrayChange(initialCount: 5)) { m, c in m.merged(with: c) }
         let expectedreducedMods: [ArrayModification<String>] = [
-            .replaceElement(at: 1, with: "1/b2"),
-            .replaceRange(3 ..< 5, with: ["3/1"])
+            .replace("1/b", at: 1, with: "1/b2"),
+            .replaceSlice(["2/a", "2/b"], at: 3, with: ["3/1"])
         ]
         XCTAssertTrue(reducedChanges.modifications.elementsEqual(expectedreducedMods, by: ==))
     }

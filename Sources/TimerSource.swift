@@ -62,7 +62,7 @@ public final class TimerSource: SourceType, SignalDelegate {
     private let queue: DispatchQueue
     private let next: (Void) -> Date?
     private var token = AtomicToken()
-    private var signal = OwningSignal<Void, TimerSource>()
+    private var signal = OwningSignal<Void>()
 
     /// Set up a new TimerSource that is scheduled on a given queue at the times determined by the supplied block.
     /// @param queue The queue on which to schedule the timer. 

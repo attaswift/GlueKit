@@ -28,7 +28,7 @@ internal protocol SignalDelegate: class {
 /// - Dependants hold strong references to their dependencies
 /// - Dependants only activate their dependencies while someone is interested in them
 ///
-internal struct OwningSignal<Value, Delegate: SignalDelegate> where Delegate.SignalValue == Value {
+internal struct OwningSignal<Value> {
     internal typealias SourceValue = Value
 
     private weak var signal: Signal<Value>? = nil
@@ -36,7 +36,16 @@ internal struct OwningSignal<Value, Delegate: SignalDelegate> where Delegate.Sig
     internal init() {
     }
 
-    internal mutating func with(_ delegate: Delegate) -> Signal<Value> {
+    internal mutating func with(retained container: AnyObject) -> Signal<Value> {
+        if let s = signal {
+            return s
+        }
+        let s = Signal<Value>(start: { [container] _ in _ = container }, stop: { _ in })
+        self.signal = s
+        return s
+    }
+
+    internal mutating func with<Delegate: SignalDelegate>(_ delegate: Delegate) -> Signal<Value> where Delegate.SignalValue == Value {
         if let s = signal {
             return s
         }
@@ -53,6 +62,12 @@ internal struct OwningSignal<Value, Delegate: SignalDelegate> where Delegate.Sig
     /// Send value to the signal (if it exists).
     internal func send(_ value: Value) {
         signal?.send(value)
+    }
+
+    internal func sendIfConnected(_ value: @autoclosure (Void) -> Value) {
+        if let s = signal, s.isConnected {
+            s.send(value())
+        }
     }
 }
 
