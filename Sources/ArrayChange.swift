@@ -247,6 +247,52 @@ public enum ArrayModification<Element> {
     }
 }
 
+extension ArrayModification where Element: Equatable {
+    /// Returns an array of modifications that perform the same update as this one, except all cases are removed where
+    /// an element is replaced by a value that is equal to it.
+    public func removingEqualChanges() -> [ArrayModification] {
+        switch self {
+        case .insert(_, at: _):
+            return [self]
+        case .remove(_, at: _):
+            return [self]
+        case .replace(let old, at: _, with: let new):
+            return old == new ? [] : [self]
+        case .replaceSlice(let old, at: let index, with: let new):
+            var result: [ArrayModification<Element>] = []
+
+            var start = 0
+            for i in 0 ..< min(old.count, new.count) {
+                if old[i] == new[i] {
+                    if start < i {
+                        result.append(ArrayModification(replacing: Array(old[start ..< i]), at: index + start, with: Array(new[start ..< i])))
+                    }
+                    start = i + 1
+                }
+            }
+            if old.count != new.count || start < old.count {
+                result.append(ArrayModification(replacing: Array(old.suffix(from: start)), at: index + start, with: Array(new.suffix(from: start))))
+            }
+            return result
+        }
+    }
+
+    /// Returns true iff the result array is equal to the original, i.e. if it doesn't change anything, or only replaces
+    /// values with equal values.
+    public var isIdentity: Bool {
+        switch self {
+        case .insert(_, at: _):
+            return false
+        case .remove(_, at: _):
+            return false
+        case .replace(let old, at: _, with: let new):
+            return old == new
+        case .replaceSlice(let old, at: _, with: let new):
+            return old == new
+        }
+    }
+}
+
 /// The result of an attempt at merging two array modifications.
 internal enum ArrayModificationMergeResult<Element> {
     /// The modifications are disjunct, and the new modification changes indexes below the old.
@@ -505,6 +551,12 @@ extension ArrayChange: CustomDebugStringConvertible {
 extension ArrayChange: CustomReflectable {
     public var customMirror: Mirror {
         return Mirror(self, unlabeledChildren: modifications, displayStyle: .struct)
+    }
+}
+
+extension ArrayChange where Element: Equatable {
+    public func removingEqualChanges() -> ArrayChange {
+        return ArrayChange(initialCount: initialCount, modifications: modifications.flatMap { $0.removingEqualChanges() })
     }
 }
 

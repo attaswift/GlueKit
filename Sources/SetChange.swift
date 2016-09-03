@@ -50,6 +50,14 @@ public struct SetChange<Element: Hashable>: ChangeType {
         return SetChange(removed: next.removed.union(removed),
                          inserted: next.inserted.union(inserted.subtracting(next.removed)))
     }
+
+    public func removingEqualChanges() -> SetChange {
+        let intersection = removed.intersection(inserted)
+        if intersection.isEmpty {
+            return self
+        }
+        return SetChange(removed: removed.subtracting(intersection), inserted: inserted.subtracting(intersection))
+    }
 }
 
 extension Set {
