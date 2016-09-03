@@ -8,6 +8,10 @@
 
 import Foundation
 
+private func batchError() -> Never {
+    fatalError("Changes in arrays with duplicate elements cannot be batched")
+}
+
 public struct BatchedArrayChange<Element: Hashable> {
     public var change: ArrayChange<Element>
     public var deleted = IndexSet()
@@ -24,28 +28,26 @@ public struct BatchedArrayChange<Element: Hashable> {
         for modification in change.modifications {
             switch modification {
             case .insert(let new, at: let index):
-                insertedElements[new] = index
+                guard insertedElements.updateValue(index, forKey: new) == nil else { batchError() }
             case .remove(let old, at: let index):
-                deletedElements[old] = index - delta
+                guard deletedElements.updateValue(index - delta, forKey: old) == nil else { batchError() }
             case .replace(let old, at: let index, with: let new):
-                deletedElements[old] = index - delta
-                insertedElements[new] = index
+                guard deletedElements.updateValue(index - delta, forKey: old) == nil else { batchError() }
+                guard insertedElements.updateValue(index, forKey: new) == nil else { batchError() }
             case .replaceSlice(let old, at: let index, with: let new):
                 for i in 0 ..< min(old.count, new.count) {
-                    let o = old[i]
-                    let n = new[i]
-                    deletedElements[o] = index + i - delta
-                    insertedElements[n] = index + i
+                    guard deletedElements.updateValue(index + i - delta, forKey: old[i]) == nil else { batchError() }
+                    guard insertedElements.updateValue(index + i, forKey: new[i]) == nil else { batchError() }
                 }
 
                 if old.count < new.count {
                     for i in old.count ..< new.count {
-                        insertedElements[new[i]] = index + i
+                        guard insertedElements.updateValue(index + i, forKey: new[i]) == nil else { batchError() }
                     }
                 }
                 else if old.count > new.count {
                     for i in new.count ..< old.count {
-                        deletedElements[old[i]] = index + i - delta
+                        guard deletedElements.updateValue(index + i - delta, forKey: old[i]) == nil else { batchError() }
                     }
                 }
             }
