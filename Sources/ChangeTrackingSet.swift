@@ -57,6 +57,11 @@ public class ChangeTrackingUpdatableSet<Base: UpdatableSetType>: UpdatableSetTyp
         self.pendingChanges = Change()
     }
 
+    /// Returns true iff the set isn't equal to the value it had the last time `clearPendingChanges` was called.
+    public var hasPendingChanges: Bool {
+        return !self.pendingChanges.isEmpty
+    }
+
     public var isBuffered: Bool { return base.isBuffered }
     public var count: Int { return base.count }
 

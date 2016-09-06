@@ -56,6 +56,11 @@ public class ChangeTrackingUpdatableArray<Base: UpdatableArrayType>: UpdatableAr
         pendingChanges = Change(initialCount: base.count)
     }
 
+    /// Returns true iff the array isn't equal to the value it had the last time `clearPendingChanges` was called.
+    public var hasPendingChanges: Bool {
+        return !self.pendingChanges.isEmpty
+    }
+
     public var isBuffered: Bool { return base.isBuffered }
     public var value: [Element] {
         get { return base.value }
