@@ -365,6 +365,7 @@
 		BBB55C0A1C8FD5D60050DDA9 /* SampleModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleModel.swift; sourceTree = "<group>"; };
 		BBC1F1B71D7AEC8A00A320F5 /* ChangeTrackingArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChangeTrackingArray.swift; sourceTree = "<group>"; };
 		BBC1F1BC1D7AEF3F00A320F5 /* ChangeTrackingSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChangeTrackingSet.swift; sourceTree = "<group>"; };
+		BBC1F1D01D7EDF4A00A320F5 /* GlueKit.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; path = GlueKit.podspec; sourceTree = "<group>"; };
 		BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSObject extensions.swift"; sourceTree = "<group>"; };
 		BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIControl Extensions.swift"; sourceTree = "<group>"; };
 		BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSUserDefaults Support.swift"; sourceTree = "<group>"; };
@@ -499,6 +500,7 @@
 				BBB55B1E1C8F9E920050DDA9 /* README.md */,
 				BBB55B1D1C8F9E850050DDA9 /* LICENCE.md */,
 				BBB55B1C1C8F90F60050DDA9 /* .travis.yml */,
+				BBC1F1D01D7EDF4A00A320F5 /* GlueKit.podspec */,
 				BBB55ACC1C8F80660050DDA9 /* version.xcconfig */,
 				BBB55BDD1C8FD0160050DDA9 /* Demo.playground */,
 				BBB55BDB1C8FCFAD0050DDA9 /* Documentation */,
