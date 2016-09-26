@@ -765,9 +765,9 @@
 			productReference = BBB55ABC1C8F80020050DDA9 /* GlueKit-Test.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		BBB55AD31C8F88F20050DDA9 /* OS X */ = {
+		BBB55AD31C8F88F20050DDA9 /* macOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BBB55AE51C8F88F20050DDA9 /* Build configuration list for PBXNativeTarget "OS X" */;
+			buildConfigurationList = BBB55AE51C8F88F20050DDA9 /* Build configuration list for PBXNativeTarget "macOS" */;
 			buildPhases = (
 				BBB55ACF1C8F88F20050DDA9 /* Sources */,
 				BBB55AD01C8F88F20050DDA9 /* Frameworks */,
@@ -778,14 +778,14 @@
 			);
 			dependencies = (
 			);
-			name = "OS X";
+			name = macOS;
 			productName = GlueKit;
 			productReference = BBB55AD41C8F88F20050DDA9 /* GlueKit.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		BBB55ADC1C8F88F20050DDA9 /* OS X Tests */ = {
+		BBB55ADC1C8F88F20050DDA9 /* macOS Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BBB55AE81C8F88F20050DDA9 /* Build configuration list for PBXNativeTarget "OS X Tests" */;
+			buildConfigurationList = BBB55AE81C8F88F20050DDA9 /* Build configuration list for PBXNativeTarget "macOS Tests" */;
 			buildPhases = (
 				BBB55AD91C8F88F20050DDA9 /* Sources */,
 				BBB55ADA1C8F88F20050DDA9 /* Frameworks */,
@@ -796,7 +796,7 @@
 			dependencies = (
 				BBB55AE01C8F88F20050DDA9 /* PBXTargetDependency */,
 			);
-			name = "OS X Tests";
+			name = "macOS Tests";
 			productName = GlueKitTests;
 			productReference = BBB55ADD1C8F88F20050DDA9 /* GlueKit-Test.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -955,11 +955,11 @@
 			projectRoot = "";
 			targets = (
 				BBB55AB11C8F80020050DDA9 /* iOS */,
-				BBB55AD31C8F88F20050DDA9 /* OS X */,
+				BBB55AD31C8F88F20050DDA9 /* macOS */,
 				BBB55AF01C8F8BE00050DDA9 /* watchOS */,
 				BBB55AFD1C8F8CBB0050DDA9 /* tvOS */,
 				BBB55ABB1C8F80020050DDA9 /* iOS Tests */,
-				BBB55ADC1C8F88F20050DDA9 /* OS X Tests */,
+				BBB55ADC1C8F88F20050DDA9 /* macOS Tests */,
 				BBB55B061C8F8CBB0050DDA9 /* tvOS Tests */,
 				BBB55BE11C8FD1C60050DDA9 /* PerformanceTests */,
 				BBB55BF21C8FD5A30050DDA9 /* SampleModel */,
@@ -1335,7 +1335,7 @@
 		};
 		BBB55AE01C8F88F20050DDA9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = BBB55AD31C8F88F20050DDA9 /* OS X */;
+			target = BBB55AD31C8F88F20050DDA9 /* macOS */;
 			targetProxy = BBB55ADF1C8F88F20050DDA9 /* PBXContainerItemProxy */;
 		};
 		BBB55B0A1C8F8CBC0050DDA9 /* PBXTargetDependency */ = {
@@ -1345,7 +1345,7 @@
 		};
 		BBB55BED1C8FD32D0050DDA9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = BBB55AD31C8F88F20050DDA9 /* OS X */;
+			target = BBB55AD31C8F88F20050DDA9 /* macOS */;
 			targetProxy = BBB55BEC1C8FD32D0050DDA9 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -1816,7 +1816,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BBB55AE51C8F88F20050DDA9 /* Build configuration list for PBXNativeTarget "OS X" */ = {
+		BBB55AE51C8F88F20050DDA9 /* Build configuration list for PBXNativeTarget "macOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BBB55AE61C8F88F20050DDA9 /* Debug */,
@@ -1825,7 +1825,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BBB55AE81C8F88F20050DDA9 /* Build configuration list for PBXNativeTarget "OS X Tests" */ = {
+		BBB55AE81C8F88F20050DDA9 /* Build configuration list for PBXNativeTarget "macOS Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BBB55AE91C8F88F20050DDA9 /* Debug */,
