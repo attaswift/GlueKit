@@ -84,10 +84,10 @@
 		BB69A8331D6B7F11001D2821 /* ObservableSetReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D92951D647E83003BEDBF /* ObservableSetReference.swift */; };
 		BB69A8341D6B7F12001D2821 /* ObservableSetReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D92951D647E83003BEDBF /* ObservableSetReference.swift */; };
 		BB69A8351D6B7F12001D2821 /* ObservableSetReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D92951D647E83003BEDBF /* ObservableSetReference.swift */; };
-		BB69A8361D6B7F9B001D2821 /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B231C8FCC810050DDA9 /* Filter.swift */; };
-		BB69A8371D6B7F9C001D2821 /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B231C8FCC810050DDA9 /* Filter.swift */; };
-		BB69A8381D6B7F9D001D2821 /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B231C8FCC810050DDA9 /* Filter.swift */; };
-		BB69A8391D6B7F9E001D2821 /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B231C8FCC810050DDA9 /* Filter.swift */; };
+		BB69A8361D6B7F9B001D2821 /* FilteredSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B231C8FCC810050DDA9 /* FilteredSet.swift */; };
+		BB69A8371D6B7F9C001D2821 /* FilteredSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B231C8FCC810050DDA9 /* FilteredSet.swift */; };
+		BB69A8381D6B7F9D001D2821 /* FilteredSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B231C8FCC810050DDA9 /* FilteredSet.swift */; };
+		BB69A8391D6B7F9E001D2821 /* FilteredSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B231C8FCC810050DDA9 /* FilteredSet.swift */; };
 		BB69A83B1D6B90F5001D2821 /* Concatenation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83A1D6B90F5001D2821 /* Concatenation.swift */; };
 		BB69A83C1D6B90F5001D2821 /* Concatenation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83A1D6B90F5001D2821 /* Concatenation.swift */; };
 		BB69A83D1D6B90F5001D2821 /* Concatenation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83A1D6B90F5001D2821 /* Concatenation.swift */; };
@@ -320,7 +320,7 @@
 		BBB55B201C8FCC810050DDA9 /* ArrayVariable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayVariable.swift; sourceTree = "<group>"; };
 		BBB55B211C8FCC810050DDA9 /* Connection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		BBB55B221C8FCC810050DDA9 /* Connector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Connector.swift; sourceTree = "<group>"; };
-		BBB55B231C8FCC810050DDA9 /* Filter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
+		BBB55B231C8FCC810050DDA9 /* FilteredSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilteredSet.swift; sourceTree = "<group>"; };
 		BBB55B241C8FCC810050DDA9 /* KVO Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "KVO Support.swift"; sourceTree = "<group>"; };
 		BBB55B251C8FCC810050DDA9 /* Locks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Locks.swift; sourceTree = "<group>"; };
 		BBB55B261C8FCC810050DDA9 /* MergedSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MergedSource.swift; sourceTree = "<group>"; };
@@ -454,7 +454,7 @@
 				BB8990091D5DF88C0097F350 /* ObservableSet.swift */,
 				BB89901A1D5F6AAE0097F350 /* UpdatableSet.swift */,
 				BB89901F1D5F6F980097F350 /* SetVariable.swift */,
-				BBB55B231C8FCC810050DDA9 /* Filter.swift */,
+				BBB55B231C8FCC810050DDA9 /* FilteredSet.swift */,
 				BB1E4D691D61EA5200F1831F /* Sorting.swift */,
 				BB3D92951D647E83003BEDBF /* ObservableSetReference.swift */,
 				BBC1F1BC1D7AEF3F00A320F5 /* ChangeTrackingSet.swift */,
@@ -1048,7 +1048,7 @@
 				BBC1F1BD1D7AEF3F00A320F5 /* ChangeTrackingSet.swift in Sources */,
 				BBB55B7E1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BBB55B661C8FCC820050DDA9 /* Reference.swift in Sources */,
-				BB69A8361D6B7F9B001D2821 /* Filter.swift in Sources */,
+				BB69A8361D6B7F9B001D2821 /* FilteredSet.swift in Sources */,
 				BB69A8321D6B7F11001D2821 /* ObservableSetReference.swift in Sources */,
 				BBB55B721C8FCC820050DDA9 /* Signal.swift in Sources */,
 				BB69A8081D6B442B001D2821 /* ArrayVariable.swift in Sources */,
@@ -1146,7 +1146,7 @@
 				BBB55B531C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BBAA82701C91D18100586903 /* Variable.swift in Sources */,
 				BB1657E81D71D65900094BAC /* BatchedChanges.swift in Sources */,
-				BB69A8371D6B7F9C001D2821 /* Filter.swift in Sources */,
+				BB69A8371D6B7F9C001D2821 /* FilteredSet.swift in Sources */,
 				BBC1F1B91D7AEC8B00A320F5 /* ChangeTrackingArray.swift in Sources */,
 				BBAA826F1C91D17A00586903 /* Observable Transformations.swift in Sources */,
 				BB69A8111D6B5397001D2821 /* Select.swift in Sources */,
@@ -1219,7 +1219,7 @@
 				BBB55B901C8FCC820050DDA9 /* Variable.swift in Sources */,
 				BBB55B581C8FCC820050DDA9 /* NSNotificationCenter Support.swift in Sources */,
 				BB1657E91D71D65900094BAC /* BatchedChanges.swift in Sources */,
-				BB69A8381D6B7F9D001D2821 /* Filter.swift in Sources */,
+				BB69A8381D6B7F9D001D2821 /* FilteredSet.swift in Sources */,
 				BBC1F1BA1D7AEC8B00A320F5 /* ChangeTrackingArray.swift in Sources */,
 				BBAA827F1C91D43700586903 /* Type Helpers.swift in Sources */,
 				BB69A8141D6B539A001D2821 /* Select.swift in Sources */,
@@ -1278,7 +1278,7 @@
 				BBB55B7D1C8FCC820050DDA9 /* Source.swift in Sources */,
 				BBC2A82C1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BB69A81C1D6B6A9B001D2821 /* ObservableArrayReference.swift in Sources */,
-				BB69A8391D6B7F9E001D2821 /* Filter.swift in Sources */,
+				BB69A8391D6B7F9E001D2821 /* FilteredSet.swift in Sources */,
 				BBADD7A51D70985F00C32735 /* ReplacingIfEmpty.swift in Sources */,
 				BBB55B4D1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
 				BB69A8241D6B7203001D2821 /* ObservableSet.swift in Sources */,
