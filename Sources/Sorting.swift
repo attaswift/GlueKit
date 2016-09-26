@@ -9,9 +9,9 @@
 import Foundation
 
 extension ObservableSetType {
-    public typealias ElementComparator = @escaping (Element, Element) -> Bool
+    public typealias ElementComparator = (Element, Element) -> Bool
 
-    public func sorted(by areInIncreasingOrder: ElementComparator) -> ObservableArray<Element> {
+    public func sorted(by areInIncreasingOrder: @escaping ElementComparator) -> ObservableArray<Element> {
         return SortedObservableSet(input: self, sortedBy: areInIncreasingOrder).observableArray
     }
 

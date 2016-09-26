@@ -32,7 +32,7 @@ public final class Connection {
     internal init() {
     }
 
-    internal init(callback: Callback) {
+    internal init(callback: @escaping Callback) {
         callbacks.append(callback)
     }
 

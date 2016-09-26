@@ -9,8 +9,8 @@
 import Foundation
 
 extension ObservableSetType {
-    public typealias ElementFilter = @escaping (Element) -> Bool
-    public func filtered(test: ElementFilter) -> ObservableSet<Element> {
+    public typealias ElementFilter = (Element) -> Bool
+    public func filtered(test: @escaping ElementFilter) -> ObservableSet<Element> {
         return ObservableSetSimpleFilter<Self>(parent: self, test: test).observableSet
     }
 
