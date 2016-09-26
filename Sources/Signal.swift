@@ -11,14 +11,14 @@ import Foundation
 public protocol SignalType: SourceType, SinkType /* where SourceType.SourceValue == SinkType.SinkValue */ {
     associatedtype SinkValue = SourceValue
 
-    func connect<S: SinkType where S.SinkValue == SourceValue>(sink: S) -> Connection
-    var receive: SourceValue -> Void { get }
+    func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == SourceValue
+    var receive: (SourceValue) -> Void { get }
 }
 
 internal protocol SignalDelegate: class {
     associatedtype SignalValue
-    func start(signal: Signal<SignalValue>)
-    func stop(signal: Signal<SignalValue>)
+    func start(_ signal: Signal<SignalValue>)
+    func stop(_ signal: Signal<SignalValue>)
 }
 
 /// This is a wrapper around a lazily created Signal that holds a strong reference to its delegate.
@@ -28,7 +28,7 @@ internal protocol SignalDelegate: class {
 /// - Dependants hold strong references to their dependencies
 /// - Dependants only activate their dependencies while someone is interested in them
 ///
-internal struct OwningSignal<Value, Delegate: SignalDelegate where Delegate.SignalValue == Value> {
+internal struct OwningSignal<Value> {
     internal typealias SourceValue = Value
 
     private weak var signal: Signal<Value>? = nil
@@ -36,7 +36,16 @@ internal struct OwningSignal<Value, Delegate: SignalDelegate where Delegate.Sign
     internal init() {
     }
 
-    internal mutating func with(delegate: Delegate) -> Signal<Value> {
+    internal mutating func with(retained container: AnyObject) -> Signal<Value> {
+        if let s = signal {
+            return s
+        }
+        let s = Signal<Value>(start: { [container] _ in _ = container }, stop: { _ in })
+        self.signal = s
+        return s
+    }
+
+    internal mutating func with<Delegate: SignalDelegate>(_ delegate: Delegate) -> Signal<Value> where Delegate.SignalValue == Value {
         if let s = signal {
             return s
         }
@@ -51,16 +60,21 @@ internal struct OwningSignal<Value, Delegate: SignalDelegate where Delegate.Sign
     }
 
     /// Send value to the signal (if it exists).
-    internal func send(value: Value) {
+    internal func send(_ value: Value) {
         signal?.send(value)
+    }
+
+    internal func sendIfConnected(_ value: @autoclosure (Void) -> Value) {
+        if let s = signal, s.isConnected {
+            s.send(value())
+        }
     }
 }
 
-internal struct LazySignal<Value> {
+internal struct LazySignal<Value> { // Can't be SourceType because connecter is mutating.
     internal typealias SourceValue = Value
 
     private weak var _signal: Signal<Value>? = nil
-    private var connected = false
 
     internal init() {
     }
@@ -78,18 +92,25 @@ internal struct LazySignal<Value> {
         }
     }
 
+    internal var isConnected: Bool {
+        if let s = _signal, s.isConnected {
+            return true
+        }
+        return false
+    }
+
     /// Send value to the signal (if it exists).
-    internal func send(value: Value) {
+    internal func send(_ value: Value) {
         _signal?.send(value)
     }
 
-    internal func sendIfConnected(@autoclosure value: Void->Value) {
-        if let s = _signal where s.isConnected {
+    internal func sendIfConnected(_ value: @autoclosure (Void) -> Value) {
+        if let s = _signal, s.isConnected {
             s.send(value())
         }
     }
 
-    internal var connecter: Sink<Value> -> Connection {
+    internal var connecter: (Sink<Value>) -> Connection {
         mutating get { return self.signal.connecter }
     }
 
@@ -97,18 +118,18 @@ internal struct LazySignal<Value> {
         mutating get { return self.signal.source }
     }
 
-    internal mutating func connect<S: SinkType where S.SinkValue == Value>(sink: S) -> Connection {
+    internal mutating func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == Value {
         return signal.connect(sink)
     }
 }
 
 /// Holds a strong reference to a value that may not be ready for consumption yet.
 private enum Ripening<Value> {
-    case Ripe(Value)
-    case Unripe(Value)
+    case ripe(Value)
+    case unripe(Value)
 
     var ripeValue: Value? {
-        if case Ripe(let value) = self  {
+        if case .ripe(let value) = self  {
             return value
         }
         else {
@@ -117,15 +138,15 @@ private enum Ripening<Value> {
     }
 
     mutating func ripen() {
-        if case Unripe(let value) = self {
-            self = Ripe(value)
+        if case .unripe(let value) = self {
+            self = .ripe(value)
         }
     }
 }
 
 private enum PendingItem<Value> {
-    case SendValue(Value)
-    case RipenSinkWithID(ConnectionID)
+    case sendValue(Value)
+    case ripenSinkWithID(ConnectionID)
 }
 
 /// A Signal provides a source and a sink. Sending a value to a signal's sink forwards it to all sinks that are 
@@ -167,40 +188,40 @@ public final class Signal<Value>: SignalType {
     public typealias SinkValue = Value
 
     private let mutex = Mutex()
-    private var sending = false
+    private var sending = AtomicBool(false)
     private var sinks: Dictionary<ConnectionID, Ripening<Sink<Value>>> = [:]
     private var pendingItems: [PendingItem<Value>] = []
 
     /// A closure that is run whenever this signal transitions from an empty signal to one having a single connection.
     /// (Executed on the thread that connects the first sink.)
-    internal let startCallback: Signal<Value>->Void
+    internal let startCallback: (Signal<Value>) -> Void
 
     /// A closure that is run whenever this signal transitions from having at least one connection to having no 
     /// connections. (Executed on the thread that disconnects the last sink.)
-    internal let stopCallback: Signal<Value>->Void
+    internal let stopCallback: (Signal<Value>) -> Void
 
     /// @param start: A closure that is run whenever this signal transitions from an empty signal to one having a 
     ///     single connection. (Executed on the thread that connects the first sink.)
     /// @param stop: A closure that is run whenever this signal transitions from having at least one connection to
     ///     having no connections. (Executed on the thread that disconnects the last sink.)
-    internal init(start: Signal<Value>->Void, stop: Signal<Value>->Void) {
+    internal init(start: @escaping (Signal<Value>) -> Void, stop: @escaping (Signal<Value>) -> Void) {
         self.startCallback = start
         self.stopCallback = stop
     }
 
-    internal convenience init(delegateCallback: (signal: Signal<Value>, started: Bool) -> Void) {
+    internal convenience init(delegateCallback: @escaping (_ signal: Signal<Value>, _ started: Bool) -> Void) {
         self.init(
-            start: { s in delegateCallback(signal: s, started: true) },
-            stop: { s in delegateCallback(signal: s, started: false) })
+            start: { s in delegateCallback(s, true) },
+            stop: { s in delegateCallback(s, false) })
     }
 
-    internal convenience init<Delegate: SignalDelegate where Delegate.SignalValue == Value>(delegate: Delegate) {
+    internal convenience init<Delegate: SignalDelegate>(delegate: Delegate) where Delegate.SignalValue == Value {
         self.init(
             start: { [weak delegate] s in delegate?.start(s) },
             stop: { [weak delegate] s in delegate?.stop(s) })
     }
 
-    internal convenience init<Delegate: SignalDelegate where Delegate.SignalValue == Value>(stronglyHeldDelegate delegate: Delegate) {
+    internal convenience init<Delegate: SignalDelegate>(stronglyHeldDelegate delegate: Delegate) where Delegate.SignalValue == Value {
         self.init(
             start: { s in delegate.start(s) },
             stop: { s in delegate.stop(s) })
@@ -210,48 +231,38 @@ public final class Signal<Value>: SignalType {
         self.init(start: { s in }, stop: { s in })
     }
 
-    deinit {
-        mutex.destroy()
-    }
-
     /// Atomically enter sending state if the signal wasn't already in it.
     /// @returns true if the signal entered sending state due to this call.
     private func _enterSendingState() -> Bool {
-        if self.sending {
-            return false
-        }
-        else {
-            self.sending = true
-            return true
-        }
+        return self.sending.set(true) == false
     }
 
     /// Atomically return the pending value that needs to be sent next, or nil. 
     /// If there are no more values, exit the sending state.
     private func _nextValueToSendOrElseLeaveSendingState() -> Value? {
         return mutex.withLock {
-            assert(self.sending)
-            while case .Some(let item) = self.pendingItems.first {
+            assert(self.sending.get())
+            while case .some(let item) = self.pendingItems.first {
                 self.pendingItems.removeFirst()
                 switch item {
-                case .SendValue(let value):
+                case .sendValue(let value):
                     if !self.sinks.isEmpty { // Skip value if there are no sinks.
                         // Send the next value to all ripe sinks.
                         return value
                     }
-                case .RipenSinkWithID(let id):
+                case .ripenSinkWithID(let id):
                     self.sinks[id]?.ripen()
                 }
             }
             // There are no more items to process.
-            self.sending = false
+            self.sending.set(false)
             return nil
         }
     }
 
     /// Synchronously send a value to all connected sinks.
-    private func _sendValueNow(value: Value) {
-        assert(sending)
+    private func _sendValueNow(_ value: Value) {
+        assert(sending.get())
 
         // Note that sinks are allowed to freely add or remove connections. 
         // This loop is constructed to support this correctly:
@@ -272,13 +283,13 @@ public final class Signal<Value>: SignalType {
     /// first send() returns.
     ///
     /// You may safely call this method from any thread, provided that the sinks are OK with running there.
-    public func send(value: Value) {
+    public func send(_ value: Value) {
         sendLater(value)
         sendNow()
     }
 
     /// When used as a sink, a Signal will forward all received values to its connected sinks in turn.
-    public var receive: Value -> Void {
+    public var receive: (Value) -> Void {
         return self.send
     }
 
@@ -311,9 +322,9 @@ public final class Signal<Value>: SignalType {
     ///     }
     /// }
     /// ```
-    internal func sendLater(value: Value) {
+    internal func sendLater(_ value: Value) {
         mutex.withLock {
-            self.pendingItems.append(.SendValue(value))
+            self.pendingItems.append(.sendValue(value))
         }
     }
 
@@ -327,23 +338,22 @@ public final class Signal<Value>: SignalType {
         }
     }
 
-    public var connecter: Sink<Value> -> Connection {
+    public var connecter: (Sink<Value>) -> Connection {
         return self.connect
     }
 
-    @warn_unused_result(message = "You probably want to keep the connection alive by retaining it")
-    public func connect(sink: Sink<Value>) -> Connection {
+    public func connect(_ sink: Sink<Value>) -> Connection {
         let c = Connection(callback: self.disconnect) // c now holds a strong reference to self.
         let id = c.connectionID
         let first: Bool = mutex.withLock {
             let first = self.sinks.isEmpty
             if self.pendingItems.isEmpty {
-                self.sinks[id] = .Ripe(sink)
+                self.sinks[id] = .ripe(sink)
             }
             else {
                 // Values that are currently pending should not be sent to this sink, but any future values should be.
-                self.sinks[id] = .Unripe(sink)
-                self.pendingItems.append(.RipenSinkWithID(id))
+                self.sinks[id] = .unripe(sink)
+                self.pendingItems.append(.ripenSinkWithID(id))
             }
             return first
         }
@@ -358,9 +368,9 @@ public final class Signal<Value>: SignalType {
 
     public var isConnected: Bool { return mutex.withLock { !self.sinks.isEmpty } }
 
-    private func disconnect(id: ConnectionID) {
-        let last = mutex.withLock { ()->Bool in
-            return self.sinks.removeValueForKey(id) != nil && self.sinks.isEmpty
+    private func disconnect(_ id: ConnectionID) {
+        let last = mutex.withLock { () -> Bool in
+            return self.sinks.removeValue(forKey: id) != nil && self.sinks.isEmpty
         }
         if last {
             self.stopCallback(self)

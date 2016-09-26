@@ -1,5 +1,5 @@
 //
-//  AnyObject Helpers.swift
+//  Type Helpers.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-03-10.
@@ -13,9 +13,9 @@ import Foundation
     import WatchKit
 #endif
 
-public extension SourceType where SourceValue == AnyObject? {
+public extension SourceType where SourceValue == Any? {
     /// Casts all values to Type using an unsafe cast. Signals a fatal error if a value isn't a Type.
-    func forceCasted<Type: AnyObject>() -> Source<Type> {
+    func forceCasted<Type>() -> Source<Type> {
         return sourceOperator { value, sink in
             sink.receive(value as! Type)
         }
@@ -28,7 +28,7 @@ public extension SourceType where SourceValue == AnyObject? {
         }
     }
 
-    /// Converts all values to Bool using NSNumber.integerValue. Signals a fatal error if a value isn't an NSNumber.
+    /// Converts all values to Bool using NSNumber.boolValue. Signals a fatal error if a value isn't an NSNumber.
     var asBool: Source<Bool> {
         return sourceOperator { value, sink in
             let v = value as! NSNumber
@@ -40,7 +40,7 @@ public extension SourceType where SourceValue == AnyObject? {
     var asInt: Source<Int> {
         return sourceOperator { value, sink in
             let v = value as! NSNumber
-            sink.receive(v.integerValue)
+            sink.receive(v.intValue)
         }
     }
 
@@ -68,12 +68,12 @@ public extension SourceType where SourceValue == AnyObject? {
         }
     }
 
-    #if !os(OSX) // It seems these conversions aren't predefined in the OS X SDK.
+    #if !os(macOS) // It seems these conversions aren't predefined in the OS X SDK.
     /// Converts all values to CGPoint using NSValue.CGPointValue. Signals a fatal error if a value isn't an NSValue.
     var asCGPoint: Source<CGPoint> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink.receive(v.CGPointValue())
+            sink.receive(v.cgPointValue)
         }
     }
 
@@ -81,7 +81,7 @@ public extension SourceType where SourceValue == AnyObject? {
     var asCGSize: Source<CGSize> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink.receive(v.CGSizeValue())
+            sink.receive(v.cgSizeValue)
         }
     }
 
@@ -89,7 +89,7 @@ public extension SourceType where SourceValue == AnyObject? {
     var asCGRect: Source<CGRect> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink.receive(v.CGRectValue())
+            sink.receive(v.cgRectValue)
         }
     }
 
@@ -97,15 +97,15 @@ public extension SourceType where SourceValue == AnyObject? {
     var asCGAffineTransform: Source<CGAffineTransform> {
         return sourceOperator { value, sink in
             let v = value as! NSValue
-            sink.receive(v.CGAffineTransformValue())
+            sink.receive(v.cgAffineTransformValue)
         }
     }
     #endif
 }
 
-public extension ObservableType where Value == AnyObject? {
+public extension ObservableType where Value == Any? {
     /// Casts all values to Type using an unsafe cast. Signals a fatal error if a value isn't a Type.
-    func forceCasted<Type: AnyObject>() -> Observable<Type> {
+    func forceCasted<Type: Any>() -> Observable<Type> {
         return self.map { $0 as! Type }
     }
 
@@ -126,7 +126,7 @@ public extension ObservableType where Value == AnyObject? {
     var asInt: Observable<Int> {
         return self.map {
             let v = $0 as! NSNumber
-            return v.integerValue
+            return v.intValue
         }
     }
 
@@ -154,12 +154,12 @@ public extension ObservableType where Value == AnyObject? {
         }
     }
 
-    #if !os(OSX) // It seems these conversions aren't predefined in the OS X SDK.
+    #if !os(macOS) // It seems these conversions aren't predefined in the OS X SDK.
     /// Converts all values to CGPoint using NSValue.CGPointValue. Signals a fatal error if a value isn't an NSValue.
     var asCGPoint: Observable<CGPoint> {
         return self.map {
             let v = $0 as! NSValue
-            return v.CGPointValue()
+            return v.cgPointValue
         }
     }
 
@@ -167,7 +167,7 @@ public extension ObservableType where Value == AnyObject? {
     var asCGSize: Observable<CGSize> {
         return self.map {
             let v = $0 as! NSValue
-            return v.CGSizeValue()
+            return v.cgSizeValue
         }
     }
 
@@ -175,7 +175,7 @@ public extension ObservableType where Value == AnyObject? {
     var asCGRect: Observable<CGRect> {
         return self.map {
             let v = $0 as! NSValue
-            return v.CGRectValue()
+            return v.cgRectValue
         }
     }
 
@@ -183,7 +183,7 @@ public extension ObservableType where Value == AnyObject? {
     var asCGAffineTransform: Observable<CGAffineTransform> {
         return self.map {
             let v = $0 as! NSValue
-            return v.CGAffineTransformValue()
+            return v.cgAffineTransformValue
         }
     }
     #endif

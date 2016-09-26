@@ -1,6 +1,6 @@
 # GlueKit
 
-[![Swift 2.2](https://img.shields.io/badge/Swift-2.2-blue.svg)](https://swift.org) 
+[![Swift 3](https://img.shields.io/badge/Swift-3-blue.svg)](https://swift.org) 
 [![License](https://img.shields.io/badge/licence-MIT-blue.svg)](https://github.com/lorentey/GlueKit/blob/master/LICENCE.md)
 [![Platform](https://img.shields.io/badge/platforms-OS_X%20∙%20iOS%20∙%20watchOS%20∙%20tvOS-blue.svg)](https://developer.apple.com/platforms/)
 
@@ -224,7 +224,7 @@ class ProjectSummaryViewModel {
     var currentLocale: Observable<NSLocale> {
         let center = NSNotificationCenter.defaultCenter()
 		let localeSource = center
-		    .sourceForNotification(NSCurrentLocaleDidChangeNotification)
+		    .source(forName: NSCurrentLocaleDidChangeNotification)
 		    .map { _ in NSLocale.currentLocale() }
         return Observable(getter: { NSLocale.currentLocale() }, futureValues: localeSource)
     }

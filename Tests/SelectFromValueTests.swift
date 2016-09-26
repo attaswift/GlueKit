@@ -70,16 +70,16 @@ class SelectFromValuesTests: XCTestCase {
         XCTAssertEqual(path.value, [1.0, 2.0])
         XCTAssertEqual(e1.floats.value, [1.0, 2.0])
 
-        path.removeAtIndex(1)
+        path.remove(at: 1)
 
         let foo = ArrayVariable<Int>()
         foo.insert(1, at: 0)
         foo.insert(2, at: 1)
-        foo.removeAtIndex(0)
+        foo.remove(at: 0)
 
         let upd = foo.updatableArray
-        upd.insert(3, atIndex: 0)
-        upd.removeAtIndex(0)
+        upd.insert(3, at: 0)
+        upd.remove(at: 0)
 
         XCTAssertEqual(path.value, [1.0])
         XCTAssertEqual(e1.floats.value, [1.0])
@@ -126,19 +126,19 @@ private class Company: CustomStringConvertible {
 
     var description: String { return self.name.value }
 
-    func fire(employee: Person) {
-        if let index = employees.indexOf({ $0 === self }) {
-            employees.removeAtIndex(index)
+    func fire(_ employee: Person) {
+        if let index = employees.value.index(where: { $0 === self }) {
+            employees.remove(at: index)
             print("\(employee) has been fired from \(self).")
         }
     }
 
-    func sell(app: App, to buyer: Company) {
-        if let index = apps.indexOf({ $0 === app }) {
+    func sell(_ app: App, to buyer: Company) {
+        if let index = apps.value.index(where: { $0 === app }) {
             print("\(self) has sold \(app) to \(buyer)")
             app.developer.value = buyer
             buyer.apps.append(app)
-            apps.removeAtIndex(index)
+            apps.remove(at: index)
         }
     }
 }
@@ -176,8 +176,8 @@ private class Person: CustomStringConvertible {
 
     func quit() {
         if let employer = self.employer.value {
-            if let index = employer.employees.indexOf({ $0 === self }) {
-                employer.employees.removeAtIndex(index)
+            if let index = employer.employees.value.index(where: { $0 === self }) {
+                employer.employees.remove(at: index)
             }
             self.employer.value = nil
             print("\(self) has quit from \(employer).")
@@ -304,7 +304,7 @@ class SelectFromValueTestsExamples: XCTestCase {
         XCTAssertEqual(cowLickerDeveloperNames.value, ["Adam Edgar Whatever", "David Sampleguy"])
 
         // David quits Cool Software and joins Banditware
-        companies.coolSoftware.employees.value.removeAtIndex(1)
+        companies.coolSoftware.employees.value.remove(at: 1)
         companies.banditware.employees.value.append(people.david)
         XCTAssertEqual(cowLickerDeveloperNames.value, ["Adam Edgar Whatever"])
 

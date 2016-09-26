@@ -26,32 +26,32 @@ extension CADisplayLink: SourceType {
         return target
     }
 
-    public var connecter: Sink<CADisplayLink> -> Connection {
+    public var connecter: (Sink<CADisplayLink>) -> Connection {
         return target.signal.connecter
     }
 }
 
 private class DisplayLinkTarget: NSObject, SignalDelegate {
     var displayLink: UnownedReference<CADisplayLink>! = nil
-    var runLoop: NSRunLoop? = nil
+    var runLoop: RunLoop? = nil
 
     lazy var signal: Signal<CADisplayLink> = { Signal<CADisplayLink>(delegate: self) }()
 
-    @objc private func tick(displayLink: CADisplayLink) {
+    @objc fileprivate func tick(_ displayLink: CADisplayLink) {
         precondition(displayLink == self.displayLink.value)
         signal.send(displayLink)
     }
 
-    private func start(signal: Signal<CADisplayLink>) {
+    fileprivate func start(_ signal: Signal<CADisplayLink>) {
         precondition(self.runLoop == nil)
-        let runLoop = NSRunLoop.currentRunLoop()
+        let runLoop = RunLoop.current
         self.runLoop = runLoop
-        displayLink.value.addToRunLoop(runLoop, forMode: NSRunLoopCommonModes)
+        displayLink.value.add(to: runLoop, forMode: RunLoopMode.commonModes)
     }
 
-    private func stop(signal: Signal<CADisplayLink>) {
+    fileprivate func stop(_ signal: Signal<CADisplayLink>) {
         precondition(runLoop != nil)
-        displayLink.value.removeFromRunLoop(runLoop!, forMode: NSRunLoopCommonModes)
+        displayLink.value.remove(from: runLoop!, forMode: RunLoopMode.commonModes)
         runLoop = nil
     }
 }

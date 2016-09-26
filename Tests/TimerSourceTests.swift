@@ -12,27 +12,27 @@ import XCTest
 class TimerSourceTests: XCTestCase {
 
     func testNeverFiringTimer() {
-        let queue = dispatch_queue_create("testqueue", nil)
+        let queue = DispatchQueue(label: "testqueue", attributes: [])
 
-        var timerTimes = [NSDate]()
-        let timerSemaphore = dispatch_semaphore_create(0)
+        var timerTimes = [Date]()
+        let timerSemaphore = DispatchSemaphore(value: 0)
 
         let source = TimerSource(queue: queue) {
-            timerTimes.append(NSDate())
-            dispatch_semaphore_signal(timerSemaphore)
+            timerTimes.append(Date())
+            timerSemaphore.signal()
             return nil
         }
 
         XCTAssertEqual(timerTimes, [])
 
-        var sinkTimes = [NSDate]()
-        let sinkSemaphore = dispatch_semaphore_create(0)
+        var sinkTimes = [Date]()
+        let sinkSemaphore = DispatchSemaphore(value: 0)
         let connection = source.connect {
-            sinkTimes.append(NSDate())
-            dispatch_semaphore_signal(sinkSemaphore)
+            sinkTimes.append(Date())
+            sinkSemaphore.signal()
         }
 
-        XCTAssertEqual(0, dispatch_semaphore_wait(timerSemaphore, dispatch_time(3.0)), "Timer source should call timer closure when it is first connected")
+        XCTAssertEqual(timerSemaphore.wait(timeout: DispatchTime.now() + 3.0), .success, "Timer source should call timer closure when it is first connected")
 
         XCTAssertEqual(timerTimes.count, 1)
         XCTAssertEqual(sinkTimes, [])
@@ -41,23 +41,23 @@ class TimerSourceTests: XCTestCase {
     }
 
     func testRefreshingTimerSource() {
-        let queue = dispatch_queue_create("testqueue", nil)
+        let queue = DispatchQueue(label: "testqueue", attributes: [])
 
         var signal = false
-        var timerTimes = [NSDate]()
-        let timerSemaphore = dispatch_semaphore_create(0)
+        var timerTimes = [Date]()
+        let timerSemaphore = DispatchSemaphore(value: 0)
 
-        var triggerDate: NSDate? = nil
+        var triggerDate: Date? = nil
 
         let source = TimerSource(queue: queue) {
-            timerTimes.append(NSDate())
+            timerTimes.append(Date())
             if let date = triggerDate {
                 triggerDate = nil
                 return date
             }
             else {
                 if signal {
-                    dispatch_semaphore_signal(timerSemaphore)
+                    timerSemaphore.signal()
                 }
                 return nil
             }
@@ -65,23 +65,23 @@ class TimerSourceTests: XCTestCase {
 
         XCTAssertEqual(timerTimes, [])
 
-        var sinkTimes = [NSDate]()
+        var sinkTimes = [Date]()
         let connection = source.connect {
-            sinkTimes.append(NSDate())
+            sinkTimes.append(Date())
         }
         // Timer should have returned nil -> No firing yet
 
         XCTAssertEqual(sinkTimes, [])
 
-        dispatch_sync(queue) {
+        queue.sync {
             signal = true
-            triggerDate = NSDate(timeIntervalSinceNow: 0.1)
+            triggerDate = Date(timeIntervalSinceNow: 0.1)
             source.start()
         }
 
         // Timer should return non-nil, clear triggerDate  and signal the semaphore.
 
-        XCTAssertEqual(0, dispatch_semaphore_wait(timerSemaphore, dispatch_time(3.0)))
+        XCTAssertEqual(.success, timerSemaphore.wait(timeout: DispatchTime.now() + 3.0))
 
         XCTAssertEqual(timerTimes.count, 3) // 1: connect, 2: start, 3: after first firing
         XCTAssertEqual(sinkTimes.count, 1) // Should fire only once
@@ -90,30 +90,30 @@ class TimerSourceTests: XCTestCase {
     }
 
     func testSimplePeriodicSignal() {
-        let queue = dispatch_queue_create("testqueue", nil)
-        let start = NSDate().dateByAddingTimeInterval(0.2)
-        let interval: NSTimeInterval = 0.2
+        let queue = DispatchQueue(label: "testqueue", attributes: [])
+        let start = Date().addingTimeInterval(0.2)
+        let interval: TimeInterval = 0.2
 
         let source = TimerSource(queue: queue, start: start, interval: interval)
 
-        var ticks = [NSTimeInterval]()
+        var ticks = [TimeInterval]()
         var count = 0
-        let sem = dispatch_semaphore_create(0)
+        let sem = DispatchSemaphore(value: 0)
         let connection = source.connect { i in
-            let elapsed = NSDate().timeIntervalSinceDate(start)
+            let elapsed = Date().timeIntervalSince(start)
             ticks.append(elapsed)
             NSLog("tick \(count) at \(elapsed)")
             count += 1
             if count >= 3 {
-                dispatch_semaphore_signal(sem)
+                sem.signal()
             }
         }
 
-        XCTAssertEqual(0, dispatch_semaphore_wait(sem, dispatch_time(3.0)))
+        XCTAssertEqual(.success, sem.wait(timeout: DispatchTime.now() + 3.0))
         connection.disconnect()
 
-        let diffs: [NSTimeInterval] = ticks.enumerate().map { tick, elapsed in
-            let ideal = NSTimeInterval(tick) * interval
+        let diffs: [TimeInterval] = ticks.enumerated().map { tick, elapsed in
+            let ideal = TimeInterval(tick) * interval
             return elapsed - ideal
         }
         XCTAssertEqual(diffs.filter { $0 < 0 }, [])

@@ -13,20 +13,20 @@ private final class ValueSelectorForSourceField<Parent: ObservableType, Field: S
     typealias Value = Field.SourceValue
 
     let parent: Parent
-    let key: Parent.Value -> Field
+    let key: (Parent.Value) -> Field
 
-    var signal = OwningSignal<Value, ValueSelectorForSourceField<Parent, Field>>()
+    var signal = OwningSignal<Value>()
     var fieldConnection: Connection? = nil
     var parentConnection: Connection? = nil
 
     var source: Source<Value> { return signal.with(self).source }
 
-    init(parent: Parent, key: Parent.Value->Field) {
+    init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    func start(signal: Signal<Value>) {
+    func start(_ signal: Signal<Value>) {
         assert(parentConnection == nil)
         let field = key(parent.value)
         fieldConnection = field.connect(signal)
@@ -37,7 +37,7 @@ private final class ValueSelectorForSourceField<Parent: ObservableType, Field: S
         }
     }
 
-    func stop(signal: Signal<Value>) {
+    func stop(_ signal: Signal<Value>) {
         assert(parentConnection != nil)
         fieldConnection?.disconnect()
         parentConnection?.disconnect()
@@ -47,26 +47,25 @@ private final class ValueSelectorForSourceField<Parent: ObservableType, Field: S
 }
 
 /// A source of changes for an Observable field.
-private final class ValueSelectorForObservableField<Parent: ObservableType, Field: ObservableType>: SignalDelegate {
+private class FutureValueSelectorForObservableField<Parent: ObservableType, Field: ObservableType>: SignalDelegate {
     typealias Value = Field.Value
-    typealias SourceValue = Value
 
     let parent: Parent
-    let key: Parent.Value -> Field
+    let key: (Parent.Value) -> Field
 
-    var signal = OwningSignal<Value, ValueSelectorForObservableField<Parent, Field>>()
-    var currentValue: Field.Value? = nil
-    var fieldConnection: Connection? = nil
-    var parentConnection: Connection? = nil
+    private var signal = OwningSignal<Value>()
+    private var currentValue: Field.Value? = nil
+    private var fieldConnection: Connection? = nil
+    private var parentConnection: Connection? = nil
 
-    var source: Source<Value> { return signal.with(self).source }
+    var futureValues: Source<Value> { return signal.with(self).source }
 
-    init(parent: Parent, key: Parent.Value->Field) {
+    init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    func start(signal: Signal<Value>) {
+    func start(_ signal: Signal<Value>) {
         assert(parentConnection == nil)
         let field = key(parent.value)
         currentValue = field.value
@@ -81,7 +80,7 @@ private final class ValueSelectorForObservableField<Parent: ObservableType, Fiel
         }
     }
 
-    func stop(signal: Signal<Value>) {
+    func stop(_ signal: Signal<Value>) {
         assert(parentConnection != nil)
         fieldConnection?.disconnect()
         parentConnection?.disconnect()
@@ -92,71 +91,121 @@ private final class ValueSelectorForObservableField<Parent: ObservableType, Fiel
 }
 
 /// A source of changes for an ObservableArray field.
-private final class ValueSelectorForArrayField<Parent: ObservableType, Field: ObservableArrayType where Field.Change == ArrayChange<Field.Generator.Element>, Field.Index == Int, Field.BaseCollection == [Field.Generator.Element]>: SignalDelegate {
-    typealias Element = Field.Generator.Element
-    typealias Change = Field.Change
-    typealias SourceValue = Change
+private class FutureChangesSelectorForObservableArrayField<Parent: ObservableType, Field: ObservableArrayType>: SignalDelegate {
+    typealias Element = Field.Element
+    typealias Base = [Element]
+    typealias Change = ArrayChange<Element>
 
     let parent: Parent
-    let key: Parent.Value -> Field
+    let key: (Parent.Value) -> Field
 
-    var signal = OwningSignal<Change, ValueSelectorForArrayField<Parent, Field>>()
-    var fieldConnection: Connection? = nil
-    var parentConnection: Connection? = nil
-    var _field: Field? = nil
-    var _count: Int = 0
+    private var signal = OwningSignal<Change>()
+    private var fieldConnection: Connection? = nil
+    private var parentConnection: Connection? = nil
+    private var _field: Field? = nil
+    private var _count: Int = 0
 
-    var changeSource: Source<Change> { return signal.with(self).source }
-
-    var field: Field {
+    fileprivate var field: Field {
         if let field = _field {
             return field
         }
         return key(parent.value)
     }
 
-    var count: Int {
-        if parentConnection != nil {
-            return _count
-        }
-        else {
-            return field.count
-        }
-    }
+    var futureChanges: Source<Change> { return signal.with(self).source }
 
-    init(parent: Parent, key: Parent.Value->Field) {
+    init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    func start(signal: Signal<Change>) {
+    final func start(_ signal: Signal<Change>) {
         assert(parentConnection == nil)
         let field = key(parent.value)
         self._field = field
         _count = field.count
         fieldConnection = field.futureChanges.connect { change in
-            self._count = change.initialCount + change.deltaCount
+            self._count = change.finalCount
             signal.send(change)
         }
         parentConnection = parent.futureValues.connect { parentValue in
+            let oldValue = self._field!.value
             let field = self.key(parentValue)
             self._field = field
             self.fieldConnection?.disconnect()
             self.fieldConnection = field.futureChanges.connect(signal)
             let count = self._count
             self._count = field.count
-            let mod = ArrayModification<Element>.ReplaceRange(0..<count, with: field.value)
+            let mod = ArrayModification<Element>.replaceSlice(oldValue, at: 0, with: field.value)
             signal.send(ArrayChange<Element>(initialCount: count, modification: mod))
         }
     }
 
-    func stop(signal: Signal<Change>) {
+    final func stop(_ signal: Signal<Change>) {
         assert(parentConnection != nil)
         fieldConnection?.disconnect()
         parentConnection?.disconnect()
         fieldConnection = nil
         parentConnection = nil
         _field = nil
+    }
+}
+
+private struct ValueSelectorForObservableArrayField<Parent: ObservableType, Field: ObservableArrayType>: ObservableArrayType {
+    typealias Element = Field.Element
+    typealias Base = [Element]
+    typealias Change = ArrayChange<Element>
+
+    let base: FutureChangesSelectorForObservableArrayField<Parent, Field>
+
+    init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
+        base = FutureChangesSelectorForObservableArrayField(parent: parent, key: key)
+    }
+    var parent: Parent { return base.parent }
+    var key: (Parent.Value) -> Field { return base.key }
+    var field: Field { return base.field }
+
+    var isBuffered: Bool { return field.isBuffered }
+    subscript(_ index: Int) -> Element { return field[index] }
+    subscript(_ range: Range<Int>) -> ArraySlice<Element> { return field[range] }
+    var value: Array<Element> { return field.value }
+    var count: Int { return field.count }
+    var observableCount: Observable<Int> { return parent.select { self.key($0).observableCount } }
+    var futureChanges: Source<ArrayChange<Field.Element>> { return base.futureChanges }
+}
+
+private struct ValueSelectorForUpdatableArrayField<Parent: ObservableType, Field: UpdatableArrayType>: UpdatableArrayType {
+    typealias Element = Field.Element
+    typealias Base = [Element]
+    typealias Change = ArrayChange<Element>
+
+    let base: FutureChangesSelectorForObservableArrayField<Parent, Field>
+
+    init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
+        base = FutureChangesSelectorForObservableArrayField(parent: parent, key: key)
+    }
+    var parent: Parent { return base.parent }
+    var key: (Parent.Value) -> Field { return base.key }
+    var field: Field { return base.field }
+
+    var isBuffered: Bool { return field.isBuffered }
+    subscript(_ index: Int) -> Element {
+        get { return field[index] }
+        nonmutating set { field[index] = newValue }
+    }
+    subscript(_ range: Range<Int>) -> ArraySlice<Element> {
+        get { return field[range] }
+        nonmutating set { field[range] = newValue }
+    }
+    var value: Array<Element> {
+        get { return field.value }
+        nonmutating set { field.value = newValue }
+    }
+    var count: Int { return field.count }
+    var observableCount: Observable<Int> { return parent.select { self.key($0).observableCount } }
+    var futureChanges: Source<ArrayChange<Field.Element>> { return base.futureChanges }
+    func apply(_ change: ArrayChange<Field.Element>) {
+        field.apply(change)
     }
 }
 
@@ -193,7 +242,7 @@ extension ObservableType {
     /// Sinks connected to `source` will fire whenever the current room changes and whenever a new
     /// message is posted in the current room.
     ///
-    public func select<S: SourceType>(key: Value->S) -> Source<S.SourceValue> {
+    public func select<S: SourceType>(_ key: @escaping (Value) -> S) -> Source<S.SourceValue> {
         return ValueSelectorForSourceField(parent: self, key: key).source
     }
 
@@ -231,10 +280,11 @@ extension ObservableType {
     /// message is posted in the current room. The observable can also be used to simply retrieve the latest 
     /// message at any time.
     ///
-    public func select<O: ObservableType>(key: Value->O) -> Observable<O.Value> {
-            return Observable<O.Value>(
-                getter: { key(self.value).value },
-                futureValues: { ValueSelectorForObservableField(parent: self, key: key).source })
+    public func select<O: ObservableType>(_ key: @escaping (Value) -> O) -> Observable<O.Value> {
+        return Observable(
+            getter: { key(self.value).value },
+            futureValues: { FutureValueSelectorForObservableField(parent: self, key: key).futureValues }
+        )
     }
 
     /// Select is an operator that implements key path coding and observing.
@@ -272,11 +322,12 @@ extension ObservableType {
     /// author changes their avatar. The updatable can also be used to simply retrieve the avatar at any time,
     /// or to update it.
     ///
-    public func select<U: UpdatableType>(key: Value->U) -> Updatable<U.Value> {
-        return Updatable<U.Value>(
+    public func select<U: UpdatableType>(_ key: @escaping (Value) -> U) -> Updatable<U.Value> {
+        return Updatable(
             getter: { key(self.value).value },
             setter: { key(self.value).value = $0 },
-            futureValues: { ValueSelectorForObservableField(parent: self, key: key).source })
+            futureValues: { FutureValueSelectorForObservableField(parent: self, key: key).futureValues }
+        )
     }
 
     /// Select is an operator that implements key path coding and observing.
@@ -313,36 +364,12 @@ extension ObservableType {
     /// messages is updated in the current room.  The observable can also be used to simply retrieve the list of messages
     /// at any time.
     ///
-    public func select<Field: ObservableArrayType where
-        Field.Change == ArrayChange<Field.Generator.Element>,
-        Field.Index == Int,
-        Field.BaseCollection == [Field.Generator.Element],
-        Field.SubSequence: SequenceType,
-        Field.SubSequence.Generator.Element == Field.Generator.Element>
-        (key: Value->Field) -> ObservableArray<Field.Generator.Element> {
-        let selector = ValueSelectorForArrayField(parent: self, key: key)
-        return ObservableArray<Field.Generator.Element>(
-            count: { selector.count },
-            lookup: { range in Array(selector.field[range]) },
-            futureChanges: { selector.changeSource }
-        )
+    public func select<Field: ObservableArrayType>(_ key: @escaping (Value) -> Field) -> ObservableArray<Field.Element> {
+        return ValueSelectorForObservableArrayField(parent: self, key: key).observableArray
     }
 
-    public func select<Field: UpdatableArrayType where
-        Field.Change == ArrayChange<Field.Generator.Element>,
-        Field.Index == Int,
-        Field.BaseCollection == [Field.Generator.Element],
-        Field.SubSequence: SequenceType,
-        Field.SubSequence.Generator.Element == Field.Generator.Element>
-        (key: Value->Field) -> UpdatableArray<Field.Generator.Element> {
-            let selector = ValueSelectorForArrayField(parent: self, key: key)
-            return UpdatableArray<Field.Generator.Element>(
-                count: { selector.count },
-                lookup: { range in Array(selector.field[range]) },
-                apply: { change in selector.field.apply(change) },
-                futureChanges: { selector.changeSource }
-            )
+    public func select<Field: UpdatableArrayType>(_ key: @escaping (Value) -> Field) -> UpdatableArray<Field.Element> {
+        return ValueSelectorForUpdatableArrayField(parent: self, key: key).updatableArray
     }
     
 }
-

@@ -8,12 +8,14 @@
 
 import XCTest
 
-private let center = NSNotificationCenter.defaultCenter()
+private let center = NotificationCenter.default
 
-private func post(value: Int) { post("TestNotification", value) }
-private func post(name: String, _ value: Int) {
-    center.postNotificationName(name, object: nil, userInfo: ["Value": value])
+private func post(_ value: Int) { post("TestNotification", value) }
+private func post(_ name: String, _ value: Int) {
+    center.post(name: Notification.Name(rawValue: name), object: nil, userInfo: ["Value": value])
 }
+
+let testNotification = NSNotification.Name("TestNotification")
 
 class NotificationCenterSupportTests: XCTestCase {
 
@@ -21,8 +23,8 @@ class NotificationCenterSupportTests: XCTestCase {
         var r = [Int]()
 
         post(1)
-        let c = center.sourceForNotification("TestNotification").connect { notification in
-            r.append(notification.userInfo!["Value"] as! Int)
+        let c = center.source(forName: testNotification).connect { notification in
+            r.append((notification as NSNotification).userInfo!["Value"] as! Int)
         }
 
         post(2)
@@ -39,8 +41,8 @@ class NotificationCenterSupportTests: XCTestCase {
         // The notification center supports reentrancy but it is synchronous, just like KVO - except it doesn't force "latest" values
 
         var s = ""
-        let observer = center.addObserverForName("TestNotification", object: nil, queue: nil) { notification in
-            let value = notification.userInfo!["Value"] as! Int
+        let observer = center.addObserver(forName: testNotification, object: nil, queue: nil) { notification in
+            let value = (notification as NSNotification).userInfo!["Value"] as! Int
             s += " (\(value)"
             if value > 0 {
                 post(value - 1)
@@ -57,8 +59,8 @@ class NotificationCenterSupportTests: XCTestCase {
 
     func testReentrancyInGlueKit() {
         var s = ""
-        let c = center.sourceForNotification("TestNotification").connect { notification in
-            let value = notification.userInfo!["Value"] as! Int
+        let c = center.source(forName: testNotification).connect { notification in
+            let value = (notification as NSNotification).userInfo!["Value"] as! Int
             s += " (\(value)"
             if value > 0 {
                 post(value - 1)
@@ -80,10 +82,10 @@ class NotificationCenterSupportTests: XCTestCase {
         var firstIndex: Int? = nil
         var receivedValues: [[Int]] = [[], []]
         var s = ""
-        let block: Int->NSNotification->Void = { index in
+        let block: (Int) -> (Notification) -> Void = { index in
             return { notification in
                 if firstIndex == nil { firstIndex = index }
-                let value = notification.userInfo!["Value"] as! Int
+                let value = (notification as NSNotification).userInfo!["Value"] as! Int
                 receivedValues[index].append(value)
                 s += " (\(value)"
                 if value > 0 {
@@ -93,8 +95,8 @@ class NotificationCenterSupportTests: XCTestCase {
             }
         }
 
-        let observer1 = center.addObserverForName("TestNotification", object: nil, queue: nil, usingBlock: block(0))
-        let observer2 = center.addObserverForName("TestNotification", object: nil, queue: nil, usingBlock: block(1))
+        let observer1 = center.addObserver(forName: testNotification, object: nil, queue: nil, using: block(0))
+        let observer2 = center.addObserver(forName: testNotification, object: nil, queue: nil, using: block(1))
 
         post(2)
 
@@ -111,10 +113,10 @@ class NotificationCenterSupportTests: XCTestCase {
         var firstIndex: Int? = nil
         var receivedValues: [[Int]] = [[], []]
         var s = ""
-        let block: Int->NSNotification->Void = { index in
+        let block: (Int) -> (Notification) -> Void = { index in
             return { notification in
                 if firstIndex == nil { firstIndex = index }
-                let value = notification.userInfo!["Value"] as! Int
+                let value = (notification as NSNotification).userInfo!["Value"] as! Int
                 receivedValues[index].append(value)
                 s += " (\(value)"
                 if value > 0 {
@@ -124,7 +126,7 @@ class NotificationCenterSupportTests: XCTestCase {
             }
         }
 
-        let source = center.sourceForNotification("TestNotification")
+        let source = center.source(forName: testNotification)
 
         let c1 = source.connect(block(0))
         let c2 = source.connect(block(1))

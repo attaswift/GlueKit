@@ -20,11 +20,11 @@ public class Connector {
     }
 
 
-    private func add(connection: Connection) {
+    fileprivate func add(_ connection: Connection) {
         let id = connection.connectionID
         assert(connections[id] == nil)
         connections[id] = connection
-        connection.addCallback { [weak self] id in self?.connections.removeValueForKey(id) }
+        connection.addCallback { [weak self] id in _ = self?.connections.removeValue(forKey: id) }
     }
 
     public func disconnect() {
@@ -35,34 +35,39 @@ public class Connector {
         }
     }
 
-    public func connect<Source: SourceType>(source: Source, to sink: Source.SourceValue->Void) -> Connection {
+    @discardableResult
+    public func connect<Source: SourceType>(_ source: Source, to sink: @escaping (Source.SourceValue) -> Void) -> Connection {
         return source.connect(sink).putInto(self)
     }
 
-    public func connect<Source: SourceType, Target: SinkType where Source.SourceValue == Target.SinkValue>(source: Source, to sink: Target) -> Connection {
+    @discardableResult
+    public func connect<Source: SourceType, Target: SinkType>(_ source: Source, to sink: Target) -> Connection where Source.SourceValue == Target.SinkValue {
         return source.connect(sink).putInto(self)
     }
 
-    public func connect<Source: ObservableType>(source: Source, to sink: Source.Value->Void) -> Connection {
+    @discardableResult
+    public func connect<Source: ObservableType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
         return source.values.connect(sink).putInto(self)
     }
 
-    public func connect<Source: ObservableType, Target: SinkType where Source.Value == Target.SinkValue>(source: Source, to sink: Target) -> Connection {
+    @discardableResult
+    public func connect<Source: ObservableType, Target: SinkType>(_ source: Source, to sink: Target) -> Connection where Source.Value == Target.SinkValue {
         return source.values.connect(sink).putInto(self)
     }
 
-    public func bind<Source: UpdatableType, Target: UpdatableType where Source.Value == Target.Value>(source: Source, to target: Target, withEqualityTest equalityTest: (Source.Value, Source.Value) -> Bool) {
+    public func bind<Source: UpdatableType, Target: UpdatableType>(_ source: Source, to target: Target, withEqualityTest equalityTest: @escaping (Source.Value, Source.Value) -> Bool) where Source.Value == Target.Value {
         source.bind(target, equalityTest: equalityTest).putInto(self)
     }
 
-    public func bind<Value: Equatable, Source: UpdatableType, Target: UpdatableType where Source.Value == Value, Target.Value == Value>(source: Source, to target: Target) {
+    public func bind<Value: Equatable, Source: UpdatableType, Target: UpdatableType>(_ source: Source, to target: Target) where Source.Value == Value, Target.Value == Value {
         source.bind(target).putInto(self)
     }
 }
 
 extension Connection {
     /// Put this connection into `connector`. The connector will disconnect the connection when it is deallocated.
-    public func putInto(connector: Connector) -> Connection {
+    @discardableResult
+    public func putInto(_ connector: Connector) -> Connection {
         connector.add(self)
         return self
     }

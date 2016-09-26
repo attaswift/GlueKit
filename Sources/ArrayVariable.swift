@@ -10,16 +10,19 @@ import Foundation
 
 //MARK: ArrayVariable
 
-public final class ArrayVariable<Element>: UpdatableArrayType {
+public final class ArrayVariable<E>: UpdatableArrayType {
+    public typealias Element = E
     public typealias Index = Int
-    public typealias BaseCollection = Array<Element>
+    public typealias IndexDistance = Int
+    public typealias Indices = CountableRange<Int>
+    public typealias Base = Array<Element>
     public typealias Change = ArrayChange<Element>
-    public typealias Generator = Array<Element>.Generator
+    public typealias Iterator = Array<Element>.Iterator
     public typealias SubSequence = Array<Element>.SubSequence
 
-    private var _value: [Element]
-    private var _changeSignal = LazySignal<Change>()
-    private var _valueSignal = LazySignal<[Element]>()
+    fileprivate var _value: [Element]
+    fileprivate var _changeSignal = LazySignal<Change>()
+    fileprivate var _valueSignal = LazySignal<[Element]>()
 
     public init() {
         _value = []
@@ -27,55 +30,41 @@ public final class ArrayVariable<Element>: UpdatableArrayType {
     public init(_ elements: [Element]) {
         _value = elements
     }
-    public init<S: SequenceType where S.Generator.Element == Element>(_ elements: S) {
+    public init<S: Sequence>(_ elements: S) where S.Iterator.Element == Element {
         _value = Array(elements)
     }
     public init(elements: Element...) {
         _value = elements
     }
 
-    // Required members
+    public var value: Base {
+        get {
+            return _value
+        }
+        set {
+            let c = _value.count
+            let old = _value
+            _value = newValue
+            _changeSignal.sendIfConnected(ArrayChange(initialCount: c, modification: .replaceSlice(old, at: 0, with: newValue)))
+            _valueSignal.sendIfConnected(newValue)
+        }
+    }
 
     public var count: Int {
         return _value.count
-    }
-
-    public func lookup(range: Range<Int>) -> ArraySlice<Element> {
-        return _value[range]
-    }
-
-    public func apply(change: ArrayChange<Generator.Element>) {
-        guard !change.isEmpty else { return }
-        _value.apply(change)
-        _changeSignal.sendIfConnected(change)
-        _valueSignal.sendIfConnected(value)
     }
 
     /// A source that reports all future changes of this variable.
     public var futureChanges: Source<ArrayChange<Element>> {
         return _changeSignal.source
     }
-}
 
-extension ArrayVariable {
-    public var startIndex: Int { return value.startIndex }
-    public var endIndex: Int { return value.endIndex }
-
-    public func generate() -> Array<Element>.Generator {
-        return value.generate()
+    public var observable: Observable<[Element]> {
+        return Observable(getter: { self.value }, futureValues: { self._valueSignal.source })
     }
 
-    public func setValue(value: [Element]) {
-        let oldCount = _value.count
-        _value = value
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount, modification: .ReplaceRange(0..<oldCount, with: value)))
-        _valueSignal.sendIfConnected(value)
-    }
-
-    /// The current value of this ArrayVariable.
-    public var value: [Element] {
-        get { return _value }
-        set { setValue(newValue) }
+    public var isBuffered: Bool {
+        return true
     }
 
     public subscript(index: Int) -> Element {
@@ -83,9 +72,15 @@ extension ArrayVariable {
             return _value[index]
         }
         set {
-            _value[index] = newValue
-            _changeSignal.sendIfConnected(ArrayChange(initialCount: self.count, modification: .ReplaceAt(index, with: newValue)))
-            _valueSignal.sendIfConnected(value)
+            if _changeSignal.isConnected {
+                let old = _value[index]
+                _value[index] = newValue
+                _changeSignal.send(ArrayChange(initialCount: _value.count, modification: .replace(old, at: index, with: newValue)))
+            }
+            else {
+                _value[index] = newValue
+            }
+            _valueSignal.sendIfConnected(_value)
         }
     }
 
@@ -94,98 +89,33 @@ extension ArrayVariable {
             return value[bounds]
         }
         set {
-            let oldCount = count
-            _value[bounds] = newValue
-            _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount, modification: .ReplaceRange(bounds, with: Array<Element>(newValue))))
-            _valueSignal.sendIfConnected(value)
+            if _changeSignal.isConnected {
+                let oldCount = _value.count
+                let old = Array(_value[bounds])
+                _value[bounds] = newValue
+                _changeSignal.send(ArrayChange(initialCount: oldCount, modification: .replaceSlice(old, at: bounds.lowerBound, with: Array(newValue))))
+            }
+            else {
+                _value[bounds] = newValue
+            }
+            _valueSignal.sendIfConnected(_value)
         }
     }
 
-    public var observable: Observable<[Element]> {
-        return Observable(getter: { self.value }, futureValues: { self._valueSignal.source })
+    public func apply(_ change: ArrayChange<Iterator.Element>) {
+        guard !change.isEmpty else { return }
+        _value.apply(change)
+        _changeSignal.sendIfConnected(change)
+        _valueSignal.sendIfConnected(value)
     }
-    public var observableArray: ObservableArray<Element> { return ObservableArray(self) }
-    public var updatableArray: UpdatableArray<Element> { return UpdatableArray(self) }
+
+    public var updatable: Updatable<[Element]> {
+        return Updatable(getter: { self.value }, setter: { self.value = $0 }, futureValues: { self._valueSignal.source })
+    }
 }
 
-extension ArrayVariable: ArrayLiteralConvertible {
+extension ArrayVariable: ExpressibleByArrayLiteral {
     public convenience init(arrayLiteral elements: Element...) {
         self.init(elements)
     }
 }
-
-extension ArrayVariable {
-    public func replaceRange<C: CollectionType where C.Generator.Element == Generator.Element>(subRange: Range<Int>, with newElements: C) {
-        let oldCount = count
-        _value.replaceRange(subRange, with: newElements)
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount, modification: .ReplaceRange(subRange, with: Array<Element>(newElements))))
-        _valueSignal.sendIfConnected(value)
-    }
-
-    public func append(newElement: Element) {
-        self.insert(newElement, at: self.count)
-    }
-
-    public func appendContentsOf<C: CollectionType where C.Generator.Element == Generator.Element>(newElements: C) {
-        let oldCount = _value.count
-        _value.appendContentsOf(newElements)
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount, modification: .ReplaceRange(oldCount ..< oldCount, with: Array<Element>(newElements))))
-        _valueSignal.sendIfConnected(value)
-    }
-
-    public func insert(newElement: Element, at index: Int) {
-        _value.insert(newElement, atIndex: index)
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: self.count - 1, modification: .Insert(newElement, at: index)))
-        _valueSignal.sendIfConnected(value)
-    }
-
-    public func insertContentsOf<C: CollectionType where C.Generator.Element == Generator.Element>(newElements: C, at i: Int)
-    {
-        let oldCount = _value.count
-        _value.appendContentsOf(newElements)
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: oldCount, modification: .ReplaceRange(i ..< i, with: Array<Element>(newElements))))
-        _valueSignal.sendIfConnected(value)
-    }
-
-    public func removeAtIndex(index: Int) -> Element {
-        let result = _value.removeAtIndex(index)
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: self.count + 1, modification: .RemoveAt(index)))
-        _valueSignal.sendIfConnected(value)
-        return result
-    }
-
-    public func removeRange(subRange: Range<Int>) {
-        _value.removeRange(subRange)
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: _value.count + subRange.count, modification: .ReplaceRange(subRange, with: [])))
-    }
-
-    public func removeFirst(n: Int) {
-        _value.removeFirst(n)
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: self.count + n, modification: .ReplaceRange(0..<n, with: [])))
-        _valueSignal.sendIfConnected(value)
-    }
-
-    public func removeFirst() -> Element {
-        let result = _value.removeFirst()
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: self.count + 1, modification: .RemoveAt(0)))
-        _valueSignal.sendIfConnected(value)
-        return result
-    }
-
-    public func removeAll() {
-        let count = _value.count
-        _value.removeAll()
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: count, modification: .ReplaceRange(0..<count, with: [])))
-        _valueSignal.sendIfConnected(value)
-    }
-
-    public func removeLast() -> Element {
-        let result = _value.removeLast()
-        _changeSignal.sendIfConnected(ArrayChange(initialCount: self.count + 1, modification: .RemoveAt(self.count)))
-        _valueSignal.sendIfConnected(value)
-        return result
-    }
-}
-
-
-

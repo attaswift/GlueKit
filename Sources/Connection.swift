@@ -24,7 +24,7 @@ public final class Connection {
     // - The strong reference to the sink should be held by the source itself, typically inside a Signal<Value>.
     // - All references (closures, source, sink) are directly or indirectly released when disconnect() is called.
 
-    typealias Callback = ConnectionID -> Void
+    typealias Callback = (ConnectionID) -> Void
     private let mutex = Mutex()
     private var callbacks = [Callback]()
     private var disconnected = false
@@ -32,13 +32,12 @@ public final class Connection {
     internal init() {
     }
 
-    internal init(callback: Callback) {
+    internal init(callback: @escaping Callback) {
         callbacks.append(callback)
     }
 
     deinit {
         disconnect()
-        mutex.destroy()
     }
 
     internal var connectionID: ConnectionID { return ObjectIdentifier(self) }
@@ -72,8 +71,8 @@ public final class Connection {
     /// Callbacks added before the connection is disconnected are executed in the order in which they were registered.
     ///
     /// The callbacks are called synchronously on the thread that called disconnect().
-    internal func addCallback(callback: ConnectionID->Void) {
-        let disconnected = mutex.withLock { ()->Bool in
+    internal func addCallback(_ callback: @escaping (ConnectionID) -> Void) {
+        let disconnected = mutex.withLock { () -> Bool in
             if !self.disconnected {
                 self.callbacks.append(callback)
             }

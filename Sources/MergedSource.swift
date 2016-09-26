@@ -14,15 +14,15 @@ extension SourceType {
     ///
     /// It is fine to chain multiple merges together: `MergedSource` has its own, specialized `merge` method to 
     /// collapse multiple merges into a single source.
-    public func merge<S: SourceType where S.SourceValue == SourceValue>(source: S) -> MergedSource<SourceValue> {
+    public func merged<S: SourceType>(with source: S) -> MergedSource<SourceValue> where S.SourceValue == SourceValue {
         return MergedSource(sources: [self.source, source.source])
     }
 
-    public static func merge(sources: Self...) -> MergedSource<SourceValue> {
+    public static func merge(_ sources: Self...) -> MergedSource<SourceValue> {
         return MergedSource(sources: sources.map { s in s.source })
     }
 
-    public static func merge<S: SequenceType where S.Generator.Element == Self>(sources: S) -> MergedSource<SourceValue> {
+    public static func merge<S: Sequence>(_ sources: S) -> MergedSource<SourceValue> where S.Iterator.Element == Self {
         return MergedSource(sources: sources.map { s in s.source })
     }
 }
@@ -35,38 +35,34 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
 
     private let inputs: [Source<Value>]
 
-    private var signal = OwningSignal<Value, MergedSource<Value>>()
+    private var signal = OwningSignal<Value>()
 
     private let mutex = Mutex()
     private var connections: [Connection] = []
 
     /// Initializes a new merged source with `sources` as its input sources.
-    public init<S: SequenceType where S.Generator.Element: SourceType, S.Generator.Element.SourceValue == Value>(sources: S) {
+    public init<S: Sequence>(sources: S) where S.Iterator.Element: SourceType, S.Iterator.Element.SourceValue == Value {
         self.inputs = sources.map { $0.source }
     }
 
-    deinit {
-        mutex.destroy()
-    }
-
-    public var connecter: Sink<Value> -> Connection {
+    public var connecter: (Sink<Value>) -> Connection {
         return signal.with(self).connecter
     }
 
     /// Returns a new MergedSource that merges the same sources as self but also listens to `source`.
     /// The returned source will forward all values sent by either of its input sources to its own connected sinks.
-    public func merge<S: SourceType where S.SourceValue == Value>(source: S) -> MergedSource<Value> {
+    public func merge<S: SourceType>(_ source: S) -> MergedSource<Value> where S.SourceValue == Value {
         return MergedSource(sources: self.inputs + [source.source])
     }
 
-    internal func start(signal: Signal<Value>) {
+    internal func start(_ signal: Signal<Value>) {
         mutex.withLock {
             assert(connections.isEmpty)
             connections = inputs.map { $0.connect(signal) }
         }
     }
 
-    internal func stop(signal: Signal<Value>) {
+    internal func stop(_ signal: Signal<Value>) {
         mutex.withLock {
             for c in connections {
                 c.disconnect()

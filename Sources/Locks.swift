@@ -8,22 +8,22 @@
 
 import Foundation
 
-internal protocol Lock {
+internal protocol Lockable {
     func lock()
     func unlock()
     func tryLock() -> Bool
-    func withLock<Result>(@noescape block: Void->Result) -> Result
+    func withLock<Result>(_ block: (Void) -> Result) -> Result
 }
 
-extension Lock {
-    func withLock<Result>(@noescape block: Void->Result) -> Result {
+extension Lockable {
+    func withLock<Result>(_ block: (Void) -> Result) -> Result {
         lock()
         defer { unlock() }
         return block()
     }
 }
 
-internal class Mutex: Lock {
+internal class Mutex: Lockable {
     private var mutex = pthread_mutex_t()
 
     init() {
@@ -33,7 +33,7 @@ internal class Mutex: Lock {
         }
     }
 
-    func destroy() {
+    deinit {
         let result = pthread_mutex_destroy(&mutex)
         if result != 0 {
             preconditionFailure("pthread_mutex_destroy returned \(result)")
@@ -66,14 +66,14 @@ internal class Mutex: Lock {
     }
 }
 
-extension NSLock: Lock {
+extension NSLock: Lockable {
     internal convenience init(name: String) {
         self.init()
         self.name = name
     }
 }
 
-extension NSRecursiveLock: Lock {
+extension NSRecursiveLock: Lockable {
     internal convenience init(name: String) {
         self.init()
         self.name = name

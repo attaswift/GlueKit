@@ -18,17 +18,17 @@ private class Fixture: NSObject {
 private class RawKVOObserver: NSObject {
     let object: NSObject
     let keyPath: String
-    let sink: AnyObject->Void
+    let sink: (AnyObject) -> Void
     var observerContext: Int8 = 0
     var observing: Bool
 
-    init(object: NSObject, keyPath: String, sink: AnyObject->Void) {
+    init(object: NSObject, keyPath: String, sink: @escaping (AnyObject) -> Void) {
         self.object = object
         self.keyPath = keyPath
         self.sink = sink
         self.observing = true
         super.init()
-        object.addObserver(self, forKeyPath: keyPath, options: .New, context: &self.observerContext)
+        object.addObserver(self, forKeyPath: keyPath, options: .new, context: &self.observerContext)
     }
 
     deinit {
@@ -42,13 +42,13 @@ private class RawKVOObserver: NSObject {
         }
     }
 
-    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if context == &self.observerContext {
-            let newValue = change![NSKeyValueChangeNewKey]!
-            sink(newValue)
+            let newValue = change![NSKeyValueChangeKey.newKey]!
+            sink(newValue as AnyObject)
         }
         else {
-            super.observeValueForKeyPath(keyPath, ofObject: object, change: change, context: context)
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
         }
     }
 }
@@ -58,7 +58,7 @@ class KVOSupportTests: XCTestCase {
     func testBasicKVOWithIntegers() {
         let object = Fixture()
 
-        let countSource = object.sourceForKeyPath("count")
+        let countSource = object.source(forKeyPath: "count")
 
         var r = [Int]()
         let c = countSource.asInt.connect { r.append($0) }
@@ -76,7 +76,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String]()
-        let c = object.sourceForKeyPath("name").asString.connect { (s: String)->Void in r.append(s) }
+        let c = object.source(forKeyPath: "name").asString.connect { (s: String) -> Void in r.append(s) }
 
         object.name = "Alice"
         object.name = "Bob"
@@ -93,7 +93,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String?]()
-        let c = object.sourceForKeyPath("optional").connect { (v: AnyObject?)->Void in
+        let c = object.source(forKeyPath: "optional").connect { (v: Any?) -> Void in
             if let s = v as? String {
                 r.append(s)
             }
@@ -115,14 +115,14 @@ class KVOSupportTests: XCTestCase {
         object.optional = nil
 
         let expected: [String?] = ["Alice", nil, "Bob", nil, nil]
-        XCTAssert(r.elementsEqual(expected, isEquivalent: { $0 == $1 }))
+        XCTAssert(r.elementsEqual(expected, by: { $0 == $1 }))
     }
 
 
     func testDisconnectActuallyDisconnects() {
         let object = Fixture()
 
-        let countSource = object.sourceForKeyPath("count")
+        let countSource = object.source(forKeyPath: "count")
 
         var r = [Int]()
         let c = countSource.asInt.connect { r.append($0) }
@@ -145,7 +145,7 @@ class KVOSupportTests: XCTestCase {
             let object = Fixture()
             weakObject = object
 
-            source = object.sourceForKeyPath("count").asInt
+            source = object.source(forKeyPath: "count").asInt
         }
 
         XCTAssertNotNil(weakObject)
@@ -163,7 +163,7 @@ class KVOSupportTests: XCTestCase {
             let object = Fixture()
             weakObject = object
 
-            c = object.sourceForKeyPath("count").asInt.connect { _ in }
+            c = object.source(forKeyPath: "count").asInt.connect { _ in }
         }
 
         XCTAssertNotNil(weakObject)
@@ -180,7 +180,7 @@ class KVOSupportTests: XCTestCase {
 
         var s = ""
         let observer = RawKVOObserver(object: object, keyPath: "count") { any in
-            let i = (any as! NSNumber).integerValue
+            let i = (any as! NSNumber).intValue
             s += " (\(i)"
             if i > 0 {
                 object.count = i - 1
@@ -202,7 +202,7 @@ class KVOSupportTests: XCTestCase {
 
         let object = Fixture()
 
-        let countSource = object.sourceForKeyPath("count")
+        let countSource = object.source(forKeyPath: "count")
 
         var s = ""
         let c = countSource.asInt.connect { i in
@@ -229,7 +229,7 @@ class KVOSupportTests: XCTestCase {
 
         var s = ""
         let observer1 = RawKVOObserver(object: object, keyPath: "count") { any in
-            let i = (any as! NSNumber).integerValue
+            let i = (any as! NSNumber).intValue
             s += " (\(i)"
             if i > 0 {
                 object.count = i - 1
@@ -237,7 +237,7 @@ class KVOSupportTests: XCTestCase {
             s += ")"
         }
         let observer2 = RawKVOObserver(object: object, keyPath: "count") { any in
-            let i = (any as! NSNumber).integerValue
+            let i = (any as! NSNumber).intValue
             s += " (\(i)"
             if i > 0 {
                 object.count = i - 1
@@ -261,7 +261,7 @@ class KVOSupportTests: XCTestCase {
 
         let object = Fixture()
 
-        let countSource = object.sourceForKeyPath("count")
+        let countSource = object.source(forKeyPath: "count")
 
         var s = ""
         let c1 = countSource.asInt.connect { i in

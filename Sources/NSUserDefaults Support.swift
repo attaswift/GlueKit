@@ -8,59 +8,32 @@
 
 import Foundation
 
-extension NSUserDefaults {
-    public func updatable(for key: String) -> Updatable<AnyObject?> {
-        let defaults = NSUserDefaults.standardUserDefaults()
-        return Updatable(
-            observable: defaults.observableForKeyPath(key).distinct { a, b in a?.isEqual(b) == true },
-            setter: { defaults.setObject($0, forKey: key) })
+extension UserDefaults {
+    public func updatable(for key: String) -> Updatable<Any?> {
+        return self.updatable(forKeyPath: key)
     }
 
     public func updatableBool(for key: String, defaultValue: Bool = false) -> Updatable<Bool> {
-        let defaults = NSUserDefaults.standardUserDefaults()
-        return Updatable(
-            observable: defaults.observableForKeyPath(key).map { value in
-                guard let object = value else { return defaultValue }
-                return object.boolValue
-            },
-            setter: { value in
-                defaults.setBool(value, forKey: key)
-        })
+        return self.updatable(forKeyPath: key)
+            .map({ v in (v as? NSNumber)?.boolValue ?? defaultValue },
+                 inverse: { v in v })
     }
 
     public func updatableInt(for key: String, defaultValue: Int = 0) -> Updatable<Int> {
-        let defaults = NSUserDefaults.standardUserDefaults()
-        return Updatable(
-            observable: defaults.observableForKeyPath(key).map { value in
-                guard let object = value else { return defaultValue }
-                return object.integerValue
-            },
-            setter: { value in
-                defaults.setInteger(value, forKey: key)
-        })
+        return self.updatable(forKeyPath: key)
+            .map({ v in (v as? NSNumber)?.intValue ?? defaultValue },
+                 inverse: { v in v })
     }
 
     public func updatableDouble(for key: String, defaultValue: Double = 0) -> Updatable<Double> {
-        let defaults = NSUserDefaults.standardUserDefaults()
-        return Updatable(
-            observable: defaults.observableForKeyPath(key).map { value in
-                guard let object = value else { return defaultValue }
-                return object.doubleValue
-            },
-            setter: { value in
-                defaults.setDouble(value, forKey: key)
-        })
+        return self.updatable(forKeyPath: key)
+            .map({ v in (v as? NSNumber)?.doubleValue ?? defaultValue },
+                 inverse: { v in v })
     }
 
     public func updatableString(for key: String, defaultValue: String? = nil) -> Updatable<String?> {
-        let defaults = NSUserDefaults.standardUserDefaults()
-        return Updatable(
-            observable: defaults.observableForKeyPath(key).map { value in
-                guard let string = value as? String else { return defaultValue }
-                return string
-            },
-            setter: { value in
-                defaults.setObject(value, forKey: key)
-        })
+        return self.updatable(forKeyPath: key)
+            .map({ v in (v as? String) ?? defaultValue },
+                 inverse: { v in v })
     }
 }
