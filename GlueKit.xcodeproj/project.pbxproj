@@ -322,7 +322,7 @@
 		BBB55AFE1C8F8CBB0050DDA9 /* GlueKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GlueKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBB55B071C8F8CBB0050DDA9 /* GlueKit-Test.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GlueKit-Test.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBB55B1C1C8F90F60050DDA9 /* .travis.yml */ = {isa = PBXFileReference; lastKnownFileType = text; path = .travis.yml; sourceTree = "<group>"; };
-		BBB55B1D1C8F9E850050DDA9 /* LICENCE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENCE.md; sourceTree = "<group>"; };
+		BBB55B1D1C8F9E850050DDA9 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		BBB55B1E1C8F9E920050DDA9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		BBB55B1F1C8FCC810050DDA9 /* ArrayChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayChange.swift; sourceTree = "<group>"; };
 		BBB55B201C8FCC810050DDA9 /* ArrayVariable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayVariable.swift; sourceTree = "<group>"; };
@@ -514,7 +514,7 @@
 			isa = PBXGroup;
 			children = (
 				BBB55B1E1C8F9E920050DDA9 /* README.md */,
-				BBB55B1D1C8F9E850050DDA9 /* LICENCE.md */,
+				BBB55B1D1C8F9E850050DDA9 /* LICENSE.md */,
 				BBB55B1C1C8F90F60050DDA9 /* .travis.yml */,
 				BBC1F1D01D7EDF4A00A320F5 /* GlueKit.podspec */,
 				BBB55ACC1C8F80660050DDA9 /* version.xcconfig */,
