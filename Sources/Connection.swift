@@ -16,7 +16,7 @@ internal typealias ConnectionID = ObjectIdentifier
 ///
 /// A live connection holds strong references to both its source and sink. 
 /// These references are immediately released when the connection is disconnected.
-public final class Connection {
+public final class Connection: RefListElement {
     // Implementation notes:
     // - This is basically just a thread-safe list of closures to call on disconnection.
     // - The class guarantees that all disconnect closures will be called exactly once.
@@ -28,6 +28,7 @@ public final class Connection {
     private let mutex = Mutex()
     private var callbacks = [Callback]()
     private var disconnected = false
+    var refListLink = RefListLink<Connection>()
 
     internal init() {
     }
