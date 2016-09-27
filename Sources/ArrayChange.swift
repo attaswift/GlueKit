@@ -31,10 +31,10 @@ public enum ArrayModification<Element> {
     case replaceSlice([Element], at: Int, with: [Element])
 
     /// Convert a contiguous replacement range and a replacement list of elements into a modification.
-    public init(replacing old: [Element], at index: Int, with new: [Element]) {
+    public init?(replacing old: [Element], at index: Int, with new: [Element]) {
         switch (old.count, new.count) {
         case (0, 0):
-            self = .replaceSlice(old, at: index, with: new) // Well. What can you do
+            return nil
         case (0, 1):
             self = .insert(new[0], at: index)
         case (1, 0):
@@ -181,11 +181,11 @@ public enum ArrayModification<Element> {
         var combinedNew = self.newElements
         combinedNew.replaceSubrange(max(0, start2 - start1) ..< min(outputCount1, inputEnd2 - start1), with: mod.newElements)
 
-        if combinedOld.isEmpty && combinedNew.isEmpty {
-            return .collapsedToNoChange
+        if let mod = ArrayModification(replacing: combinedOld, at: combinedStart, with: combinedNew) {
+            return .collapsedTo(mod)
         }
         else {
-            return .collapsedTo(ArrayModification(replacing: combinedOld, at: combinedStart, with: combinedNew))
+            return .collapsedToNoChange
         }
     }
 
@@ -265,13 +265,17 @@ extension ArrayModification where Element: Equatable {
             for i in 0 ..< min(old.count, new.count) {
                 if old[i] == new[i] {
                     if start < i {
-                        result.append(ArrayModification(replacing: Array(old[start ..< i]), at: index + start, with: Array(new[start ..< i])))
+                        if let mod = ArrayModification(replacing: Array(old[start ..< i]), at: index + start, with: Array(new[start ..< i])) {
+                            result.append(mod)
+                        }
                     }
                     start = i + 1
                 }
             }
             if old.count != new.count || start < old.count {
-                result.append(ArrayModification(replacing: Array(old.suffix(from: start)), at: index + start, with: Array(new.suffix(from: start))))
+                if let mod = ArrayModification(replacing: Array(old.suffix(from: start)), at: index + start, with: Array(new.suffix(from: start))) {
+                    result.append(mod)
+                }
             }
             return result
         }
@@ -402,7 +406,7 @@ public struct ArrayChange<Element>: ChangeType {
     /// and the subsequent removal of the same.
     public var isEmpty: Bool { return modifications.isEmpty }
 
-    public mutating func addModification(_ new: ArrayModification<Element>) {
+    public mutating func add(_ new: ArrayModification<Element>) {
         var pos = modifications.count - 1
         var m = new
         while pos >= 0 {
@@ -442,7 +446,7 @@ public struct ArrayChange<Element>: ChangeType {
     public mutating func merge(with other: ArrayChange<Element>) {
         precondition(finalCount == other.initialCount)
         for m in other.modifications {
-            addModification(m)
+            add(m)
         }
     }
 

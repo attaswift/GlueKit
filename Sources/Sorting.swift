@@ -64,7 +64,7 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType, SignalDele
         while i < value.count {
             let v = value[i]
             if change.removed.contains(v) {
-                arrayChange.addModification(.remove(v, at: nextValue.count))
+                arrayChange.add(.remove(v, at: nextValue.count))
                 i += 1
             }
             else if j < inserted.count {
@@ -75,7 +75,7 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType, SignalDele
                     i += 1
                 }
                 else {
-                    arrayChange.addModification(.insert(nextNew, at: nextValue.count))
+                    arrayChange.add(.insert(nextNew, at: nextValue.count))
                     nextValue.append(nextNew)
                     j += 1
                 }
@@ -87,7 +87,7 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType, SignalDele
         }
         if j < inserted.count {
             let remaining = Array(inserted.suffix(from: j))
-            arrayChange.addModification(.replaceSlice([], at: nextValue.count, with: remaining))
+            arrayChange.add(.replaceSlice([], at: nextValue.count, with: remaining))
             nextValue.append(contentsOf: remaining)
         }
         precondition(arrayChange.finalCount == nextValue.count)

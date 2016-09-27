@@ -158,7 +158,9 @@ private final class ArraySelectorForObservableField<Entity, Field: ObservableTyp
 
             let newValues = new.map { key($0).value }
             let oldValues = Array(_value[inputRange])
-            newChange.addModification(ArrayModification(replacing: oldValues, at: startIndex, with: newValues))
+            if let mod = ArrayModification(replacing: oldValues, at: startIndex, with: newValues) {
+                newChange.add(mod)
+            }
             _value.replaceSubrange(inputRange, with: newValues)
         }
         signal.send(newChange)
@@ -363,8 +365,8 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
             self.startIndices.replaceSubrange(inputRange, with: newIndices)
 
             // Create new change component.
-            if oldValues.count > 0 || newValues.count > 0 {
-                result.addModification(ArrayModification(replacing: oldValues, at: startValueIndex, with: newValues))
+            if let mod = ArrayModification(replacing: oldValues, at: startValueIndex, with: newValues) {
+                result.add(mod)
             }
         }
         signal.send(result)

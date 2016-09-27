@@ -85,20 +85,20 @@ internal class BufferedObservableArrayMap<Input, Output, Content: ObservableArra
                 switch modification {
                 case .insert(let new, at: let index):
                     let tnew = transform(new)
-                    mappedChange.addModification(.insert(tnew, at: index))
+                    mappedChange.add(.insert(tnew, at: index))
                     value.insert(tnew, at: index)
                 case .remove(_, at: let index):
                     let old = value.remove(at: index)
-                    mappedChange.addModification(.remove(old, at: index))
+                    mappedChange.add(.remove(old, at: index))
                 case .replace(_, at: let index, with: let new):
                     let old = value[index]
                     let tnew = transform(new)
                     value[index] = tnew
-                    mappedChange.addModification(.replace(old, at: index, with: tnew))
+                    mappedChange.add(.replace(old, at: index, with: tnew))
                 case .replaceSlice(let old, at: let index, with: let new):
                     let told = Array(value[index ..< index + old.count])
                     let tnew = new.map(transform)
-                    mappedChange.addModification(.replaceSlice(told, at: index, with: tnew))
+                    mappedChange.add(.replaceSlice(told, at: index, with: tnew))
                     value.replaceSubrange(index ..< told.count, with: tnew)
                 }
             }

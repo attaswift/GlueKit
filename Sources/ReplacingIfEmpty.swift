@@ -31,7 +31,7 @@ where Inner.Element == Element {
         }
         if change.finalCount == 0 {
             var result = change
-            result.addModification(.replaceSlice([], at: 0, with: substitution))
+            result.add(.replaceSlice([], at: 0, with: substitution))
             return result
         }
         else if change.initialCount == 0 {
