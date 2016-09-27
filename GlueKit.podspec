@@ -9,8 +9,9 @@ Pod::Spec.new do |spec|
   spec.author       = 'Károly Lőrentey'
   spec.homepage     = 'https://github.com/lorentey/GlueKit'
   spec.license      = { :type => 'MIT', :file => 'LICENCE.md' }
-  spec.source       = { :git => 'https://github.com/lorentey/GlueKit.git', :branch => 'swift3' }
+  spec.source       = { :git => 'https://github.com/lorentey/GlueKit.git', :branch => 'master' }
   spec.source_files = 'Sources/*.swift'
   spec.social_media_url = 'https://twitter.com/lorentey'
-  #spec.documentation_url = 'http://lorentey.github.io/BTree/api/'
+  #spec.documentation_url = 'http://lorentey.github.io/GlueKit/api/'
+  spec.dependency   = 'BTree', '~> 3.0'
 end

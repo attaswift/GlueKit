@@ -96,6 +96,10 @@
 		BB69A8411D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */; };
 		BB69A8421D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */; };
 		BB69A8431D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */; };
+		BB82E3E61D9912EF0035DDAD /* BTree.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB82E3E51D9912EF0035DDAD /* BTree.framework */; };
+		BB82E3E81D9912FB0035DDAD /* BTree.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB82E3E71D9912FB0035DDAD /* BTree.framework */; };
+		BB82E3EA1D9913050035DDAD /* BTree.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB82E3E91D9913050035DDAD /* BTree.framework */; };
+		BB82E3EC1D99130C0035DDAD /* BTree.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB82E3EB1D99130C0035DDAD /* BTree.framework */; };
 		BB8990261D5F84050097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990251D5F84050097F350 /* Foundation.framework */; };
 		BB8990271D5F84150097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990251D5F84050097F350 /* Foundation.framework */; };
 		BB8990291D5F84210097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990281D5F84210097F350 /* Foundation.framework */; };
@@ -290,6 +294,10 @@
 		BB69A7FF1D6B2377001D2821 /* BufferedArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedArray.swift; sourceTree = "<group>"; };
 		BB69A83A1D6B90F5001D2821 /* Concatenation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Concatenation.swift; sourceTree = "<group>"; };
 		BB69A83F1D6B9A7E001D2821 /* ObservableArrayMap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableArrayMap.swift; sourceTree = "<group>"; };
+		BB82E3E51D9912EF0035DDAD /* BTree.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BTree.framework; path = ../BTree/build/Debug/BTree.framework; sourceTree = "<group>"; };
+		BB82E3E71D9912FB0035DDAD /* BTree.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BTree.framework; path = "../../Library/Developer/Xcode/DerivedData/Frameworks-hdqbwmkrmmjgibgcvklleelldnbh/Build/Products/Debug-iphoneos/BTree.framework"; sourceTree = "<group>"; };
+		BB82E3E91D9913050035DDAD /* BTree.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BTree.framework; path = "../BTree/build/Debug-watchos/BTree.framework"; sourceTree = "<group>"; };
+		BB82E3EB1D99130C0035DDAD /* BTree.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BTree.framework; path = "../BTree/build/Debug-appletvos/BTree.framework"; sourceTree = "<group>"; };
 		BB8990021D5DF2D20097F350 /* SetChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetChange.swift; sourceTree = "<group>"; };
 		BB8990041D5DF8630097F350 /* ChangeType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChangeType.swift; sourceTree = "<group>"; };
 		BB8990091D5DF88C0097F350 /* ObservableSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableSet.swift; sourceTree = "<group>"; };
@@ -376,6 +384,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB82E3E81D9912FB0035DDAD /* BTree.framework in Frameworks */,
 				BB89902B1D5F842C0097F350 /* Foundation.framework in Frameworks */,
 				BB4052021C958712003D8F5B /* UIKit.framework in Frameworks */,
 			);
@@ -393,6 +402,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB82E3E61D9912EF0035DDAD /* BTree.framework in Frameworks */,
 				BB8990271D5F84150097F350 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -410,6 +420,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB82E3EA1D9913050035DDAD /* BTree.framework in Frameworks */,
 				BB8990291D5F84210097F350 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -418,6 +429,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB82E3EC1D99130C0035DDAD /* BTree.framework in Frameworks */,
 				BB89902D1D5F84340097F350 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -465,6 +477,10 @@
 		BB8990241D5F84050097F350 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				BB82E3EB1D99130C0035DDAD /* BTree.framework */,
+				BB82E3E91D9913050035DDAD /* BTree.framework */,
+				BB82E3E71D9912FB0035DDAD /* BTree.framework */,
+				BB82E3E51D9912EF0035DDAD /* BTree.framework */,
 				BB89902C1D5F84340097F350 /* Foundation.framework */,
 				BB89902A1D5F842C0097F350 /* Foundation.framework */,
 				BB8990281D5F84210097F350 /* Foundation.framework */,
