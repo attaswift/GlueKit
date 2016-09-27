@@ -244,6 +244,10 @@
 		BBC2A82C1CBC14C600394D24 /* NSObject extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */; };
 		BBC3C84E1C93164200E10D59 /* UIControl Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */; };
 		BBCBAA9C1CBEB7BD004A1BD5 /* Connector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B221C8FCC810050DDA9 /* Connector.swift */; };
+		BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
+		BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
+		BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
+		BBF3EB111D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBFA2C441CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
 		BBFA2C451CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
 		BBFA2C461CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
@@ -376,6 +380,7 @@
 		BBC1F1D01D7EDF4A00A320F5 /* GlueKit.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; path = GlueKit.podspec; sourceTree = "<group>"; };
 		BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSObject extensions.swift"; sourceTree = "<group>"; };
 		BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIControl Extensions.swift"; sourceTree = "<group>"; };
+		BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RefList.swift; sourceTree = "<group>"; };
 		BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSUserDefaults Support.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -580,6 +585,7 @@
 				BB1657EB1D71F3E700094BAC /* Atomics.swift */,
 				BBB55B2B1C8FCC810050DDA9 /* Reference.swift */,
 				BB69A7EE1D6AFF1A001D2821 /* Abstract.swift */,
+				BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */,
 			);
 			name = Tools;
 			sourceTree = "<group>";
@@ -1062,6 +1068,7 @@
 				BBC2A8291CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BB69A7FB1D6B1D94001D2821 /* ObservableArray.swift in Sources */,
 				BBC1F1BD1D7AEF3F00A320F5 /* ChangeTrackingSet.swift in Sources */,
+				BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BBB55B7E1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BBB55B661C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BB69A8361D6B7F9B001D2821 /* FilteredSet.swift in Sources */,
@@ -1141,6 +1148,7 @@
 				BBAA826E1C91D17400586903 /* Updatable.swift in Sources */,
 				BBC2A82A1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BB69A80D1D6B472E001D2821 /* SelectEach.swift in Sources */,
+				BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BBFA2C451CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BB1657ED1D71F3E700094BAC /* Atomics.swift in Sources */,
 				BB69A8091D6B442C001D2821 /* ArrayVariable.swift in Sources */,
@@ -1214,6 +1222,7 @@
 				BBB55B781C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
 				BBB55B801C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BB69A80E1D6B472F001D2821 /* SelectEach.swift in Sources */,
+				BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BB69A7F11D6AFF1A001D2821 /* Abstract.swift in Sources */,
 				BB1657EE1D71F3E700094BAC /* Atomics.swift in Sources */,
 				BB69A80A1D6B442C001D2821 /* ArrayVariable.swift in Sources */,
@@ -1276,6 +1285,7 @@
 				BB69A8431D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */,
 				BBB55B5D1C8FCC820050DDA9 /* Observable Transformations.swift in Sources */,
 				BB69A7FE1D6B1D95001D2821 /* ObservableArray.swift in Sources */,
+				BBF3EB111D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BBB55B551C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BB69A80F1D6B472F001D2821 /* SelectEach.swift in Sources */,
 				BB1657EA1D71D65900094BAC /* BatchedChanges.swift in Sources */,
