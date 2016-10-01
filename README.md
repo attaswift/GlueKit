@@ -7,9 +7,7 @@
 [![Build Status](https://travis-ci.org/lorentey/GlueKit.svg?branch=master)](https://travis-ci.org/lorentey/GlueKit)
 [![Code Coverage](https://codecov.io/github/lorentey/GlueKit/coverage.svg?branch=master)](https://codecov.io/github/lorentey/GlueKit?branch=master)
 
-A Swift framework for 
-[reactive programming](https://en.wikipedia.org/wiki/Reactive_programming)
-that lets you create observable values and connect them up in interesting and useful ways.
+GlueKit is a Swift framework for creating observable values and connecting them up in interesting and useful ways.
 It is called GlueKit because it lets you stick stuff together. 
 
 GlueKit contains type-safe analogues for Cocoa's 
