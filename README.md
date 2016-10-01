@@ -31,6 +31,38 @@ NSNotificationCenter notifications.
 A major design goal for GlueKit is to eventually serve as the underlying observer implementation
 for a future model object graph (and perhaps persistence) project.
 
+
+## Similar frameworks
+
+Some of GlueKit's constructs can be matched with those in discrete reactive frameworks, such as 
+[ReactiveCocoa](https://github.com/ReactiveCocoa/ReactiveCocoa), 
+[RxSwift](https://github.com/ReactiveX/RxSwift), 
+[ReactKit](https://github.com/ReactKit/ReactKit),
+[Interstellar](https://github.com/JensRavens/Interstellar), and others. 
+Sometimes GlueKit even uses the same name for the same concept. But often it doesn't (sorry).
+
+GlueKit concentrates on creating a useful model for observables, rather than trying to unify 
+observable-like things with task-like things. 
+GlueKit explicitly does not attempt to directly model networking operations 
+(although a networking support library could certainly use GlueKit to implement some of its features).
+As such, GlueKit's source/signal/stream concept transmits simple values; it doesn't wrap them in
+ `Event`s. 
+
+
+I have several reasons I chose to create GlueKit instead of just using a better established and
+bug-free library:
+
+- I wanted to have some experience with reactive stuff, and you can learn a lot about a paradigm by 
+  trying to construct its foundations on your own. The idea is that I start simple and add things as 
+  I find I need them. I want to see if I arrive at the same problems and solutions as the 
+  Smart People who created the popular frameworks. Some common reactive patterns are not obviously 
+  right at first glance.
+- I wanted to experiment with reentrant observables, where an observer is allowed to trigger updates 
+  to the observable to which it's connected. I found no well-known implementation of Observable that 
+  gets this *just right*.
+- Building a library is a really fun diversion!
+
+
 ## Overview
 
 [The GlueKit Overview](https://github.com/lorentey/GlueKit/blob/master/Documentation/Overview.md)
@@ -303,35 +335,4 @@ viewModel.projectName.value = "GlueKit"   // Sets the current project's name via
 print(viewModel.project.name.value)       // Prints "GlueKit"
 ```
 
-
-
-## Similar frameworks
-
-Some of GlueKit's constructs can be matched with those in discrete reactive frameworks, such as 
-[ReactiveCocoa](https://github.com/ReactiveCocoa/ReactiveCocoa), 
-[RxSwift](https://github.com/ReactiveX/RxSwift), 
-[ReactKit](https://github.com/ReactKit/ReactKit),
-[Interstellar](https://github.com/JensRavens/Interstellar), and others. 
-Sometimes GlueKit even uses the same name for the same concept. But often it doesn't (sorry).
-
-GlueKit concentrates on creating a useful model for observables, rather than trying to unify 
-observable-like things with task-like things. 
-GlueKit explicitly does not attempt to directly model networking operations 
-(although a networking support library could certainly use GlueKit to implement some of its features).
-As such, GlueKit's source/signal/stream concept transmits simple values; it doesn't wrap them in
- `Event`s. 
-
-
-I have several reasons I chose to create GlueKit instead of just using a better established and
-bug-free library:
-
-- I wanted to have some experience with reactive stuff, and you can learn a lot about a paradigm by 
-  trying to construct its foundations on your own. The idea is that I start simple and add things as 
-  I find I need them. I want to see if I arrive at the same problems and solutions as the 
-  Smart People who created the popular frameworks. Some common reactive patterns are not obviously 
-  right at first glance.
-- I wanted to experiment with reentrant observables, where an observer is allowed to trigger updates 
-  to the observable to which it's connected. I found no well-known implementation of Observable that 
-  gets this *just right*.
-- Building a library is a really fun diversion!
 
