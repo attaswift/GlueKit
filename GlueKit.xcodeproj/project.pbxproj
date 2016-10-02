@@ -332,6 +332,7 @@
 		BB89902A1D5F842C0097F350 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		BB89902C1D5F84340097F350 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS10.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Bookshelf.swift; sourceTree = "<group>"; };
+		BB8D36711DA14800000D44C5 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		BBAA827C1C91D43700586903 /* Type Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Type Helpers.swift"; sourceTree = "<group>"; };
 		BBADD7A11D70985F00C32735 /* ReplacingIfEmpty.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReplacingIfEmpty.swift; sourceTree = "<group>"; };
 		BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice Extensions.swift"; sourceTree = "<group>"; };
@@ -556,6 +557,7 @@
 				BBB55B1D1C8F9E850050DDA9 /* LICENSE.md */,
 				BBB55B1C1C8F90F60050DDA9 /* .travis.yml */,
 				BBC1F1D01D7EDF4A00A320F5 /* GlueKit.podspec */,
+				BB8D36711DA14800000D44C5 /* Package.swift */,
 				BBB55ACC1C8F80660050DDA9 /* version.xcconfig */,
 				BBB55BDD1C8FD0160050DDA9 /* Demo.playground */,
 				BBB55BDB1C8FCFAD0050DDA9 /* Documentation */,
