@@ -1,94 +1,107 @@
-//: Playground - noun: a place where people can play
-
 import GlueKit
 import XCPlayground
 
-class File {
+// Let's suppose we're writing an app for maintaining a catalogue for your books.
+// Here is what the model could look like.
+
+class Author: Hashable {
     let name: Variable<String>
+    let yearOfBirth: Variable<Int>
 
-    init(name: String) { self.name = Variable(name) }
-}
-
-class Folder {
-    let name: Variable<String>
-    let files: ArrayVariable<File> = []
-    let subfolders: ArrayVariable<Folder> = []
-
-    init(name: String, files: [File] = []) {
-        self.name = Variable(name)
-        self.files.value = files
+    init(name: String, yearOfBirth: Int) {
+        self.name = .init(name)
+        self.yearOfBirth = .init(yearOfBirth)
     }
 
-    init(name: String, subfolders: [Folder]) {
-        self.name = Variable(name)
-        self.subfolders.value = subfolders
+    var hashValue: Int { return name.value.hashValue }
+    static func == (a: Author, b: Author) -> Bool {
+        return a.name.value == b.name.value && a.yearOfBirth.value == b.yearOfBirth.value
+    }
+    var description: String { return "Author(\(name.value))" }
+}
+
+class Book: Hashable, CustomStringConvertible {
+    let title: Variable<String>
+    let authors: SetVariable<Author>
+    let publicationYear: Variable<Int>
+    let pages: Variable<Int>
+
+    init(title: String, authors: Set<Author>, publicationYear: Int, pages: Int) {
+        self.title = .init(title)
+        self.authors = SetVariable(authors)
+        self.publicationYear = .init(pages)
+        self.pages = .init(pages)
+    }
+
+    var hashValue: Int { return title.value.hashValue }
+    static func == (a: Book, b: Book) -> Bool {
+        return (a.title.value == b.title.value
+            && a.authors.value == b.authors.value
+            && a.publicationYear.value == b.publicationYear.value
+            && a.pages.value == b.pages.value)
+    }
+    var description: String { return "Book(\(title.value))" }
+}
+
+class Bookshelf {
+    let location: Variable<String>
+    let books: ArrayVariable<Book>
+
+    init(location: String, books: [Book] = []) {
+        self.location = .init(location)
+        self.books = .init(books)
     }
 }
 
+// Let's create a couple of example books and arrange them on some bookshelves.
 
-let folder1 = Folder(name: "Folder 1", files: [
-    File(name: "1/a"),
-    File(name: "1/b"),
-    File(name: "1/c"),
-    ])
-let folder2 = Folder(name: "Folder 2", files: [
-    File(name: "2/a"),
-    File(name: "2/b"),
-    ])
-let root = Folder(name: "Root", subfolders: [folder1, folder2])
+let stephenson = Author(name: "Neal Stephenson", yearOfBirth: 1959)
+let pratchett = Author(name: "Terry Pratchett", yearOfBirth: 1948)
+let gaiman = Author(name: "Neil Gaiman", yearOfBirth: 1960)
+let knuth = Author(name: "Donald E. Knuth", yearOfBirth: 1938)
 
-let filenames = root.subfolders.selectEach{$0.files}.selectEach{$0.name}
+let colourOfMagic = Book(title: "The Colour of Magic", authors: [pratchett], publicationYear: 1983, pages: 206)
+let smallGods = Book(title: "Small Gods", authors: [pratchett], publicationYear: 1992, pages: 284)
+let seveneves = Book(title: "Seveneves", authors: [stephenson], publicationYear: 2015, pages: 880)
+let goodOmens = Book(title: "Good Omens", authors: [pratchett, gaiman], publicationYear: 1990, pages: 288)
+let americanGods = Book(title: "American Gods", authors: [gaiman], publicationYear: 2001, pages: 465)
+let cryptonomicon = Book(title: "Cryptonomicon", authors: [stephenson], publicationYear: 1999, pages: 918)
+let anathem = Book(title: "Anathem", authors: [stephenson], publicationYear: 2008, pages: 928)
+let texBook = Book(title: "The TeXBook", authors: [knuth], publicationYear: 1984, pages: 483)
+let taocp1 = Book(title: "The Art of Computer Programming vol. 1: Fundamental Algorithms. 3rd ed.", authors: [knuth], publicationYear: 1997, pages: 650)
 
-var change = ArrayChange<String>(initialCount: filenames.count)
+let topShelf = Bookshelf(location: "Top", books: [colourOfMagic, smallGods, seveneves, goodOmens, americanGods])
+let bottomShelf = Bookshelf(location: "Bottom", books: [cryptonomicon, anathem, texBook, taocp1])
 
-func changeToString(_ change: ArrayChange<String>) -> String {
-    var desc = ""
-    let mods = change.modifications.map { m in "\n\(m)" }.joined(separator: "")
-    desc.append(mods)
-    return desc
-}
-let connection = filenames.changes.connect { c in
-    let page = XCPlaygroundPage.currentPage
-    page.captureValue(value: changeToString(c), withIdentifier: "change")
-    change.merge(with: c)
-    page.captureValue(value: changeToString(change), withIdentifier: "merged")
-    page.captureValue(value: change.modifications.count, withIdentifier: "count")
-}
+let shelves = ArrayVariable<Bookshelf>([topShelf, bottomShelf])
 
-// Add a new file to folder 1
-folder1.files.value
-folder1.files.insert(File(name: "1/b2"), at: 2)
-change
 
-// Rename a file in folder 2
-folder2.files[0].name.value = "2/a.renamed"
-change
+// Now let's create some interesting queries on this small library of books!
 
-// Delete a file from folder 1
-folder1.files.remove(at: 1)
-change
 
-// Add a new subfolder between folders 1 and 2
-let folder3 = Folder(name: "Folder 3", files: [
-    File(name: "3/1"),
-    ])
+// Let's get an array of the title of each book in the library.
+let allTitles = shelves.selectEach{$0.books}.selectEach{$0.title}
+allTitles.value
 
-root.subfolders.insert(folder3, at: 1)
-change
+// Here are all books that have Neal Stephenson as one of their authors.
+let booksByStephenson = shelves.selectEach{$0.books}.filtered { book in book.authors.observableContains(stephenson) }
+booksByStephenson.value
 
-// Delete folder 2
-root.subfolders.remove(at: 2)
-change
+// Let's imagine Stephenson was a co-author of The TeXBook, and it him to its author list.
+texBook.authors.insert(stephenson)
 
-// Add a file to the root folder. (This should be an unrelated change.)
-root.files.append(File(name: "/a"))
-change
+// `booksByStephenson` automatically updates to reflect the change.
+booksByStephenson.value
 
-// Rename folder 1. (This should be an unrelated change.)
-folder1.name.value = "Foobar"
 
-change
-let s = change.modifications.map { "\($0)" }.joined(separator: "\n")
-s
+// How many books do I have?
+let bookCount = shelves.selectEach{$0.books}.observableCount
+bookCount.value
 
-connection.disconnect()
+// What if I buy a new book?
+let mort = Book(title: "Mort", authors: [pratchett], publicationYear: 1987, pages: 315)
+topShelf.books.append(mort)
+
+bookCount
+allTitles
+

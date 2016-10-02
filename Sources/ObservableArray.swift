@@ -20,7 +20,7 @@ import Foundation
 /// For a concrete observable array, see `ArrayVariable`.
 ///
 /// - SeeAlso: ObservableType, ObservableArray, UpdatableArrayType, ArrayVariable
-public protocol ObservableArrayType {
+public protocol ObservableArrayType: CustomReflectable {
     associatedtype Element
     typealias Base = Array<Element>
     typealias Change = ArrayChange<Element>
@@ -40,6 +40,11 @@ public protocol ObservableArrayType {
 }
 
 extension ObservableArrayType {
+
+    public var customMirror: Mirror {
+        return Mirror(self, unlabeledChildren: self.value, displayStyle: .collection)
+    }
+
     public subscript(_ index: Int) -> Element {
         return self[index ..< index + 1].first!
     }

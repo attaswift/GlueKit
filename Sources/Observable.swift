@@ -26,7 +26,7 @@ import Foundation
 /// Types implementing `ObservableType` are generally not type-safe; you must serialize all accesses to them
 /// (including connecting to any of their sources).
 ///
-public protocol ObservableType {
+public protocol ObservableType: CustomPlaygroundQuickLookable {
     associatedtype Value
 
     /// The current value of this observable.
@@ -40,6 +40,10 @@ public protocol ObservableType {
 }
 
 extension ObservableType {
+
+    public var customPlaygroundQuickLook: PlaygroundQuickLook {
+        return PlaygroundQuickLook.text("\(value)")
+    }
 
     /// Returns the type-lifted version of this ObservableType.
     public var observable: Observable<Value> {
