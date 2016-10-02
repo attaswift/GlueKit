@@ -26,8 +26,8 @@ extension CADisplayLink: SourceType {
         return target
     }
 
-    public var connecter: (Sink<CADisplayLink>) -> Connection {
-        return target.signal.connecter
+    public func connect(_ sink: Sink<CADisplayLink>) -> Connection {
+        return target.signal.connect(sink)
     }
 }
 

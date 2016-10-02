@@ -24,7 +24,14 @@ public protocol SinkType {
     associatedtype SinkValue
 
     /// Receive a new value.
-    var receive: (SinkValue) -> Void { get }
+    func receive(_ value: SinkValue) -> Void
+
+    /// Returns a type-lifted representation of this sink.
+    var sink: Sink<SinkValue> { get }
+}
+
+extension SinkType {
+    public var sink: Sink<SinkValue> { return Sink(self) }
 }
 
 /// A Sink is anything that can receive a value, typically from a Source.
@@ -37,22 +44,23 @@ public protocol SinkType {
 public struct Sink<Value>: SinkType {
     public typealias SinkValue = Value
 
-    public let receive: (Value) -> Void
+    private let _receiver: (Value) -> Void
 
     /// Initialize a new `Sink<Value>` from the given closure.
-    public init(_ receive: @escaping (Value) -> Void) {
-        self.receive = receive
+    public init(_ receiver: @escaping (Value) -> Void) {
+        self._receiver = receiver
     }
 
     /// Initializes a new `Sink<Value>` from the given value implementing `SinkType`.
     public init<S: SinkType>(_ sink: S) where S.SinkValue == Value {
-        self.receive = sink.receive
+        self._receiver = sink.receive
     }
-}
 
-extension SinkType {
-    /// Returns a type-lifted representation of this sink.
-    public var sink: Sink<SinkValue> { return Sink(self) }
+    public func receive(_ value: SinkValue) -> Void {
+        self._receiver(value)
+    }
+
+    public var sink: Sink<SinkValue> { return self }
 }
 
 //MARK: Source
@@ -78,7 +86,38 @@ public protocol SourceType {
     /// The type of values produced by this source.
     associatedtype SourceValue
 
-    var connecter: (Sink<SourceValue>) -> Connection { get }
+    /// Connect `sink` to this source. The sink will receive all values that this source produces in the future.
+    /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
+    ///
+    /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
+    /// alive at least as long as they have an active connection.
+    func connect(_ sink: Sink<SourceValue>) -> Connection
+
+    /// A type-lifted representation of this source.
+    var source: Source<SourceValue> { get }
+}
+
+extension SourceType {
+    /// A type-lifted representation of this source.
+    public var source: Source<SourceValue> { return Source(self) }
+
+    /// Connect `sink` to this source. The sink will receive all values that this source produces in the future.
+    /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
+    ///
+    /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
+    /// alive at least as long as they have an active connection.
+    public func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == SourceValue {
+        return self.connect(sink.sink)
+    }
+
+    /// Connect `sink` to this source. The sink will receive all values that this source produces in the future.
+    /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
+    ///
+    /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
+    /// alive at least as long as they have an active connection.
+    public func connect(_ sink: @escaping (SourceValue) -> Void) -> Connection {
+        return self.connect(Sink(sink))
+    }
 }
 
 /// A Source is an entity that is able to produce values to other entities (called Sinks) that are connected to it.
@@ -101,36 +140,19 @@ public protocol SourceType {
 public struct Source<Value>: SourceType {
     public typealias SourceValue = Value
 
-    public let connecter: (Sink<Value>) -> Connection
+    private let _connecter: (Sink<Value>) -> Connection
 
     public init(_ connecter: @escaping (Sink<Value>) -> Connection) {
-        self.connecter = connecter
+        self._connecter = connecter
     }
 
     public init<S: SourceType>(_ source: S) where S.SourceValue == Value {
-        self.connecter = source.connecter
-    }
-}
-
-extension SourceType {
-    /// Returns a type-lifted representation of this source.
-    public var source: Source<SourceValue> { return Source(self) }
-
-    /// Connect `sink` to this source. The sink will receive all values that this source produces in the future.
-    /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
-    ///
-    /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
-    /// alive at least as long as they have an active connection.
-    public func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == SourceValue {
-        return connecter(sink.sink)
+        self._connecter = source.connect
     }
 
-    /// Connect `sink` to this source. The sink will receive all values that this source produces in the future.
-    /// The connection will be kept active until the returned connection object is deallocated or explicitly disconnected.
-    ///
-    /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
-    /// alive at least as long as they have an active connection.
-    public func connect(_ sink: @escaping (SourceValue) -> Void) -> Connection {
-        return self.connect(Sink(sink))
+    public func connect(_ sink: Sink<Value>) -> Connection {
+        return self._connecter(sink)
     }
+
+    public var source: Source<Value> { return self }
 }

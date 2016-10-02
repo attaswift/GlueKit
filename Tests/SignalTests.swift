@@ -616,8 +616,8 @@ private class Counter: SourceType {
     private var counter: Int = 0
     private var signal = Signal<Int>()
 
-    var connecter: (Sink<Int>) -> Connection {
-        return signal.connecter
+    func connect(_ sink: Sink<Int>) -> Connection {
+        return signal.connect(sink)
     }
 
     @discardableResult

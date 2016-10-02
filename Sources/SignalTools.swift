@@ -58,7 +58,7 @@ internal struct OwningSignal<Value> {
     }
 }
 
-internal struct LazySignal<Value> { // Can't be SourceType because connecter is mutating.
+internal struct LazySignal<Value> { // Can't be SourceType because connect is mutating.
     internal typealias SourceValue = Value
 
     private weak var _signal: Signal<Value>? = nil
@@ -101,11 +101,11 @@ internal struct LazySignal<Value> { // Can't be SourceType because connecter is 
         return self.signal.connect(sink)
     }
 
-    internal var source: Source<Value> {
-        mutating get { return self.signal.source }
-    }
-
     internal mutating func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == Value {
         return signal.connect(sink)
+    }
+
+    internal var source: Source<Value> {
+        mutating get { return self.signal.source }
     }
 }

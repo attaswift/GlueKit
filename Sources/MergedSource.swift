@@ -45,8 +45,8 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
         self.inputs = sources.map { $0.source }
     }
 
-    public var connecter: (Sink<Value>) -> Connection {
-        return signal.with(self).connecter
+    public func connect(_ sink: Sink<SourceValue>) -> Connection {
+        return signal.with(self).connect(sink)
     }
 
     /// Returns a new MergedSource that merges the same sources as self but also listens to `source`.

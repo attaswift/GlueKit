@@ -77,8 +77,8 @@ public final class TimerSource: SourceType, SignalDelegate {
         self.next = next
     }
 
-    public var connecter: (Sink<Void>) -> Connection {
-        return self.signal.with(self).connecter
+    public func connect(_ sink: Sink<Void>) -> Connection {
+        return self.signal.with(self).connect(sink)
     }
 
     /// Stop the timer. The timer will not fire again until start() is called.

@@ -18,8 +18,8 @@ class MockArrayObserver<Element: Equatable>: SinkType {
         self.context = [(file, line)]
     }
 
-    var receive: (ArrayChange<Element>) -> Void {
-        return { self.process($0) }
+    func receive(_ change: ArrayChange<Element>) -> Void {
+        self.process(change)
     }
 
     func expect(_ change: ArrayChange<Element>, file: StaticString = #file, line: UInt = #line) {

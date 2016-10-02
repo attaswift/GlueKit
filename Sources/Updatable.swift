@@ -21,8 +21,8 @@ public protocol UpdatableType: ObservableType, SinkType {
 }
 
 extension UpdatableType {
-    public var receive: (Value) -> Void {
-        return { self.value = $0 }
+    public func receive(_ value: Value) -> Void {
+        self.value = value
     }
 
     /// Returns the type-lifted version of this UpdatableType.
@@ -59,12 +59,12 @@ public struct Updatable<Value>: UpdatableType {
         }
     }
 
-    public var futureValues: Source<Value> {
-        return box.futureValues
+    public func receive(_ value: Value) {
+        box.receive(value)
     }
 
-    public var receive: (Value) -> Void {
-        return box.receive
+    public var futureValues: Source<Value> {
+        return box.futureValues
     }
 
     public var observable: Observable<Value> {
@@ -82,7 +82,7 @@ internal class UpdatableBoxBase<Value>: ObservableBoxBase<Value>, UpdatableType 
         set { abstract() }
     }
     override var futureValues: Source<Value> { abstract() }
-    var receive: (Value) -> Void { abstract() }
+    func receive(_ value: Value) { abstract() }
 
     final var updatable: Updatable<Value> { return Updatable(box: self) }
 }
@@ -99,10 +99,6 @@ internal class UpdatableBox<Base: UpdatableType>: UpdatableBoxBase<Base.Value> {
         set { base.value = newValue }
     }
     override var futureValues: Source<Base.Value> { return base.futureValues }
-
-    override var receive: (Base.Value) -> Void {
-        return base.receive
-    }
 }
 
 private class UpdatableClosureBox<Value>: UpdatableBoxBase<Value> {
@@ -128,8 +124,8 @@ private class UpdatableClosureBox<Value>: UpdatableBoxBase<Value> {
         return valueSource()
     }
 
-    override var receive: (Value) -> Void {
-        return setter
+    override func receive(_ value: Value) {
+        setter(value)
     }
 }
 

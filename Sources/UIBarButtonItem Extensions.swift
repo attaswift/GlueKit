@@ -12,15 +12,15 @@ private var associatedObjectKey: UInt8 = 0
 private let listenerAction = #selector(TargetActionListener.actionDidFire)
 
 extension UIBarButtonItem: SourceType {
-    public var connecter: (Sink<Void>) -> Connection {
+    public func connect(_ sink: Sink<Void>) -> Connection {
         if let target = objc_getAssociatedObject(self, &associatedObjectKey) as? TargetActionListener {
-            return target.signal.source.connecter
+            return target.signal.source.connect(sink)
         }
         let target = TargetActionListener()
         self.target = target
         self.action = listenerAction
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
-        return target.signal.connecter
+        return target.signal.connect(sink)
     }
 
     public convenience init(barButtonSystemItem systemItem: UIBarButtonSystemItem, actionBlock: (() -> ())? = nil) {
