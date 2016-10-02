@@ -31,6 +31,13 @@ NSNotificationCenter notifications.
 A major design goal for GlueKit is to eventually serve as the underlying observer implementation
 for a future model object graph (and perhaps persistence) project.
 
+##  Presentation
+
+Károly gave a talk on GlueKit during [Functional Swift Conference 2016][FunSwift16] in Budapest.
+[See the slides][slides], or watch the video (TBD).
+
+[FunSwift16]: http://2016.funswiftconf.com
+[slides]: https://vellum.tech/assets/FunSwift2016%20-%20GlueKit.pdf
 
 ## Similar frameworks
 
@@ -61,7 +68,6 @@ bug-free library:
   to the observable to which it's connected. I found no well-known implementation of Observable that 
   gets this *just right*.
 - Building a library is a really fun diversion!
-
 
 ## Overview
 
