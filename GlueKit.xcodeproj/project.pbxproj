@@ -109,6 +109,7 @@
 		BB8990291D5F84210097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990281D5F84210097F350 /* Foundation.framework */; };
 		BB89902B1D5F842C0097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB89902A1D5F842C0097F350 /* Foundation.framework */; };
 		BB89902D1D5F84340097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB89902C1D5F84340097F350 /* Foundation.framework */; };
+		BB8D366B1DA10F5D000D44C5 /* ObservableContains.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF400631DA108E900DA0B2C /* ObservableContains.swift */; };
 		BB8D366E1DA116CB000D44C5 /* Bookshelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */; };
 		BB8D366F1DA116CB000D44C5 /* Bookshelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */; };
 		BB8D36701DA116CB000D44C5 /* Bookshelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */; };
@@ -263,6 +264,9 @@
 		BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB111D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
+		BBF400641DA108E900DA0B2C /* ObservableContains.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF400631DA108E900DA0B2C /* ObservableContains.swift */; };
+		BBF400661DA108E900DA0B2C /* ObservableContains.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF400631DA108E900DA0B2C /* ObservableContains.swift */; };
+		BBF400671DA108E900DA0B2C /* ObservableContains.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF400631DA108E900DA0B2C /* ObservableContains.swift */; };
 		BBFA2C441CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
 		BBFA2C451CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
 		BBFA2C461CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
@@ -400,6 +404,7 @@
 		BBC4AE4D1D9A829500FF7DE0 /* FilteredArrayTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilteredArrayTests.swift; sourceTree = "<group>"; };
 		BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTools.swift; sourceTree = "<group>"; };
 		BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RefList.swift; sourceTree = "<group>"; };
+		BBF400631DA108E900DA0B2C /* ObservableContains.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableContains.swift; sourceTree = "<group>"; };
 		BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSUserDefaults Support.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -490,6 +495,7 @@
 				BB8990091D5DF88C0097F350 /* ObservableSet.swift */,
 				BB89901A1D5F6AAE0097F350 /* UpdatableSet.swift */,
 				BB89901F1D5F6F980097F350 /* SetVariable.swift */,
+				BBF400631DA108E900DA0B2C /* ObservableContains.swift */,
 				BBB55B231C8FCC810050DDA9 /* FilteredSet.swift */,
 				BB1E4D691D61EA5200F1831F /* SortedSet.swift */,
 				BB3D92951D647E83003BEDBF /* ObservableSetReference.swift */,
@@ -1143,6 +1149,7 @@
 				BB67E5521C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */,
 				BB69A8041D6B344C001D2821 /* UpdatableArray.swift in Sources */,
 				BBB4F2521C9594A9002532CC /* UIDevice Extensions.swift in Sources */,
+				BBF400641DA108E900DA0B2C /* ObservableContains.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1183,6 +1190,7 @@
 				BB69A8051D6B344D001D2821 /* UpdatableArray.swift in Sources */,
 				BBAA826E1C91D17400586903 /* Updatable.swift in Sources */,
 				BBC2A82A1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
+				BB8D366B1DA10F5D000D44C5 /* ObservableContains.swift in Sources */,
 				BB69A80D1D6B472E001D2821 /* SelectEach.swift in Sources */,
 				BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BBFA2C451CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
@@ -1261,6 +1269,7 @@
 				BB69A8061D6B344D001D2821 /* UpdatableArray.swift in Sources */,
 				BBB55B781C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
 				BBB55B801C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
+				BBF400661DA108E900DA0B2C /* ObservableContains.swift in Sources */,
 				BB69A80E1D6B472F001D2821 /* SelectEach.swift in Sources */,
 				BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BB69A7F11D6AFF1A001D2821 /* Abstract.swift in Sources */,
@@ -1329,6 +1338,7 @@
 				BBB55B5D1C8FCC820050DDA9 /* Observable Transformations.swift in Sources */,
 				BB69A7FE1D6B1D95001D2821 /* ObservableArray.swift in Sources */,
 				BBF3EB111D99ACDE006AC7CD /* RefList.swift in Sources */,
+				BBF400671DA108E900DA0B2C /* ObservableContains.swift in Sources */,
 				BBB55B551C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BB69A80F1D6B472F001D2821 /* SelectEach.swift in Sources */,
 				BB1657EA1D71D65900094BAC /* BatchedChanges.swift in Sources */,
