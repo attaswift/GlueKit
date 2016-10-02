@@ -3,8 +3,6 @@
 import GlueKit
 import XCPlayground
 
-#if false
-
 class File {
     let name: Variable<String>
 
@@ -94,4 +92,3 @@ let s = change.modifications.map { "\($0)" }.joined(separator: "\n")
 s
 
 connection.disconnect()
-#endif
