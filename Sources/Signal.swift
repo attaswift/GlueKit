@@ -8,119 +8,10 @@
 
 import Foundation
 
-public protocol SignalType: SourceType, SinkType /* where SourceType.SourceValue == SinkType.SinkValue */ {
-    associatedtype SinkValue = SourceValue
-
-    func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == SourceValue
-    var receive: (SourceValue) -> Void { get }
-}
-
 internal protocol SignalDelegate: class {
     associatedtype SignalValue
     func start(_ signal: Signal<SignalValue>)
     func stop(_ signal: Signal<SignalValue>)
-}
-
-/// This is a wrapper around a lazily created Signal that holds a strong reference to its delegate.
-///
-/// Using this in your implementation of a source or observable helps satisfying GlueKit's two conventions:
-///
-/// - Dependants hold strong references to their dependencies
-/// - Dependants only activate their dependencies while someone is interested in them
-///
-internal struct OwningSignal<Value> {
-    internal typealias SourceValue = Value
-
-    private weak var signal: Signal<Value>? = nil
-
-    internal init() {
-    }
-
-    internal mutating func with(retained container: AnyObject) -> Signal<Value> {
-        if let s = signal {
-            return s
-        }
-        let s = Signal<Value>(start: { [container] _ in _ = container }, stop: { _ in })
-        self.signal = s
-        return s
-    }
-
-    internal mutating func with<Delegate: SignalDelegate>(_ delegate: Delegate) -> Signal<Value> where Delegate.SignalValue == Value {
-        if let s = signal {
-            return s
-        }
-        let s = Signal<Value>(stronglyHeldDelegate: delegate)
-        self.signal = s
-        return s
-    }
-
-    internal var isConnected: Bool {
-        guard let s = signal else { return false }
-        return s.isConnected
-    }
-
-    /// Send value to the signal (if it exists).
-    internal func send(_ value: Value) {
-        signal?.send(value)
-    }
-
-    internal func sendIfConnected(_ value: @autoclosure (Void) -> Value) {
-        if let s = signal, s.isConnected {
-            s.send(value())
-        }
-    }
-}
-
-internal struct LazySignal<Value> { // Can't be SourceType because connecter is mutating.
-    internal typealias SourceValue = Value
-
-    private weak var _signal: Signal<Value>? = nil
-
-    internal init() {
-    }
-
-    internal var signal: Signal<Value> {
-        mutating get {
-            if let s = _signal {
-                return s
-            }
-            else {
-                let s = Signal<Value>()
-                _signal = s
-                return s
-            }
-        }
-    }
-
-    internal var isConnected: Bool {
-        if let s = _signal, s.isConnected {
-            return true
-        }
-        return false
-    }
-
-    /// Send value to the signal (if it exists).
-    internal func send(_ value: Value) {
-        _signal?.send(value)
-    }
-
-    internal func sendIfConnected(_ value: @autoclosure (Void) -> Value) {
-        if let s = _signal, s.isConnected {
-            s.send(value())
-        }
-    }
-
-    internal var connecter: (Sink<Value>) -> Connection {
-        mutating get { return self.signal.connecter }
-    }
-
-    internal var source: Source<Value> {
-        mutating get { return self.signal.source }
-    }
-
-    internal mutating func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == Value {
-        return signal.connect(sink)
-    }
 }
 
 /// Holds a strong reference to a value that may not be ready for consumption yet.
@@ -183,7 +74,7 @@ private enum PendingItem<Value> {
 /// reentrancy, but it only makes sense when you have the concept of a current value, which Signal doesn't. 
 /// (Although Variable does.)
 ///
-public final class Signal<Value>: SignalType {
+public final class Signal<Value>: SourceType, SinkType {
     public typealias SourceValue = Value
     public typealias SinkValue = Value
 
@@ -288,9 +179,9 @@ public final class Signal<Value>: SignalType {
         sendNow()
     }
 
-    /// When used as a sink, a Signal will forward all received values to its connected sinks in turn.
-    public var receive: (Value) -> Void {
-        return self.send
+    /// When used as a sink, a Signal forwards all received values to its connected sinks in turn.
+    public func receive(_ value: Value) {
+        send(value)
     }
 
     /// Append value to the queue of pending values. The value will be sent by a send() or sendNow() invocation.
@@ -336,10 +227,6 @@ public final class Signal<Value>: SignalType {
                 _sendValueNow(value)
             }
         }
-    }
-
-    public var connecter: (Sink<Value>) -> Connection {
-        return self.connect
     }
 
     public func connect(_ sink: Sink<Value>) -> Connection {

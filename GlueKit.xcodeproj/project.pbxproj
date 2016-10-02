@@ -251,6 +251,10 @@
 		BBC4AE4F1D9A829500FF7DE0 /* FilteredArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE4D1D9A829500FF7DE0 /* FilteredArrayTests.swift */; };
 		BBC4AE501D9A829500FF7DE0 /* FilteredArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE4D1D9A829500FF7DE0 /* FilteredArrayTests.swift */; };
 		BBC4AE511D9A829500FF7DE0 /* FilteredArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE4D1D9A829500FF7DE0 /* FilteredArrayTests.swift */; };
+		BBC4AE531D9ACA6800FF7DE0 /* SignalTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */; };
+		BBC4AE541D9ACA6800FF7DE0 /* SignalTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */; };
+		BBC4AE551D9ACA6800FF7DE0 /* SignalTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */; };
+		BBC4AE561D9ACA6800FF7DE0 /* SignalTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */; };
 		BBCBAA9C1CBEB7BD004A1BD5 /* Connector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B221C8FCC810050DDA9 /* Connector.swift */; };
 		BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
@@ -390,6 +394,7 @@
 		BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSObject extensions.swift"; sourceTree = "<group>"; };
 		BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIControl Extensions.swift"; sourceTree = "<group>"; };
 		BBC4AE4D1D9A829500FF7DE0 /* FilteredArrayTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilteredArrayTests.swift; sourceTree = "<group>"; };
+		BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTools.swift; sourceTree = "<group>"; };
 		BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RefList.swift; sourceTree = "<group>"; };
 		BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSUserDefaults Support.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -607,6 +612,7 @@
 				BBB55B211C8FCC810050DDA9 /* Connection.swift */,
 				BBB55B221C8FCC810050DDA9 /* Connector.swift */,
 				BBB55B2E1C8FCC810050DDA9 /* Signal.swift */,
+				BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */,
 				BBB55B2F1C8FCC810050DDA9 /* SimpleSources.swift */,
 				BBB55B261C8FCC810050DDA9 /* MergedSource.swift */,
 				BBB55B311C8FCC810050DDA9 /* SourceOperators.swift */,
@@ -1116,6 +1122,7 @@
 				BB69A82E1D6B7E35001D2821 /* Sorting.swift in Sources */,
 				BBB4F26F1C99E6CC002532CC /* UIGestureRecognizer Extensions.swift in Sources */,
 				BBB55B4A1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
+				BBC4AE531D9ACA6800FF7DE0 /* SignalTools.swift in Sources */,
 				BB69A8251D6B7798001D2821 /* UpdatableSet.swift in Sources */,
 				BB69A7EF1D6AFF1A001D2821 /* Abstract.swift in Sources */,
 				BB69A80C1D6B472D001D2821 /* SelectEach.swift in Sources */,
@@ -1166,6 +1173,7 @@
 				BBFA2C451CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BB1657ED1D71F3E700094BAC /* Atomics.swift in Sources */,
 				BB69A8091D6B442C001D2821 /* ArrayVariable.swift in Sources */,
+				BBC4AE541D9ACA6800FF7DE0 /* SignalTools.swift in Sources */,
 				BB69A83C1D6B90F5001D2821 /* Concatenation.swift in Sources */,
 				BB69A8261D6B7798001D2821 /* UpdatableSet.swift in Sources */,
 				BB69A8331D6B7F11001D2821 /* ObservableSetReference.swift in Sources */,
@@ -1242,6 +1250,7 @@
 				BB69A7F11D6AFF1A001D2821 /* Abstract.swift in Sources */,
 				BB1657EE1D71F3E700094BAC /* Atomics.swift in Sources */,
 				BB69A80A1D6B442C001D2821 /* ArrayVariable.swift in Sources */,
+				BBC4AE551D9ACA6800FF7DE0 /* SignalTools.swift in Sources */,
 				BB69A83D1D6B90F5001D2821 /* Concatenation.swift in Sources */,
 				BB69A8281D6B779A001D2821 /* UpdatableSet.swift in Sources */,
 				BB69A8341D6B7F12001D2821 /* ObservableSetReference.swift in Sources */,
@@ -1297,6 +1306,7 @@
 				BB69A8031D6B2377001D2821 /* BufferedArray.swift in Sources */,
 				BB69A82D1D6B7CAF001D2821 /* SetVariable.swift in Sources */,
 				BBB55B691C8FCC820050DDA9 /* Reference.swift in Sources */,
+				BBC4AE561D9ACA6800FF7DE0 /* SignalTools.swift in Sources */,
 				BB69A7FA1D6B1D83001D2821 /* ArrayChange.swift in Sources */,
 				BBB55B751C8FCC820050DDA9 /* Signal.swift in Sources */,
 				BB69A8431D6B9A7E001D2821 /* ObservableArrayMap.swift in Sources */,
