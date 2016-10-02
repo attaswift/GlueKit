@@ -109,6 +109,9 @@
 		BB8990291D5F84210097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990281D5F84210097F350 /* Foundation.framework */; };
 		BB89902B1D5F842C0097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB89902A1D5F842C0097F350 /* Foundation.framework */; };
 		BB89902D1D5F84340097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB89902C1D5F84340097F350 /* Foundation.framework */; };
+		BB8D366E1DA116CB000D44C5 /* Bookshelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */; };
+		BB8D366F1DA116CB000D44C5 /* Bookshelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */; };
+		BB8D36701DA116CB000D44C5 /* Bookshelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */; };
 		BBAA826D1C91D16600586903 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* Observable.swift */; };
 		BBAA826E1C91D17400586903 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* Updatable.swift */; };
 		BBAA826F1C91D17A00586903 /* Observable Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */; };
@@ -324,6 +327,7 @@
 		BB8990281D5F84210097F350 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS3.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		BB89902A1D5F842C0097F350 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		BB89902C1D5F84340097F350 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS10.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Bookshelf.swift; sourceTree = "<group>"; };
 		BBAA827C1C91D43700586903 /* Type Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Type Helpers.swift"; sourceTree = "<group>"; };
 		BBADD7A11D70985F00C32735 /* ReplacingIfEmpty.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReplacingIfEmpty.swift; sourceTree = "<group>"; };
 		BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIDevice Extensions.swift"; sourceTree = "<group>"; };
@@ -509,6 +513,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		BB8D366C1DA116AA000D44C5 /* Examples */ = {
+			isa = PBXGroup;
+			children = (
+				BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */,
+			);
+			name = Examples;
+			path = Tests;
+			sourceTree = "<group>";
+		};
 		BBB4F2531C9594E0002532CC /* Foundation Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -542,6 +555,7 @@
 				BBB55BDB1C8FCFAD0050DDA9 /* Documentation */,
 				BBB55AB41C8F80020050DDA9 /* Sources */,
 				BBB55AC01C8F80020050DDA9 /* Tests */,
+				BB8D366C1DA116AA000D44C5 /* Examples */,
 				BBB55BE31C8FD1C60050DDA9 /* PerformanceTests */,
 				BBB55BF41C8FD5A30050DDA9 /* SampleModel */,
 				BBB4F2711C9A1DCB002532CC /* Dependencies */,
@@ -1151,6 +1165,7 @@
 				BBB55BC01C8FCE2C0050DDA9 /* SelectFromValueTests.swift in Sources */,
 				BBB55BC91C8FCE2C0050DDA9 /* SourceOperatorTests.swift in Sources */,
 				BBB55BB11C8FCE2C0050DDA9 /* MergedSourceTests.swift in Sources */,
+				BB8D366E1DA116CB000D44C5 /* Bookshelf.swift in Sources */,
 				BBB55BB71C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,
 				BBB55BAB1C8FCE2C0050DDA9 /* ConnectionTests.swift in Sources */,
 			);
@@ -1228,6 +1243,7 @@
 				BBB55BC11C8FCE2C0050DDA9 /* SelectFromValueTests.swift in Sources */,
 				BBB55BCA1C8FCE2C0050DDA9 /* SourceOperatorTests.swift in Sources */,
 				BBB55BB21C8FCE2C0050DDA9 /* MergedSourceTests.swift in Sources */,
+				BB8D366F1DA116CB000D44C5 /* Bookshelf.swift in Sources */,
 				BBB55BB81C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,
 				BBB55BAC1C8FCE2C0050DDA9 /* ConnectionTests.swift in Sources */,
 			);
@@ -1359,6 +1375,7 @@
 				BBB55BC21C8FCE2C0050DDA9 /* SelectFromValueTests.swift in Sources */,
 				BBB55BCB1C8FCE2C0050DDA9 /* SourceOperatorTests.swift in Sources */,
 				BBB55BB31C8FCE2C0050DDA9 /* MergedSourceTests.swift in Sources */,
+				BB8D36701DA116CB000D44C5 /* Bookshelf.swift in Sources */,
 				BBB55BB91C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,
 				BBB55BAD1C8FCE2C0050DDA9 /* ConnectionTests.swift in Sources */,
 			);

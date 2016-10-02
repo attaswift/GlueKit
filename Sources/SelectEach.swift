@@ -239,19 +239,19 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
             let field = key(pe)
             let endIndex = startIndex + field.count
 
-            let start = max(startIndex, range.lowerBound) - startIndex
-            let end = min(endIndex, range.upperBound) - startIndex
-
-            if start < end {
-                // The range of this element intersects with the lookup range.
-                result.append(contentsOf: field[start..<end])
+            if endIndex <= range.lowerBound {
+                // Do nothing; the lookup range starts in a subsequent element.
             }
-            else if start > end {
+            else if range.upperBound <= startIndex {
                 // This element starts after the lookup range ends. We're done.
                 return result
             }
-
-            startIndex += field.count
+            else {
+                let start = max(startIndex, range.lowerBound) - startIndex
+                let end = min(endIndex, range.upperBound) - startIndex
+                result.append(contentsOf: field[start ..< end])
+            }
+            startIndex = endIndex
         }
         return result
     }
