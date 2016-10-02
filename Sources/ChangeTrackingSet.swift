@@ -43,7 +43,7 @@ public class ChangeTrackingUpdatableSet<Base: UpdatableSetType>: UpdatableSetTyp
     public init(base: Base) {
         self.base = base
         self.pendingChanges = Change()
-        self.connection = base.futureChanges.connect { [unowned self] change in
+        self.connection = base.changes.connect { [unowned self] change in
             self.pendingChanges = self.pendingChanges.merged(with: change).removingEqualChanges()
         }
     }
@@ -79,7 +79,7 @@ public class ChangeTrackingUpdatableSet<Base: UpdatableSetType>: UpdatableSetTyp
     public func isSubset(of other: Set<Element>) -> Bool { return base.isSubset(of: other) }
     public func isSuperset(of other: Set<Element>) -> Bool { return base.isSuperset(of: other) }
 
-    public var futureChanges: Source<SetChange<Element>> { return base.futureChanges }
+    public var changes: Source<SetChange<Element>> { return base.changes }
     public var observable: Observable<Set<Element>> { return base.observable }
     public var observableCount: Observable<Int> { return base.observableCount }
 

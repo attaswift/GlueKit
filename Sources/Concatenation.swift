@@ -40,7 +40,7 @@ class ConcatenatedObservableArray<First: ObservableArrayType, Second: Observable
 
     var count: Int { return first.count + second.count }
     var value: [Element] { return first.value + second.value }
-    var futureChanges: Source<Change> { return changeSignal.with(self).source }
+    var changes: Source<Change> { return changeSignal.with(self).source }
 
     subscript(index: Int) -> Element {
         let c = first.count
@@ -64,12 +64,12 @@ class ConcatenatedObservableArray<First: ObservableArrayType, Second: Observable
     func start(_ signal: Signal<Change>) {
         firstCount = first.count
         secondCount = second.count
-        c1 = first.futureChanges.connect { change in
+        c1 = first.changes.connect { change in
             precondition(self.firstCount == change.initialCount)
             self.firstCount = change.finalCount
             self.changeSignal.send(change.widen(startIndex: 0, initialCount: change.initialCount + self.secondCount))
         }
-        c2 = second.futureChanges.connect { change in
+        c2 = second.changes.connect { change in
             precondition(self.secondCount == change.initialCount)
             self.secondCount = change.finalCount
             self.changeSignal.send(change.widen(startIndex: self.firstCount, initialCount: self.firstCount + change.initialCount))

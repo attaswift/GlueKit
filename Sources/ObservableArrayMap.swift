@@ -50,8 +50,8 @@ class ObservableArrayMap<Element, Input: ObservableArrayType>: ObservableArrayTy
         return ArraySlice(input[bounds].map(transform))
     }
 
-    var futureChanges: Source<ArrayChange<Element>> {
-        return input.futureChanges.map { $0.map(self.transform) }
+    var changes: Source<ArrayChange<Element>> {
+        return input.changes.map { $0.map(self.transform) }
     }
 
     var observableCount: Observable<Int> {
@@ -74,7 +74,7 @@ internal class BufferedObservableArrayMap<Input, Output, Content: ObservableArra
         self.content = content
         self.transform = transform
         self.value = content.value.map(transform)
-        self.connection = content.futureChanges.connect { [weak self] change in self?.apply(change) }
+        self.connection = content.changes.connect { [weak self] change in self?.apply(change) }
     }
 
     private func apply(_ change: ArrayChange<Input>) {
@@ -136,7 +136,7 @@ internal class BufferedObservableArrayMap<Input, Output, Content: ObservableArra
         return value.count
     }
 
-    var futureChanges: Source<ArrayChange<Element>> {
+    var changes: Source<ArrayChange<Element>> {
         return changeSignal.with(retained: self).source
     }
 

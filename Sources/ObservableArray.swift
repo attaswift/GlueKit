@@ -30,7 +30,7 @@ public protocol ObservableArrayType {
     var count: Int { get }
     var value: Base { get }
     subscript(bounds: Range<Int>) -> ArraySlice<Element> { get }
-    var futureChanges: Source<Change> { get }
+    var changes: Source<Change> { get }
 
     // Extras
     subscript(index: Int) -> Element { get }
@@ -49,7 +49,7 @@ extension ObservableArrayType {
             getter: { return self.value },
             futureValues: {
                 var value = self.value
-                return self.futureChanges.map { (c: Change) -> Base in
+                return self.changes.map { (c: Change) -> Base in
                     value.apply(c)
                     return value
                 }
@@ -57,7 +57,7 @@ extension ObservableArrayType {
     }
 
     public var observableCount: Observable<Int> {
-        return Observable(getter: { self.count }, futureValues: { self.futureChanges.map { $0.finalCount } })
+        return Observable(getter: { self.count }, futureValues: { self.changes.map { $0.finalCount } })
     }
 
     public var observableArray: ObservableArray<Element> {
@@ -109,7 +109,7 @@ public struct ObservableArray<Element>: ObservableArrayType {
     public subscript(_ range: Range<Int>) -> ArraySlice<Element> { return box[range] }
     public var value: Array<Element> { return box.value }
     public var count: Int { return box.count }
-    public var futureChanges: Source<ArrayChange<Element>> { return box.futureChanges }
+    public var changes: Source<ArrayChange<Element>> { return box.changes }
     public var observable: Observable<[Element]> { return box.observable }
     public var observableCount: Observable<Int> { return box.observableCount }
     public var observableArray: ObservableArray<Element> { return self }
@@ -134,7 +134,7 @@ internal class ObservableArrayBase<Element>: ObservableArrayType {
     subscript(_ range: Range<Int>) -> ArraySlice<Element> { abstract() }
     var value: Array<Element> { abstract() }
     var count: Int { abstract() }
-    var futureChanges: Source<ArrayChange<Element>> { abstract() }
+    var changes: Source<ArrayChange<Element>> { abstract() }
     var observableCount: Observable<Int> { abstract() }
     var observable: Observable<[Element]> { abstract() }
     final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }
@@ -158,7 +158,7 @@ internal class ObservableArrayBox<Contents: ObservableArrayType>: ObservableArra
     override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return contents[range] }
     override var value: Array<Element> { return contents.value }
     override var count: Int { return contents.count }
-    override var futureChanges: Source<ArrayChange<Element>> { return contents.futureChanges }
+    override var changes: Source<ArrayChange<Element>> { return contents.changes }
     override var observableCount: Observable<Int> { return contents.observableCount }
     override var observable: Observable<[Element]> { return contents.observable }
 }
@@ -175,7 +175,7 @@ internal class ObservableArrayConstant<Element>: ObservableArrayBase<Element> {
     override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _value[range] }
     override var value: Array<Element> { return _value }
     override var count: Int { return _value.count }
-    override var futureChanges: Source<ArrayChange<Element>> { return Source.empty() }
+    override var changes: Source<ArrayChange<Element>> { return Source.empty() }
     override var observableCount: Observable<Int> { return Observable.constant(_value.count) }
     override var observable: Observable<[Element]> { return Observable.constant(_value) }
 }

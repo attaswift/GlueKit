@@ -64,8 +64,8 @@ where Inner.Element == Element {
         return inner.isEmpty ? substitution[index] : inner[index]
     }
 
-    var futureChanges: Source<ArrayChange<Element>> {
-        return inner.futureChanges.flatMap { change in
+    var changes: Source<ArrayChange<Element>> {
+        return inner.changes.flatMap { change in
             EmptySubstitutedObservableArray.process(change, substitution: self.substitution)
         }
     }

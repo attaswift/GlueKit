@@ -71,6 +71,6 @@ extension ObservableArrayType where Element: Hashable {
     /// Return a source that describes changes in this array in terms of moved elements in addition to insertions and deletions.
     /// The reported changes can be directly fed as batch updates to a `UITableView` or a `UICollectionView`.
     public var batchedChanges: Source<BatchedArrayChange<Element>> {
-        return futureChanges.map { BatchedArrayChange($0) }
+        return changes.map { BatchedArrayChange($0) }
     }
 }

@@ -31,7 +31,7 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: Observable
     init(_ content: Content) {
         self.content = content
         self.value = content.value
-        self.connection = content.futureChanges.connect { [weak self] change in
+        self.connection = content.changes.connect { [weak self] change in
             guard let this = self else { return }
             this.value.apply(change)
             this.valueSignal.sendIfConnected(this.value)
@@ -52,8 +52,8 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: Observable
         return value.count
     }
 
-    var futureChanges: Source<ArrayChange<Content.Element>> {
-        return content.futureChanges
+    var changes: Source<ArrayChange<Content.Element>> {
+        return content.changes
     }
 
     var futureValues: Source<[Element]> {

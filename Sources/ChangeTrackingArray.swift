@@ -42,7 +42,7 @@ public class ChangeTrackingUpdatableArray<Base: UpdatableArrayType>: UpdatableAr
     init(base: Base) {
         self.base = base
         self.pendingChanges = Change(initialCount: base.count)
-        self.connection = base.futureChanges.connect { [unowned self] change in
+        self.connection = base.changes.connect { [unowned self] change in
             self.pendingChanges = self.pendingChanges.merged(with: change).removingEqualChanges()
         }
     }
@@ -75,7 +75,7 @@ public class ChangeTrackingUpdatableArray<Base: UpdatableArrayType>: UpdatableAr
         set { base[bounds] = newValue }
     }
     public var count: Int { return base.count }
-    public var futureChanges: Source<Change> { return base.futureChanges }
+    public var changes: Source<Change> { return base.changes }
     public var observableCount: Observable<Int> { return base.observableCount }
     public var observable: Observable<Array<Element>> { return base.observable }
     public var observableArray: ObservableArray<Element> { return base.observableArray }

@@ -15,7 +15,7 @@ public class ObservableSetReference<Element: Hashable>: ObservableSetType, Signa
     public typealias Change = SetChange<Element>
 
     private var _target: ObservableSet<Element>
-    private var _futureChanges = OwningSignal<Change>()
+    private var _changes = OwningSignal<Change>()
     private var _connection: Connection?
 
     public init() {
@@ -31,8 +31,8 @@ public class ObservableSetReference<Element: Hashable>: ObservableSetType, Signa
             c.disconnect()
             let change = SetChange(from: _target.value, to: target.observableSet.value)
             _target = target.observableSet
-            _connection = target.futureChanges.connect { change in self._futureChanges.send(change) }
-            _futureChanges.send(change)
+            _connection = target.changes.connect { change in self._changes.send(change) }
+            _changes.send(change)
         }
         else {
             _target = target.observableSet
@@ -41,11 +41,11 @@ public class ObservableSetReference<Element: Hashable>: ObservableSetType, Signa
 
     public var isBuffered: Bool { return false }
     public var value: Set<Element> { return _target.value }
-    public var futureChanges: Source<Change> { return _futureChanges.with(self).source }
+    public var changes: Source<Change> { return _changes.with(self).source }
 
     internal func start(_ signal: Signal<Change>) {
         precondition(_connection == nil)
-        _connection = _target.futureChanges.connect { change in self._futureChanges.send(change) }
+        _connection = _target.changes.connect { change in self._changes.send(change) }
     }
 
     internal func stop(_ signal: Signal<Change>) {

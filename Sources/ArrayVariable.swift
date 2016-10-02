@@ -55,7 +55,7 @@ public final class ArrayVariable<E>: UpdatableArrayType {
     }
 
     /// A source that reports all future changes of this variable.
-    public var futureChanges: Source<ArrayChange<Element>> {
+    public var changes: Source<ArrayChange<Element>> {
         return _changeSignal.source
     }
 

@@ -73,7 +73,7 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         return _value.isSuperset(of: other)
     }
 
-    public var futureChanges: Source<SetChange<Element>> {
+    public var changes: Source<SetChange<Element>> {
         return _changeSignal.source
     }
 

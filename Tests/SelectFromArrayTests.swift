@@ -132,7 +132,7 @@ class SelectFromArrayTests: XCTestCase {
 
         var changes = [ArrayChange<String>]()
         var expected = [ArrayChange<String>]()
-        let c1 = filenames.futureChanges.connect { changes.append($0) }
+        let c1 = filenames.changes.connect { changes.append($0) }
 
         // Add a new file to folder 1
         folder1.files.insert(File(name: "1/b2"), at: 2)

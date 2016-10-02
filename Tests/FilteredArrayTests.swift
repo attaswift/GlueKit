@@ -112,12 +112,12 @@ class FilteredArrayTests: XCTestCase {
         XCTAssertEqual(evenMembers.value, [])
     }
 
-    func test_simple_futureChanges() {
+    func test_simple_changes() {
         let array: ArrayVariable<Int> = [0, 1, 2, 3, 4]
 
         let evenMembers = array.filtered { $0 % 2 == 0 }
         let mock = MockArrayObserver<Int>()
-        let connection = evenMembers.futureChanges.connect(mock)
+        let connection = evenMembers.changes.connect(mock)
 
         mock.expect(ArrayChange(initialCount: 3, modification: .insert(6, at: 3)))
         array.insert(contentsOf: [5, 6, 7], at: 5)
@@ -174,7 +174,7 @@ class FilteredArrayTests: XCTestCase {
         let mock = MockArrayObserver<Book>()
         // Books with "of" in their title.
         let filtered = array.filtered { $0.title.map { $0.lowercased().contains("of") } }
-        let connection = filtered.futureChanges.connect(mock)
+        let connection = filtered.changes.connect(mock)
 
         // filtered is [b2, b3]
 

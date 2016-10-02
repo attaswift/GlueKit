@@ -9,13 +9,11 @@
 import Foundation
 
 extension ObservableSetType {
-    public typealias ElementComparator = (Element, Element) -> Bool
-
-    public func sorted(by areInIncreasingOrder: @escaping ElementComparator) -> ObservableArray<Element> {
+    public func sorted(by areInIncreasingOrder: @escaping (Element, Element) -> Bool) -> ObservableArray<Element> {
         return SortedObservableSet(input: self, sortedBy: areInIncreasingOrder).observableArray
     }
 
-    public func sorted(by comparator: Observable<ElementComparator>) -> ObservableArray<Element> {
+    public func sorted(by comparator: Observable<(Element, Element) -> Bool>) -> ObservableArray<Element> {
         let reference = ObservableArrayReference<Element>()
 
         let connection = comparator.values.connect { comparatorValue in
@@ -43,13 +41,13 @@ class SortedObservableSet<S: ObservableSetType>: ObservableArrayType, SignalDele
     internal subscript(index: Int) -> Element { return value[index] }
     internal subscript(bounds: Range<Int>) -> ArraySlice<Element> { return value[bounds] }
 
-    internal var futureChanges: Source<ArrayChange<Element>> { return changeSignal.with(self).source }
+    internal var changes: Source<ArrayChange<Element>> { return changeSignal.with(self).source }
 
     init(input: S, sortedBy areInIncreasingOrder: @escaping (Element, Element) -> Bool) {
         self.input = input
         self.areInIncreasingOrder = areInIncreasingOrder
         self.value = input.value.sorted(by: areInIncreasingOrder)
-        self.connection = input.futureChanges.connect { [weak self] change in
+        self.connection = input.changes.connect { [weak self] change in
             self?.apply(change)
         }
     }

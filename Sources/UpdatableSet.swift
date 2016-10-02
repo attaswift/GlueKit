@@ -40,7 +40,7 @@ extension UpdatableSetType {
     public func modify(_ block: (SetVariable<Element>)->Void) {
         let set = SetVariable<Self.Element>(self.value)
         var change = SetChange<Self.Element>()
-        let connection = set.futureChanges.connect { c in change.merge(with: c) }
+        let connection = set.changes.connect { c in change.merge(with: c) }
         block(set)
         connection.disconnect()
         self.apply(change)
@@ -76,7 +76,7 @@ public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
     public func remove(_ member: Element) { box.remove(member) }
     public func insert(_ member: Element) { box.insert(member) }
 
-    public var futureChanges: Source<SetChange<Element>> { return box.futureChanges }
+    public var changes: Source<SetChange<Element>> { return box.changes }
     public var observable: Observable<Set<Element>> { return box.observable }
     public var observableCount: Observable<Int> { return box.observableCount }
 
@@ -122,7 +122,7 @@ class UpdatableSetBox<Contents: UpdatableSetType>: UpdatableSetBase<Contents.Ele
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
 
-    override var futureChanges: Source<SetChange<Element>> { return contents.futureChanges }
+    override var changes: Source<SetChange<Element>> { return contents.changes }
     override var observable: Observable<Set<Element>> { return contents.observable }
     override var observableCount: Observable<Int> { return contents.observableCount }
 }

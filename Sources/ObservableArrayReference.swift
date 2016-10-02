@@ -15,7 +15,7 @@ public class ObservableArrayReference<Element>: ObservableArrayType, SignalDeleg
     public typealias Change = ArrayChange<Element>
 
     private var _target: ObservableArray<Element>
-    private var _futureChanges = OwningSignal<Change>()
+    private var _changes = OwningSignal<Change>()
     private var _connection: Connection?
 
     public init() {
@@ -31,8 +31,8 @@ public class ObservableArrayReference<Element>: ObservableArrayType, SignalDeleg
             c.disconnect()
             let change = ArrayChange(from: _target.value, to: target.value)
             _target = target.observableArray
-            _connection = target.futureChanges.connect { change in self._futureChanges.send(change) }
-            _futureChanges.send(change)
+            _connection = target.changes.connect { change in self._changes.send(change) }
+            _changes.send(change)
         }
         else {
             _target = target.observableArray
@@ -46,11 +46,11 @@ public class ObservableArrayReference<Element>: ObservableArrayType, SignalDeleg
     public var value: Base { return _target.value }
     public subscript(_ index: Int) -> Element { return _target[index] }
     public subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _target[range] }
-    public var futureChanges: Source<Change> { return _futureChanges.with(self).source }
+    public var changes: Source<Change> { return _changes.with(self).source }
 
     internal func start(_ signal: Signal<Change>) {
         precondition(_connection == nil)
-        _connection = _target.futureChanges.connect { change in self._futureChanges.send(change) }
+        _connection = _target.changes.connect { change in self._changes.send(change) }
     }
 
     internal func stop(_ signal: Signal<Change>) {

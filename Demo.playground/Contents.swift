@@ -49,7 +49,7 @@ func changeToString(_ change: ArrayChange<String>) -> String {
     desc.append(mods)
     return desc
 }
-let connection = filenames.futureChanges.connect { c in
+let connection = filenames.changes.connect { c in
     let page = XCPlaygroundPage.currentPage
     page.captureValue(value: changeToString(c), withIdentifier: "change")
     change.merge(with: c)

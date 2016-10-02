@@ -110,7 +110,7 @@ private class ObservableArraySimpleFilter<Base: ObservableArrayType>: Observable
         self.base = base
         self.test = test
         self.indexMapping = IndexMapping(initialValues: base.value, test: test)
-        connection = base.futureChanges.connect { [unowned self] change in
+        connection = base.changes.connect { [unowned self] change in
             let filteredChange = self.indexMapping.apply(change)
             if !filteredChange.isEmpty {
                 self.changeSignal.send(filteredChange)
@@ -144,7 +144,7 @@ private class ObservableArraySimpleFilter<Base: ObservableArrayType>: Observable
         return ArraySlice(result)
     }
 
-    var futureChanges: Source<ArrayChange<Base.Element>> {
+    var changes: Source<ArrayChange<Base.Element>> {
         return changeSignal.with(retained: self).source
     }
 }
@@ -166,7 +166,7 @@ private class ObservableArrayComplexFilter<Base: ObservableArrayType, Test: Obse
         self.test = test
         let elements = base.value
         self.indexMapping = IndexMapping(initialValues: elements, test: { test($0).value })
-        self.baseConnection = base.futureChanges.connect { [unowned self] change in
+        self.baseConnection = base.changes.connect { [unowned self] change in
             self.applyBaseChange(change)
         }
         self.elementConnections = RefList(elements.lazy.map { [unowned self] element in self.connect(to: element) })
@@ -230,7 +230,7 @@ private class ObservableArrayComplexFilter<Base: ObservableArrayType, Test: Obse
         return ArraySlice(result)
     }
 
-    var futureChanges: Source<ArrayChange<Base.Element>> {
+    var changes: Source<ArrayChange<Base.Element>> {
         return changeSignal.with(retained: self).source
     }
 }

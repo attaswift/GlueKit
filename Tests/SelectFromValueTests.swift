@@ -299,7 +299,7 @@ class SelectFromValueTestsExamples: XCTestCase {
         let cowLickerDeveloperNames: ObservableArray<String> = apps.cowLicker.developer.select{$0.employees}.selectEach{$0.name}
 
         var r: [[String]] = []
-        let connection = cowLickerDeveloperNames.futureChanges.connect { changes in r.append(cowLickerDeveloperNames.value) }
+        let connection = cowLickerDeveloperNames.changes.connect { changes in r.append(cowLickerDeveloperNames.value) }
 
         XCTAssertEqual(cowLickerDeveloperNames.value, ["Adam Edgar Whatever", "David Sampleguy"])
 

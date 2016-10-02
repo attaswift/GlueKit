@@ -91,7 +91,7 @@ private class FutureValueSelectorForObservableField<Parent: ObservableType, Fiel
 }
 
 /// A source of changes for an ObservableArray field.
-private class FutureChangesSelectorForObservableArrayField<Parent: ObservableType, Field: ObservableArrayType>: SignalDelegate {
+private class changesSelectorForObservableArrayField<Parent: ObservableType, Field: ObservableArrayType>: SignalDelegate {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
@@ -112,7 +112,7 @@ private class FutureChangesSelectorForObservableArrayField<Parent: ObservableTyp
         return key(parent.value)
     }
 
-    var futureChanges: Source<Change> { return signal.with(self).source }
+    var changes: Source<Change> { return signal.with(self).source }
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
@@ -124,7 +124,7 @@ private class FutureChangesSelectorForObservableArrayField<Parent: ObservableTyp
         let field = key(parent.value)
         self._field = field
         _count = field.count
-        fieldConnection = field.futureChanges.connect { change in
+        fieldConnection = field.changes.connect { change in
             self._count = change.finalCount
             signal.send(change)
         }
@@ -133,7 +133,7 @@ private class FutureChangesSelectorForObservableArrayField<Parent: ObservableTyp
             let field = self.key(parentValue)
             self._field = field
             self.fieldConnection?.disconnect()
-            self.fieldConnection = field.futureChanges.connect(signal)
+            self.fieldConnection = field.changes.connect(signal)
             let count = self._count
             self._count = field.count
             let mod = ArrayModification<Element>.replaceSlice(oldValue, at: 0, with: field.value)
@@ -156,10 +156,10 @@ private struct ValueSelectorForObservableArrayField<Parent: ObservableType, Fiel
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
 
-    let base: FutureChangesSelectorForObservableArrayField<Parent, Field>
+    let base: changesSelectorForObservableArrayField<Parent, Field>
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
-        base = FutureChangesSelectorForObservableArrayField(parent: parent, key: key)
+        base = changesSelectorForObservableArrayField(parent: parent, key: key)
     }
     var parent: Parent { return base.parent }
     var key: (Parent.Value) -> Field { return base.key }
@@ -171,7 +171,7 @@ private struct ValueSelectorForObservableArrayField<Parent: ObservableType, Fiel
     var value: Array<Element> { return field.value }
     var count: Int { return field.count }
     var observableCount: Observable<Int> { return parent.select { self.key($0).observableCount } }
-    var futureChanges: Source<ArrayChange<Field.Element>> { return base.futureChanges }
+    var changes: Source<ArrayChange<Field.Element>> { return base.changes }
 }
 
 private struct ValueSelectorForUpdatableArrayField<Parent: ObservableType, Field: UpdatableArrayType>: UpdatableArrayType {
@@ -179,10 +179,10 @@ private struct ValueSelectorForUpdatableArrayField<Parent: ObservableType, Field
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
 
-    let base: FutureChangesSelectorForObservableArrayField<Parent, Field>
+    let base: changesSelectorForObservableArrayField<Parent, Field>
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
-        base = FutureChangesSelectorForObservableArrayField(parent: parent, key: key)
+        base = changesSelectorForObservableArrayField(parent: parent, key: key)
     }
     var parent: Parent { return base.parent }
     var key: (Parent.Value) -> Field { return base.key }
@@ -203,7 +203,7 @@ private struct ValueSelectorForUpdatableArrayField<Parent: ObservableType, Field
     }
     var count: Int { return field.count }
     var observableCount: Observable<Int> { return parent.select { self.key($0).observableCount } }
-    var futureChanges: Source<ArrayChange<Field.Element>> { return base.futureChanges }
+    var changes: Source<ArrayChange<Field.Element>> { return base.changes }
     func apply(_ change: ArrayChange<Field.Element>) {
         field.apply(change)
     }
@@ -360,7 +360,7 @@ extension ObservableType {
     /// ```Swift
     /// let observable = currentRoom.select{$0.messages}
     /// ```
-    /// Sinks connected to `observable.futureChanges` will fire whenever the current room changes, or when the list of
+    /// Sinks connected to `observable.changes` will fire whenever the current room changes, or when the list of
     /// messages is updated in the current room.  The observable can also be used to simply retrieve the list of messages
     /// at any time.
     ///

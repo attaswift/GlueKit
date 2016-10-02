@@ -74,16 +74,16 @@ private final class ArraySelectorForObservableField<Entity, Field: ObservableTyp
         return parent.count
     }
 
-    var futureChanges: Source<Change> { return _changeSignal.with(self).source }
+    var changes: Source<Change> { return _changeSignal.with(self).source }
 
     var observable: Observable<[Element]> {
         return Observable(getter: { self.value },
-                          futureValues: { self.futureChanges.map { _ in self.value } })
+                          futureValues: { self.changes.map { _ in self.value } })
     }
 
     var observableCount: Observable<Int> {
         return Observable(getter: { self.parent.count },
-                          futureValues: { self.parent.futureChanges.map { $0.finalCount } })
+                          futureValues: { self.parent.changes.map { $0.finalCount } })
     }
 
     func start(_ signal: Signal<Change>) {
@@ -93,7 +93,7 @@ private final class ArraySelectorForObservableField<Entity, Field: ObservableTyp
         fieldConnections = fields.enumerated().map { index, field in
             self.connectField(field, index: index, signal: signal)
         }
-        parentConnection = parent.futureChanges.connect { change in
+        parentConnection = parent.changes.connect { change in
             self.applyParentChange(change, signal: signal)
         }
     }
@@ -225,7 +225,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
         }
     }
 
-    var futureChanges: Source<Change> { return changeSignal.with(self).source }
+    var changes: Source<Change> { return changeSignal.with(self).source }
 
     var observable: Observable<[Element]> {
         return self.buffered().observable
@@ -268,7 +268,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
             startIndices.append(start)
             return c
         }
-        parentConnection = parent.futureChanges.connect { change in
+        parentConnection = parent.changes.connect { change in
             self.applyParentChange(change, signal: signal)
         }
         active = true
@@ -289,7 +289,7 @@ private final class ArraySelectorForArrayField<ParentElement, Field: ObservableA
     private func connectField(_ field: Field, fieldIndex: Int, signal: Signal<Change>) -> Connection {
         let id = self.nextFieldID
         self.fieldIndexByFieldID[id] = fieldIndex
-        let c = field.futureChanges.connect { change in
+        let c = field.changes.connect { change in
             self.applyFieldChange(change, id: id, signal: signal)
         }
         c.addCallback { [unowned self] _ in self.fieldIndexByFieldID[id] = nil }

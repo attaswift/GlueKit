@@ -55,7 +55,7 @@ private class ObservableSetSimpleFilter<Parent: ObservableSetType>: ObservableSe
         if active { return matchingElements }
         return Set(self.parent.value.filter(test))
     }
-    var futureChanges: Source<SetChange<Parent.Element>> { return changeSignal.with(self).source }
+    var changes: Source<SetChange<Parent.Element>> { return changeSignal.with(self).source }
     func contains(_ member: Element) -> Bool {
         if active { return matchingElements.contains(member) }
         return self.parent.contains(member) && test(member)
@@ -97,7 +97,7 @@ private class ObservableSetSimpleFilter<Parent: ObservableSetType>: ObservableSe
                 matchingElements.insert(e)
             }
         }
-        parentConnection = parent.futureChanges.connect { change in
+        parentConnection = parent.changes.connect { change in
             var c = SetChange<Element>()
             for e in change.removed {
                 if let old = self.matchingElements.remove(e) {
@@ -151,7 +151,7 @@ private class ObservableSetComplexFilter<Parent: ObservableSetType, TestResult: 
         return Set(self.parent.value.filter { test($0).value })
     }
 
-    var futureChanges: Source<SetChange<Parent.Element>> { return changeSignal.with(self).source }
+    var changes: Source<SetChange<Parent.Element>> { return changeSignal.with(self).source }
 
     func contains(_ member: Element) -> Bool {
         if active { return matchingElements.contains(member) }
@@ -199,7 +199,7 @@ private class ObservableSetComplexFilter<Parent: ObservableSetType, TestResult: 
             }
             elementConnections[e] = c
         }
-        parentConnection = parent.futureChanges.connect { change in
+        parentConnection = parent.changes.connect { change in
             var c = SetChange<Element>()
             for e in change.removed {
                 self.elementConnections.removeValue(forKey: e)!.disconnect()

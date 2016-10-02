@@ -20,7 +20,7 @@ public protocol ObservableSetType {
     func isSubset(of other: Set<Element>) -> Bool
     func isSuperset(of other: Set<Element>) -> Bool
 
-    var futureChanges: Source<SetChange<Element>> { get }
+    var changes: Source<SetChange<Element>> { get }
     var observable: Observable<Base> { get }
     var observableCount: Observable<Int> { get }
     var observableSet: ObservableSet<Element> { get }
@@ -37,7 +37,7 @@ extension ObservableSetType {
             getter: { return self.value },
             futureValues: {
                 var value = self.value
-                return self.futureChanges.map { (c: Change) -> Base in
+                return self.changes.map { (c: Change) -> Base in
                     value.apply(c)
                     return value
                 }
@@ -47,7 +47,7 @@ extension ObservableSetType {
     public var observableCount: Observable<Int> {
         let fv: () -> Source<Int> = {
             var count = self.count
-            return self.futureChanges.map { change in
+            return self.changes.map { change in
                 count += numericCast(change.inserted.count - change.removed.count)
                 return count
             }
@@ -83,7 +83,7 @@ public struct ObservableSet<Element: Hashable>: ObservableSetType {
     public func isSubset(of other: Set<Element>) -> Bool { return box.isSubset(of: other) }
     public func isSuperset(of other: Set<Element>) -> Bool { return box.isSuperset(of: other) }
 
-    public var futureChanges: Source<SetChange<Element>> { return box.futureChanges }
+    public var changes: Source<SetChange<Element>> { return box.changes }
     public var observable: Observable<Set<Element>> { return box.observable }
     public var observableCount: Observable<Int> { return box.observableCount }
 
@@ -106,7 +106,7 @@ class ObservableSetBase<Element: Hashable>: ObservableSetType {
     func isSubset(of other: Set<Element>) -> Bool { abstract() }
     func isSuperset(of other: Set<Element>) -> Bool { abstract() }
 
-    var futureChanges: Source<SetChange<Element>> { abstract() }
+    var changes: Source<SetChange<Element>> { abstract() }
     var observable: Observable<Set<Element>> { abstract() }
     var observableCount: Observable<Int> { abstract() }
     final var observableSet: ObservableSet<Element> { return ObservableSet(box: self) }
@@ -132,7 +132,7 @@ class ObservableSetBox<Contents: ObservableSetType>: ObservableSetBase<Contents.
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
 
-    override var futureChanges: Source<SetChange<Element>> { return contents.futureChanges }
+    override var changes: Source<SetChange<Element>> { return contents.changes }
     override var observable: Observable<Set<Element>> { return contents.observable }
     override var observableCount: Observable<Int> { return contents.observableCount }
 }
@@ -151,7 +151,7 @@ class ObservableConstantSet<Element: Hashable>: ObservableSetBase<Element> {
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
 
-    override var futureChanges: Source<SetChange<Element>> { return Source.empty() }
+    override var changes: Source<SetChange<Element>> { return Source.empty() }
     override var observable: Observable<Set<Element>> { return Observable.constant(contents) }
     override var observableCount: Observable<Int> { return Observable.constant(contents.count) }
 }

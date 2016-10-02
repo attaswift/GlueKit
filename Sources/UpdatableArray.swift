@@ -41,7 +41,7 @@ extension UpdatableArrayType {
         return Updatable(
             getter: { self.value },
             setter: { self.value = $0 },
-            futureValues: { self.futureChanges.map { _ in self.value } }
+            futureValues: { self.changes.map { _ in self.value } }
         )
     }
 
@@ -52,7 +52,7 @@ extension UpdatableArrayType {
     public func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void {
         let array = ArrayVariable<Element>(self.value)
         var change = ArrayChange<Element>(initialCount: array.count)
-        let connection = array.futureChanges.connect { c in change.merge(with: c) }
+        let connection = array.changes.connect { c in change.merge(with: c) }
         block(array)
         connection.disconnect()
         self.apply(change)
@@ -147,7 +147,7 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
 
     public var isBuffered: Bool { return box.isBuffered }
     public var count: Int { return box.count }
-    public var futureChanges: Source<ArrayChange<Element>> { return box.futureChanges }
+    public var changes: Source<ArrayChange<Element>> { return box.changes }
 
     public func apply(_ change: ArrayChange<Element>) { box.apply(change) }
     public var value: [Element] {
@@ -235,7 +235,7 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: UpdatableArrayBa
 
     override var isBuffered: Bool { return contents.isBuffered }
     override var count: Int { return contents.count }
-    override var futureChanges: Source<ArrayChange<Element>> { return contents.futureChanges }
+    override var changes: Source<ArrayChange<Element>> { return contents.changes }
     override var observable: Observable<[Element]> { return contents.observable }
     override var observableCount: Observable<Int> { return contents.observableCount }
 }
