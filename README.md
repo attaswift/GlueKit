@@ -7,6 +7,9 @@
 [![Build Status](https://travis-ci.org/lorentey/GlueKit.svg?branch=master)](https://travis-ci.org/lorentey/GlueKit)
 [![Code Coverage](https://codecov.io/github/lorentey/GlueKit/coverage.svg?branch=master)](https://codecov.io/github/lorentey/GlueKit?branch=master)
 
+[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg)](https://github.com/Carthage/Carthage)
+[![CocoaPod Version](https://img.shields.io/cocoapods/v/GlueKit.svg)](http://cocoapods.org/pods/GlueKit)
+
 GlueKit is a Swift framework for creating observable values and connecting them up in interesting and useful ways.
 It is called GlueKit because it lets you stick stuff together. 
 
