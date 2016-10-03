@@ -39,6 +39,67 @@ Károly gave a talk on GlueKit during [Functional Swift Conference 2016][FunSwif
 [FunSwift16]: http://2016.funswiftconf.com
 [slides]: https://vellum.tech/assets/FunSwift2016%20-%20GlueKit.pdf
 
+## Installation
+### CocoaPods
+
+If you use CocoaPods, you can start using GlueKit by including it as a dependency in your  `Podfile`:
+
+```
+platform :ios, '8.0'
+use_frameworks!
+pod 'GlueKit', :git => 'https://github.com/lorentey/GlueKit.git'
+```
+
+(There are no official releases of GlueKit yet; the API is incomplete and very unstable for now.)
+
+### Carthage
+
+For Carthage, add the following line to your `Cartfile`:
+
+```
+github "lorentey/GlueKit" "<commit-hash>"
+```
+
+(You have to use a specific commit hash, because there are no official releases of GlueKit yet; the API is incomplete and very unstable for now.)
+
+### Swift Package Manager
+
+```
+import PackageDescription
+let package = Package(
+    name: "My Example Package",
+    dependencies: [.Package(url: "https://github.com/lorentey/GlueKit.git", branch: master)]
+)
+```
+
+### Standalone Development
+
+If you don't use CocoaPods, Carthage or SPM, you simply need to add `GlueKit.xcodeproj` and `BTree.xcodeproj` (from a clone of [BTree][btree]) to your project's `xcworkspace`. You can put the clones of GlueKit and BTree wherever you like on disk, but it is a good idea to set them up as submodules of your application's top-level Git repository.
+
+[btree]: https://github.com/lorentey/BTree
+
+To link your application binary with GlueKit, just add `GlueKit.framework` from the GlueKit project and `BTree.framework` from the BTree project to the Embedded Binaries section of your app target's General page in Xcode. As long as the GlueKit and BTree project files are referenced in your workspace, these frameworks will be listed in the "Choose items to add" sheet that opens when you click on the "+" button of your target's Embedded Binaries list.
+
+There is no need to do any additional setup beyond adding the framework targets to Embedded Binaries.
+
+### Working on GlueKit Itself
+
+If you want to do some work on GlueKit on its own, without embedding it in an application, simply clone this repo with the `--recursive` option, open `GlueKit.xcworkspace`, and start hacking.
+
+```
+git clone --recursive https://github.com/lorentey/GlueKit.git GlueKit
+open GlueKit/GlueKit.xcworkspace
+```
+
+### Importing GlueKit
+
+Once you've made GlueKit available in your project, you need to import it at the top of each  `.swift` file in 
+which you want to use its features:
+
+```
+import GlueKit
+```
+
 ## Similar frameworks
 
 Some of GlueKit's constructs can be matched with those in discrete reactive frameworks, such as 
