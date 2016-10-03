@@ -64,12 +64,10 @@ github "lorentey/GlueKit" "<commit-hash>"
 
 ### Swift Package Manager
 
+For Swift Package Manager, add the following entry to the dependencies list inside your `Package.swift` file:
+
 ```
-import PackageDescription
-let package = Package(
-    name: "My Example Package",
-    dependencies: [.Package(url: "https://github.com/lorentey/GlueKit.git", branch: master)]
-)
+.Package(url: "https://github.com/lorentey/GlueKit.git", branch: master)
 ```
 
 ### Standalone Development
