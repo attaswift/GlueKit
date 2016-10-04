@@ -10,7 +10,7 @@ import XCTest
 import GlueKit
 
 private class TestObservable: ObservableValueType {
-    var _signal = Signal<ValueChange<Int>>()
+    var _signal = Signal<SimpleChange<Int>>()
 
     var value: Int = 0 {
         didSet {
@@ -18,7 +18,7 @@ private class TestObservable: ObservableValueType {
         }
     }
 
-    var changes: Source<ValueChange<Int>> { return _signal.source }
+    var changes: Source<SimpleChange<Int>> { return _signal.source }
 }
 
 class ObservableTests: XCTestCase {

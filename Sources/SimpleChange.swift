@@ -1,5 +1,5 @@
 //
-//  ValueChange.swift
+//  SimpleChange.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-10-04.
@@ -9,7 +9,7 @@
 import Foundation
 
 /// A simple change description that includes a snapshot of the value before and after the change.
-public struct ValueChange<Value>: ChangeType {
+public struct SimpleChange<Value>: ChangeType {
     public let old: Value
     public let new: Value
 
@@ -27,15 +27,19 @@ public struct ValueChange<Value>: ChangeType {
         value = new
     }
 
-    public func merged(with next: ValueChange) -> ValueChange {
+    public func applied(on value: Value) -> Value {
+        return new
+    }
+
+    public func merged(with next: SimpleChange) -> SimpleChange {
         return .init(from: old, to: next.new)
     }
 
-    public func reversed() -> ValueChange {
+    public func reversed() -> SimpleChange {
         return .init(from: new, to: old)
     }
 
-    public func map<R>(_ transform: (Value) -> R) -> ValueChange<R> {
+    public func map<R>(_ transform: (Value) -> R) -> SimpleChange<R> {
         return .init(from: transform(old), to: transform(new))
     }
 }

@@ -33,7 +33,7 @@ public protocol ObservableValueType: ObservableType, CustomPlaygroundQuickLookab
     var value: Value { get }
 
     /// A source that delivers change descriptions whenever the value of this observable changes.
-    var changes: Source<ValueChange<Value>> { get }
+    var changes: Source<SimpleChange<Value>> { get }
 
     /// A source that delivers new values whenever this observable changes.
     var futureValues: Source<Value> { get }
@@ -80,7 +80,7 @@ extension ObservableValueType {
 
 /// The type lifted representation of an ObservableValueType that contains a single value with simple changes.
 public struct Observable<Value>: ObservableValueType {
-    public typealias Change = ValueChange<Value>
+    public typealias Change = SimpleChange<Value>
 
     private let box: ObservableBoxBase<Value>
 
@@ -91,7 +91,7 @@ public struct Observable<Value>: ObservableValueType {
     /// Initializes an Observable from the given getter closure and source of future changes.
     /// @param getter A closure that returns the current value of the observable at the time of the call.
     /// @param futureValues A closure that returns a source that triggers whenever the observable changes.
-    public init(getter: @escaping (Void) -> Value, changes: @escaping (Void) -> Source<ValueChange<Value>>) {
+    public init(getter: @escaping (Void) -> Value, changes: @escaping (Void) -> Source<SimpleChange<Value>>) {
         self.box = ObservableClosureBox(getter: getter, changes: changes)
     }
 
@@ -107,7 +107,7 @@ public struct Observable<Value>: ObservableValueType {
 
 internal class ObservableBoxBase<Value>: ObservableValueType {
     var value: Value { abstract() }
-    var changes: Source<ValueChange<Value>> { abstract() }
+    var changes: Source<SimpleChange<Value>> { abstract() }
     var futureValues: Source<Value> { return changes.map { $0.new } }
 
     final var observable: Observable<Value> {
@@ -122,21 +122,21 @@ internal class ObservableBox<Base: ObservableValueType>: ObservableBoxBase<Base.
         self.base = base
     }
     override var value: Base.Value { return base.value }
-    override var changes: Source<ValueChange<Base.Value>> { return base.changes }
+    override var changes: Source<SimpleChange<Base.Value>> { return base.changes }
     override var futureValues: Source<Base.Value> { return base.futureValues }
 }
 
 private class ObservableClosureBox<Value>: ObservableBoxBase<Value> {
     private let _value: () -> Value
-    private let _changes: () -> Source<ValueChange<Value>>
+    private let _changes: () -> Source<SimpleChange<Value>>
 
-    public init(getter: @escaping (Void) -> Value, changes: @escaping (Void) -> Source<ValueChange<Value>>) {
+    public init(getter: @escaping (Void) -> Value, changes: @escaping (Void) -> Source<SimpleChange<Value>>) {
         self._value = getter
         self._changes = changes
     }
 
     override var value: Value { return _value() }
-    override var changes: Source<ValueChange<Value>> { return _changes() }
+    override var changes: Source<SimpleChange<Value>> { return _changes() }
 }
 
 public extension ObservableValueType {

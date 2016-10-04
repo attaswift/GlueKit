@@ -49,12 +49,12 @@ extension ObservableArrayType {
         return self[index ..< index + 1].first!
     }
 
-    internal var valueChanges: Source<ValueChange<Base>> {
+    internal var valueChanges: Source<SimpleChange<Base>> {
         var value = self.value
-        return self.changes.map { (c: Change) -> ValueChange<Base> in
+        return self.changes.map { (c: ArrayChange<Element>) -> SimpleChange<Base> in
             let old = value
             value.apply(c)
-            return ValueChange(from: old, to: value)
+            return SimpleChange(from: old, to: value)
         }
     }
 

@@ -43,7 +43,7 @@ extension UIDevice {
                             var orientation = self.orientation
                             return self.orientationSource.map { value in
                                 defer { orientation = value }
-                                return ValueChange<UIDeviceOrientation>(from: orientation, to: value) }
+                                return SimpleChange<UIDeviceOrientation>(from: orientation, to: value) }
         })
     }
 

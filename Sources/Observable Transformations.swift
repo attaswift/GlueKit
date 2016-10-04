@@ -27,7 +27,7 @@ internal class BufferedObservable<Base: ObservableValueType>: ObservableValueTyp
         }
     }
 
-    var changes: Source<ValueChange<Base.Value>> {
+    var changes: Source<SimpleChange<Base.Value>> {
         return base.changes
     }
     var futureValues: Source<Base.Value> {
@@ -95,7 +95,7 @@ public final class BinaryCompositeObservable<Input1: ObservableValueType, Input2
     private let first: Input1
     private let second: Input2
     private let combinator: (Input1.Value, Input2.Value) -> Value
-    private var signal = OwningSignal<ValueChange<Value>>()
+    private var signal = OwningSignal<SimpleChange<Value>>()
 
     public init(first: Input1, second: Input2, combinator: @escaping (Input1.Value, Input2.Value) -> Value) {
         self.first = first
@@ -111,14 +111,14 @@ public final class BinaryCompositeObservable<Input1: ObservableValueType, Input2
         if let value = _value { return value }
         return combinator(first.value, second.value)
     }
-    public var changes: Source<ValueChange<Value>> { return signal.with(self).source }
+    public var changes: Source<SimpleChange<Value>> { return signal.with(self).source }
 
     private var _firstValue: Input1.Value? = nil
     private var _secondValue: Input2.Value? = nil
     private var _value: Value? = nil
     private var _connections: (Connection, Connection)? = nil
 
-    internal func start(_ signal: Signal<ValueChange<Value>>) {
+    internal func start(_ signal: Signal<SimpleChange<Value>>) {
         assert(_connections == nil)
         let v1 = first.value
         let v2 = second.value
@@ -131,19 +131,19 @@ public final class BinaryCompositeObservable<Input1: ObservableValueType, Input2
             let new = self.combinator(change.new, self._secondValue!)
             self._firstValue = change.new
             self._value = new
-            self.signal.send(ValueChange(from: old, to: new))
+            self.signal.send(SimpleChange(from: old, to: new))
         }
         let c2 = second.changes.connect { [unowned self] change in
             let old = self._value!
             let new = self.combinator(self._firstValue!, change.new)
             self._secondValue = change.new
             self._value = new
-            self.signal.send(ValueChange(from: old, to: new))
+            self.signal.send(SimpleChange(from: old, to: new))
         }
         _connections = (c1, c2)
     }
 
-    internal func stop(_ signal: Signal<ValueChange<Value>>) {
+    internal func stop(_ signal: Signal<SimpleChange<Value>>) {
         _connections!.0.disconnect()
         _connections!.1.disconnect()
         _value = nil
@@ -192,7 +192,7 @@ internal final class CompositeUpdatable<A: UpdatableType, B: UpdatableType>: Upd
     typealias Value = (A.Value, B.Value)
     private let first: A
     private let second: B
-    private var signal = OwningSignal<ValueChange<Value>>()
+    private var signal = OwningSignal<SimpleChange<Value>>()
 
     private var firstValue: A.Value? = nil
     private var secondValue: B.Value? = nil
@@ -203,7 +203,7 @@ internal final class CompositeUpdatable<A: UpdatableType, B: UpdatableType>: Upd
         self.second = second
     }
 
-    final var changes: Source<ValueChange<Value>> { return signal.with(self).source }
+    final var changes: Source<SimpleChange<Value>> { return signal.with(self).source }
 
     final var value: Value {
         get {
@@ -223,7 +223,7 @@ internal final class CompositeUpdatable<A: UpdatableType, B: UpdatableType>: Upd
         }
     }
 
-    final func start(_ signal: Signal<ValueChange<Value>>) {
+    final func start(_ signal: Signal<SimpleChange<Value>>) {
         precondition(connections == nil)
         firstValue = first.value
         secondValue = second.value
@@ -231,18 +231,18 @@ internal final class CompositeUpdatable<A: UpdatableType, B: UpdatableType>: Upd
             let old = (change.old, self.secondValue!)
             let new = (change.new, self.secondValue!)
             self.firstValue = change.new
-            signal.send(ValueChange(from: old, to: new))
+            signal.send(SimpleChange(from: old, to: new))
         }
         let c2 = second.changes.connect { [unowned self] change in
             let old = (self.firstValue!, change.old)
             let new = (self.firstValue!, change.new)
             self.secondValue = change.new
-            signal.send(ValueChange(from: old, to: new))
+            signal.send(SimpleChange(from: old, to: new))
         }
         connections = (c1, c2)
     }
 
-    final func stop(_ signal: Signal<ValueChange<Value>>) {
+    final func stop(_ signal: Signal<SimpleChange<Value>>) {
         connections!.0.disconnect()
         connections!.1.disconnect()
         firstValue = nil

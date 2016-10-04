@@ -263,10 +263,10 @@
 		BBE4DF411DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
 		BBE4DF421DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
 		BBE4DF431DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
-		BBE4DF451DA3A908005EC162 /* ValueChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* ValueChange.swift */; };
-		BBE4DF461DA3A908005EC162 /* ValueChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* ValueChange.swift */; };
-		BBE4DF471DA3A908005EC162 /* ValueChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* ValueChange.swift */; };
-		BBE4DF481DA3A908005EC162 /* ValueChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* ValueChange.swift */; };
+		BBE4DF451DA3A908005EC162 /* SimpleChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* SimpleChange.swift */; };
+		BBE4DF461DA3A908005EC162 /* SimpleChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* SimpleChange.swift */; };
+		BBE4DF471DA3A908005EC162 /* SimpleChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* SimpleChange.swift */; };
+		BBE4DF481DA3A908005EC162 /* SimpleChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* SimpleChange.swift */; };
 		BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
@@ -409,7 +409,7 @@
 		BBC4AE4D1D9A829500FF7DE0 /* FilteredArrayTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilteredArrayTests.swift; sourceTree = "<group>"; };
 		BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTools.swift; sourceTree = "<group>"; };
 		BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableType.swift; sourceTree = "<group>"; };
-		BBE4DF441DA3A908005EC162 /* ValueChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueChange.swift; sourceTree = "<group>"; };
+		BBE4DF441DA3A908005EC162 /* SimpleChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleChange.swift; sourceTree = "<group>"; };
 		BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RefList.swift; sourceTree = "<group>"; };
 		BBF400631DA108E900DA0B2C /* ObservableContains.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableContains.swift; sourceTree = "<group>"; };
 		BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSUserDefaults Support.swift"; sourceTree = "<group>"; };
@@ -738,7 +738,7 @@
 		BBE4DF3E1DA3A869005EC162 /* Observable Values */ = {
 			isa = PBXGroup;
 			children = (
-				BBE4DF441DA3A908005EC162 /* ValueChange.swift */,
+				BBE4DF441DA3A908005EC162 /* SimpleChange.swift */,
 				BBB55B291C8FCC810050DDA9 /* ObservableValue.swift */,
 				BBB55B331C8FCC820050DDA9 /* Updatable.swift */,
 				BBB55B351C8FCC820050DDA9 /* Variable.swift */,
@@ -1072,7 +1072,7 @@
 				BBC1F1BD1D7AEF3F00A320F5 /* ChangeTrackingSet.swift in Sources */,
 				BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BBB55B7E1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
-				BBE4DF451DA3A908005EC162 /* ValueChange.swift in Sources */,
+				BBE4DF451DA3A908005EC162 /* SimpleChange.swift in Sources */,
 				BBB55B661C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BB69A8361D6B7F9B001D2821 /* FilteredSet.swift in Sources */,
 				BB69A8321D6B7F11001D2821 /* ObservableSetReference.swift in Sources */,
@@ -1155,7 +1155,7 @@
 				BB69A8051D6B344D001D2821 /* UpdatableArray.swift in Sources */,
 				BBE4DF411DA3A88C005EC162 /* ObservableType.swift in Sources */,
 				BBAA826E1C91D17400586903 /* Updatable.swift in Sources */,
-				BBE4DF461DA3A908005EC162 /* ValueChange.swift in Sources */,
+				BBE4DF461DA3A908005EC162 /* SimpleChange.swift in Sources */,
 				BBC2A82A1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BB8D366B1DA10F5D000D44C5 /* ObservableContains.swift in Sources */,
 				BB69A80D1D6B472E001D2821 /* SelectEach.swift in Sources */,
@@ -1236,7 +1236,7 @@
 				BB69A8061D6B344D001D2821 /* UpdatableArray.swift in Sources */,
 				BBE4DF421DA3A88C005EC162 /* ObservableType.swift in Sources */,
 				BBB55B781C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
-				BBE4DF471DA3A908005EC162 /* ValueChange.swift in Sources */,
+				BBE4DF471DA3A908005EC162 /* SimpleChange.swift in Sources */,
 				BBB55B801C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BBF400661DA108E900DA0B2C /* ObservableContains.swift in Sources */,
 				BB69A80E1D6B472F001D2821 /* SelectEach.swift in Sources */,
@@ -1313,7 +1313,7 @@
 				BB69A80F1D6B472F001D2821 /* SelectEach.swift in Sources */,
 				BB1657EA1D71D65900094BAC /* BatchedChanges.swift in Sources */,
 				BB69A8351D6B7F12001D2821 /* ObservableSetReference.swift in Sources */,
-				BBE4DF481DA3A908005EC162 /* ValueChange.swift in Sources */,
+				BBE4DF481DA3A908005EC162 /* SimpleChange.swift in Sources */,
 				BBB55B511C8FCC820050DDA9 /* Locks.swift in Sources */,
 				BB69A8071D6B344E001D2821 /* UpdatableArray.swift in Sources */,
 				BBB55B911C8FCC820050DDA9 /* Variable.swift in Sources */,

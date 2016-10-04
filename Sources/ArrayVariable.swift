@@ -58,7 +58,7 @@ public final class ArrayVariable<E>: UpdatableArrayType {
         return _changeSignal.source
     }
 
-    internal var valueChanges: Source<ValueChange<Value>> {
+    internal var valueChanges: Source<SimpleChange<Value>> {
         var v = value
         return changes.map { change in
             let old = v

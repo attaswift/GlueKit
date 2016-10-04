@@ -75,7 +75,7 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         return _changeSignal.source
     }
 
-    internal var valueChanges: Source<ValueChange<Value>> {
+    internal var valueChanges: Source<SimpleChange<Value>> {
         var v = _value
         return _changeSignal.signal.map { change in
             let old = v

@@ -53,7 +53,7 @@ private class ObservableForValueField<Parent: ObservableValueType, Field: Observ
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var signal = OwningSignal<ValueChange<Value>>()
+    private var signal = OwningSignal<SimpleChange<Value>>()
     private var currentValue: Field.Value? = nil
     private var parentConnection: Connection? = nil
     private var fieldConnection: Connection? = nil
@@ -63,14 +63,14 @@ private class ObservableForValueField<Parent: ObservableValueType, Field: Observ
         return key(parent.value).value
     }
 
-    var changes: Source<ValueChange<Value>> { return signal.with(self).source }
+    var changes: Source<SimpleChange<Value>> { return signal.with(self).source }
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    func start(_ signal: Signal<ValueChange<Value>>) {
+    func start(_ signal: Signal<SimpleChange<Value>>) {
         precondition(parentConnection == nil)
         let field = key(parent.value)
         currentValue = field.value
@@ -81,7 +81,7 @@ private class ObservableForValueField<Parent: ObservableValueType, Field: Observ
             let new = field.value
             self.currentValue = new
             self.connect(to: field)
-            signal.send(ValueChange(from: old, to: new))
+            signal.send(SimpleChange(from: old, to: new))
         }
     }
 
@@ -93,7 +93,7 @@ private class ObservableForValueField<Parent: ObservableValueType, Field: Observ
         }
     }
 
-    func stop(_ signal: Signal<ValueChange<Value>>) {
+    func stop(_ signal: Signal<SimpleChange<Value>>) {
         precondition(parentConnection != nil)
         fieldConnection?.disconnect()
         parentConnection?.disconnect()

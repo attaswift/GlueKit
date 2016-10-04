@@ -41,7 +41,7 @@ public struct Updatable<Value>: UpdatableType {
         self.box = box
     }
 
-    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, changes: @escaping (Void) -> Source<ValueChange<Value>>) {
+    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, changes: @escaping (Void) -> Source<SimpleChange<Value>>) {
         self.box = UpdatableClosureBox(getter: getter, setter: setter, changes: changes)
     }
 
@@ -63,7 +63,7 @@ public struct Updatable<Value>: UpdatableType {
         box.receive(value)
     }
 
-    public var changes: Source<ValueChange<Value>> {
+    public var changes: Source<SimpleChange<Value>> {
         return box.changes
     }
 
@@ -100,7 +100,7 @@ internal class UpdatableBox<Base: UpdatableType>: UpdatableBoxBase<Base.Value> {
         get { return base.value }
         set { base.value = newValue }
     }
-    override var changes: Source<ValueChange<Base.Value>> { return base.changes }
+    override var changes: Source<SimpleChange<Base.Value>> { return base.changes }
     override var futureValues: Source<Base.Value> { return base.futureValues }
 }
 
@@ -110,9 +110,9 @@ private class UpdatableClosureBox<Value>: UpdatableBoxBase<Value> {
     /// The setter closure for updating the current value of this updatable.
     let setter: (Value) -> Void
     /// A closure returning a source providing the values of future updates to this updatable.
-    let changeSource: (Void) -> Source<ValueChange<Value>>
+    let changeSource: (Void) -> Source<SimpleChange<Value>>
 
-    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, changes: @escaping (Void) -> Source<ValueChange<Value>>) {
+    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, changes: @escaping (Void) -> Source<SimpleChange<Value>>) {
         self.getter = getter
         self.setter = setter
         self.changeSource = changes
@@ -127,7 +127,7 @@ private class UpdatableClosureBox<Value>: UpdatableBoxBase<Value> {
         setter(value)
     }
 
-    override var changes: Source<ValueChange<Value>> {
+    override var changes: Source<SimpleChange<Value>> {
         return changeSource()
     }
 }

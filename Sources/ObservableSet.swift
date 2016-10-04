@@ -32,12 +32,12 @@ extension ObservableSetType {
     public func isSubset(of other: Set<Element>) -> Bool { return value.isSubset(of: other) }
     public func isSuperset(of other: Set<Element>) -> Bool { return value.isSuperset(of: other) }
 
-    internal var valueChanges: Source<ValueChange<Base>> {
+    internal var valueChanges: Source<SimpleChange<Base>> {
         var value = self.value
-        return self.changes.map { (c: Change) -> ValueChange<Base> in
+        return self.changes.map { (c: SetChange<Element>) -> SimpleChange<Base> in
             let old = value
             value.apply(c)
-            return ValueChange(from: old, to: value)
+            return SimpleChange(from: old, to: value)
         }
     }
 
@@ -46,7 +46,7 @@ extension ObservableSetType {
     }
 
     public var observableCount: Observable<Int> {
-        let changes: () -> Source<ValueChange<Int>> = {
+        let changes: () -> Source<SimpleChange<Int>> = {
             var count = self.count
             return self.changes.map { change in
                 let old = count

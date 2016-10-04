@@ -48,7 +48,7 @@ public class Property<Storage: StorageType>: UpdatableType {
 
     private var storage: Storage
 
-    private lazy var signal = LazySignal<ValueChange<Value>>()
+    private lazy var signal = LazySignal<SimpleChange<Value>>()
 
     /// Create a new variable with an initial value.
     internal init(_ storage: Storage) {
@@ -61,7 +61,7 @@ public class Property<Storage: StorageType>: UpdatableType {
         set { setValue(newValue) }
     }
 
-    public final var changes: Source<ValueChange<Value>> { return self.signal.source }
+    public final var changes: Source<SimpleChange<Value>> { return self.signal.source }
 
     /// Update the value of this variable, and send the new value to all sinks that are currently connected.
     /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
