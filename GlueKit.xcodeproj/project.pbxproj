@@ -263,6 +263,13 @@
 		BBE4DF461DA3A908005EC162 /* SimpleChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* SimpleChange.swift */; };
 		BBE4DF471DA3A908005EC162 /* SimpleChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* SimpleChange.swift */; };
 		BBE4DF481DA3A908005EC162 /* SimpleChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* SimpleChange.swift */; };
+		BBE4DF4A1DA409EE005EC162 /* DistinctUnion.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF491DA409EE005EC162 /* DistinctUnion.swift */; };
+		BBE4DF4B1DA409EE005EC162 /* DistinctUnion.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF491DA409EE005EC162 /* DistinctUnion.swift */; };
+		BBE4DF4C1DA409EE005EC162 /* DistinctUnion.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF491DA409EE005EC162 /* DistinctUnion.swift */; };
+		BBE4DF4D1DA409EE005EC162 /* DistinctUnion.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF491DA409EE005EC162 /* DistinctUnion.swift */; };
+		BBE4DF531DA41372005EC162 /* DistinctUnionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF4E1DA412A0005EC162 /* DistinctUnionTests.swift */; };
+		BBE4DF541DA41373005EC162 /* DistinctUnionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF4E1DA412A0005EC162 /* DistinctUnionTests.swift */; };
+		BBE4DF551DA41373005EC162 /* DistinctUnionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF4E1DA412A0005EC162 /* DistinctUnionTests.swift */; };
 		BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
@@ -405,6 +412,8 @@
 		BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTools.swift; sourceTree = "<group>"; };
 		BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableType.swift; sourceTree = "<group>"; };
 		BBE4DF441DA3A908005EC162 /* SimpleChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleChange.swift; sourceTree = "<group>"; };
+		BBE4DF491DA409EE005EC162 /* DistinctUnion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DistinctUnion.swift; sourceTree = "<group>"; };
+		BBE4DF4E1DA412A0005EC162 /* DistinctUnionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DistinctUnionTests.swift; sourceTree = "<group>"; };
 		BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RefList.swift; sourceTree = "<group>"; };
 		BBF400631DA108E900DA0B2C /* ObservableContains.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableContains.swift; sourceTree = "<group>"; };
 		BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSUserDefaults Support.swift"; sourceTree = "<group>"; };
@@ -659,6 +668,7 @@
 				BBB55B2D1C8FCC810050DDA9 /* SelectEach.swift */,
 				BBC1F1B71D7AEC8A00A320F5 /* ChangeTrackingArray.swift */,
 				BB82E3E01D98F34E0035DDAD /* FilteredArray.swift */,
+				BBE4DF491DA409EE005EC162 /* DistinctUnion.swift */,
 			);
 			name = "Observable Arrays";
 			sourceTree = "<group>";
@@ -696,6 +706,7 @@
 				BBB55BA01C8FCE2C0050DDA9 /* SelectFromValueTests.swift */,
 				BBB55B9F1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift */,
 				BBC4AE4D1D9A829500FF7DE0 /* FilteredArrayTests.swift */,
+				BBE4DF4E1DA412A0005EC162 /* DistinctUnionTests.swift */,
 			);
 			name = "Observable Arrays";
 			sourceTree = "<group>";
@@ -1088,6 +1099,7 @@
 				BBAA827D1C91D43700586903 /* Type Helpers.swift in Sources */,
 				BBB55B421C8FCC820050DDA9 /* Connector.swift in Sources */,
 				BB1657EC1D71F3E700094BAC /* Atomics.swift in Sources */,
+				BBE4DF4A1DA409EE005EC162 /* DistinctUnion.swift in Sources */,
 				BBB55B861C8FCC820050DDA9 /* Updatable.swift in Sources */,
 				BB69A8001D6B2377001D2821 /* BufferedArray.swift in Sources */,
 				BBB55B3E1C8FCC820050DDA9 /* Connection.swift in Sources */,
@@ -1130,6 +1142,7 @@
 				BBB55BC01C8FCE2C0050DDA9 /* SelectFromValueTests.swift in Sources */,
 				BBB55BC91C8FCE2C0050DDA9 /* SourceOperatorTests.swift in Sources */,
 				BBB55BB11C8FCE2C0050DDA9 /* MergedSourceTests.swift in Sources */,
+				BBE4DF531DA41372005EC162 /* DistinctUnionTests.swift in Sources */,
 				BB8D366E1DA116CB000D44C5 /* Bookshelf.swift in Sources */,
 				BBB55BB71C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,
 				BBB55BAB1C8FCE2C0050DDA9 /* ConnectionTests.swift in Sources */,
@@ -1157,6 +1170,7 @@
 				BB1657ED1D71F3E700094BAC /* Atomics.swift in Sources */,
 				BB69A8091D6B442C001D2821 /* ArrayVariable.swift in Sources */,
 				BBC4AE541D9ACA6800FF7DE0 /* SignalTools.swift in Sources */,
+				BBE4DF4B1DA409EE005EC162 /* DistinctUnion.swift in Sources */,
 				BB69A83C1D6B90F5001D2821 /* Concatenation.swift in Sources */,
 				BB69A8261D6B7798001D2821 /* UpdatableSet.swift in Sources */,
 				BB69A8331D6B7F11001D2821 /* ObservableSetReference.swift in Sources */,
@@ -1210,6 +1224,7 @@
 				BBB55BC11C8FCE2C0050DDA9 /* SelectFromValueTests.swift in Sources */,
 				BBB55BCA1C8FCE2C0050DDA9 /* SourceOperatorTests.swift in Sources */,
 				BBB55BB21C8FCE2C0050DDA9 /* MergedSourceTests.swift in Sources */,
+				BBE4DF541DA41373005EC162 /* DistinctUnionTests.swift in Sources */,
 				BB8D366F1DA116CB000D44C5 /* Bookshelf.swift in Sources */,
 				BBB55BB81C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,
 				BBB55BAC1C8FCE2C0050DDA9 /* ConnectionTests.swift in Sources */,
@@ -1237,6 +1252,7 @@
 				BB1657EE1D71F3E700094BAC /* Atomics.swift in Sources */,
 				BB69A80A1D6B442C001D2821 /* ArrayVariable.swift in Sources */,
 				BBC4AE551D9ACA6800FF7DE0 /* SignalTools.swift in Sources */,
+				BBE4DF4C1DA409EE005EC162 /* DistinctUnion.swift in Sources */,
 				BB69A83D1D6B90F5001D2821 /* Concatenation.swift in Sources */,
 				BB69A8281D6B779A001D2821 /* UpdatableSet.swift in Sources */,
 				BB69A8341D6B7F12001D2821 /* ObservableSetReference.swift in Sources */,
@@ -1278,6 +1294,7 @@
 				BB69A7F21D6AFF1A001D2821 /* Abstract.swift in Sources */,
 				BBC1F1BB1D7AEC8B00A320F5 /* ChangeTrackingArray.swift in Sources */,
 				BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */,
+				BBE4DF4D1DA409EE005EC162 /* DistinctUnion.swift in Sources */,
 				BB69A83E1D6B90F5001D2821 /* Concatenation.swift in Sources */,
 				BB69A7F61D6B1D7C001D2821 /* ChangeType.swift in Sources */,
 				BB69A80B1D6B442D001D2821 /* ArrayVariable.swift in Sources */,
@@ -1346,6 +1363,7 @@
 				BBB55BC21C8FCE2C0050DDA9 /* SelectFromValueTests.swift in Sources */,
 				BBB55BCB1C8FCE2C0050DDA9 /* SourceOperatorTests.swift in Sources */,
 				BBB55BB31C8FCE2C0050DDA9 /* MergedSourceTests.swift in Sources */,
+				BBE4DF551DA41373005EC162 /* DistinctUnionTests.swift in Sources */,
 				BB8D36701DA116CB000D44C5 /* Bookshelf.swift in Sources */,
 				BBB55BB91C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,
 				BBB55BAD1C8FCE2C0050DDA9 /* ConnectionTests.swift in Sources */,

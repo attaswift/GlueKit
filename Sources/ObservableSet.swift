@@ -44,16 +44,17 @@ extension ObservableSetType {
         return Observable(getter: { self.value }, changes: { self.valueChanges })
     }
 
-    public var observableCount: Observable<Int> {
-        let changes: () -> Source<SimpleChange<Int>> = {
-            var count = self.count
-            return self.changes.map { change in
-                let old = count
-                count += numericCast(change.inserted.count - change.removed.count)
-                return .init(from: old, to: count)
-            }
+    internal var countChanges: Source<SimpleChange<Int>> {
+        var count = self.count
+        return self.changes.map { change in
+            let old = count
+            count += numericCast(change.inserted.count - change.removed.count)
+            return .init(from: old, to: count)
         }
-        return Observable(getter: { self.count }, changes: changes)
+    }
+
+    public var observableCount: Observable<Int> {
+        return Observable(getter: { self.count }, changes: { self.countChanges })
     }
 
     public var observableSet: ObservableSet<Element> {
@@ -106,8 +107,9 @@ class ObservableSetBase<Element: Hashable>: ObservableSetType {
     func isSuperset(of other: Set<Element>) -> Bool { abstract() }
 
     var changes: Source<SetChange<Element>> { abstract() }
-    var observable: Observable<Set<Element>> { abstract() }
-    var observableCount: Observable<Int> { abstract() }
+    var observable: Observable<Set<Element>> { return Observable(getter: { self.value }, changes: { self.valueChanges }) }
+    var observableCount: Observable<Int> { return Observable(getter: { self.count }, changes: { self.countChanges }) }
+
     final var observableSet: ObservableSet<Element> { return ObservableSet(box: self) }
 
     final func hold(_ connection: Connection) {
