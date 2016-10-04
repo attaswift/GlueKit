@@ -20,17 +20,16 @@ import Foundation
 /// For a concrete observable array, see `ArrayVariable`.
 ///
 /// - SeeAlso: ObservableValueType, ObservableArray, UpdatableArrayType, ArrayVariable
-public protocol ObservableArrayType: CustomReflectable {
+public protocol ObservableArrayType: ObservableType, CustomReflectable {
     associatedtype Element
     typealias Base = Array<Element>
-    typealias Change = ArrayChange<Element>
 
     // Required methods
     var isBuffered: Bool { get }
     var count: Int { get }
     var value: Base { get }
     subscript(bounds: Range<Int>) -> ArraySlice<Element> { get }
-    var changes: Source<Change> { get }
+    var changes: Source<ArrayChange<Element>> { get }
 
     // Extras
     subscript(index: Int) -> Element { get }

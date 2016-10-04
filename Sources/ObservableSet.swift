@@ -8,10 +8,9 @@
 
 import Foundation
 
-public protocol ObservableSetType {
+public protocol ObservableSetType: ObservableType {
     associatedtype Element: Hashable
     typealias Base = Set<Element>
-    typealias Change = SetChange<Element>
 
     var isBuffered: Bool { get }
     var count: Int { get }
