@@ -43,6 +43,8 @@ public protocol ChangeType {
 
 
 extension ChangeType {
+    /// Applies this change on `value` and returns the result.
+    /// Note that not all changes may be applicable on all values.
     public func applied(on value: Value) -> Value {
         var result = value
         self.apply(on: &result)
