@@ -8,13 +8,9 @@
 
 import Foundation
 
-//MARK: ChangeType
-
-/// Describes a change to an observable that implements a collection of values.
-/// An instance of a type implementing this protocol contains just enough information to reproduce the result of the
-/// change from the previous value of the observable.
-///
-/// - SeeAlso: ArrayChange, ObservableArray, ArrayVariable
+/// Describes a change to an observable value.
+/// An instance of a type implementing this protocol contains just enough information to describe the difference
+/// between the old value and the new value of the observable.
 public protocol ChangeType {
     associatedtype Value
 
@@ -26,9 +22,13 @@ public protocol ChangeType {
     /// changes to a collection.
     var isEmpty: Bool { get }
 
-    /// Applies this change on `value`, returning the new value.
-    /// Note that `value` must be the same value as the one this change was created from.
-    func apply(on value: Value) -> Value
+    /// Applies this change on `value` in place.
+    /// Note that not all changes may be applicable on all values.
+    func apply(on value: inout Value)
+
+    /// Applies this change on `value` and returns the result.
+    /// Note that not all changes may be applicable on all values.
+    func applied(on value: Value) -> Value
 
     /// Merge this change with the `next` change. The result is a single change description that describes the
     /// change of performing `self` followed by `next`.
@@ -36,4 +36,16 @@ public protocol ChangeType {
     /// The resulting instance may take a shortcut when producing the result value if some information in `self`
     /// is overwritten by `next`.
     func merged(with next: Self) -> Self
+
+    /// Reverse the direction of this change, i.e., return a change that undoes the effect of this change.
+    func reversed() -> Self
+}
+
+
+extension ChangeType {
+    public func applied(on value: Value) -> Value {
+        var result = value
+        self.apply(on: &result)
+        return result
+    }
 }

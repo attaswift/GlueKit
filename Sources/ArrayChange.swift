@@ -372,6 +372,8 @@ public struct ArrayChange<Element>: ChangeType {
     /// The expected change in the count of elements in the array as a result of this change.
     public var deltaCount: Int { return modifications.reduce(0) { s, mod in s + mod.deltaCount } }
 
+    public var countChange: ValueChange<Int> { return .init(from: initialCount, to: finalCount) }
+
     public var finalCount: Int { return initialCount + deltaCount }
 
     /// The sequence of independent modifications to apply, in order of the start indexes of their ranges.
@@ -433,12 +435,9 @@ public struct ArrayChange<Element>: ChangeType {
         modifications.insert(m, at: 0)
     }
 
-    /// Apply this change on `value`, which must have a count equal to the `initialCount` of this change.
-    public func apply(on value: [Element]) -> [Element] {
+    public func apply(on value: inout Array<Element>) {
         precondition(value.count == initialCount)
-        var result = value
-        result.apply(self)
-        return result
+        value.apply(self)
     }
 
     /// Merge `other` into this change, modifying it in place.
@@ -455,6 +454,16 @@ public struct ArrayChange<Element>: ChangeType {
     public func merged(with other: ArrayChange<Element>) -> ArrayChange<Element> {
         var result = self
         result.merge(with: other)
+        return result
+    }
+
+    public func reversed() -> ArrayChange {
+        var result = ArrayChange(initialCount: self.finalCount)
+        var delta = 0
+        for mod in self.modifications {
+            result.add(mod.reversed.shift(delta))
+            delta -= mod.deltaCount
+        }
         return result
     }
 

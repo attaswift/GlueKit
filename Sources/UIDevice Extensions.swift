@@ -38,7 +38,13 @@ extension UIDevice {
     }
 
     public var observableOrientation: Observable<UIDeviceOrientation> {
-        return Observable(getter: { self.orientation }, futureValues: { self.orientationSource })
+        return Observable(getter: { self.orientation },
+                          changes: {
+                            var orientation = self.orientation
+                            return self.orientationSource.map { value in
+                                defer { orientation = value }
+                                return ValueChange<UIDeviceOrientation>(from: orientation, to: value) }
+        })
     }
 
     public var batterySource: Source<(UIDeviceBatteryState, Float)> {

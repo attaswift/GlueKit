@@ -14,7 +14,7 @@ extension ObservableSetType {
         return ObservableSetSimpleFilter<Self>(parent: self, test: test).observableSet
     }
 
-    public func filtered<TestResult: ObservableType>(test: @escaping (Element) -> TestResult) -> ObservableSet<Element> where TestResult.Value == Bool {
+    public func filtered<TestResult: ObservableValueType>(test: @escaping (Element) -> TestResult) -> ObservableSet<Element> where TestResult.Value == Bool {
         return ObservableSetComplexFilter<Self, TestResult>(parent: self, test: test).observableSet
     }
 
@@ -124,7 +124,7 @@ private class ObservableSetSimpleFilter<Parent: ObservableSetType>: ObservableSe
     }
 }
 
-private class ObservableSetComplexFilter<Parent: ObservableSetType, TestResult: ObservableType>: ObservableSetType, SignalDelegate where TestResult.Value == Bool {
+private class ObservableSetComplexFilter<Parent: ObservableSetType, TestResult: ObservableValueType>: ObservableSetType, SignalDelegate where TestResult.Value == Bool {
     typealias Element = Parent.Element
     typealias Change = SetChange<Element>
     typealias SignalValue = Change

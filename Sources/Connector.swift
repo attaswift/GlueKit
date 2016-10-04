@@ -46,12 +46,12 @@ public class Connector {
     }
 
     @discardableResult
-    public func connect<Source: ObservableType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
+    public func connect<Source: ObservableValueType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
         return source.values.connect(sink).putInto(self)
     }
 
     @discardableResult
-    public func connect<Source: ObservableType, Target: SinkType>(_ source: Source, to sink: Target) -> Connection where Source.Value == Target.SinkValue {
+    public func connect<Source: ObservableValueType, Target: SinkType>(_ source: Source, to sink: Target) -> Connection where Source.Value == Target.SinkValue {
         return source.values.connect(sink).putInto(self)
     }
 

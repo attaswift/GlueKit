@@ -32,8 +32,6 @@ public protocol UpdatableArrayType: ObservableArrayType {
 
     var updatable: Updatable<[Element]> { get }
     var updatableArray: UpdatableArray<Element> { get }
-
-    func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void
 }
 
 extension UpdatableArrayType {
@@ -41,7 +39,7 @@ extension UpdatableArrayType {
         return Updatable(
             getter: { self.value },
             setter: { self.value = $0 },
-            futureValues: { self.changes.map { _ in self.value } }
+            changes: { self.valueChanges }
         )
     }
 
@@ -49,12 +47,12 @@ extension UpdatableArrayType {
         return UpdatableArray(box: UpdatableArrayBox(self))
     }
 
-    public func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void {
+    public func modify(_ block: (ArrayVariable<Element>) throws -> Void) rethrows -> Void {
         let array = ArrayVariable<Element>(self.value)
         var change = ArrayChange<Element>(initialCount: array.count)
         let connection = array.changes.connect { c in change.merge(with: c) }
-        block(array)
-        connection.disconnect()
+        defer { connection.disconnect() }
+        try block(array)
         self.apply(change)
     }
 
@@ -164,8 +162,6 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
         nonmutating set { box[bounds] = newValue }
     }
 
-    public func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void { box.modify(block) }
-
     public var observable: Observable<Array<Element>> { return box.observable }
     public var observableCount: Observable<Int> { return box.observableCount }
     public var updatable: Updatable<[Element]> { return box.updatable }
@@ -189,11 +185,11 @@ internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, Updata
         set { abstract() }
     }
 
-    func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void { abstract() }
-
-    // The following are defined in extensions but may be specialized in implementations:
-
-    var updatable: Updatable<[Element]> { abstract() }
+    var updatable: Updatable<[Element]> {
+        return Updatable(getter: { self.value },
+                         setter: { self.value = $0 },
+                         changes: { self.valueChanges })
+    }
 
     final var updatableArray: UpdatableArray<Element> { return UpdatableArray(box: self) }
 }
@@ -225,9 +221,6 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: UpdatableArrayBa
         get { return contents[bounds] }
         set { contents[bounds] = newValue }
     }
-
-    override func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void { contents.modify(block) }
-
 
     override var updatable: Updatable<Array<Contents.Element>> {
         return contents.updatable

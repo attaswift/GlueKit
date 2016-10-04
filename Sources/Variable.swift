@@ -48,7 +48,7 @@ public class Property<Storage: StorageType>: UpdatableType {
 
     private var storage: Storage
 
-    private lazy var signal = LazySignal<Value>()
+    private lazy var signal = LazySignal<ValueChange<Value>>()
 
     /// Create a new variable with an initial value.
     internal init(_ storage: Storage) {
@@ -61,14 +61,14 @@ public class Property<Storage: StorageType>: UpdatableType {
         set { setValue(newValue) }
     }
 
-    /// A source that reports all future values of this variable.
-    public final var futureValues: Source<Value> { return self.signal.source }
+    public final var changes: Source<ValueChange<Value>> { return self.signal.source }
 
     /// Update the value of this variable, and send the new value to all sinks that are currently connected.
     /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
     public final func setValue(_ value: Value) {
+        let old = storage.value
         storage.value = value
-        signal.sendIfConnected(value)
+        signal.sendIfConnected(.init(from: old, to: value))
     }
 }
 
@@ -124,23 +124,17 @@ public final class IntVariable: Variable<Int>, ExpressibleByIntegerLiteral {
     }
 }
 
-public final class FloatVariable: Variable<Float>, ExpressibleByFloatLiteral {
-    public override init(_ value: Float) {
+public final class FloatingPointVariable<F: FloatingPoint>: Variable<F>, ExpressibleByFloatLiteral where F: ExpressibleByFloatLiteral {
+    public override init(_ value: F) {
         super.init(value)
     }
-    public init(floatLiteral value: FloatLiteralType) {
-        super.init(Float(value))
+    public init(floatLiteral value: F.FloatLiteralType) {
+        super.init(F(floatLiteral: value))
     }
 }
 
-public final class DoubleVariable: Variable<Double>, ExpressibleByFloatLiteral {
-    public override init(_ value: Double) {
-        super.init(value)
-    }
-    public init(floatLiteral value: FloatLiteralType) {
-        super.init(value)
-    }
-}
+public typealias FloatVariable = FloatingPointVariable<Float>
+public typealias DoubleVariable = FloatingPointVariable<Double>
 
 public final class StringVariable: Variable<String>, ExpressibleByStringLiteral {
     public override init(_ value: String) {

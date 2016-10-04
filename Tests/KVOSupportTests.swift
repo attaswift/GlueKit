@@ -58,10 +58,10 @@ class KVOSupportTests: XCTestCase {
     func testBasicKVOWithIntegers() {
         let object = Fixture()
 
-        let countSource = object.source(forKeyPath: "count")
+        let count = object.observable(forKeyPath: "count", as: Int.self)
 
         var r = [Int]()
-        let c = countSource.asInt.connect { r.append($0) }
+        let c = count.changes.connect { r.append($0.new) }
 
         object.count = 1
         object.count = 2
@@ -76,7 +76,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String]()
-        let c = object.source(forKeyPath: "name").asString.connect { (s: String) -> Void in r.append(s) }
+        let c = object.observable(forKeyPath: "name", as: String.self).changes.connect { r.append($0.new) }
 
         object.name = "Alice"
         object.name = "Bob"
@@ -93,15 +93,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String?]()
-        let c = object.source(forKeyPath: "optional").connect { (v: Any?) -> Void in
-            if let s = v as? String {
-                r.append(s)
-            }
-            else {
-                XCTAssertNil(v)
-                r.append(nil)
-            }
-        }
+        let c = object.observable(forKeyPath: "optional", as: (String?).self).changes.connect { r.append($0.new) }
 
         object.optional = "Alice"
         object.optional = nil
@@ -122,10 +114,10 @@ class KVOSupportTests: XCTestCase {
     func testDisconnectActuallyDisconnects() {
         let object = Fixture()
 
-        let countSource = object.source(forKeyPath: "count")
+        let count = object.observable(forKeyPath: "count", as: Int.self)
 
         var r = [Int]()
-        let c = countSource.asInt.connect { r.append($0) }
+        let c = count.changes.connect { r.append($0.new) }
 
         object.count = 1
 
@@ -138,14 +130,14 @@ class KVOSupportTests: XCTestCase {
     }
 
     func testSourceRetainsObject() {
-        var source: Source<Int>? = nil
+        var source: Source<ValueChange<Int>>? = nil
         weak var weakObject: NSObject? = nil
 
         do {
             let object = Fixture()
             weakObject = object
 
-            source = object.source(forKeyPath: "count").asInt
+            source = object.observable(forKeyPath: "count", as: Int.self).changes
         }
 
         XCTAssertNotNil(weakObject)
@@ -163,7 +155,7 @@ class KVOSupportTests: XCTestCase {
             let object = Fixture()
             weakObject = object
 
-            c = object.source(forKeyPath: "count").asInt.connect { _ in }
+            c = object.observable(forKeyPath: "count", as: Int.self).changes.connect { _ in }
         }
 
         XCTAssertNotNil(weakObject)
@@ -202,10 +194,10 @@ class KVOSupportTests: XCTestCase {
 
         let object = Fixture()
 
-        let countSource = object.source(forKeyPath: "count")
+        let count = object.observable(forKeyPath: "count", as: Int.self)
 
         var s = ""
-        let c = countSource.asInt.connect { i in
+        let c = count.futureValues.connect { i in
             s += " (\(i)"
             if i > 0 {
                 object.count = i - 1
@@ -261,17 +253,19 @@ class KVOSupportTests: XCTestCase {
 
         let object = Fixture()
 
-        let countSource = object.source(forKeyPath: "count")
+        let count = object.observable(forKeyPath: "count", as: Int.self)
 
         var s = ""
-        let c1 = countSource.asInt.connect { i in
+        let c1 = count.changes.connect { c in
+            let i = c.new
             s += " (\(i)"
             if i > 0 {
                 object.count = i - 1
             }
             s += ")"
         }
-        let c2 = countSource.asInt.connect { i in
+        let c2 = count.changes.connect { c in
+            let i = c.new
             s += " (\(i)"
             if i > 0 {
                 object.count = i - 1
@@ -287,7 +281,4 @@ class KVOSupportTests: XCTestCase {
         c1.disconnect()
         c2.disconnect()
     }
-
-
-
 }

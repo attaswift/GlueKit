@@ -9,25 +9,20 @@
 import XCTest
 import GlueKit
 
-private class TestObservable: ObservableType {
-    var _value: Int = 0
-    var _signal = Signal<Int>()
+private class TestObservable: ObservableValueType {
+    var _signal = Signal<ValueChange<Int>>()
 
-    var value: Int {
-        get {
-            return _value
-        }
-        set {
-            _value = newValue
-            _signal.send(_value)
+    var value: Int = 0 {
+        didSet {
+            _signal.send(.init(from: oldValue, to: value))
         }
     }
 
-    var futureValues: Source<Int> { return _signal.source }
+    var changes: Source<ValueChange<Int>> { return _signal.source }
 }
 
 class ObservableTests: XCTestCase {
-    func testObservableType_values_SendsInitialValue() {
+    func testObservableValueType_values_SendsInitialValue() {
         let test = TestObservable()
 
         var res = [Int]()
@@ -42,7 +37,7 @@ class ObservableTests: XCTestCase {
         XCTAssertEqual(res, [0, 1, 2])
     }
 
-    func testObservableType_values_SupportsNestedSendsBySerializingThem() {
+    func testObservableValueType_values_SupportsNestedSendsBySerializingThem() {
         let test = TestObservable()
         var s = ""
 
@@ -70,7 +65,7 @@ class ObservableTests: XCTestCase {
         c2.disconnect()
     }
 
-    func testObservableType_constant() {
+    func testObservableValueType_constant() {
         let constant = Observable.constant(1)
 
         XCTAssertEqual(constant.value, 1)

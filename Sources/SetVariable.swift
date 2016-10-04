@@ -15,7 +15,6 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
 
     fileprivate var _value: Base
     fileprivate var _changeSignal = LazySignal<Change>()
-    fileprivate var _valueSignal = LazySignal<Value>()
 
     public init() {
         _value = []
@@ -57,7 +56,6 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
             let v = _value
             _value = newValue
             _changeSignal.sendIfConnected(SetChange(removed: v, inserted: newValue))
-            _valueSignal.sendIfConnected(_value)
         }
     }
 
@@ -77,22 +75,29 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         return _changeSignal.source
     }
 
+    internal var valueChanges: Source<ValueChange<Value>> {
+        var v = _value
+        return _changeSignal.signal.map { change in
+            let old = v
+            v.apply(change)
+            return .init(from: old, to: v)
+        }
+    }
+
     public var observable: Observable<Set<Element>> {
-        return Observable(getter: { self._value }, futureValues: { self._valueSignal.source })
+        return Observable(getter: { self._value }, changes: { self.valueChanges.source })
     }
 
     public func apply(_ change: SetChange<Element>) {
         guard !change.isEmpty else { return }
         _value.apply(change)
         _changeSignal.sendIfConnected(change)
-        _valueSignal.sendIfConnected(_value)
     }
 
     public func remove(_ member: Element) {
         guard _value.contains(member) else { return }
         _value.remove(member)
         _changeSignal.sendIfConnected(SetChange(removed: [member], inserted: []))
-        _valueSignal.sendIfConnected(_value)
     }
 
     public func removeAll() {
@@ -100,15 +105,12 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         let value = self._value
         _value.removeAll()
         _changeSignal.sendIfConnected(SetChange(removed: value, inserted: []))
-        _valueSignal.sendIfConnected(_value)
-
     }
 
     public func insert(_ member: Element) {
         guard !_value.contains(member) else { return }
         _value.insert(member)
         _changeSignal.sendIfConnected(SetChange(removed: [], inserted: [member]))
-        _valueSignal.sendIfConnected(_value)
     }
 }
 
@@ -127,7 +129,6 @@ extension SetVariable {
         else {
             _changeSignal.sendIfConnected(SetChange(removed: [], inserted: [member]))
         }
-        _valueSignal.sendIfConnected(_value)
         return old
     }
 
@@ -140,7 +141,6 @@ extension SetVariable {
         else {
             _value.formUnion(other)
         }
-        _valueSignal.sendIfConnected(_value)
     }
 
     public func formIntersection(_ other: Set<Element>) {
@@ -152,7 +152,6 @@ extension SetVariable {
         else {
             _value.formIntersection(other)
         }
-        _valueSignal.sendIfConnected(_value)
     }
 
     public func formSymmetricDifference(_ other: Set<Element>) {
@@ -165,7 +164,6 @@ extension SetVariable {
         else {
             _value.formSymmetricDifference(other)
         }
-        _valueSignal.sendIfConnected(_value)
     }
 
     public func subtract(_ other: Set<Element>) {
@@ -177,6 +175,5 @@ extension SetVariable {
         else {
             _value.subtract(other)
         }
-        _valueSignal.sendIfConnected(_value)
     }
 }

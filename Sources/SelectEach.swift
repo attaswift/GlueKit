@@ -10,17 +10,17 @@ import Foundation
 
 extension ObservableArrayType {
     /// Return an observable array that consists of the values for the field specified by `key` for each element of this array.
-    public func selectEach<Field: ObservableType>(_ key: @escaping (Element) -> Field) -> ObservableArray<Field.Value> {
+    public func selectEach<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> ObservableArray<Field.Value> {
         return ArraySelectorForObservableField(parent: self.observableArray, key: key).observableArray
     }
 }
 
-/// A source for selecting an observable field from an observable array. This is suitable for use in a
-/// It sends array changes whenever the parent's contents change or one of the fields updates its value.
+/// A source for selecting an observable field from elements of an observable array.
+/// The value of the result changes whenever the parent's contents change or one of its fields updates its value.
 ///
-/// It keeps track of the current index of each field, and updates this mapping whenever something
+/// The returned observable keeps track of the current index of each field, and updates this mapping whenever something
 /// changes in the parent.
-private final class ArraySelectorForObservableField<Entity, Field: ObservableType>: ObservableArrayType, SignalDelegate {
+private final class ArraySelectorForObservableField<Entity, Field: ObservableValueType>: ObservableArrayType, SignalDelegate {
     typealias Element = Field.Value
     typealias Base = Array<Element>
     typealias Change = ArrayChange<Element>
@@ -76,14 +76,9 @@ private final class ArraySelectorForObservableField<Entity, Field: ObservableTyp
 
     var changes: Source<Change> { return _changeSignal.with(self).source }
 
-    var observable: Observable<[Element]> {
-        return Observable(getter: { self.value },
-                          futureValues: { self.changes.map { _ in self.value } })
-    }
-
     var observableCount: Observable<Int> {
         return Observable(getter: { self.parent.count },
-                          futureValues: { self.parent.changes.map { $0.finalCount } })
+                          changes: { self.parent.changes.map { $0.countChange } })
     }
 
     func start(_ signal: Signal<Change>) {

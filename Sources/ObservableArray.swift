@@ -19,7 +19,7 @@ import Foundation
 /// Any `ObservableArrayType` can be converted into a type-lifted representation using `ObservableArray`.
 /// For a concrete observable array, see `ArrayVariable`.
 ///
-/// - SeeAlso: ObservableType, ObservableArray, UpdatableArrayType, ArrayVariable
+/// - SeeAlso: ObservableValueType, ObservableArray, UpdatableArrayType, ArrayVariable
 public protocol ObservableArrayType: CustomReflectable {
     associatedtype Element
     typealias Base = Array<Element>
@@ -49,20 +49,22 @@ extension ObservableArrayType {
         return self[index ..< index + 1].first!
     }
 
+    internal var valueChanges: Source<ValueChange<Base>> {
+        var value = self.value
+        return self.changes.map { (c: Change) -> ValueChange<Base> in
+            let old = value
+            value.apply(c)
+            return ValueChange(from: old, to: value)
+        }
+    }
+
     public var observable: Observable<Base> {
-        return Observable(
-            getter: { return self.value },
-            futureValues: {
-                var value = self.value
-                return self.changes.map { (c: Change) -> Base in
-                    value.apply(c)
-                    return value
-                }
-        })
+        return Observable(getter: { self.value }, changes: { self.valueChanges })
     }
 
     public var observableCount: Observable<Int> {
-        return Observable(getter: { self.count }, futureValues: { self.changes.map { $0.finalCount } })
+        return Observable(getter: { self.count },
+                          changes: { self.changes.map { $0.countChange } })
     }
 
     public var observableArray: ObservableArray<Element> {
@@ -94,7 +96,7 @@ extension ObservableArrayType {
 /// Any `ObservableArrayType` can be converted into a type-lifted representation using `ObservableArray`.
 /// For a concrete observable array, see `ArrayVariable`.
 ///
-/// - SeeAlso: ObservableType, ObservableArrayType, UpdatableArrayType, ArrayVariable
+/// - SeeAlso: ObservableValueType, ObservableArrayType, UpdatableArrayType, ArrayVariable
 public struct ObservableArray<Element>: ObservableArrayType {
     public typealias Base = Array<Element>
     public typealias Change = ArrayChange<Element>
@@ -139,14 +141,13 @@ internal class ObservableArrayBase<Element>: ObservableArrayType {
     subscript(_ range: Range<Int>) -> ArraySlice<Element> { abstract() }
     var value: Array<Element> { abstract() }
     var count: Int { abstract() }
-    var changes: Source<ArrayChange<Element>> { abstract() }
     var observableCount: Observable<Int> { abstract() }
-    var observable: Observable<[Element]> { abstract() }
-    final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }
 
-    final func hold(_ connection: Connection) {
-        connections.append(connection)
-    }
+    var changes: Source<ArrayChange<Element>> { abstract() }
+
+    var observable: Observable<[Element]> { return Observable(getter: { self.value }, changes: { self.valueChanges }) }
+    final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }
+    final func hold(_ connection: Connection) { connections.append(connection) }
 }
 
 internal class ObservableArrayBox<Contents: ObservableArrayType>: ObservableArrayBase<Contents.Element> {

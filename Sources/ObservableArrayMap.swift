@@ -59,7 +59,7 @@ class ObservableArrayMap<Element, Input: ObservableArrayType>: ObservableArrayTy
     }
 }
 
-internal class BufferedObservableArrayMap<Input, Output, Content: ObservableArrayType>: ObservableArrayType, ObservableType where Content.Element == Input {
+internal class BufferedObservableArrayMap<Input, Output, Content: ObservableArrayType>: ObservableArrayType where Content.Element == Input {
     typealias Element = Output
     typealias Change = ArrayChange<Output>
 
@@ -68,7 +68,6 @@ internal class BufferedObservableArrayMap<Input, Output, Content: ObservableArra
     private(set) var value: [Output]
     private var connection: Connection!
     private var changeSignal = OwningSignal<Change>()
-    private var valueSignal = OwningSignal<[Output]>()
 
     init(_ content: Content, transform: @escaping (Input) -> Output) {
         self.content = content
@@ -118,7 +117,6 @@ internal class BufferedObservableArrayMap<Input, Output, Content: ObservableArra
                 }
             }
         }
-        valueSignal.sendIfConnected(value)
     }
 
     var isBuffered: Bool { return true }
@@ -138,13 +136,5 @@ internal class BufferedObservableArrayMap<Input, Output, Content: ObservableArra
 
     var changes: Source<ArrayChange<Element>> {
         return changeSignal.with(retained: self).source
-    }
-
-    var futureValues: Source<[Element]> {
-        return valueSignal.with(retained: self).source
-    }
-
-    var observable: Observable<Array<Element>> {
-        return Observable(self)
     }
 }

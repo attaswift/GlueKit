@@ -103,7 +103,7 @@ public extension SourceType where SourceValue == Any? {
     #endif
 }
 
-public extension ObservableType where Value == Any? {
+public extension ObservableValueType where Value == Any? {
     /// Casts all values to Type using an unsafe cast. Signals a fatal error if a value isn't a Type.
     func forceCasted<Type: Any>() -> Observable<Type> {
         return self.map { $0 as! Type }

@@ -91,6 +91,14 @@ internal struct LazySignal<Value> { // Can't be SourceType because connect is mu
         _signal?.send(value)
     }
 
+    internal func sendLater(_ value: Value) {
+        _signal?.sendLater(value)
+    }
+
+    internal func sendNow() {
+        _signal?.sendNow()
+    }
+
     internal func sendIfConnected(_ value: @autoclosure (Void) -> Value) {
         if let s = _signal, s.isConnected {
             s.send(value())

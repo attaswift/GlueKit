@@ -9,16 +9,18 @@
 import Foundation
 
 public extension NSObject {
-    /// Returns an observable source for a KVO-compatible key path.
-    /// Note that the object is retained by the returned source.
-    public func source(forKeyPath keyPath: String) -> Source<Any?> {
-        return KVOObserver.observer(for: self)._source(forKeyPath: keyPath)
-    }
-
     /// Returns an observable for the value of a KVO-compatible key path.
     /// Note that the object is retained by the returned source.
     public func observable(forKeyPath keyPath: String) -> Observable<Any?> {
         return KVOUpdatable(object: self, keyPath: keyPath).observable
+    }
+
+    public func observable<T>(forKeyPath keyPath: String, as type: T.Type = T.self) -> Observable<T> {
+        return KVOUpdatable(object: self, keyPath: keyPath).map { $0 as! T }
+    }
+
+    public func observable<T>(forKeyPath keyPath: String, as type: T?.Type = Optional<T>.self) -> Observable<T?> {
+        return KVOUpdatable(object: self, keyPath: keyPath).map { $0 as? T }
     }
 
     /// Returns an updatable for the value of a KVO-compatible key path.
@@ -26,9 +28,20 @@ public extension NSObject {
     public func updatable(forKeyPath keyPath: String) -> Updatable<Any?> {
         return KVOUpdatable(object: self, keyPath: keyPath).updatable
     }
+
+    public func updatable<T>(forKeyPath keyPath: String, as type: T.Type = T.self) -> Updatable<T> {
+        return KVOUpdatable(object: self, keyPath: keyPath).map({ $0 as! T }, inverse: { $0 as Any })
+    }
+    public func updatable<T>(forKeyPath keyPath: String, as type: T?.Type = Optional<T>.self) -> Updatable<T?> {
+        return KVOUpdatable(object: self, keyPath: keyPath).map({ $0 as! T? }, inverse: { $0 as Any? })
+    }
+
 }
 
-private class KVOUpdatable: UpdatableType {
+private struct KVOUpdatable: UpdatableType {
+    typealias Value = Any?
+    typealias Change = ValueChange<Any?>
+
     private let object: NSObject
     private let keyPath: String
 
@@ -43,21 +56,23 @@ private class KVOUpdatable: UpdatableType {
 
     var value: Any? {
         get { return object.value(forKeyPath: keyPath) }
-        set { object.setValue(newValue, forKeyPath: keyPath) }
+        nonmutating set { object.setValue(newValue, forKeyPath: keyPath) }
     }
 
-    var futureValues: Source<Any?> { return observer._source(forKeyPath: keyPath) }
+    var changes: Source<Change> { return observer._source(forKeyPath: keyPath) }
 }
 
 // A single object that observes all key paths currently registered as Sources on a target object.
 // Each Source associated with a key path holds a strong reference to this object.
 @objc private class KVOObserver: NSObject {
+    typealias Change = ValueChange<Any?>
+
     static private var associatedObjectKey: Int8 = 0
 
     var object: NSObject
 
     let mutex = Mutex()
-    var signals: [String: UnownedReference<Signal<Any?>>] = [:]
+    var signals: [String: UnownedReference<Signal<Change>>] = [:]
     var observerContext: Int8 = 0
 
     static func observer(for object: NSObject) -> KVOObserver {
@@ -66,7 +81,7 @@ private class KVOUpdatable: UpdatableType {
         }
         else {
             let observer = KVOObserver(object: object)
-            objc_setAssociatedObject(self, &associatedObjectKey, observer, .OBJC_ASSOCIATION_ASSIGN)
+            objc_setAssociatedObject(object, &associatedObjectKey, observer, .OBJC_ASSOCIATION_ASSIGN)
             return observer
         }
     }
@@ -80,12 +95,12 @@ private class KVOUpdatable: UpdatableType {
         objc_setAssociatedObject(object, &KVOObserver.associatedObjectKey, nil, .OBJC_ASSOCIATION_ASSIGN)
     }
 
-    func _source(forKeyPath keyPath: String) -> Source<Any?> {
+    func _source(forKeyPath keyPath: String) -> Source<Change> {
         return mutex.withLock {
             if let signal = signals[keyPath] {
                 return signal.value.source
             }
-            let signal = Signal<Any?>(
+            let signal = Signal<Change>(
                 start: { signal in self.startObservingKeyPath(keyPath, signal: signal) },
                 stop: { signal in self.stopObservingKeyPath(keyPath) })
             // Note that signal now holds strong references to this KVOObserver
@@ -94,10 +109,10 @@ private class KVOUpdatable: UpdatableType {
         }
     }
 
-    private func startObservingKeyPath(_ keyPath: String, signal: Signal<Any?>) {
+    private func startObservingKeyPath(_ keyPath: String, signal: Signal<Change>) {
         mutex.withLock {
             self.signals[keyPath] = UnownedReference(signal)
-            self.object.addObserver(self, forKeyPath: keyPath, options: .new, context: &self.observerContext)
+            self.object.addObserver(self, forKeyPath: keyPath, options: [.old, .new], context: &self.observerContext)
         }
     }
 
@@ -111,14 +126,12 @@ private class KVOUpdatable: UpdatableType {
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if context == &observerContext {
             if let keyPath = keyPath, let change = change {
-                let newValue = change[NSKeyValueChangeKey.newKey]
+                let oldValue = change[.oldKey]
+                let newValue = change[.newKey]
                 if let signal = mutex.withLock({ self.signals[keyPath]?.value }) {
-                    if let value = newValue, !(value is NSNull) {
-                        signal.send(value)
-                    }
-                    else {
-                        signal.send(nil)
-                    }
+                    let old: Any? = (oldValue is NSNull ? nil : oldValue)
+                    let new: Any? = (newValue is NSNull ? nil : newValue)
+                    signal.send(.init(from: old, to: new))
                 }
             }
             else {

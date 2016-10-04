@@ -14,7 +14,7 @@ extension ObservableArrayType {
         return ObservableArraySimpleFilter<Self>(base: self, test: test).observableArray
     }
 
-    public func filtered<Test: ObservableType>(test: @escaping (Element) -> Test) -> ObservableArray<Element> where Test.Value == Bool {
+    public func filtered<Test: ObservableValueType>(test: @escaping (Element) -> Test) -> ObservableArray<Element> where Test.Value == Bool {
         return ObservableArrayComplexFilter<Self, Test>(base: self, test: test).observableArray
     }
 }
@@ -149,7 +149,7 @@ private class ObservableArraySimpleFilter<Base: ObservableArrayType>: Observable
     }
 }
 
-private class ObservableArrayComplexFilter<Base: ObservableArrayType, Test: ObservableType>: ObservableArrayType where Test.Value == Bool {
+private class ObservableArrayComplexFilter<Base: ObservableArrayType, Test: ObservableValueType>: ObservableArrayType where Test.Value == Bool {
     public typealias Element = Base.Element
     public typealias Change = ArrayChange<Element>
 

@@ -113,7 +113,7 @@
 		BB8D366E1DA116CB000D44C5 /* Bookshelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */; };
 		BB8D366F1DA116CB000D44C5 /* Bookshelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */; };
 		BB8D36701DA116CB000D44C5 /* Bookshelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8D366D1DA116CB000D44C5 /* Bookshelf.swift */; };
-		BBAA826D1C91D16600586903 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* Observable.swift */; };
+		BBAA826D1C91D16600586903 /* ObservableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* ObservableValue.swift */; };
 		BBAA826E1C91D17400586903 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* Updatable.swift */; };
 		BBAA826F1C91D17A00586903 /* Observable Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */; };
 		BBAA82701C91D18100586903 /* Variable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B351C8FCC820050DDA9 /* Variable.swift */; };
@@ -156,9 +156,9 @@
 		BBB55B5A1C8FCC820050DDA9 /* Observable Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */; };
 		BBB55B5C1C8FCC820050DDA9 /* Observable Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */; };
 		BBB55B5D1C8FCC820050DDA9 /* Observable Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */; };
-		BBB55B5E1C8FCC820050DDA9 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* Observable.swift */; };
-		BBB55B601C8FCC820050DDA9 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* Observable.swift */; };
-		BBB55B611C8FCC820050DDA9 /* Observable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* Observable.swift */; };
+		BBB55B5E1C8FCC820050DDA9 /* ObservableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* ObservableValue.swift */; };
+		BBB55B601C8FCC820050DDA9 /* ObservableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* ObservableValue.swift */; };
+		BBB55B611C8FCC820050DDA9 /* ObservableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* ObservableValue.swift */; };
 		BBB55B661C8FCC820050DDA9 /* Reference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B2B1C8FCC810050DDA9 /* Reference.swift */; };
 		BBB55B671C8FCC820050DDA9 /* Reference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B2B1C8FCC810050DDA9 /* Reference.swift */; };
 		BBB55B681C8FCC820050DDA9 /* Reference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B2B1C8FCC810050DDA9 /* Reference.swift */; };
@@ -259,6 +259,14 @@
 		BBC4AE551D9ACA6800FF7DE0 /* SignalTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */; };
 		BBC4AE561D9ACA6800FF7DE0 /* SignalTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */; };
 		BBCBAA9C1CBEB7BD004A1BD5 /* Connector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B221C8FCC810050DDA9 /* Connector.swift */; };
+		BBE4DF401DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
+		BBE4DF411DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
+		BBE4DF421DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
+		BBE4DF431DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
+		BBE4DF451DA3A908005EC162 /* ValueChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* ValueChange.swift */; };
+		BBE4DF461DA3A908005EC162 /* ValueChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* ValueChange.swift */; };
+		BBE4DF471DA3A908005EC162 /* ValueChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* ValueChange.swift */; };
+		BBE4DF481DA3A908005EC162 /* ValueChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* ValueChange.swift */; };
 		BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
@@ -359,7 +367,7 @@
 		BBB55B261C8FCC810050DDA9 /* MergedSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MergedSource.swift; sourceTree = "<group>"; };
 		BBB55B271C8FCC810050DDA9 /* NSNotificationCenter Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSNotificationCenter Support.swift"; sourceTree = "<group>"; };
 		BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Observable Transformations.swift"; sourceTree = "<group>"; };
-		BBB55B291C8FCC810050DDA9 /* Observable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
+		BBB55B291C8FCC810050DDA9 /* ObservableValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableValue.swift; sourceTree = "<group>"; };
 		BBB55B2A1C8FCC810050DDA9 /* ObservableArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableArray.swift; sourceTree = "<group>"; };
 		BBB55B2B1C8FCC810050DDA9 /* Reference.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reference.swift; sourceTree = "<group>"; };
 		BBB55B2C1C8FCC810050DDA9 /* Select.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Select.swift; sourceTree = "<group>"; };
@@ -400,6 +408,8 @@
 		BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIControl Extensions.swift"; sourceTree = "<group>"; };
 		BBC4AE4D1D9A829500FF7DE0 /* FilteredArrayTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilteredArrayTests.swift; sourceTree = "<group>"; };
 		BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTools.swift; sourceTree = "<group>"; };
+		BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableType.swift; sourceTree = "<group>"; };
+		BBE4DF441DA3A908005EC162 /* ValueChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueChange.swift; sourceTree = "<group>"; };
 		BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RefList.swift; sourceTree = "<group>"; };
 		BBF400631DA108E900DA0B2C /* ObservableContains.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableContains.swift; sourceTree = "<group>"; };
 		BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSUserDefaults Support.swift"; sourceTree = "<group>"; };
@@ -581,7 +591,8 @@
 				BBB55AB71C8F80020050DDA9 /* Info.plist */,
 				BBB55B921C8FCCD40050DDA9 /* Tools */,
 				BBB55B931C8FCD010050DDA9 /* Sources and Signals */,
-				BBB55B941C8FCD320050DDA9 /* Observable Values */,
+				BBB55B941C8FCD320050DDA9 /* Abstract Observable */,
+				BBE4DF3E1DA3A869005EC162 /* Observable Values */,
 				BBB55B951C8FCD4E0050DDA9 /* Observable Arrays */,
 				BB8990011D5DF2BD0097F350 /* Observable Sets */,
 				BBB4F2531C9594E0002532CC /* Foundation Extensions */,
@@ -629,22 +640,18 @@
 			name = "Sources and Signals";
 			sourceTree = "<group>";
 		};
-		BBB55B941C8FCD320050DDA9 /* Observable Values */ = {
+		BBB55B941C8FCD320050DDA9 /* Abstract Observable */ = {
 			isa = PBXGroup;
 			children = (
-				BBB55B291C8FCC810050DDA9 /* Observable.swift */,
-				BBB55B331C8FCC820050DDA9 /* Updatable.swift */,
-				BBB55B351C8FCC820050DDA9 /* Variable.swift */,
-				BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */,
-				BBB55B2C1C8FCC810050DDA9 /* Select.swift */,
+				BB8990041D5DF8630097F350 /* ChangeType.swift */,
+				BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */,
 			);
-			name = "Observable Values";
+			name = "Abstract Observable";
 			sourceTree = "<group>";
 		};
 		BBB55B951C8FCD4E0050DDA9 /* Observable Arrays */ = {
 			isa = PBXGroup;
 			children = (
-				BB8990041D5DF8630097F350 /* ChangeType.swift */,
 				BBB55B1F1C8FCC810050DDA9 /* ArrayChange.swift */,
 				BBB55B2A1C8FCC810050DDA9 /* ObservableArray.swift */,
 				BBB55B341C8FCC820050DDA9 /* UpdatableArray.swift */,
@@ -726,6 +733,19 @@
 				BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */,
 			);
 			name = "UIKit Extensions";
+			sourceTree = "<group>";
+		};
+		BBE4DF3E1DA3A869005EC162 /* Observable Values */ = {
+			isa = PBXGroup;
+			children = (
+				BBE4DF441DA3A908005EC162 /* ValueChange.swift */,
+				BBB55B291C8FCC810050DDA9 /* ObservableValue.swift */,
+				BBB55B331C8FCC820050DDA9 /* Updatable.swift */,
+				BBB55B351C8FCC820050DDA9 /* Variable.swift */,
+				BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */,
+				BBB55B2C1C8FCC810050DDA9 /* Select.swift */,
+			);
+			name = "Observable Values";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1041,7 +1061,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BBB55B5E1C8FCC820050DDA9 /* Observable.swift in Sources */,
+				BBB55B5E1C8FCC820050DDA9 /* ObservableValue.swift in Sources */,
 				BBB55B821C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BB1657E71D71D65900094BAC /* BatchedChanges.swift in Sources */,
 				BB69A83B1D6B90F5001D2821 /* Concatenation.swift in Sources */,
@@ -1052,6 +1072,7 @@
 				BBC1F1BD1D7AEF3F00A320F5 /* ChangeTrackingSet.swift in Sources */,
 				BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BBB55B7E1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
+				BBE4DF451DA3A908005EC162 /* ValueChange.swift in Sources */,
 				BBB55B661C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BB69A8361D6B7F9B001D2821 /* FilteredSet.swift in Sources */,
 				BB69A8321D6B7F11001D2821 /* ObservableSetReference.swift in Sources */,
@@ -1084,6 +1105,7 @@
 				BB69A8191D6B6A99001D2821 /* ObservableArrayReference.swift in Sources */,
 				BB69A82E1D6B7E35001D2821 /* SortedSet.swift in Sources */,
 				BBB4F26F1C99E6CC002532CC /* UIGestureRecognizer Extensions.swift in Sources */,
+				BBE4DF401DA3A88C005EC162 /* ObservableType.swift in Sources */,
 				BBB55B4A1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
 				BBC4AE531D9ACA6800FF7DE0 /* SignalTools.swift in Sources */,
 				BB69A8251D6B7798001D2821 /* UpdatableSet.swift in Sources */,
@@ -1131,7 +1153,9 @@
 				BBB55B7F1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BB69A81E1D6B71FA001D2821 /* SetChange.swift in Sources */,
 				BB69A8051D6B344D001D2821 /* UpdatableArray.swift in Sources */,
+				BBE4DF411DA3A88C005EC162 /* ObservableType.swift in Sources */,
 				BBAA826E1C91D17400586903 /* Updatable.swift in Sources */,
+				BBE4DF461DA3A908005EC162 /* ValueChange.swift in Sources */,
 				BBC2A82A1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BB8D366B1DA10F5D000D44C5 /* ObservableContains.swift in Sources */,
 				BB69A80D1D6B472E001D2821 /* SelectEach.swift in Sources */,
@@ -1154,7 +1178,7 @@
 				BBADD7A31D70985F00C32735 /* ReplacingIfEmpty.swift in Sources */,
 				BBAA827E1C91D43700586903 /* Type Helpers.swift in Sources */,
 				BB69A8221D6B7202001D2821 /* ObservableSet.swift in Sources */,
-				BBAA826D1C91D16600586903 /* Observable.swift in Sources */,
+				BBAA826D1C91D16600586903 /* ObservableValue.swift in Sources */,
 				BBB55B531C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BBAA82701C91D18100586903 /* Variable.swift in Sources */,
 				BB1657E81D71D65900094BAC /* BatchedChanges.swift in Sources */,
@@ -1205,12 +1229,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB69A81B1D6B6A9A001D2821 /* ObservableArrayReference.swift in Sources */,
-				BBB55B601C8FCC820050DDA9 /* Observable.swift in Sources */,
+				BBB55B601C8FCC820050DDA9 /* ObservableValue.swift in Sources */,
 				BB69A7F91D6B1D83001D2821 /* ArrayChange.swift in Sources */,
 				BBB55B841C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BB69A81F1D6B71FA001D2821 /* SetChange.swift in Sources */,
 				BB69A8061D6B344D001D2821 /* UpdatableArray.swift in Sources */,
+				BBE4DF421DA3A88C005EC162 /* ObservableType.swift in Sources */,
 				BBB55B781C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
+				BBE4DF471DA3A908005EC162 /* ValueChange.swift in Sources */,
 				BBB55B801C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BBF400661DA108E900DA0B2C /* ObservableContains.swift in Sources */,
 				BB69A80E1D6B472F001D2821 /* SelectEach.swift in Sources */,
@@ -1265,7 +1291,7 @@
 				BB69A7F61D6B1D7C001D2821 /* ChangeType.swift in Sources */,
 				BB69A80B1D6B442D001D2821 /* ArrayVariable.swift in Sources */,
 				BB69A8311D6B7E37001D2821 /* SortedSet.swift in Sources */,
-				BBB55B611C8FCC820050DDA9 /* Observable.swift in Sources */,
+				BBB55B611C8FCC820050DDA9 /* ObservableValue.swift in Sources */,
 				BBFA2C471CBBB9630076AFBB /* NSUserDefaults Support.swift in Sources */,
 				BBB55B851C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BBB55B791C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
@@ -1273,6 +1299,7 @@
 				BBB55B811C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
 				BB69A8031D6B2377001D2821 /* BufferedArray.swift in Sources */,
 				BB69A82D1D6B7CAF001D2821 /* SetVariable.swift in Sources */,
+				BBE4DF431DA3A88C005EC162 /* ObservableType.swift in Sources */,
 				BBB55B691C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BBC4AE561D9ACA6800FF7DE0 /* SignalTools.swift in Sources */,
 				BB69A7FA1D6B1D83001D2821 /* ArrayChange.swift in Sources */,
@@ -1286,6 +1313,7 @@
 				BB69A80F1D6B472F001D2821 /* SelectEach.swift in Sources */,
 				BB1657EA1D71D65900094BAC /* BatchedChanges.swift in Sources */,
 				BB69A8351D6B7F12001D2821 /* ObservableSetReference.swift in Sources */,
+				BBE4DF481DA3A908005EC162 /* ValueChange.swift in Sources */,
 				BBB55B511C8FCC820050DDA9 /* Locks.swift in Sources */,
 				BB69A8071D6B344E001D2821 /* UpdatableArray.swift in Sources */,
 				BBB55B911C8FCC820050DDA9 /* Variable.swift in Sources */,

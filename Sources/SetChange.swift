@@ -28,6 +28,11 @@ public struct SetChange<Element: Hashable>: ChangeType {
         return inserted.isEmpty && removed.isEmpty
     }
 
+    public func apply(on value: inout Set<Element>) {
+        value.subtract(removed)
+        value = inserted.union(value)
+    }
+
     public func apply(on value: Value) -> Value {
         return inserted.union(value.subtracting(removed))
     }
@@ -49,6 +54,10 @@ public struct SetChange<Element: Hashable>: ChangeType {
     public func merged(with next: SetChange) -> SetChange {
         return SetChange(removed: next.removed.union(removed),
                          inserted: next.inserted.union(inserted.subtracting(next.removed)))
+    }
+
+    public func reversed() -> SetChange {
+        return SetChange(removed: inserted, inserted: removed)
     }
 
     public func removingEqualChanges() -> SetChange {

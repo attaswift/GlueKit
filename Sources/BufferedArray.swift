@@ -19,7 +19,7 @@ extension ObservableArrayType {
     }
 }
 
-internal class BufferedObservableArray<Content: ObservableArrayType>: ObservableArrayType, ObservableType {
+internal class BufferedObservableArray<Content: ObservableArrayType>: ObservableArrayType {
     typealias Element = Content.Element
     typealias Change = ArrayChange<Element>
 
@@ -54,14 +54,6 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: Observable
 
     var changes: Source<ArrayChange<Content.Element>> {
         return content.changes
-    }
-
-    var futureValues: Source<[Element]> {
-        return valueSignal.with(retained: self).source
-    }
-
-    var observable: Observable<Array<Content.Element>> {
-        return Observable(self)
     }
 }
 

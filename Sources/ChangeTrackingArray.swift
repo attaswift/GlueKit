@@ -79,7 +79,6 @@ public class ChangeTrackingUpdatableArray<Base: UpdatableArrayType>: UpdatableAr
     public var observableCount: Observable<Int> { return base.observableCount }
     public var observable: Observable<Array<Element>> { return base.observable }
     public var observableArray: ObservableArray<Element> { return base.observableArray }
-    public func modify(_ block: (ArrayVariable<Element>) -> Void) -> Void { base.modify(block) }
     public func apply(_ change: Change) { self.base.apply(change) }
     public var updatable: Updatable<[Element]> { return base.updatable }
     public var updatableArray: UpdatableArray<Element> { return base.updatableArray }

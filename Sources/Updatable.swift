@@ -9,7 +9,7 @@
 import Foundation
 
 /// An observable thing that also includes support for updating its value.
-public protocol UpdatableType: ObservableType, SinkType {
+public protocol UpdatableType: ObservableValueType, SinkType {
     /// The current value of this UpdatableType. You can modify the current value by setting this property.
     var value: Value {
         get
@@ -41,8 +41,8 @@ public struct Updatable<Value>: UpdatableType {
         self.box = box
     }
 
-    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, futureValues: @escaping (Void) -> Source<Value>) {
-        self.box = UpdatableClosureBox(getter: getter, setter: setter, futureValues: futureValues)
+    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, changes: @escaping (Void) -> Source<ValueChange<Value>>) {
+        self.box = UpdatableClosureBox(getter: getter, setter: setter, changes: changes)
     }
 
     public init<Base: UpdatableType>(_ base: Base) where Base.Value == Value {
@@ -63,6 +63,10 @@ public struct Updatable<Value>: UpdatableType {
         box.receive(value)
     }
 
+    public var changes: Source<ValueChange<Value>> {
+        return box.changes
+    }
+
     public var futureValues: Source<Value> {
         return box.futureValues
     }
@@ -81,9 +85,7 @@ internal class UpdatableBoxBase<Value>: ObservableBoxBase<Value>, UpdatableType 
         get { abstract() }
         set { abstract() }
     }
-    override var futureValues: Source<Value> { abstract() }
     func receive(_ value: Value) { abstract() }
-
     final var updatable: Updatable<Value> { return Updatable(box: self) }
 }
 
@@ -98,21 +100,22 @@ internal class UpdatableBox<Base: UpdatableType>: UpdatableBoxBase<Base.Value> {
         get { return base.value }
         set { base.value = newValue }
     }
+    override var changes: Source<ValueChange<Base.Value>> { return base.changes }
     override var futureValues: Source<Base.Value> { return base.futureValues }
 }
 
 private class UpdatableClosureBox<Value>: UpdatableBoxBase<Value> {
     /// The getter closure for the current value of this updatable.
-    public let getter: (Void) -> Value
+    let getter: (Void) -> Value
     /// The setter closure for updating the current value of this updatable.
-    public let setter: (Value) -> Void
+    let setter: (Value) -> Void
     /// A closure returning a source providing the values of future updates to this updatable.
-    private let valueSource: (Void) -> Source<Value>
+    let changeSource: (Void) -> Source<ValueChange<Value>>
 
-    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, futureValues: @escaping (Void) -> Source<Value>) {
+    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, changes: @escaping (Void) -> Source<ValueChange<Value>>) {
         self.getter = getter
         self.setter = setter
-        self.valueSource = futureValues
+        self.changeSource = changes
     }
 
     override var value: Value {
@@ -120,12 +123,12 @@ private class UpdatableClosureBox<Value>: UpdatableBoxBase<Value> {
         set { setter(newValue) }
     }
 
-    override var futureValues: Source<Value> {
-        return valueSource()
-    }
-
     override func receive(_ value: Value) {
         setter(value)
+    }
+
+    override var changes: Source<ValueChange<Value>> {
+        return changeSource()
     }
 }
 

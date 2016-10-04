@@ -9,38 +9,28 @@
 import XCTest
 import GlueKit
 
-private class TestObservable: ObservableType {
-    var _value: Int = 0
-    var _signal = Signal<Int>()
+private class TestObservable: ObservableValueType {
+    var _signal = Signal<ValueChange<Int>>()
 
-    var value: Int {
-        get {
-            return _value
-        }
-        set {
-            _value = newValue
-            _signal.send(newValue)
+    var value: Int = 0{
+        didSet {
+            _signal.send(.init(from: oldValue, to: value))
         }
     }
 
-    var futureValues: Source<Int> { return _signal.source }
+    var changes: Source<ValueChange<Int>> { return _signal.source }
 }
 
 private class TestUpdatable: UpdatableType {
-    var _value: Int = 0
-    var _signal = Signal<Int>()
+    var _signal = Signal<ValueChange<Int>>()
 
-    var value: Int {
-        get {
-            return _value
-        }
-        set {
-            _value = newValue
-            _signal.send(newValue)
+    var value: Int = 0 {
+        didSet {
+            _signal.send(.init(from: oldValue, to: value))
         }
     }
 
-    var futureValues: Source<Int> { return _signal.source }
+    var changes: Source<ValueChange<Int>> { return _signal.source }
 }
 
 
