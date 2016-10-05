@@ -7,10 +7,14 @@
 //
 
 import Foundation
+import BTree
 
 extension ObservableSetType {
     public func sorted(by areInIncreasingOrder: @escaping (Element, Element) -> Bool) -> ObservableArray<Element> {
-        return SortedObservableSet(input: self, sortedBy: areInIncreasingOrder).observableArray
+        let comparator = Comparator(areInIncreasingOrder)
+        return self
+            .sorted(by: { [unowned(unsafe) comparator] in ComparableWrapper($0, comparator) })
+            .map { [comparator] in _ = comparator; return $0.element }
     }
 
     public func sorted(by comparator: Observable<(Element, Element) -> Bool>) -> ObservableArray<Element> {
@@ -21,83 +25,227 @@ extension ObservableSetType {
         }
         return reference.observableArray.holding(connection)
     }
+
+    /// Given a transformation into a comparable type, return an observable array containing transformed
+    /// versions of elements in this set, in increasing order.
+    public func sorted<Result: Comparable>(by transform: @escaping (Element) -> Result) -> ObservableArray<Result> {
+        return SortedTransformedObservableSet(base: self, transform: transform).observableArray
+    }
 }
 
-class SortedObservableSet<S: ObservableSetType>: ObservableArrayType, SignalDelegate {
-    typealias Base = [Element]
-    typealias Element = S.Element
+extension ObservableSetType where Element: AnyObject {
+    /// Given a transformation into an observable of a comparable type, return an observable array
+    /// containing transformed versions of elements in this set, in increasing order.
+    public func sorted<O: ObservableValueType>(by transform: @escaping (Element) -> O) -> ObservableArray<O.Value> where O.Value: Comparable {
+        return SortedObservableTransformationOfAnObservableSet(base: self, transform: transform).observableArray
+    }
+}
+
+extension ObservableSetType where Element: Comparable {
+    /// Return an observable array containing the members of this set, in increasing order.
+    public func sorted() -> ObservableArray<Element> {
+        return self.sorted { $0 }
+    }
+}
+
+private final class Comparator<Element: Equatable> {
+    let comparator: (Element, Element) -> Bool
+
+    init(_ comparator: @escaping (Element, Element) -> Bool) {
+        self.comparator = comparator
+    }
+    func compare(_ a: Element, _ b: Element) -> Bool {
+        return comparator(a, b)
+    }
+}
+private struct ComparableWrapper<Element: Equatable>: Comparable {
+    unowned(unsafe) let comparator: Comparator<Element>
+    let element: Element
+
+    init(_ element: Element, _ comparator: Comparator<Element>) {
+        self.comparator = comparator
+        self.element = element
+    }
+    static func ==(a: ComparableWrapper<Element>, b: ComparableWrapper<Element>) -> Bool {
+        return a.element == b.element
+    }
+    static func <(a: ComparableWrapper<Element>, b: ComparableWrapper<Element>) -> Bool {
+        return a.comparator.compare(a.element, b.element)
+    }
+}
+
+class SortedObservableTransformationOfAnObservableSet<S: ObservableSetType, R: ObservableValueType>: ObservableArrayType
+where S.Element: AnyObject, R.Value: Comparable {
+    typealias Element = R.Value
     typealias Change = ArrayChange<Element>
 
-    private let input: S
-    private let areInIncreasingOrder: (Element, Element) -> Bool
+    private let base: S
+    private let transform: (S.Element) -> R
 
-    internal private(set) var value: [Element] = []
-    private var connection: Connection? = nil
+    private var state: Map<Element, Int> = [:]
+    private var signal = OwningSignal<Change>()
+    private var baseConnection: Connection? = nil
+    private var connections: Dictionary<S.Element, Connection> = [:]
 
-    private var changeSignal = OwningSignal<Change>()
+    init(base: S, transform: @escaping (S.Element) -> R) {
+        self.base = base
+        self.transform = transform
 
-    internal var isBuffered: Bool { return true }
-    internal var count: Int { return value.count }
-    internal subscript(index: Int) -> Element { return value[index] }
-    internal subscript(bounds: Range<Int>) -> ArraySlice<Element> { return value[bounds] }
+        for element in base.value {
+            _ = self._insert(newElement(element))
+        }
+        baseConnection = base.changes.connect { [unowned self] change in self.apply(change) }
+    }
 
-    internal var changes: Source<ArrayChange<Element>> { return changeSignal.with(self).source }
+    deinit {
+        baseConnection?.disconnect()
+        connections.forEach { (_, connection) in connection.disconnect() }
+    }
 
-    init(input: S, sortedBy areInIncreasingOrder: @escaping (Element, Element) -> Bool) {
-        self.input = input
-        self.areInIncreasingOrder = areInIncreasingOrder
-        self.value = input.value.sorted(by: areInIncreasingOrder)
-        self.connection = input.changes.connect { [weak self] change in
-            self?.apply(change)
+    private func newElement(_ element: S.Element) -> Element {
+        let transformed = transform(element)
+        connections[element] = transformed.changes.connect { [unowned self] in self.apply($0) }
+        return transformed.value
+    }
+
+    private func removeElement(_ element: S.Element) {
+        let connection = connections.removeValue(forKey: element)
+        connection!.disconnect()
+    }
+
+    private func _insert(_ key: Element) -> Bool {
+        if let count = state[key] {
+            state[key] = count + 1
+            return false
+        }
+        state[key] = 1
+        return true
+    }
+
+    private func insert(_ key: Element) -> ArrayModification<Element>? {
+        return _insert(key) ? .insert(key, at: state.offset(of: key)!) : nil
+    }
+
+    private func remove(_ key: Element) -> ArrayModification<Element>? {
+        guard let count = self.state[key] else {
+            fatalError("Inconsistent change: element removed is not in sorted set")
+        }
+        if count > 1 {
+            state[key] = count - 1
+            return nil
+        }
+        let oldOffset = state.offset(of: key)!
+        state.removeValue(forKey: key)
+        return .remove(key, at: oldOffset)
+    }
+
+    private func apply(_ change: SetChange<S.Element>) {
+        var arrayChange = ArrayChange<Element>(initialCount: state.count)
+        for element in change.removed {
+            let key = transform(element).value
+            removeElement(element)
+            if let mod = self.remove(key) {
+                arrayChange.add(mod)
+            }
+        }
+        for element in change.inserted {
+            let key = newElement(element)
+            if let mod = self.insert(key) {
+                arrayChange.add(mod)
+            }
+        }
+        if !arrayChange.isEmpty {
+            signal.send(arrayChange)
         }
     }
 
-    private func apply(_ change: SetChange<Element>) {
-        if change.isEmpty { return }
-        var inserted = change.inserted.sorted(by: areInIncreasingOrder)
-        var arrayChange = ArrayChange<Element>(initialCount: value.count)
-        var nextValue: [Element] = []
-        var i = 0
-        var j = 0
-        while i < value.count {
-            let v = value[i]
-            if change.removed.contains(v) {
-                arrayChange.add(.remove(v, at: nextValue.count))
-                i += 1
-            }
-            else if j < inserted.count {
-                let nextOld = v
-                let nextNew = inserted[j]
-                if areInIncreasingOrder(nextOld, nextNew) {
-                    nextValue.append(nextOld)
-                    i += 1
-                }
-                else {
-                    arrayChange.add(.insert(nextNew, at: nextValue.count))
-                    nextValue.append(nextNew)
-                    j += 1
-                }
+    private func apply(_ change: SimpleChange<Element>) {
+        var arrayChange = ArrayChange<Element>(initialCount: self.state.count)
+        if change.old == change.new { return }
+        if let mod = remove(change.old) {
+            arrayChange.add(mod)
+        }
+        if let mod = insert(change.new) {
+            arrayChange.add(mod)
+        }
+        if !arrayChange.isEmpty {
+            self.signal.send(arrayChange)
+        }
+    }
+
+    var isBuffered: Bool { return false }
+    var count: Int { return state.count }
+    var value: Array<Element> { return Array(state.lazy.map { $0.0 }) }
+    subscript(index: Int) -> Element { return state.element(atOffset: index).0 }
+    subscript(bounds: Range<Int>) -> ArraySlice<Element> { return ArraySlice(state.submap(withOffsets: bounds).lazy.map { $0.0 }) }
+
+    var changes: Source<ArrayChange<Element>> { return signal.with(retained: self).source }
+}
+
+class SortedTransformedObservableSet<S: ObservableSetType, R: Comparable>: ObservableArrayType {
+    typealias Element = R
+    typealias Change = ArrayChange<R>
+
+    private let base: S
+    private let transform: (S.Element) -> R
+
+    private var state: Map<R, Int> = [:]
+    private var signal = OwningSignal<Change>()
+    private var baseConnection: Connection? = nil
+
+    init(base: S, transform: @escaping (S.Element) -> R) {
+        self.base = base
+        self.transform = transform
+
+        for element in base.value {
+            let transformed = transform(element)
+            state[transformed] = (state[transformed] ?? 0) + 1
+        }
+        baseConnection = base.changes.connect { [unowned self] change in self.apply(change) }
+    }
+
+    deinit {
+        baseConnection?.disconnect()
+    }
+
+    private func apply(_ change: SetChange<S.Element>) {
+        var arrayChange: ArrayChange<Element>? = signal.isConnected ? ArrayChange(initialCount: state.count) : nil
+        for element in change.removed {
+            let transformed = transform(element)
+            guard let index = state.index(forKey: transformed) else { fatalError("Removed element '\(transformed)' not found in sorted set") }
+            let count = state[index].1
+            if count == 1 {
+                let offset = state.offset(of: index)
+                let old = state.remove(at: index)
+                arrayChange?.add(.remove(old.key, at: offset))
             }
             else {
-                nextValue.append(v)
-                i += 1
+                state[transformed] = count - 1
             }
         }
-        if j < inserted.count {
-            let remaining = Array(inserted.suffix(from: j))
-            arrayChange.add(.replaceSlice([], at: nextValue.count, with: remaining))
-            nextValue.append(contentsOf: remaining)
+        for element in change.inserted {
+            let transformed = transform(element)
+            if let count = state[transformed] {
+                state[transformed] = count + 1
+            }
+            else {
+                state[transformed] = 1
+                if arrayChange != nil {
+                    let offset = state.offset(of: transformed)!
+                    arrayChange!.add(.insert(transformed, at: offset))
+                }
+            }
         }
-        precondition(arrayChange.finalCount == nextValue.count)
-        self.value = nextValue
-        self.changeSignal.send(arrayChange)
+        if let a = arrayChange, !a.isEmpty {
+            signal.send(a)
+        }
     }
 
-    func start(_ signal: Signal<Change>) {
-        // We're always running
-    }
+    var isBuffered: Bool { return false }
+    var count: Int { return state.count }
+    var value: Array<Element> { return Array(state.lazy.map { $0.0 }) }
+    subscript(index: Int) -> Element { return state.element(atOffset: index).0 }
+    subscript(bounds: Range<Int>) -> ArraySlice<Element> { return ArraySlice(state.submap(withOffsets: bounds).lazy.map { $0.0 }) }
 
-    func stop(_ signal: Signal<Change>) {
-        // We're always running
-    }
+    var changes: Source<ArrayChange<R>> { return signal.with(retained: self).source }
 }
