@@ -2,7 +2,7 @@
 
 [![Swift 3](https://img.shields.io/badge/Swift-3.0-blue.svg)](https://swift.org) 
 [![License](https://img.shields.io/badge/licence-MIT-blue.svg)](https://github.com/lorentey/GlueKit/blob/master/LICENSE.md)
-[![Platform](https://img.shields.io/badge/platforms-OS_X%20∙%20iOS%20∙%20watchOS%20∙%20tvOS-blue.svg)](https://developer.apple.com/platforms/)
+[![Platform](https://img.shields.io/badge/platforms-macOS%20∙%20iOS%20∙%20watchOS%20∙%20tvOS-blue.svg)](https://developer.apple.com/platforms/)
 
 [![Build Status](https://travis-ci.org/lorentey/GlueKit.svg?branch=master)](https://travis-ci.org/lorentey/GlueKit)
 [![Code Coverage](https://codecov.io/github/lorentey/GlueKit/coverage.svg?branch=master)](https://codecov.io/github/lorentey/GlueKit?branch=master)
@@ -37,7 +37,7 @@ for a future model object graph (and perhaps persistence) project.
 ##  Presentation
 
 Károly gave a talk on GlueKit during [Functional Swift Conference 2016][FunSwift16] in Budapest.
-[See the slides][slides], or watch the video (TBD).
+[See the slides][slides], or watch the video (later).
 
 [FunSwift16]: http://2016.funswiftconf.com
 [slides]: https://vellum.tech/assets/FunSwift2016%20-%20GlueKit.pdf
