@@ -1,5 +1,5 @@
 //
-//  SortedSetTests.swift
+//  SetSortingTests.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-10-05.
@@ -42,7 +42,7 @@ private class Book: Hashable {
     static func ==(a: Book, b: Book) -> Bool { return a === b }
 }
 
-class SortedTests: XCTestCase {
+class SetSortingTests: XCTestCase {
     func test_sortedSetUsingIdentityTransform() {
         let set = SetVariable<Int>([0, 2, 3, 4, 8, 9])
         let sortedSet = set.sorted()
@@ -207,5 +207,17 @@ class SortedTests: XCTestCase {
         XCTAssertEqual(actualChanges, expectedChanges)
 
         connection.disconnect()
+    }
+
+    func test_sortedSetUsingObservableComparator() {
+        let set = SetVariable(0..<5)
+        let comparator = Variable<(Int, Int) -> Bool>(<)
+
+        let sorted = set.sorted(by: comparator)
+        XCTAssertEqual(sorted.value, [0, 1, 2, 3, 4])
+
+        comparator.value = (>)
+
+        XCTAssertEqual(sorted.value, [4, 3, 2, 1, 0])
     }
 }
