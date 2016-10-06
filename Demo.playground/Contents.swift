@@ -83,6 +83,9 @@ let shelves = ArrayVariable<Bookshelf>([topShelf, bottomShelf])
 let allTitles = shelves.selectEach{$0.books}.selectEach{$0.title}
 allTitles.value
 
+let allAuthors = shelves.selectEach{$0.books}.distinctUnion().flatMap{$0.authors}
+allAuthors.value
+
 // Here are all books that have Neal Stephenson as one of their authors.
 let booksByStephenson = shelves.selectEach{$0.books}.filtered { book in book.authors.observableContains(stephenson) }
 booksByStephenson.value
