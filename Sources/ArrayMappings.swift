@@ -10,16 +10,11 @@ import Foundation
 
 extension ObservableArrayType {
     public func map<Output>(_ transform: @escaping (Element) -> Output) -> ObservableArray<Output> {
-        return ObservableArrayMap(input: self, transform: transform).observableArray
-    }
-
-
-    public func bufferedMap<Output>(_ transform: @escaping (Element) -> Output) -> ObservableArray<Output> {
-        return BufferedObservableArrayMap(self, transform: transform).observableArray
+        return ArrayMappingForValue(input: self, transform: transform).observableArray
     }
 }
 
-class ObservableArrayMap<Element, Input: ObservableArrayType>: ObservableArrayType {
+class ArrayMappingForValue<Element, Input: ObservableArrayType>: ObservableArrayType {
     typealias Change = ArrayChange<Element>
 
     let input: Input
@@ -56,6 +51,13 @@ class ObservableArrayMap<Element, Input: ObservableArrayType>: ObservableArrayTy
 
     var observableCount: Observable<Int> {
         return input.observableCount
+    }
+}
+
+
+extension ObservableArrayType {
+    public func bufferedMap<Output>(_ transform: @escaping (Element) -> Output) -> ObservableArray<Output> {
+        return BufferedObservableArrayMap(self, transform: transform).observableArray
     }
 }
 
