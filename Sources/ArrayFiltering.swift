@@ -1,5 +1,5 @@
 //
-//  FilteredArray.swift
+//  ArrayFiltering.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-09-26.

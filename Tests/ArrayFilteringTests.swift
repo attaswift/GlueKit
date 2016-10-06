@@ -1,5 +1,5 @@
 //
-//  FilteredArrayTests.swift
+//  ArrayFilteringTests.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-09-27.
@@ -66,7 +66,7 @@ private class Book: Equatable, CustomStringConvertible {
     }
 }
 
-class FilteredArrayTests: XCTestCase {
+class ArrayFilteringTests: XCTestCase {
 
     func test_simple_valueAndCount() {
         let array: ArrayVariable<Int> = [1, 3, 5, 6]
