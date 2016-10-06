@@ -23,16 +23,14 @@ observing, where you're observing a value that's not directly available, but can
 via a sequence of nested observables, some of which may represent one-to-one or one-to-many
 relationships between model objects. 
 
-GlueKit will also provide a rich set of observable combinators
+GlueKit also provides a rich set of observable transformations and combinations
 as a more flexible and extensible Swift version of KVC's 
-[collection operators](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/CollectionOperators.html). (These are being actively developed.)
+[collection operators](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/CollectionOperators.html).
+(These are being actively developed.)
 
-GlueKit does not rely on the Objective-C runtime for its basic functionality, but on Apple platforms
-it does provide easy-to-use adapters for observing KVO-compatible key paths on NSObjects and 
-NSNotificationCenter notifications.
-
-A major design goal for GlueKit is to eventually serve as the underlying observer implementation
-for a future model object graph (and perhaps persistence) project.
+GlueKit does not rely on the Objective-C runtime for its functionality, but on Apple platforms
+it does provide easy-to-use adapters for that turn KVO-compatible key paths on NSObjects into
+GlueKit observables.
 
 ##  Presentation
 
