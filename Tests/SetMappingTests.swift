@@ -25,52 +25,6 @@ private class Book: Hashable {
     static func ==(a: Book, b: Book) -> Bool { return a === b }
 }
 
-private class MockObserver<Element: Hashable & Comparable> {
-    private var actualChanges: [String] = []
-    private var expectedChanges: [String] = []
-    private var connection: Connection? = nil
-
-    init<Target: ObservableSetType>(_ target: Target) where Target.Element == Element {
-        self.connection = target.changes.connect { [unowned self] change in
-            self.apply(change)
-        }
-    }
-
-    deinit {
-        connection!.disconnect()
-    }
-
-    func expectingNoChange<R>(file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        return try run(file: file, line: line, body: body)
-    }
-
-    func expecting<R>(_ change: String, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        expectedChanges.append(change)
-        return try run(file: file, line: line, body: body)
-    }
-
-    func expecting<R>(_ changes: [String], file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        expectedChanges.append(contentsOf: changes)
-        return try run(file: file, line: line, body: body)
-    }
-
-    private func run<R>(file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        defer {
-            expectedChanges.removeAll()
-            actualChanges.removeAll()
-        }
-        let result = try body()
-        XCTAssertEqual(actualChanges, expectedChanges, file: file, line: line)
-        return result
-    }
-
-    private func apply(_ change: SetChange<Element>) {
-        let removed = change.removed.sorted().map { "\($0)" }.joined(separator: ", ")
-        let inserted = change.inserted.sorted().map { "\($0)" }.joined(separator: ", ")
-        actualChanges.append("[\(removed)]/[\(inserted)]")
-    }
-}
-
 class SetMappingTests: XCTestCase {
     func test_injectiveMap() {
         let set = SetVariable<Int>([0, 2, 3])
@@ -91,7 +45,7 @@ class SetMappingTests: XCTestCase {
         XCTAssertEqual(mappedSet.isSuperset(of: ["0", "1", "2", "3"]), false)
         XCTAssertEqual(mappedSet.isSuperset(of: ["1"]), false)
 
-        let mock = MockObserver(mappedSet)
+        let mock = MockSetObserver(mappedSet)
         mock.expecting("[]/[1]") { set.insert(1) }
         XCTAssertEqual(mappedSet.value, Set(["0", "1", "2", "3"]))
         mock.expecting("[1, 2]/[]") { set.subtract(Set([1, 2])) }
@@ -117,7 +71,7 @@ class SetMappingTests: XCTestCase {
         XCTAssertEqual(mappedSet.isSuperset(of: ["0", "1", "2", "3"]), false)
         XCTAssertEqual(mappedSet.isSuperset(of: ["1"]), false)
 
-        let mock = MockObserver(mappedSet)
+        let mock = MockSetObserver(mappedSet)
         mock.expecting("[]/[1]") { set.insert(1) }
         XCTAssertEqual(mappedSet.value, Set(["0", "1", "2", "3"]))
         mock.expecting("[1, 2]/[]") { set.subtract(Set([1, 2])) }
@@ -130,7 +84,7 @@ class SetMappingTests: XCTestCase {
 
         XCTAssertEqual(mappedSet.value, [0, 1, 2, 4])
 
-        let mock = MockObserver(mappedSet)
+        let mock = MockSetObserver(mappedSet)
         mock.expectingNoChange { set.insert(1) }
         XCTAssertEqual(mappedSet.value, [0, 1, 2, 4])
         mock.expecting("[2]/[]") { set.remove(4) }
@@ -149,7 +103,7 @@ class SetMappingTests: XCTestCase {
 
         XCTAssertEqual(titles.value, ["foo", "bar", "baz"])
 
-        let mock = MockObserver(titles)
+        let mock = MockSetObserver(titles)
 
         let b4 = Book("fred")
         mock.expecting("[]/[fred]") {
@@ -198,7 +152,7 @@ class SetMappingTests: XCTestCase {
 
         XCTAssertEqual(authors.value, ["a", "b", "c", "d"])
 
-        let mock = MockObserver(authors)
+        let mock = MockSetObserver(authors)
 
         let b4 = Book("4", authors: ["b", "c", "e"])
         mock.expecting("[]/[e]") { books.insert(b4) }
@@ -234,7 +188,7 @@ class SetMappingTests: XCTestCase {
 
         XCTAssertEqual(chapters.value, ["a", "b", "c", "d"])
 
-        let mock = MockObserver(chapters)
+        let mock = MockSetObserver(chapters)
 
         let b4 = Book("4", chapters: ["b", "c", "e"])
         mock.expecting("[]/[e]") { books.insert(b4) }
@@ -276,7 +230,7 @@ class SetMappingTests: XCTestCase {
 
         XCTAssertEqual(authors.value, ["a", "b", "c", "d"])
 
-        let mock = MockObserver(authors)
+        let mock = MockSetObserver(authors)
 
         let b4 = Book("4", authors: ["b", "c", "e"])
         mock.expecting("[]/[e]") { books.insert(b4) }
