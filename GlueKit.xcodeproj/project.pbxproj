@@ -338,6 +338,7 @@
 		BB4052011C958712003D8F5B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.3.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		BB471D991DA57FF8002550B0 /* SortedSetTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SortedSetTests.swift; sourceTree = "<group>"; };
 		BB471D9E1DA58EA3002550B0 /* .codecov.yml */ = {isa = PBXFileReference; lastKnownFileType = text; path = .codecov.yml; sourceTree = "<group>"; };
+		BB568AE81DA66E6200BC4B58 /* Cartfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cartfile; sourceTree = "<group>"; };
 		BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CADisplayLink Extensions.swift"; sourceTree = "<group>"; };
 		BB69A7EE1D6AFF1A001D2821 /* Abstract.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Abstract.swift; sourceTree = "<group>"; };
 		BB69A7FF1D6B2377001D2821 /* BufferedArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedArray.swift; sourceTree = "<group>"; };
@@ -582,6 +583,7 @@
 				BBB55B1C1C8F90F60050DDA9 /* .travis.yml */,
 				BB471D9E1DA58EA3002550B0 /* .codecov.yml */,
 				BBC1F1D01D7EDF4A00A320F5 /* GlueKit.podspec */,
+				BB568AE81DA66E6200BC4B58 /* Cartfile */,
 				BB8D36711DA14800000D44C5 /* Package.swift */,
 				BBB55ACC1C8F80660050DDA9 /* version.xcconfig */,
 				BBB55BDD1C8FD0160050DDA9 /* Demo.playground */,

@@ -13,5 +13,5 @@ Pod::Spec.new do |spec|
   spec.source_files = 'Sources/*.swift'
   spec.social_media_url = 'https://twitter.com/lorentey'
   #spec.documentation_url = 'http://lorentey.github.io/GlueKit/api/'
-  spec.dependency   = 'BTree', '~> 3.0'
+  spec.dependency   = 'BTree', '~> 3.1'
 end
