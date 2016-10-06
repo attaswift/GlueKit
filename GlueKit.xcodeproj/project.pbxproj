@@ -217,9 +217,9 @@
 		BBB55BBA1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9E1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift */; };
 		BBB55BBB1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9E1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift */; };
 		BBB55BBC1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9E1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift */; };
-		BBB55BBD1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9F1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift */; };
-		BBB55BBE1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9F1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift */; };
-		BBB55BBF1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9F1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift */; };
+		BBB55BBD1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */; };
+		BBB55BBE1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */; };
+		BBB55BBF1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */; };
 		BBB55BC01C8FCE2C0050DDA9 /* SelectFromValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BA01C8FCE2C0050DDA9 /* SelectFromValueTests.swift */; };
 		BBB55BC11C8FCE2C0050DDA9 /* SelectFromValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BA01C8FCE2C0050DDA9 /* SelectFromValueTests.swift */; };
 		BBB55BC21C8FCE2C0050DDA9 /* SelectFromValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BA01C8FCE2C0050DDA9 /* SelectFromValueTests.swift */; };
@@ -418,7 +418,7 @@
 		BBB55B9C1C8FCE2C0050DDA9 /* NotificationCenterSupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationCenterSupportTests.swift; sourceTree = "<group>"; };
 		BBB55B9D1C8FCE2C0050DDA9 /* ObservableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTests.swift; sourceTree = "<group>"; };
 		BBB55B9E1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTransformationTests.swift; sourceTree = "<group>"; };
-		BBB55B9F1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectFromArrayTests.swift; sourceTree = "<group>"; };
+		BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayMappingTests.swift; sourceTree = "<group>"; };
 		BBB55BA01C8FCE2C0050DDA9 /* SelectFromValueTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectFromValueTests.swift; sourceTree = "<group>"; };
 		BBB55BA11C8FCE2C0050DDA9 /* SignalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTests.swift; sourceTree = "<group>"; };
 		BBB55BA21C8FCE2C0050DDA9 /* SimpleSourcesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleSourcesTests.swift; sourceTree = "<group>"; };
@@ -742,7 +742,7 @@
 			children = (
 				BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */,
 				BBB55B981C8FCE2C0050DDA9 /* ArrayVariableTests.swift */,
-				BBB55B9F1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift */,
+				BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */,
 				BBC4AE4D1D9A829500FF7DE0 /* ArrayFilteringTests.swift */,
 				BBE4DF4E1DA412A0005EC162 /* DistinctUnionTests.swift */,
 			);
@@ -1186,7 +1186,7 @@
 				BBE4DF661DA5656B005EC162 /* SetMappingTests.swift in Sources */,
 				BB471D9A1DA57FF8002550B0 /* SetSortingTests.swift in Sources */,
 				BBC4AE4E1D9A829500FF7DE0 /* ArrayFilteringTests.swift in Sources */,
-				BBB55BBD1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift in Sources */,
+				BBB55BBD1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */,
 				BBB55BA81C8FCE2C0050DDA9 /* ArrayVariableTests.swift in Sources */,
 				BBB55BD51C8FCE2C0050DDA9 /* VariableTests.swift in Sources */,
 				BBB55BC61C8FCE2C0050DDA9 /* SimpleSourcesTests.swift in Sources */,
@@ -1275,7 +1275,7 @@
 				BBE4DF671DA5656C005EC162 /* SetMappingTests.swift in Sources */,
 				BB471D9B1DA57FF8002550B0 /* SetSortingTests.swift in Sources */,
 				BBC4AE4F1D9A829500FF7DE0 /* ArrayFilteringTests.swift in Sources */,
-				BBB55BBE1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift in Sources */,
+				BBB55BBE1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */,
 				BBB55BA91C8FCE2C0050DDA9 /* ArrayVariableTests.swift in Sources */,
 				BBB55BD61C8FCE2C0050DDA9 /* VariableTests.swift in Sources */,
 				BBB55BC71C8FCE2C0050DDA9 /* SimpleSourcesTests.swift in Sources */,
@@ -1423,7 +1423,7 @@
 				BBE4DF681DA5656D005EC162 /* SetMappingTests.swift in Sources */,
 				BB471D9C1DA57FF8002550B0 /* SetSortingTests.swift in Sources */,
 				BBC4AE501D9A829500FF7DE0 /* ArrayFilteringTests.swift in Sources */,
-				BBB55BBF1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift in Sources */,
+				BBB55BBF1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */,
 				BBB55BAA1C8FCE2C0050DDA9 /* ArrayVariableTests.swift in Sources */,
 				BBB55BD71C8FCE2C0050DDA9 /* VariableTests.swift in Sources */,
 				BBB55BC81C8FCE2C0050DDA9 /* SimpleSourcesTests.swift in Sources */,
