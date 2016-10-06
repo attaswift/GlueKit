@@ -27,6 +27,9 @@
 		BB568AF31DA6942700BC4B58 /* MockSetObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */; };
 		BB568AF41DA6942700BC4B58 /* MockSetObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */; };
 		BB568AF51DA6942700BC4B58 /* MockSetObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */; };
+		BB568AF71DA6A9EE00BC4B58 /* MockArrayObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */; };
+		BB568AF81DA6A9EE00BC4B58 /* MockArrayObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */; };
+		BB568AF91DA6A9EE00BC4B58 /* MockArrayObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */; };
 		BB67E5521C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
 		BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
 		BB69A7EF1D6AFF1A001D2821 /* Abstract.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A7EE1D6AFF1A001D2821 /* Abstract.swift */; };
@@ -347,6 +350,7 @@
 		BB568AE81DA66E6200BC4B58 /* Cartfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cartfile; sourceTree = "<group>"; };
 		BB568AEE1DA693F700BC4B58 /* SetFilteringTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetFilteringTests.swift; sourceTree = "<group>"; };
 		BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockSetObserver.swift; sourceTree = "<group>"; };
+		BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockArrayObserver.swift; sourceTree = "<group>"; };
 		BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CADisplayLink Extensions.swift"; sourceTree = "<group>"; };
 		BB69A7EE1D6AFF1A001D2821 /* Abstract.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Abstract.swift; sourceTree = "<group>"; };
 		BB69A7FF1D6B2377001D2821 /* BufferedArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedArray.swift; sourceTree = "<group>"; };
@@ -529,8 +533,8 @@
 				BB89901F1D5F6F980097F350 /* SetVariable.swift */,
 				BBF400631DA108E900DA0B2C /* ObservableContains.swift */,
 				BBE4DF5B1DA55DA3005EC162 /* MultiObservableSet.swift */,
-				BBB55B231C8FCC810050DDA9 /* SetFiltering.swift */,
 				BBE4DF561DA55384005EC162 /* SetMappings.swift */,
+				BBB55B231C8FCC810050DDA9 /* SetFiltering.swift */,
 				BB1E4D691D61EA5200F1831F /* SortedSet.swift */,
 				BB3D92951D647E83003BEDBF /* ObservableSetReference.swift */,
 				BBC1F1BC1D7AEF3F00A320F5 /* ChangeTrackingSet.swift */,
@@ -736,6 +740,7 @@
 		BBB55BDA1C8FCEAE0050DDA9 /* Observable Arrays */ = {
 			isa = PBXGroup;
 			children = (
+				BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */,
 				BBB55B981C8FCE2C0050DDA9 /* ArrayVariableTests.swift */,
 				BBB55B9F1C8FCE2C0050DDA9 /* SelectFromArrayTests.swift */,
 				BBC4AE4D1D9A829500FF7DE0 /* ArrayFilteringTests.swift */,
@@ -1192,6 +1197,7 @@
 				BBB55BC91C8FCE2C0050DDA9 /* SourceOperatorTests.swift in Sources */,
 				BBB55BB11C8FCE2C0050DDA9 /* MergedSourceTests.swift in Sources */,
 				BBE4DF531DA41372005EC162 /* DistinctUnionTests.swift in Sources */,
+				BB568AF71DA6A9EE00BC4B58 /* MockArrayObserver.swift in Sources */,
 				BB568AF31DA6942700BC4B58 /* MockSetObserver.swift in Sources */,
 				BB8D366E1DA116CB000D44C5 /* Bookshelf.swift in Sources */,
 				BBB55BB71C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,
@@ -1280,6 +1286,7 @@
 				BBB55BCA1C8FCE2C0050DDA9 /* SourceOperatorTests.swift in Sources */,
 				BBB55BB21C8FCE2C0050DDA9 /* MergedSourceTests.swift in Sources */,
 				BBE4DF541DA41373005EC162 /* DistinctUnionTests.swift in Sources */,
+				BB568AF81DA6A9EE00BC4B58 /* MockArrayObserver.swift in Sources */,
 				BB568AF41DA6942700BC4B58 /* MockSetObserver.swift in Sources */,
 				BB8D366F1DA116CB000D44C5 /* Bookshelf.swift in Sources */,
 				BBB55BB81C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,
@@ -1427,6 +1434,7 @@
 				BBB55BCB1C8FCE2C0050DDA9 /* SourceOperatorTests.swift in Sources */,
 				BBB55BB31C8FCE2C0050DDA9 /* MergedSourceTests.swift in Sources */,
 				BBE4DF551DA41373005EC162 /* DistinctUnionTests.swift in Sources */,
+				BB568AF91DA6A9EE00BC4B58 /* MockArrayObserver.swift in Sources */,
 				BB568AF51DA6942700BC4B58 /* MockSetObserver.swift in Sources */,
 				BB8D36701DA116CB000D44C5 /* Bookshelf.swift in Sources */,
 				BBB55BB91C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,

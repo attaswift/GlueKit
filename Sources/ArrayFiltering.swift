@@ -9,16 +9,6 @@
 import Foundation
 import BTree
 
-extension ObservableArrayType {
-    public func filter(test: @escaping (Element) -> Bool) -> ObservableArray<Element> {
-        return ObservableArraySimpleFilter<Self>(base: self, test: test).observableArray
-    }
-
-    public func filter<Test: ObservableValueType>(test: @escaping (Element) -> Test) -> ObservableArray<Element> where Test.Value == Bool {
-        return ObservableArrayComplexFilter<Self, Test>(base: self, test: test).observableArray
-    }
-}
-
 private struct IndexMapping<Element> {
     let test: (Element) -> Bool
     var matchingIndices = SortedSet<Int>()
@@ -95,65 +85,84 @@ private struct IndexMapping<Element> {
     }
 }
 
-private class ObservableArraySimpleFilter<Base: ObservableArrayType>: ObservableArrayType {
-    public typealias Element = Base.Element
+extension ObservableArrayType {
+    public func filter(test: @escaping (Element) -> Bool) -> ObservableArray<Element> {
+        return ArrayFilteringOnPredicate<Self>(parent: self, test: test).observableArray
+    }
+}
+
+private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: ObservableArrayBase<Parent.Element> {
+    public typealias Element = Parent.Element
     public typealias Change = ArrayChange<Element>
 
-    private let base: Base
+    private let parent: Parent
     private let test: (Element) -> Bool
 
     private var indexMapping: IndexMapping<Element>
     private var changeSignal = OwningSignal<Change>()
     private var connection: Connection? = nil
 
-    init(base: Base, test: @escaping (Element) -> Bool) {
-        self.base = base
+    init(parent: Parent, test: @escaping (Element) -> Bool) {
+        self.parent = parent
         self.test = test
-        self.indexMapping = IndexMapping(initialValues: base.value, test: test)
-        connection = base.changes.connect { [unowned self] change in
-            let filteredChange = self.indexMapping.apply(change)
-            if !filteredChange.isEmpty {
-                self.changeSignal.send(filteredChange)
-            }
-        }
+        self.indexMapping = IndexMapping(initialValues: parent.value, test: test)
+        super.init()
+        connection = parent.changes.connect { [unowned self] change in self.apply(change) }
     }
 
     deinit {
         connection!.disconnect()
     }
 
-    var isBuffered: Bool {
+    private func apply(_ change: ArrayChange<Element>) {
+        let filteredChange = self.indexMapping.apply(change)
+        if !filteredChange.isEmpty {
+            self.changeSignal.send(filteredChange)
+        }
+    }
+
+    override var isBuffered: Bool {
         return false
     }
 
-    var value: Array<Element> {
-        return indexMapping.matchingIndices.map { base[$0] }
+    override subscript(index: Int) -> Element {
+        return parent[indexMapping.matchingIndices[index]]
     }
 
-    var count: Int {
-        return indexMapping.matchingIndices.count
-    }
-
-    subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+    override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
         precondition(0 <= bounds.lowerBound && bounds.lowerBound <= bounds.upperBound && bounds.upperBound <= count)
         var result: [Element] = []
         result.reserveCapacity(bounds.count)
         for index in indexMapping.matchingIndices[bounds] {
-            result.append(base[index])
+            result.append(parent[index])
         }
         return ArraySlice(result)
     }
 
-    var changes: Source<ArrayChange<Base.Element>> {
+    override var value: Array<Element> {
+        return indexMapping.matchingIndices.map { parent[$0] }
+    }
+
+    override var count: Int {
+        return indexMapping.matchingIndices.count
+    }
+
+    override var changes: Source<ArrayChange<Base.Element>> {
         return changeSignal.with(retained: self).source
     }
 }
 
-private class ObservableArrayComplexFilter<Base: ObservableArrayType, Test: ObservableValueType>: ObservableArrayType where Test.Value == Bool {
-    public typealias Element = Base.Element
+extension ObservableArrayType {
+    public func filter<Test: ObservableValueType>(test: @escaping (Element) -> Test) -> ObservableArray<Element> where Test.Value == Bool {
+        return ArrayFilteringOnObservableBool<Self, Test>(parent: self, test: test).observableArray
+    }
+}
+
+private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: ObservableArrayBase<Parent.Element> where Test.Value == Bool {
+    public typealias Element = Parent.Element
     public typealias Change = ArrayChange<Element>
 
-    private let base: Base
+    private let parent: Parent
     private let test: (Element) -> Test
 
     private var indexMapping: IndexMapping<Element>
@@ -161,14 +170,13 @@ private class ObservableArrayComplexFilter<Base: ObservableArrayType, Test: Obse
     private var baseConnection: Connection? = nil
     private var elementConnections = RefList<Connection>()
 
-    init(base: Base, test: @escaping (Element) -> Test) {
-        self.base = base
+    init(parent: Parent, test: @escaping (Element) -> Test) {
+        self.parent = parent
         self.test = test
-        let elements = base.value
+        let elements = parent.value
         self.indexMapping = IndexMapping(initialValues: elements, test: { test($0).value })
-        self.baseConnection = base.changes.connect { [unowned self] change in
-            self.applyBaseChange(change)
-        }
+        super.init()
+        self.baseConnection = parent.changes.connect { [unowned self] change in self.apply(change) }
         self.elementConnections = RefList(elements.lazy.map { [unowned self] element in self.connect(to: element) })
     }
 
@@ -177,7 +185,7 @@ private class ObservableArrayComplexFilter<Base: ObservableArrayType, Test: Obse
         self.elementConnections.forEach { $0.disconnect() }
     }
 
-    private func applyBaseChange(_ change: ArrayChange<Element>) {
+    private func apply(_ change: ArrayChange<Element>) {
         for mod in change.modifications {
             let inputRange = mod.inputRange
             inputRange.forEach { elementConnections[$0].disconnect() }
@@ -191,46 +199,47 @@ private class ObservableArrayComplexFilter<Base: ObservableArrayType, Test: Obse
 
     private func connect(to element: Element) -> Connection {
         var connection: Connection! = nil
-        connection = test(element).futureValues.connect { [unowned self] value in
-            self.updateElement(with: connection, include: value)
-        }
+        connection = test(element).changes.connect { [unowned self] change in self.apply(change, from: connection) }
         return connection
     }
 
-    private func updateElement(with elementConnection: Connection, include: Bool) {
-        let index = elementConnections.index(of: elementConnection)!
+    private func apply(_ change: SimpleChange<Bool>, from connection: Connection) {
+        if change.old == change.new { return }
+        let index = elementConnections.index(of: connection)!
         let c = indexMapping.matchingIndices.count
-        if include, let filteredIndex = indexMapping.insert(index) {
-            self.changeSignal.send(ArrayChange(initialCount: c, modification: .insert(base[index], at: filteredIndex)))
+        if change.new, let filteredIndex = indexMapping.insert(index) {
+            self.changeSignal.send(ArrayChange(initialCount: c, modification: .insert(parent[index], at: filteredIndex)))
         }
-        else if !include, let filteredIndex = indexMapping.remove(index) {
-            self.changeSignal.send(ArrayChange(initialCount: c, modification: .remove(base[index], at: filteredIndex)))
+        else if !change.new, let filteredIndex = indexMapping.remove(index) {
+            self.changeSignal.send(ArrayChange(initialCount: c, modification: .remove(parent[index], at: filteredIndex)))
         }
     }
 
-    var isBuffered: Bool {
-        return false
+    override var isBuffered: Bool { return false }
+
+    override subscript(index: Int) -> Element {
+        return parent[indexMapping.matchingIndices[index]]
     }
 
-    var value: Array<Element> {
-        return indexMapping.matchingIndices.map { base[$0] }
-    }
-
-    var count: Int {
-        return indexMapping.matchingIndices.count
-    }
-
-    subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+    override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
         precondition(0 <= bounds.lowerBound && bounds.lowerBound <= bounds.upperBound && bounds.upperBound <= count)
         var result: [Element] = []
         result.reserveCapacity(bounds.count)
         for index in indexMapping.matchingIndices[bounds] {
-            result.append(base[index])
+            result.append(parent[index])
         }
         return ArraySlice(result)
     }
 
-    var changes: Source<ArrayChange<Base.Element>> {
+    override var value: Array<Element> {
+        return indexMapping.matchingIndices.map { parent[$0] }
+    }
+
+    override var count: Int {
+        return indexMapping.matchingIndices.count
+    }
+
+    override var changes: Source<ArrayChange<Base.Element>> {
         return changeSignal.with(retained: self).source
     }
 }

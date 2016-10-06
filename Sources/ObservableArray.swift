@@ -140,11 +140,18 @@ internal class ObservableArrayBase<Element>: ObservableArrayType {
     subscript(_ range: Range<Int>) -> ArraySlice<Element> { abstract() }
     var value: Array<Element> { abstract() }
     var count: Int { abstract() }
-    var observableCount: Observable<Int> { abstract() }
-
     var changes: Source<ArrayChange<Element>> { abstract() }
 
-    var observable: Observable<[Element]> { return Observable(getter: { self.value }, changes: { self.valueChanges }) }
+    var observableCount: Observable<Int> {
+        return Observable(getter: { self.count },
+                          changes: { self.changes.map { $0.countChange } })
+    }
+
+    var observable: Observable<[Element]> {
+        return Observable(getter: { self.value },
+                          changes: { self.valueChanges })
+    }
+
     final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }
     final func hold(_ connection: Connection) { connections.append(connection) }
 }

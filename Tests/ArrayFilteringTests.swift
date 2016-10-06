@@ -10,46 +10,6 @@ import Foundation
 import XCTest
 import GlueKit
 
-class MockArrayObserver<Element: Equatable>: SinkType {
-    var context: [(StaticString, UInt)]
-    var expectations: [(ArrayChange<Element>, StaticString, UInt)] = []
-
-    init(file: StaticString = #file, line: UInt = #line) {
-        self.context = [(file, line)]
-    }
-
-    func receive(_ change: ArrayChange<Element>) -> Void {
-        self.process(change)
-    }
-
-    func expect(_ change: ArrayChange<Element>, file: StaticString = #file, line: UInt = #line) {
-        expectations.append((change, file, line))
-    }
-
-    func expect<R>(_ change: ArrayChange<Element>, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        self.context.append(file, line)
-        defer { self.context.removeLast() }
-        self.expect(change, file: file, line: line)
-        return try body()
-    }
-
-    func expectFulfilled() {
-        for (change, file, line) in expectations {
-            XCTFail("Expectation \(change) not fulfilled", file: file, line: line)
-        }
-        expectations.removeAll()
-    }
-
-    func process(_ change: ArrayChange<Element>) {
-        guard !expectations.isEmpty else {
-            XCTFail("Unexpected change: \(change)", file: context.last!.0, line: context.last!.1)
-            return
-        }
-        let expected = expectations.removeFirst()
-        XCTAssertTrue(expected.0 == change, "Expected \(expected.0), got \(change)", file: expected.1, line: expected.2)
-    }
-}
-
 private class Book: Equatable, CustomStringConvertible {
     let title: Variable<String>
 
@@ -68,51 +28,55 @@ private class Book: Equatable, CustomStringConvertible {
 
 class ArrayFilteringTests: XCTestCase {
 
-    func test_simple_valueAndCount() {
+    func test_filterOnPredicate_getters() {
         let array: ArrayVariable<Int> = [1, 3, 5, 6]
 
-        let evenMembers = array.filter { $0 % 2 == 0 }
-        XCTAssertEqual(evenMembers.count, 1)
-        XCTAssertEqual(evenMembers.value, [6])
+        let even = array.filter { $0 % 2 == 0 }
+
+        XCTAssertFalse(even.isBuffered)
+        XCTAssertEqual(even.count, 1)
+        XCTAssertEqual(even[0], 6)
+        XCTAssertEqual(even[0 ..< 1], ArraySlice([6]))
+        XCTAssertEqual(even.value, [6])
 
         array.value = Array(0 ..< 10)
-        XCTAssertEqual(evenMembers.count, 5)
-        XCTAssertEqual(evenMembers.value, [0, 2, 4, 6, 8])
+        XCTAssertEqual(even.count, 5)
+        XCTAssertEqual(even.value, [0, 2, 4, 6, 8])
 
         array.remove(at: 3)
-        XCTAssertEqual(evenMembers.count, 5)
-        XCTAssertEqual(evenMembers.value, [0, 2, 4, 6, 8])
+        XCTAssertEqual(even.count, 5)
+        XCTAssertEqual(even.value, [0, 2, 4, 6, 8])
 
         array.remove(at: 3)
-        XCTAssertEqual(evenMembers.count, 4)
-        XCTAssertEqual(evenMembers.value, [0, 2, 6, 8])
+        XCTAssertEqual(even.count, 4)
+        XCTAssertEqual(even.value, [0, 2, 6, 8])
 
         array.insert(10, at: 2)
-        XCTAssertEqual(evenMembers.count, 5)
-        XCTAssertEqual(evenMembers.value, [0, 10, 2, 6, 8])
+        XCTAssertEqual(even.count, 5)
+        XCTAssertEqual(even.value, [0, 10, 2, 6, 8])
 
         array[2] = 12
-        XCTAssertEqual(evenMembers.count, 5)
-        XCTAssertEqual(evenMembers.value, [0, 12, 2, 6, 8])
+        XCTAssertEqual(even.count, 5)
+        XCTAssertEqual(even.value, [0, 12, 2, 6, 8])
 
         array[2] = 11
-        XCTAssertEqual(evenMembers.count, 4)
-        XCTAssertEqual(evenMembers.value, [0, 2, 6, 8])
+        XCTAssertEqual(even.count, 4)
+        XCTAssertEqual(even.value, [0, 2, 6, 8])
 
         array[2] = 9
-        XCTAssertEqual(evenMembers.count, 4)
-        XCTAssertEqual(evenMembers.value, [0, 2, 6, 8])
+        XCTAssertEqual(even.count, 4)
+        XCTAssertEqual(even.value, [0, 2, 6, 8])
 
         array[2] = 10
-        XCTAssertEqual(evenMembers.count, 5)
-        XCTAssertEqual(evenMembers.value, [0, 10, 2, 6, 8])
+        XCTAssertEqual(even.count, 5)
+        XCTAssertEqual(even.value, [0, 10, 2, 6, 8])
 
         array.removeAll()
-        XCTAssertEqual(evenMembers.count, 0)
-        XCTAssertEqual(evenMembers.value, [])
+        XCTAssertEqual(even.count, 0)
+        XCTAssertEqual(even.value, [])
     }
 
-    func test_simple_changes() {
+    func test_filterOnPredicate_changes() {
         let array: ArrayVariable<Int> = [0, 1, 2, 3, 4]
 
         let evenMembers = array.filter { $0 % 2 == 0 }
@@ -130,7 +94,7 @@ class ArrayFilteringTests: XCTestCase {
         withExtendedLifetime(connection, {})
     }
 
-    func test_complex_valueAndCount() {
+    func test_filterOnObservableBool_getters() {
         let b1 = Book(title: "Winnie the Pooh")
         let b2 = Book(title: "The Color of Magic")
         let b3 = Book(title: "Structure and Interpretation of Computer Programs")
@@ -139,7 +103,12 @@ class ArrayFilteringTests: XCTestCase {
 
         // Books with "of" in their title.
         let filtered = array.filter { $0.title.map { $0.lowercased().contains("of") } }
+
+        XCTAssertEqual(filtered.isBuffered, false)
         XCTAssertEqual(filtered.count, 2)
+        XCTAssertEqual(filtered[0], b2)
+        XCTAssertEqual(filtered[1], b3)
+        XCTAssertEqual(filtered[0 ..< 2], ArraySlice([b2, b3]))
         XCTAssertEqual(filtered.value, [b2, b3])
 
         let b5 = Book(title: "Of Mice and Men")
