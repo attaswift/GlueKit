@@ -92,7 +92,7 @@ class BookshelfTests: XCTestCase {
 
     func testBooksByStephenson() {
         var f = Fixture()
-        let booksByStephenson = f.shelves.selectEach{$0.books}.filtered { book in book.authors.observableContains(f.stephenson) }
+        let booksByStephenson = f.shelves.selectEach{$0.books}.filter { book in book.authors.observableContains(f.stephenson) }
         XCTAssertEqual(booksByStephenson.value, [f.seveneves, f.cryptonomicon, f.anathem])
     }
 }

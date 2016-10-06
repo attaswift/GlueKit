@@ -71,7 +71,7 @@ class FilteredArrayTests: XCTestCase {
     func test_simple_valueAndCount() {
         let array: ArrayVariable<Int> = [1, 3, 5, 6]
 
-        let evenMembers = array.filtered { $0 % 2 == 0 }
+        let evenMembers = array.filter { $0 % 2 == 0 }
         XCTAssertEqual(evenMembers.count, 1)
         XCTAssertEqual(evenMembers.value, [6])
 
@@ -115,7 +115,7 @@ class FilteredArrayTests: XCTestCase {
     func test_simple_changes() {
         let array: ArrayVariable<Int> = [0, 1, 2, 3, 4]
 
-        let evenMembers = array.filtered { $0 % 2 == 0 }
+        let evenMembers = array.filter { $0 % 2 == 0 }
         let mock = MockArrayObserver<Int>()
         let connection = evenMembers.changes.connect(mock)
 
@@ -138,7 +138,7 @@ class FilteredArrayTests: XCTestCase {
         let array: ArrayVariable<Book> = [b1, b2, b3, b4]
 
         // Books with "of" in their title.
-        let filtered = array.filtered { $0.title.map { $0.lowercased().contains("of") } }
+        let filtered = array.filter { $0.title.map { $0.lowercased().contains("of") } }
         XCTAssertEqual(filtered.count, 2)
         XCTAssertEqual(filtered.value, [b2, b3])
 
@@ -173,7 +173,7 @@ class FilteredArrayTests: XCTestCase {
 
         let mock = MockArrayObserver<Book>()
         // Books with "of" in their title.
-        let filtered = array.filtered { $0.title.map { $0.lowercased().contains("of") } }
+        let filtered = array.filter { $0.title.map { $0.lowercased().contains("of") } }
         let connection = filtered.changes.connect(mock)
 
         // filtered is [b2, b3]

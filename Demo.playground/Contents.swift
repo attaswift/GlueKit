@@ -87,7 +87,7 @@ let allAuthors = shelves.selectEach{$0.books}.distinctUnion().flatMap{$0.authors
 allAuthors.value
 
 // Here are all books that have Neal Stephenson as one of their authors.
-let booksByStephenson = shelves.selectEach{$0.books}.filtered { book in book.authors.observableContains(stephenson) }
+let booksByStephenson = shelves.selectEach{$0.books}.filter { book in book.authors.observableContains(stephenson) }
 booksByStephenson.value
 
 // Let's imagine Stephenson was a co-author of The TeXBook, and it him to its author list.

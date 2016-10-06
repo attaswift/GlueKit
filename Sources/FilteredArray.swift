@@ -10,11 +10,11 @@ import Foundation
 import BTree
 
 extension ObservableArrayType {
-    public func filtered(test: @escaping (Element) -> Bool) -> ObservableArray<Element> {
+    public func filter(test: @escaping (Element) -> Bool) -> ObservableArray<Element> {
         return ObservableArraySimpleFilter<Self>(base: self, test: test).observableArray
     }
 
-    public func filtered<Test: ObservableValueType>(test: @escaping (Element) -> Test) -> ObservableArray<Element> where Test.Value == Bool {
+    public func filter<Test: ObservableValueType>(test: @escaping (Element) -> Test) -> ObservableArray<Element> where Test.Value == Bool {
         return ObservableArrayComplexFilter<Self, Test>(base: self, test: test).observableArray
     }
 }
