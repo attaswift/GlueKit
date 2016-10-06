@@ -8,7 +8,7 @@ Pod::Spec.new do |spec|
   spec.summary      = 'A type-safe observer framework for Swift'
   spec.author       = 'Károly Lőrentey'
   spec.homepage     = 'https://github.com/lorentey/GlueKit'
-  spec.license      = { :type => 'MIT', :file => 'LICENCE.md' }
+  spec.license      = { :type => 'MIT', :file => 'LICENSE.md' }
   spec.source       = { :git => 'https://github.com/lorentey/GlueKit.git', :branch => 'master' }
   spec.source_files = 'Sources/*.swift'
   spec.social_media_url = 'https://twitter.com/lorentey'
