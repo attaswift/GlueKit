@@ -4,7 +4,7 @@ import XCPlayground
 // Let's suppose we're writing an app for maintaining a catalogue for your books.
 // Here is what the model could look like.
 
-class Author: Hashable {
+class Author: Hashable, CustomStringConvertible {
     let name: Variable<String>
     let yearOfBirth: Variable<Int>
 
