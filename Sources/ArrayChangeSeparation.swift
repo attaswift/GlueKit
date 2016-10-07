@@ -70,7 +70,7 @@ extension ArrayChange where Element: Hashable {
     /// Separates this change into components that can be directly fed into a `UITableView` or a `UICollectionView` as a batch update.
     /// 
     /// - Requires: The array must not contain duplicate elements.
-    func separated() -> SeparatedArrayChange<Element> {
+    public func separated() -> SeparatedArrayChange<Element> {
         return SeparatedArrayChange(self)
     }
 }
