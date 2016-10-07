@@ -12,6 +12,19 @@ import GlueKit
 
 class ArrayChangeTests: XCTestCase {
 
+    func testCounts() {
+        var change = ArrayChange<String>(initialCount: 10)
+        change.add(.insert("foo", at: 2))
+        change.add(.replace("foo", at: 4, with: "bar"))
+        change.add(.remove("foo", at: 0))
+        change.add(.replaceSlice(["foo", "bar"], at: 6, with: ["1", "2", "3"]))
+
+        XCTAssertEqual(change.initialCount, 10)
+        XCTAssertEqual(change.finalCount, 11)
+        XCTAssertEqual(change.deltaCount, 1)
+        XCTAssertTrue(change.countChange == SimpleChange<Int>(from: 10, to: 11))
+    }
+
     func testExerciseMerging() {
         // Exhaustively test the merging of all variations of modification sequences.
         let startSequence = [0, 1]
@@ -19,9 +32,9 @@ class ArrayChangeTests: XCTestCase {
         let maxInsertionLength = 2
 
         func insertionsAtLevel(_ level: Int) -> [[Int]] {
-            // Returns an array of [], [31], [31, 32], ..., up to maxInsertionLength
+            // Returns an array of [], [30], [30, 31], ..., up to maxInsertionLength
             let s = 10 * level
-            return (1...maxInsertionLength).map { (1...$0).map { s + $0 } }
+            return (0...maxInsertionLength).map { (0..<$0).map { s + $0 } }
         }
 
         func printTrace(_ input: [Int], change: ArrayChange<Int>, output: [Int], trace: [ArrayModification<Int>], applied: [Int]) {
@@ -62,6 +75,11 @@ class ArrayChangeTests: XCTestCase {
                 return
             }
 
+            // Also do a quick test for reversing the change.
+            var undo = applied
+            undo.apply(change.reversed())
+            XCTAssertEqual(undo, input)
+
             if level < maxLevels {
                 for startIndex in output.startIndex...output.endIndex {
                     for endIndex in startIndex...output.endIndex {
@@ -101,4 +119,37 @@ class ArrayChangeTests: XCTestCase {
         XCTAssertEqual(m.deltaCount, c2.deltaCount)
         XCTAssert(m.modifications.elementsEqual(c2.modifications, by: ==))
     }
+
+    func testApply() {
+        var array = [0, 1, 2, 3, 4]
+        var change = ArrayChange<Int>(initialCount: 5)
+        change.add(.insert(10, at: 2))
+        change.add(.remove(1, at: 1))
+        change.add(.replace(4, at: 4, with: 20))
+
+        change.apply(on: &array)
+
+        XCTAssertEqual(array, [0, 10, 2, 3, 20])
+    }
+
+    func testDescription() {
+        var change = ArrayChange<Int>(initialCount: 5)
+        change.add(.insert(10, at: 2))
+        change.add(.remove(1, at: 1))
+        change.add(.replace(4, at: 4, with: 20))
+
+        XCTAssertEqual(change.description, "ArrayChange<Int> initialCount: 5, 2 modifications")
+        XCTAssertEqual(change.debugDescription, "GlueKit.ArrayChange<Swift.Int> initialCount: 5, 2 modifications")
+    }
+
+    func testRemovingEqualChanges() {
+        var change = ArrayChange<Int>(initialCount: 5)
+        change.add(.remove(1, at: 1))
+        change.add(.insert(1, at: 1))
+        change.add(.replace(4, at: 4, with: 40))
+
+        XCTAssertEqual(change.modifications, [.replace(1, at: 1, with: 1), .replace(4, at: 4, with: 40)])
+        XCTAssertEqual(change.removingEqualChanges().modifications, [.replace(4, at: 4, with: 40)])
+    }
+
 }

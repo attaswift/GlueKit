@@ -10,6 +10,7 @@ import XCTest
 import Foundation
 import GlueKit
 
+@inline(never)
 func noop<Value>(_ value: Value) {
 }
 

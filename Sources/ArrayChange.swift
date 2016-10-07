@@ -184,9 +184,7 @@ public enum ArrayModification<Element> {
         if let mod = ArrayModification(replacing: combinedOld, at: combinedStart, with: combinedNew) {
             return .collapsedTo(mod)
         }
-        else {
-            return .collapsedToNoChange
-        }
+        return .collapsedToNoChange
     }
 
     /// Transform each element in this modification using the function `transform`.
@@ -313,19 +311,38 @@ extension ArrayModification: CustomStringConvertible, CustomDebugStringConvertib
     public var description: String {
         switch self {
         case .insert(let new, at: let i):
+            return ".insert(\(new), at: \(i))"
+        case .remove(let old, at: let i):
+            return ".remove(\(old), at: \(i))"
+        case .replace(let old, at: let i, with: let new):
+            return ".replace(\(old), at: \(i), with: \(new))"
+        case .replaceSlice(let old, at: let i, with: let new):
+            let oldString = "[\(old.map { "\($0)" }.joined(separator: ", "))]"
+            let newString = "[\(new.map { "\($0)" }.joined(separator: ", "))]"
+            return ".replaceSlice(\(oldString), at: \(i), with: \(newString))"
+        }
+    }
+
+    public var debugDescription: String {
+        switch self {
+        case .insert(let new, at: let i):
             return ".insert(\(String(reflecting: new)), at: \(i))"
         case .remove(let old, at: let i):
             return ".remove(\(String(reflecting: old)), at: \(i))"
         case .replace(let old, at: let i, with: let new):
-            return ".replaceElement(\(String(reflecting: old)), at: \(i), with: \(String(reflecting: new)))"
+            return ".replace(\(String(reflecting: old)), at: \(i), with: \(String(reflecting: new)))"
         case .replaceSlice(let old, at: let i, with: let new):
             let oldString = "[\(old.map { String(reflecting: $0) }.joined(separator: ", "))]"
             let newString = "[\(new.map { String(reflecting: $0) }.joined(separator: ", "))]"
             return ".replaceSlice(\(oldString), at: \(i), with: \(newString))"
         }
     }
+}
 
-    public var debugDescription: String { return description }
+extension ArrayModification: CustomPlaygroundQuickLookable {
+    public var customPlaygroundQuickLook: PlaygroundQuickLook {
+        return .text(description)
+    }
 }
 
 extension RangeReplaceableCollection where Index == Int {
@@ -499,54 +516,6 @@ public struct ArrayChange<Element>: ChangeType {
         let mods = modifications.map { $0.shift(startIndex) }
         return ArrayChange(initialCount: initialCount, modifications: mods)
     }
-
-    /// Return the set of indices at which elements will be deleted or updated from the array when this change is applied.
-    ///
-    /// The returned indices are relative to the original state of the array.
-    ///
-    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block or a `UICollectionView` inside
-    /// a `performBatchUpdates` block.
-    public var deletedIndices: IndexSet {
-        var result = IndexSet()
-        var delta = 0
-        for modification in modifications {
-            switch modification {
-            case .insert(_, at: _):
-                break
-            case .remove(_, at: let index):
-                result.insert(index - delta)
-            case .replace(_, at: let index, with: _):
-                result.insert(index - delta)
-            case .replaceSlice(let old, let index, with: _):
-                result.insert(integersIn: index - delta ..< index + old.count - delta)
-            }
-            delta += modification.deltaCount
-        }
-        return result
-    }
-
-    /// Return the set of indices at which elements will be inserted or updated in the array when this change is applied.
-    ///
-    /// The returned indices assume deletions were already done.
-    ///
-    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block or a `UICollectionView` inside
-    /// a `performBatchUpdates` block.
-    public var insertedIndices: IndexSet {
-        var result = IndexSet()
-        for modification in modifications {
-            switch modification {
-            case .insert(_, at: let index):
-                result.insert(index)
-            case .remove(_, at: _):
-                break
-            case .replace(_, at: let index, with: _):
-                result.insert(index)
-            case .replaceSlice(_, at: let index, with: let new):
-                result.insert(integersIn: index ..< index + new.count)
-            }
-        }
-        return result
-    }
 }
 
 extension ArrayChange: CustomStringConvertible {
@@ -567,7 +536,9 @@ extension ArrayChange: CustomDebugStringConvertible {
 
 extension ArrayChange: CustomReflectable {
     public var customMirror: Mirror {
-        return Mirror(self, unlabeledChildren: modifications, displayStyle: .struct)
+        return Mirror(self, children: ["initialCount": initialCount,
+                                       "modifications": modifications],
+                      displayStyle: .struct)
     }
 }
 

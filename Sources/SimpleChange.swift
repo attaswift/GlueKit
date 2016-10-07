@@ -43,3 +43,11 @@ public struct SimpleChange<Value>: ChangeType {
         return .init(from: transform(old), to: transform(new))
     }
 }
+
+public func ==<Value: Equatable>(a: SimpleChange<Value>, b: SimpleChange<Value>) -> Bool {
+    return a.old == b.old && a.new == b.new
+}
+
+public func !=<Value: Equatable>(a: SimpleChange<Value>, b: SimpleChange<Value>) -> Bool {
+    return !(a == b)
+}

@@ -12,6 +12,60 @@ private func separationError() -> Never {
     fatalError("Changes in arrays with duplicate elements cannot be separated")
 }
 
+extension ArrayChange {
+    /// Return the set of indices at which elements will be deleted or updated from the array when this change is applied.
+    ///
+    /// The returned indices are relative to the original state of the array.
+    ///
+    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block or a `UICollectionView` inside
+    /// a `performBatchUpdates` block.
+    ///
+    /// - SeeAlso: `separated()` for a more thorough analysis of the change, including detection of elements that were moved.
+    public var deletedIndices: IndexSet {
+        var result = IndexSet()
+        var delta = 0
+        for modification in modifications {
+            switch modification {
+            case .insert(_, at: _):
+                break
+            case .remove(_, at: let index):
+                result.insert(index - delta)
+            case .replace(_, at: let index, with: _):
+                result.insert(index - delta)
+            case .replaceSlice(let old, let index, with: _):
+                result.insert(integersIn: index - delta ..< index + old.count - delta)
+            }
+            delta += modification.deltaCount
+        }
+        return result
+    }
+
+    /// Return the set of indices at which elements will be inserted or updated in the array when this change is applied.
+    ///
+    /// The returned indices assume deletions were already done.
+    ///
+    /// This is intended to be given to a `UITableView` inside a `beginUpdates` block or a `UICollectionView` inside
+    /// a `performBatchUpdates` block.
+    ///
+    /// - SeeAlso: `separated()` for a more thorough analysis of the change, including detection of elements that were moved.
+    public var insertedIndices: IndexSet {
+        var result = IndexSet()
+        for modification in modifications {
+            switch modification {
+            case .insert(_, at: let index):
+                result.insert(index)
+            case .remove(_, at: _):
+                break
+            case .replace(_, at: let index, with: _):
+                result.insert(index)
+            case .replaceSlice(_, at: let index, with: let new):
+                result.insert(integersIn: index ..< index + new.count)
+            }
+        }
+        return result
+    }
+}
+
 extension ArrayChange where Element: Hashable {
     /// Separates this change into components that can be directly fed into a `UITableView` or a `UICollectionView` as a batch update.
     /// 
