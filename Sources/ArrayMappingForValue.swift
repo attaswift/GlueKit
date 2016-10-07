@@ -1,5 +1,5 @@
 //
-//  ObservableArrayMap.swift
+//  ArrayMappingForValue.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-08-22.
@@ -14,7 +14,7 @@ extension ObservableArrayType {
     }
 }
 
-class ArrayMappingForValue<Element, Input: ObservableArrayType>: ObservableArrayType {
+private class ArrayMappingForValue<Element, Input: ObservableArrayType>: ObservableArrayType {
     typealias Change = ArrayChange<Element>
 
     let input: Input
@@ -61,7 +61,7 @@ extension ObservableArrayType {
     }
 }
 
-internal class BufferedObservableArrayMap<Input, Output, Content: ObservableArrayType>: ObservableArrayType where Content.Element == Input {
+private class BufferedObservableArrayMap<Input, Output, Content: ObservableArrayType>: ObservableArrayType where Content.Element == Input {
     typealias Element = Output
     typealias Change = ArrayChange<Output>
 
