@@ -76,7 +76,7 @@ extension ObservableSetType {
     }
 }
 
-private final class SetMappingForValue<S: ObservableSetType, Element: Hashable>: MultiObservableSet<Element> {
+private final class SetMappingForValue<S: ObservableSetType, Element: Hashable>: SetMappingBase<Element> {
     typealias Change = SetChange<Element>
 
     let base: S

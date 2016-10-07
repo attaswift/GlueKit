@@ -15,7 +15,7 @@ extension ObservableSetType {
     }
 }
 
-class SetMappingForArrayField<S: ObservableSetType, Field: ObservableArrayType>: MultiObservableSet<Field.Element> where Field.Element: Hashable {
+class SetMappingForArrayField<S: ObservableSetType, Field: ObservableArrayType>: SetMappingBase<Field.Element> where Field.Element: Hashable {
     let base: S
     let key: (S.Element) -> Field
 

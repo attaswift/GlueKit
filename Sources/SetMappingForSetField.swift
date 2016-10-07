@@ -14,7 +14,7 @@ extension ObservableSetType {
     }
 }
 
-class SetMappingForSetField<S: ObservableSetType, Field: ObservableSetType>: MultiObservableSet<Field.Element> {
+class SetMappingForSetField<S: ObservableSetType, Field: ObservableSetType>: SetMappingBase<Field.Element> {
     let base: S
     let key: (S.Element) -> Field
 

@@ -18,7 +18,7 @@ extension ObservableSetType {
     }
 }
 
-class SetMappingForValueField<S: ObservableSetType, Field: ObservableValueType>: MultiObservableSet<Field.Value> where Field.Value: Hashable {
+class SetMappingForValueField<S: ObservableSetType, Field: ObservableValueType>: SetMappingBase<Field.Value> where Field.Value: Hashable {
     let base: S
     let key: (S.Element) -> Field
 

@@ -14,7 +14,7 @@ extension ObservableSetType {
     }
 }
 
-class SetMappingForSequence<S: ObservableSetType, Result: Sequence>: MultiObservableSet<Result.Iterator.Element> where Result.Iterator.Element: Hashable {
+class SetMappingForSequence<S: ObservableSetType, Result: Sequence>: SetMappingBase<Result.Iterator.Element> where Result.Iterator.Element: Hashable {
     typealias Element = Result.Iterator.Element
     let base: S
     let key: (S.Element) -> Result
