@@ -80,18 +80,15 @@ class ArrayFilteringTests: XCTestCase {
         let array: ArrayVariable<Int> = [0, 1, 2, 3, 4]
 
         let evenMembers = array.filter { $0 % 2 == 0 }
-        let mock = MockArrayObserver<Int>()
-        let connection = evenMembers.changes.connect(mock)
+        let mock = MockArrayObserver<Int>(evenMembers)
 
-        mock.expect(ArrayChange(initialCount: 3, modification: .insert(6, at: 3)))
-        array.insert(contentsOf: [5, 6, 7], at: 5)
-        mock.expectFulfilled()
+        mock.expecting(3, .insert(6, at: 3)) {
+            array.insert(contentsOf: [5, 6, 7], at: 5)
+        }
 
-        mock.expect(ArrayChange(initialCount: 4, modification: .replaceSlice([2, 4], at: 1, with: [])))
-        array.removeSubrange(1 ..< 5)
-        mock.expectFulfilled()
-
-        withExtendedLifetime(connection, {})
+        mock.expecting(4, .replaceSlice([2, 4], at: 1, with: [])) {
+            array.removeSubrange(1 ..< 5)
+        }
     }
 
     func test_filterOnObservableBool_getters() {
@@ -140,44 +137,42 @@ class ArrayFilteringTests: XCTestCase {
         let b4 = Book(title: "Numerical Recipes in C++")
         let array: ArrayVariable<Book> = [b1, b2, b3, b4]
 
-        let mock = MockArrayObserver<Book>()
         // Books with "of" in their title.
         let filtered = array.filter { $0.title.map { $0.lowercased().contains("of") } }
-        let connection = filtered.changes.connect(mock)
+        let mock = MockArrayObserver<Book>(filtered)
 
         // filtered is [b2, b3]
 
         let b5 = Book(title: "Of Mice and Men")
-        mock.expect(ArrayChange(initialCount: 2, modification: .insert(b5, at: 2))) {
+        mock.expecting(2, .insert(b5, at: 2)) {
             array.append(b5)
         }
 
         // filtered is [b2, b3, b5]
 
-        mock.expect(ArrayChange(initialCount: 3, modification: .remove(b2, at: 0))) {
+        mock.expecting(3, .remove(b2, at: 0)) {
             _ = array.remove(at: 1)
         }
 
         // filtered is [b3, b5]
 
-        b4.title.value = "The TeXbook"
-        mock.expectFulfilled()
+        mock.expectingNoChange {
+            b4.title.value = "The TeXbook"
+        }
 
         // filtered is [b3, b5]
 
-        mock.expect(ArrayChange(initialCount: 2, modification: .insert(b4, at: 1))) {
+        mock.expecting(2, .insert(b4, at: 1)) {
             b4.title.value = "House of Leaves"
         }
 
         // filtered is [b3, b4, b5]
 
-        mock.expect(ArrayChange(initialCount: 3, modification: .remove(b4, at: 1))) {
+        mock.expecting(3, .remove(b4, at: 1)) {
             b4.title.value = "Good Omens"
         }
 
         // filtered is [b3, b5]
-
-        withExtendedLifetime(connection) {}
     }
 
 }

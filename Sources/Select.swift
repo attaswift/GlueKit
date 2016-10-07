@@ -179,7 +179,7 @@ private class ObservableForArrayField<Parent: ObservableValueType, Field: Observ
     override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return field[range] }
     override var value: Array<Element> { return field.value }
     override var count: Int { return field.count }
-    override var observableCount: Observable<Int> { return parent.select { self.key($0).observableCount } }
+    override var observableCount: Observable<Int> { return parent.map { self.key($0).observableCount } }
     override var changes: Source<ArrayChange<Field.Element>> { return _changeSource.source }
 }
 
@@ -211,15 +211,15 @@ private class UpdatableForArrayField<Parent: ObservableValueType, Field: Updatab
         set { field.value = newValue }
     }
     override var count: Int { return field.count }
-    override var observableCount: Observable<Int> { return parent.select { self.key($0).observableCount } }
+    override var observableCount: Observable<Int> { return parent.map { self.key($0).observableCount } }
     override var changes: Source<ArrayChange<Field.Element>> { return _changeSource.source }
     override func apply(_ change: ArrayChange<Field.Element>) { field.apply(change) }
 }
 
 extension ObservableValueType {
-    /// Select is an operator that implements key path coding and observing.
+    /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an child component (a.k.a "field") of its value that is a source,
-    /// `select` returns a new source that can be used connect to the field indirectly through the parent.
+    /// `map` returns a new source that can be used connect to the field indirectly through the parent.
     ///
     /// @param key: An accessor function that returns a component of self (a field) that is a SourceType.
     /// @returns A new source that sends the same values as the current source returned by key in the parent.
@@ -244,18 +244,18 @@ extension ObservableValueType {
     ///
     /// You can create a source for new messages in the current room with
     /// ```Swift
-    /// let source = currentRoom.select{$0.newMessages}
+    /// let source = currentRoom.map{$0.newMessages}
     /// ```
     /// Sinks connected to `source` will fire whenever the current room changes and whenever a new
     /// message is posted in the current room.
     ///
-    public func select<S: SourceType>(_ key: @escaping (Value) -> S) -> Source<S.SourceValue> {
+    public func map<S: SourceType>(_ key: @escaping (Value) -> S) -> Source<S.SourceValue> {
         return SourceForSourceField(parent: self, key: key).source
     }
 
-    /// Select is an operator that implements key path coding and observing.
+    /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
-    /// `select` returns a new observable that can be used to look up and modify the field and observe its changes
+    /// `map` returns a new observable that can be used to look up and modify the field and observe its changes
     /// indirectly through the parent.
     ///
     /// @param key: An accessor function that returns a component of self (a field) that is itself observable.
@@ -281,19 +281,19 @@ extension ObservableValueType {
     ///
     /// You can create an observable for the latest message in the current room with
     /// ```Swift
-    /// let observable = currentRoom.select{$0.latestMessage}
+    /// let observable = currentRoom.map{$0.latestMessage}
     /// ```
     /// Sinks connected to `observable.futureValues` will fire whenever the current room changes, or when a new 
     /// message is posted in the current room. The observable can also be used to simply retrieve the latest 
     /// message at any time.
     ///
-    public func select<O: ObservableValueType>(_ key: @escaping (Value) -> O) -> Observable<O.Value> {
+    public func map<O: ObservableValueType>(_ key: @escaping (Value) -> O) -> Observable<O.Value> {
         return ObservableForValueField(parent: self, key: key).observable
     }
 
-    /// Select is an operator that implements key path coding and observing.
+    /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
-    /// `select` returns a new observable that can be used to look up and modify the field and observe its changes
+    /// `map` returns a new observable that can be used to look up and modify the field and observe its changes
     /// indirectly through the parent. If the field is updatable, then the result will be, too.
     ///
     /// @param key: An accessor function that returns a component of self (a field) that is itself updatable.
@@ -319,14 +319,14 @@ extension ObservableValueType {
     ///
     /// You can create an updatable for the avatar image of the author of the latest message in the current room with
     /// ```Swift
-    /// let updatable = currentRoom.select{$0.latestMessage}.select{$0.author}.select{$0.avatar}
+    /// let updatable = currentRoom.map{$0.latestMessage}.map{$0.author}.map{$0.avatar}
     /// ```
     /// Sinks connected to `updatable.futureValues` will fire whenever the current room changes, or when a new message is posted
     /// in the current room, or when the author of that message is changed, or when the current
     /// author changes their avatar. The updatable can also be used to simply retrieve the avatar at any time,
     /// or to update it.
     ///
-    public func select<U: UpdatableType>(_ key: @escaping (Value) -> U) -> Updatable<U.Value> {
+    public func map<U: UpdatableType>(_ key: @escaping (Value) -> U) -> Updatable<U.Value> {
         return Updatable(
             getter: { key(self.value).value },
             setter: { key(self.value).value = $0 },
@@ -334,9 +334,9 @@ extension ObservableValueType {
         )
     }
 
-    /// Select is an operator that implements key path coding and observing.
+    /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
-    /// `select` returns a new observable that can be used to look up and modify the field and observe its changes
+    /// `map` returns a new observable that can be used to look up and modify the field and observe its changes
     /// indirectly through the parent. If the field is an observable array, then the result will be, too.
     ///
     /// @param key: An accessor function that returns a component of self (a field) that is an observable array.
@@ -362,17 +362,17 @@ extension ObservableValueType {
     ///
     /// You can create an observable array for all messages in the current room with
     /// ```Swift
-    /// let observable = currentRoom.select{$0.messages}
+    /// let observable = currentRoom.map{$0.messages}
     /// ```
     /// Sinks connected to `observable.changes` will fire whenever the current room changes, or when the list of
     /// messages is updated in the current room.  The observable can also be used to simply retrieve the list of messages
     /// at any time.
     ///
-    public func select<Field: ObservableArrayType>(_ key: @escaping (Value) -> Field) -> ObservableArray<Field.Element> {
+    public func map<Field: ObservableArrayType>(_ key: @escaping (Value) -> Field) -> ObservableArray<Field.Element> {
         return ObservableForArrayField(parent: self, key: key).observableArray
     }
 
-    public func select<Field: UpdatableArrayType>(_ key: @escaping (Value) -> Field) -> UpdatableArray<Field.Element> {
+    public func map<Field: UpdatableArrayType>(_ key: @escaping (Value) -> Field) -> UpdatableArray<Field.Element> {
         return UpdatableForArrayField(parent: self, key: key).updatableArray
     }
 }

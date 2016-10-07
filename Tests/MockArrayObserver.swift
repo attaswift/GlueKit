@@ -10,43 +10,71 @@ import Foundation
 import XCTest
 import GlueKit
 
-class MockArrayObserver<Element: Equatable>: SinkType {
-    var context: [(StaticString, UInt)]
-    var expectations: [(ArrayChange<Element>, StaticString, UInt)] = []
+class MockArrayObserver<Element: Equatable> {
+    var expectedChanges: [ArrayChange<Element>] = []
+    var actualChanges: [ArrayChange<Element>] = []
+    var connection: Connection? = nil
 
-    init(file: StaticString = #file, line: UInt = #line) {
-        self.context = [(file, line)]
+    init<O: ObservableArrayType>(_ target: O) where O.Element == Element {
+        self.connection = target.changes.connect { [unowned self] change in self.apply(change) }
     }
 
-    func receive(_ change: ArrayChange<Element>) -> Void {
-        self.process(change)
+    deinit {
+        connection!.disconnect()
     }
 
-    func expect(_ change: ArrayChange<Element>, file: StaticString = #file, line: UInt = #line) {
-        expectations.append((change, file, line))
+    private func apply(_ change: ArrayChange<Element>) {
+        actualChanges.append(change)
     }
 
-    func expect<R>(_ change: ArrayChange<Element>, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        self.context.append(file, line)
-        defer { self.context.removeLast() }
-        self.expect(change, file: file, line: line)
-        return try body()
+    func expectingNoChange<R>(file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+        return try run(file: file, line: line, body)
     }
 
-    func expectFulfilled() {
-        for (change, file, line) in expectations {
-            XCTFail("Expectation \(change) not fulfilled", file: file, line: line)
+    func expecting<R>(_ initialCount: Int, _ modification: ArrayModification<Element>, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+        self.expectedChanges.append(ArrayChange(initialCount: initialCount, modification: modification))
+        return try run(file: file, line: line, body)
+    }
+
+    func expecting<R>(_ initialCount: Int, _ modifications: [ArrayModification<Element>], file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+        var change = ArrayChange<Element>(initialCount: initialCount)
+        modifications.forEach { change.add($0) }
+        self.expectedChanges.append(change)
+        return try run(file: file, line: line, body)
+    }
+
+    private func run<R>(file: StaticString = #file, line: UInt = #line, _ body: () throws -> R) rethrows -> R {
+        let result = try body()
+        
+        let actual = merged(actualChanges)
+        let expected = merged(expectedChanges)
+        switch (actual, expected) {
+        case let (.some(actual), .some(expected)) where actual != expected:
+            fallthrough
+        case (.none, .some(_)), (.some(_), .none):
+            XCTFail("\(dump(actual)) is not equal to \(dump(expected))", file: file, line: line)
+        default:
+            break // OK
         }
-        expectations.removeAll()
+        actualChanges = []
+        expectedChanges = []
+        return result
     }
 
-    func process(_ change: ArrayChange<Element>) {
-        guard !expectations.isEmpty else {
-            XCTFail("Unexpected change: \(change)", file: context.last!.0, line: context.last!.1)
-            return
+    private func merged<E>(_ changes: [ArrayChange<E>]) -> ArrayChange<E>? {
+        guard var result = changes.first else { return nil }
+        if changes.count > 1 {
+            for c in changes.dropFirst() {
+                result.merge(with: c)
+            }
         }
-        let expected = expectations.removeFirst()
-        XCTAssertTrue(expected.0 == change, "Expected \(expected.0), got \(change)", file: expected.1, line: expected.2)
+        return result
     }
+
+    private func dump<E>(_ change: ArrayChange<E>?) -> String {
+        guard let change = change else { return "nil" }
+        return "(\(change.initialCount))" + change.modifications.map { "\($0)" }.joined()
+    }
+
 }
 

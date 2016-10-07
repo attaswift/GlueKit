@@ -1,5 +1,5 @@
 //
-//  SelectEach.swift
+//  flatMap.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2015-12-10.
@@ -7,20 +7,16 @@
 //
 
 import Foundation
+import BTree
 
 extension ObservableArrayType {
     /// Return an observable array that consists of the values for the field specified by `key` for each element of this array.
-    public func selectEach<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> ObservableArray<Field.Value> {
-        return ArraySelectorForObservableField(parent: self.observableArray, key: key).observableArray
+    public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> ObservableArray<Field.Value> {
+        return ArrayMappingForValueField(parent: self.observableArray, key: key).observableArray
     }
 }
 
-/// A source for selecting an observable field from elements of an observable array.
-/// The value of the result changes whenever the parent's contents change or one of its fields updates its value.
-///
-/// The returned observable keeps track of the current index of each field, and updates this mapping whenever something
-/// changes in the parent.
-private final class ArraySelectorForObservableField<Entity, Field: ObservableValueType>: ObservableArrayType, SignalDelegate {
+private final class ArrayMappingForValueField<Entity, Field: ObservableValueType>: ObservableArrayBase<Field.Value>, SignalDelegate {
     typealias Element = Field.Value
     typealias Base = Array<Element>
     typealias Change = ArrayChange<Element>
@@ -28,342 +24,291 @@ private final class ArraySelectorForObservableField<Entity, Field: ObservableVal
     private let parent: ObservableArray<Entity>
     private let key: (Entity) -> Field
 
-    private var _changeSignal = OwningSignal<Change>()
-
+    private var signal = OwningSignal<Change>()
     private var parentConnection: Connection? = nil
-    private var fieldConnections: [Connection] = []
-    private var _value: [Element] = []
-    private var fieldIndices: [Int: Int] = [:] // ID -> Index
-    private var _nextFieldID: Int = 0
+    private var fieldConnections = RefList<Connection>()
 
     init(parent: ObservableArray<Entity>, key: @escaping (Entity) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    var isBuffered: Bool { return true }
+    override var isBuffered: Bool { return false }
 
-    var value: [Element] {
-        if parentConnection != nil {
-            return _value
-        }
-        else {
-            return parent.value.map { key($0).value }
-        }
+    override subscript(index: Int) -> Element {
+        return key(parent[index]).value
     }
 
-    subscript(index: Int) -> Element {
-        if parentConnection != nil {
-            return _value[index]
-        }
-        else {
-            return key(parent[index]).value
-        }
+    override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+        return ArraySlice(parent[bounds].map { key($0).value })
     }
 
-    subscript(bounds: Range<Int>) -> ArraySlice<Element> {
-        if parentConnection != nil {
-            return _value[bounds]
-        }
-        else {
-            return ArraySlice(parent[bounds].map { key($0).value })
-        }
+    override var value: [Element] {
+        return parent.value.map { key($0).value }
     }
 
-    var count: Int {
-        return parent.count
-    }
+    override var count: Int { return parent.count }
 
-    var changes: Source<Change> { return _changeSignal.with(self).source }
-
-    var observableCount: Observable<Int> {
-        return Observable(getter: { self.parent.count },
-                          changes: { self.parent.changes.map { $0.countChange } })
-    }
+    override var changes: Source<Change> { return signal.with(self).source }
 
     func start(_ signal: Signal<Change>) {
         assert(parentConnection == nil && fieldConnections.isEmpty)
         let fields = parent.value.map(key)
-        _value = fields.map { $0.value }
-        fieldConnections = fields.enumerated().map { index, field in
-            self.connectField(field, index: index, signal: signal)
-        }
-        parentConnection = parent.changes.connect { change in
-            self.applyParentChange(change, signal: signal)
-        }
+        fieldConnections = RefList(fields.lazy.map { field in self.connectField(field) })
+        parentConnection = parent.changes.connect { [unowned self] change in self.apply(change) }
     }
 
     func stop(_ signal: Signal<Change>) {
         assert(parentConnection != nil)
         parentConnection?.disconnect()
         fieldConnections.forEach { $0.disconnect() }
-        _value = []
         parentConnection = nil
         fieldConnections.removeAll()
-        fieldIndices.removeAll()
     }
 
-    private func connectField(_ field: Field, index: Int, signal: Signal<Change>) -> Connection {
-        let id = self.nextFieldID
-        self.fieldIndices[id] = index
-        let c = field.futureValues.connect { value in self.sendValue(value, forFieldWithID: id, toSignal: signal) }
-        c.addCallback { _ in self.fieldIndices[id] = nil }
+    private func connectField(_ field: Field) -> Connection {
+        var connection: Connection? = nil
+        let c = field.changes.connect { [unowned self] change in  self.apply(change, from: connection!) }
+        connection = c
         return c
     }
 
-    private var nextFieldID: Int {
-        var result = _nextFieldID
-        repeat {
-            result = _nextFieldID
-            _nextFieldID = _nextFieldID &+ 1
-        } while fieldIndices[result] != nil
-
-        return result
-    }
-    
-    private func sendValue(_ newValue: Field.Value, forFieldWithID id: Int, toSignal signal: Signal<Change>) {
-        let index = fieldIndices[id]!
-        let oldValue = value[index]
-        _value[index] = newValue
-        let mod = ArrayModification<Field.Value>.replace(oldValue, at: index, with: newValue)
-        let change = ArrayChange<Field.Value>(initialCount: self.fieldConnections.count, modification: mod)
-        signal.send(change)
+    private func apply(_ change: SimpleChange<Element>, from connection: Connection) {
+        let index = fieldConnections.index(of: connection)!
+        signal.send(ArrayChange(initialCount: fieldConnections.count, modification: .replace(change.old, at: index, with: change.new)))
     }
 
-    private func applyParentChange(_ change: ArrayChange<Entity>, signal: Signal<Change>) {
-        assert(fieldConnections.count == change.initialCount)
-        assert(_value.count == change.initialCount)
-        var newChange = ArrayChange<Element>(initialCount: _value.count)
+    private func apply(_ change: ArrayChange<Entity>) {
+        precondition(fieldConnections.count == change.initialCount)
+        var newChange = ArrayChange<Element>(initialCount: change.initialCount)
         for mod in change.modifications {
-            let startIndex = mod.startIndex
-            let old = mod.oldElements
-            let new = mod.newElements
-            let delta = new.count - old.count
-            let inputRange = startIndex ..< startIndex + old.count
-            self.fieldConnections[inputRange].forEach { $0.disconnect() }
-            self.fieldIndices.forEach { id, index in
-                if index >= startIndex + old.count {
-                    self.fieldIndices[id] = index + delta
-                }
+            let start = mod.startIndex
+            var i = start
+            mod.forEachOldElement { old in
+                fieldConnections[i].disconnect()
+                i += 1
             }
-            let newConnections = new.enumerated().map { i, pv in
-                self.connectField(self.key(pv), index: startIndex + i, signal: signal)
+            var cs: [Connection] = []
+            mod.forEachNewElement { new in
+                let field = key(new)
+                cs.append(self.connectField(field))
             }
-            self.fieldConnections.replaceSubrange(inputRange, with: newConnections)
-
-            let newValues = new.map { key($0).value }
-            let oldValues = Array(_value[inputRange])
-            if let mod = ArrayModification(replacing: oldValues, at: startIndex, with: newValues) {
-                newChange.add(mod)
-            }
-            _value.replaceSubrange(inputRange, with: newValues)
+            fieldConnections.replaceSubrange(start ..< i, with: cs)
+            newChange.add(mod.map { self.key($0).value })
         }
-        signal.send(newChange)
+        precondition(fieldConnections.count == change.finalCount)
+        if !newChange.isEmpty {
+            signal.send(newChange)
+        }
     }
 }
 
 extension ObservableArrayType {
-    // Concatenation
-    public func selectEach<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> ObservableArray<Field.Element> {
-        let selector = ArraySelectorForArrayField<Element, Field>(parent: self.observableArray, key: key)
+    public func flatMap<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> ObservableArray<Field.Element> {
+        let selector = ArrayMappingForArrayField<Self, Field>(parent: self, key: key)
         return selector.observableArray
     }
 }
 
-private final class ArraySelectorForArrayField<ParentElement, Field: ObservableArrayType>: ObservableArrayType, SignalDelegate {
-    typealias Element = FieldElement
-    typealias Base = [Element]
-    typealias Change = ArrayChange<Element>
+/// Maintains an index mapping for an operation mapping an array of arrays into a single flat array.
+private struct IndexMapping {
+    // TODO: A weight-augmented tree-backed list would work much better here.
 
-    typealias FieldElement = Field.Element
+    private var postindices: SortedSet<Int> = [0] // Always ends with the overall count of elements.
+    // We don't have a SortedBag (yet), so empty arrays cause some elements in postindices to collapse. :-(
+    // Keep track of preindices whose value is empty here, and take this into account in all algorithms below.
+    private var emptyPreindices = SortedSet<Int>()
 
-    private let parent: ObservableArray<ParentElement>
-    private let key: (ParentElement) -> Field
+    var precount: Int { return postindices.count - 1 + emptyPreindices.count }
+    var postcount: Int { return postindices.last! }
 
-    private var changeSignal = OwningSignal<Change>()
-
-    private var active = false
-    private var parentConnection: Connection? = nil
-    private var fields: [Field] = []
-    private var fieldConnections: [Connection] = []
-    private var startIndices: [Int] = [0] // This always has an extra element at the end with the count of all elements
-    private var fieldIndexByFieldID: [Int: Int] = [:]
-    private var _nextFieldID: Int = 0
-
-    init(parent: ObservableArray<ParentElement>, key: @escaping (ParentElement) -> Field) {
-        self.parent = parent
-        self.key = key
+    private func empties(before preindex: Int) -> Int {
+        guard let i = emptyPreindices.highestIndex(below: preindex) else { return 0 }
+        return emptyPreindices.offset(of: i) + 1
     }
 
-    var isBuffered: Bool {
+    func preindex(for postindex: Int) -> (preindex: Int, offset: Int) {
+        let p = postindices.highestIndex(notAbove: postindex)!
+        let start = postindices[p]
+        var preindex = postindices.offset(of: p)
+        if var i = emptyPreindices.highestIndex(notAbove: preindex) {
+            preindex += emptyPreindices.offset(of: i) + 1
+            emptyPreindices.formIndex(after: &i)
+            while emptyPreindices.offset(of: i) != emptyPreindices.count && emptyPreindices[i] <= preindex {
+                preindex += 1
+                emptyPreindices.formIndex(after: &i)
+            }
+        }
+        return (preindex, postindex - start)
+    }
+
+    func postindex(for preindex: Int) -> Int {
+        let empties = self.empties(before: preindex)
+        let offset = preindex - empties
+        return postindices[offset]
+    }
+
+    mutating func appendArray(withCount count: Int) {
+        let postcount = self.postcount
+        if count == 0 {
+            emptyPreindices.insert(precount)
+        }
+        postindices.insert(postcount + count)
+    }
+
+    mutating func replaceArrays(in prerange: Range<Int>, withCounts counts: [Int]) {
+        let postrange: Range<Int> = postindex(for: prerange.lowerBound) ..< postindex(for: prerange.upperBound)
+        let postdelta = counts.reduce(0, +) - postrange.count
+        postindices.subtract(elementsIn: postrange)
+        postindices.shift(startingAt: postrange.upperBound, by: postdelta)
+
+        let predelta = counts.count - prerange.count
+        emptyPreindices.subtract(elementsIn: prerange)
+        emptyPreindices.shift(startingAt: prerange.upperBound, by: predelta)
+
+        var poststart = postrange.lowerBound
+        for i in 0 ..< counts.count {
+            let count = counts[i]
+            if count == 0 {
+                emptyPreindices.insert(prerange.lowerBound + i)
+            }
+            postindices.insert(poststart)
+            poststart += count
+        }
+    }
+
+    mutating func setCount(forArrayAt preindex: Int, from old: Int, to new: Int) {
+        if old == new { return }
+        let start = self.postindex(for: preindex)
+        if old == 0 {
+            emptyPreindices.remove(preindex)
+            postindices.shift(startingAt: start, by: new)
+            postindices.insert(start)
+        }
+        else if new == 0 {
+            emptyPreindices.insert(preindex)
+            postindices.shift(startingAt: start + old, by: -old)
+        }
+        else {
+            postindices.shift(startingAt: start + old, by: new - old)
+        }
+    }
+}
+
+private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: ObservableArrayBase<Field.Element> {
+    typealias Element = Field.Element
+
+    private let parent: Parent
+    private let key: (Parent.Element) -> Field
+
+    private var signal = OwningSignal<Change>()
+
+    private var parentConnection: Connection? = nil
+    private var fieldConnections = RefList<Connection>([])
+    private var indexMapping = IndexMapping() // This always has an extra element at the end with the count of all elements
+
+    init(parent: Parent, key: @escaping (Parent.Element) -> Field) {
+        self.parent = parent
+        self.key = key
+        super.init()
+
+        parentConnection = parent.changes.connect { [unowned self] change in self.apply(change) }
+        for pe in parent.value {
+            let field = key(pe)
+            fieldConnections.append(connectField(field))
+            indexMapping.appendArray(withCount: field.count)
+        }
+    }
+
+    deinit {
+        parentConnection!.disconnect()
+        fieldConnections.forEach { $0.disconnect() }
+    }
+
+    func apply(_ change: ArrayChange<Parent.Element>) {
+        precondition(change.initialCount == fieldConnections.count)
+        var transformedChange = ArrayChange<Element>(initialCount: indexMapping.postcount)
+        for mod in change.modifications {
+            let preindex = mod.startIndex
+            let postindex = indexMapping.postindex(for: preindex)
+            let oldFields = mod.oldElements.map { key($0) }
+            let newFields = mod.newElements.map { key($0) }
+
+            // Replace field connections.
+            let prerange: Range<Int> = preindex ..< preindex + oldFields.count
+            self.fieldConnections.forEach(range: prerange) { $0.disconnect() }
+            self.fieldConnections.replaceSubrange(prerange, with: newFields.map { self.connectField($0) })
+
+            // Update index mapping.
+            indexMapping.replaceArrays(in: prerange, withCounts: newFields.map { $0.count })
+
+            // Create new change component.
+            let oldValues = oldFields.flatMap { $0.value }
+            let newValues = newFields.flatMap { $0.value }
+            if let mod = ArrayModification(replacing: oldValues, at: postindex, with: newValues) {
+                transformedChange.add(mod)
+            }
+        }
+        precondition(change.finalCount == fieldConnections.count)
+        if !transformedChange.isEmpty {
+            signal.send(transformedChange)
+        }
+    }
+
+    private func connectField(_ field: Field) -> Connection {
+        var connection: Connection? = nil
+        connection = field.changes.connect { [unowned self] change in self.apply(change, from: connection!) }
+        return connection!
+    }
+
+    private func apply(_ change: ArrayChange<Field.Element>, from connection: Connection) {
+        let preindex = fieldConnections.index(of: connection)!
+        let postindex = indexMapping.postindex(for: preindex)
+        let transformedChange = change.widen(startIndex: postindex, initialCount: indexMapping.postcount)
+        indexMapping.setCount(forArrayAt: preindex, from: change.initialCount, to: change.finalCount)
+        signal.send(transformedChange)
+    }
+
+    override var isBuffered: Bool {
         return false
     }
 
-    var value: Array<Element> {
+    override subscript(index: Int) -> Element {
+        let (preindex, offset) = indexMapping.preindex(for: index)
+        return key(parent[preindex])[offset]
+    }
+
+    override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+        let start = indexMapping.preindex(for: bounds.lowerBound)
+        let end = indexMapping.preindex(for: bounds.upperBound)
+
+        if start.preindex == end.preindex {
+            return key(parent[start.preindex])[start.offset ..< end.offset]
+        }
+        var result: [Element] = []
+        result.reserveCapacity(bounds.count)
+
+        let firstField = key(parent[start.preindex])
+        result.append(contentsOf: firstField[start.offset ..< firstField.count])
+
+        for i in start.preindex + 1 ..< end.preindex {
+            result.append(contentsOf: key(parent[i]).value)
+        }
+
+        let lastField = key(parent[end.preindex])
+        result.append(contentsOf: lastField[0 ..< end.offset])
+
+        precondition(result.count == bounds.count)
+        return ArraySlice(result)
+    }
+
+    override var value: Array<Element> {
         return parent.value.flatMap { key($0).value }
     }
 
-    subscript(index: Int) -> Element {
-        return lookup(index ..< index + 1).first!
+    override var count: Int {
+        return indexMapping.postcount
     }
 
-    subscript(bounds: Range<Int>) -> ArraySlice<Element> {
-        return ArraySlice(lookup(bounds))
-    }
-
-    var count: Int {
-        if self.active {
-            return self.startIndices.last!
-        }
-        else {
-            return self.parent.value.reduce(0) { c, pe in c + self.key(pe).count }
-        }
-    }
-
-    var changes: Source<Change> { return changeSignal.with(self).source }
-
-    var observable: Observable<[Element]> {
-        return self.buffered().observable
-    }
-
-    func lookup(_ range: Range<Int>) -> [FieldElement] {
-        var result: [FieldElement] = []
-        result.reserveCapacity(range.count)
-        var startIndex: Int = 0
-        for pe in parent.value {
-            let field = key(pe)
-            let endIndex = startIndex + field.count
-
-            if endIndex <= range.lowerBound {
-                // Do nothing; the lookup range starts in a subsequent element.
-            }
-            else if range.upperBound <= startIndex {
-                // This element starts after the lookup range ends. We're done.
-                return result
-            }
-            else {
-                let start = max(startIndex, range.lowerBound) - startIndex
-                let end = min(endIndex, range.upperBound) - startIndex
-                result.append(contentsOf: field[start ..< end])
-            }
-            startIndex = endIndex
-        }
-        return result
-    }
-
-    func start(_ signal: Signal<Change>) {
-        assert(active == false)
-        assert(parentConnection == nil && fieldConnections.isEmpty)
-        fields = parent.value.map(key)
-        startIndices = [0]
-        var start = 0
-        fieldConnections = fields.enumerated().map { index, field in
-            let c = connectField(field, fieldIndex:index, signal: signal)
-            start += field.count
-            startIndices.append(start)
-            return c
-        }
-        parentConnection = parent.changes.connect { change in
-            self.applyParentChange(change, signal: signal)
-        }
-        active = true
-    }
-
-    func stop(_ signal: Signal<Change>) {
-        assert(parentConnection != nil)
-        fields = []
-        parentConnection?.disconnect()
-        fieldConnections.forEach { $0.disconnect() }
-        parentConnection = nil
-        fieldConnections.removeAll()
-        startIndices.removeAll()
-        fieldIndexByFieldID.removeAll()
-        active = false
-    }
-
-    private func connectField(_ field: Field, fieldIndex: Int, signal: Signal<Change>) -> Connection {
-        let id = self.nextFieldID
-        self.fieldIndexByFieldID[id] = fieldIndex
-        let c = field.changes.connect { change in
-            self.applyFieldChange(change, id: id, signal: signal)
-        }
-        c.addCallback { [unowned self] _ in self.fieldIndexByFieldID[id] = nil }
-        return c
-    }
-
-    private var nextFieldID: Int {
-        var result = _nextFieldID
-        repeat {
-            result = _nextFieldID
-            _nextFieldID = _nextFieldID &+ 1
-        } while fieldIndexByFieldID[result] != nil
-
-        return result
-    }
-
-    private func applyFieldChange(_ change: ArrayChange<FieldElement>, id: Int, signal: Signal<Change>) {
-        let fieldIndex = fieldIndexByFieldID[id]!
-        let startIndex = startIndices[fieldIndex]
-        let widenedChange = change.widen(startIndex: startIndex, initialCount: startIndices.last!)
-        let deltaCount = change.deltaCount
-        if deltaCount != 0 {
-            adjustIndicesAfter(fieldIndex, by: deltaCount)
-        }
-        signal.send(widenedChange)
-    }
-
-    private func adjustIndicesAfter(_ startIndex: Int, by delta: Int) {
-        for index in (startIndex + 1)..<startIndices.count {
-            startIndices[index] += delta
-        }
-    }
-
-    private func applyParentChange(_ change: ArrayChange<ParentElement>, signal: Signal<Change>) {
-        assert(fieldConnections.count == change.initialCount)
-        assert(fields.count == change.initialCount)
-        var result = ArrayChange<FieldElement>(initialCount: startIndices.last!, modifications: [])
-        for mod in change.modifications {
-            let startIndex = mod.startIndex
-            let inputRange = startIndex ..< startIndex + mod.inputCount
-            let oldFields = fields[inputRange]
-            let newFields = mod.newElements.map { self.key($0) }
-
-            let oldValues = oldFields.flatMap { $0.value }
-            let newValues = newFields.flatMap { $0.value }
-
-            // Replace field connections.
-            self.fieldConnections[inputRange].forEach { $0.disconnect() }
-            let newConnections = newFields.enumerated().map { i, field in
-                self.connectField(field, fieldIndex: startIndex + i, signal: signal)
-            }
-            self.fieldConnections.replaceSubrange(inputRange, with: newConnections)
-            self.fields.replaceSubrange(inputRange, with: newFields)
-
-            // Update start indexes.
-            let startValueIndex = startIndices[startIndex]
-            let oldValueCount = startIndices[inputRange.upperBound] - startValueIndex
-            var newValueCount = 0
-
-            let newIndices: [Int] = newFields.map { field in
-                let start = startValueIndex + newValueCount
-                newValueCount += field.count
-                return start
-            }
-            assert(oldValueCount == oldValues.count)
-            assert(newValueCount == newValues.count)
-            let deltaCount = newValueCount - oldValueCount
-            if deltaCount != 0 {
-                for fieldIndex in inputRange.upperBound ..< self.startIndices.count {
-                    startIndices[fieldIndex] += deltaCount
-                }
-            }
-            self.startIndices.replaceSubrange(inputRange, with: newIndices)
-
-            // Create new change component.
-            if let mod = ArrayModification(replacing: oldValues, at: startValueIndex, with: newValues) {
-                result.add(mod)
-            }
-        }
-        signal.send(result)
-    }
+    override var changes: Source<Change> { return signal.with(retained: self).source }
 }

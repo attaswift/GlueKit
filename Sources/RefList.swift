@@ -77,6 +77,11 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
         }
     }
 
+    internal func forEach(range: Range<Int>? = nil, body: (Element) throws -> ()) rethrows {
+        let range = range ?? 0 ..< count
+        try root.forEach(range, body)
+    }
+
     internal func index(of element: Element) -> Int? {
         guard var node = element.parent else { fatalError() }
         var offset = node.offset(of: element)
@@ -509,3 +514,55 @@ extension RefListNode {
     }
 }
 
+extension RefListNode {
+    func forEach(_ body: (Element) throws -> ()) rethrows {
+        if isLeaf {
+            try elements.forEach(body)
+        }
+        else {
+            for i in 0 ..< elements.count {
+                try children[i].forEach(body)
+                try body(elements[i])
+            }
+            try children[children.count - 1].forEach(body)
+        }
+    }
+
+    func forEach(_ range: Range<Int>, _ body: (Element) throws -> ()) rethrows {
+        if isLeaf {
+            for element in elements[range] {
+                try body(element)
+            }
+            return
+        }
+        var c = range.count
+        let slot = self.slot(atOffset: range.lowerBound)
+        guard range.count > 0 else { return }
+        if slot.match {
+            try body(elements[slot.index])
+            c -= 1
+        }
+        else {
+            let child = children[slot.index]
+            let childRange: Range<Int> = range.lowerBound - slot.offset ..< min(range.upperBound - slot.offset, child.count)
+            try child.forEach(childRange, body)
+            c -= childRange.count
+        }
+        var index = slot.index
+        while c > 0 {
+            index += 1
+            try body(elements[slot.index])
+            c -= 1
+            guard c > 0 else { continue }
+            let child = children[index]
+            if child.count >= c {
+                try child.forEach(body)
+                c -= child.count
+            }
+            else {
+                try child.forEach(0 ..< c, body)
+                c = 0
+            }
+        }
+    }
+}

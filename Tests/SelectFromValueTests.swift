@@ -23,7 +23,7 @@ class SelectFromValuesTests: XCTestCase {
     func testQueryAndUpdateSingleValue() {
         let e = Entity(42)
         let v = Variable<Entity>(e)
-        let path = v.select{$0.int}
+        let path = v.map{$0.int}
 
         XCTAssertEqual(path.value, 42)
 
@@ -37,7 +37,7 @@ class SelectFromValuesTests: XCTestCase {
         let e1 = Entity(1)
         let e2 = Entity(100)
         let v = Variable<Entity>(e1)
-        let path = v.select{$0.int}
+        let path = v.map{$0.int}
 
         var r = [Int]()
         let c = path.futureValues.connect { r.append($0) }
@@ -61,7 +61,7 @@ class SelectFromValuesTests: XCTestCase {
         let e1 = Entity(0, [0.0])
         let e2 = Entity(2, [100.0])
         let v = Variable<Entity>(e1)
-        let path: UpdatableArray<Float> = v.select{$0.floats}
+        let path: UpdatableArray<Float> = v.map{$0.floats}
 
         XCTAssertEqual(path.value, [0.0])
 
@@ -93,7 +93,7 @@ class SelectFromValuesTests: XCTestCase {
         let e1 = Entity(1)
         let e2 = Entity(100)
         let v = Variable<Entity>(e1)
-        let path = v.select{$0.int}
+        let path = v.map{$0.int}
 
         var r = [Int]()
         let c = path.futureValues.connect { r.append($0) }
@@ -231,7 +231,7 @@ class SelectFromValueTestsExamples: XCTestCase {
 
 
     func testSelectorPathValueUpdatesAfterChanges() {
-        let adamsFavoriteAppsDevelopersName = people.adam.favoriteApp.select { $0.developer }.select { $0.name }
+        let adamsFavoriteAppsDevelopersName = people.adam.favoriteApp.map { $0.developer }.map { $0.name }
         XCTAssertEqual(adamsFavoriteAppsDevelopersName.value, "Cool Software")
 
         // Company changes its name
@@ -256,7 +256,7 @@ class SelectFromValueTestsExamples: XCTestCase {
     }
 
     func testSelectorPathSendsNewValuesAfterChanges() {
-        let adamsFavoriteAppsDevelopersName = people.adam.favoriteApp.select { $0.developer }.select { $0.name }
+        let adamsFavoriteAppsDevelopersName = people.adam.favoriteApp.map { $0.developer }.map { $0.name }
         var r = [String]()
         let connection = adamsFavoriteAppsDevelopersName.values.connect { r.append($0) }
 
@@ -280,7 +280,7 @@ class SelectFromValueTestsExamples: XCTestCase {
     }
 
     func testSelectorPathCanBeUsedToUpdateValue() {
-        let adamsFavoriteAppsDevelopersName = people.adam.favoriteApp.select { $0.developer }.select { $0.name }
+        let adamsFavoriteAppsDevelopersName = people.adam.favoriteApp.map { $0.developer }.map { $0.name }
 
         XCTAssertEqual(companies.coolSoftware.name.value, "Cool Software")
 
@@ -296,7 +296,7 @@ class SelectFromValueTestsExamples: XCTestCase {
     }
 
     func testArraySelector() {
-        let cowLickerDeveloperNames: ObservableArray<String> = apps.cowLicker.developer.select{$0.employees}.selectEach{$0.name}
+        let cowLickerDeveloperNames: ObservableArray<String> = apps.cowLicker.developer.map{$0.employees}.map{$0.name}
 
         var r: [[String]] = []
         let connection = cowLickerDeveloperNames.changes.connect { changes in r.append(cowLickerDeveloperNames.value) }

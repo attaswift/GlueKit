@@ -9,194 +9,251 @@
 import XCTest
 import GlueKit
 
-private class File {
-    let name: Variable<String>
+private class Book {
+    let title: StringVariable
+    let authors: ArrayVariable<String>
 
-    init(name: String) { self.name = Variable(name) }
-}
-
-private class Folder {
-    let name: Variable<String>
-    let files: ArrayVariable<File> = []
-    let subfolders: ArrayVariable<Folder> = []
-
-    init(name: String, files: [File] = []) {
-        self.name = Variable(name)
-        self.files.value = files
-    }
-
-    init(name: String, subfolders: [Folder]) {
-        self.name = Variable(name)
-        self.subfolders.value = subfolders
+    init(_ title: String, _ authors: [String] = []) {
+        self.title = .init(title)
+        self.authors = .init(authors)
     }
 }
 
-class SelectFromArrayTests: XCTestCase {
+class ArrayMappingTests: XCTestCase {
 
-    func testSelectDirectValueAccess() {
-        let folder1 = Folder(name: "Folder 1", files: [
-            File(name: "1/a"),
-            File(name: "1/b"),
-            File(name: "1/c"),
-            ])
-        let folder2 = Folder(name: "Folder 2", files: [
-            File(name: "2/a"),
-            File(name: "2/b"),
-        ])
-        let root = Folder(name: "Root", subfolders: [folder1, folder2])
+    func test_map_valueField() {
+        let b1 = Book("foo")
+        let b2 = Book("bar")
+        let b3 = Book("baz")
+        let books: ArrayVariable<Book> = [b1, b2, b3]
 
-        // Get all files in subfolders of the root folder.
-        let files = root.subfolders.selectEach{$0.files}
-        XCTAssertEqual(files.count, 5)
-        XCTAssertEqual(files.value.map { $0.name.value }, ["1/a", "1/b", "1/c", "2/a", "2/b"])
+        let titles = books.map{$0.title}
 
-        // Get the filenames of all files in subfolders of the root folder.
-        let filenames = root.subfolders.selectEach{$0.files}.selectEach{$0.name}
-        XCTAssertEqual(filenames.count, 5)
-        XCTAssertEqual(filenames.value, ["1/a", "1/b", "1/c", "2/a", "2/b"])
+        XCTAssertFalse(titles.isBuffered)
+        XCTAssertEqual(titles.count, 3)
+        XCTAssertEqual(titles[0], "foo")
+        XCTAssertEqual(titles[1 ..< 3], ArraySlice(["bar", "baz"]))
 
-        // Add a new file to folder 1
-        folder1.files.insert(File(name: "1/b2"), at: 2)
+        XCTAssertEqual(titles.value, ["foo", "bar", "baz"])
 
-        XCTAssertEqual(files.count, 6)
-        XCTAssertEqual(filenames.count, 6)
-        XCTAssertEqual(files.value.map { $0.name.value }, ["1/a", "1/b", "1/b2", "1/c", "2/a", "2/b"])
-        XCTAssertEqual(filenames.value, ["1/a", "1/b", "1/b2", "1/c", "2/a", "2/b"])
+        let mock = MockArrayObserver(titles)
 
-        // Rename a file in folder 2
-        folder2.files[0].name.value = "2/a.renamed"
+        let b4 = Book("fred")
+        mock.expecting(3, .insert("fred", at: 3)) {
+            books.append(b4)
+        }
+        XCTAssertEqual(titles.value, ["foo", "bar", "baz", "fred"])
+        mock.expecting(4, .remove("bar", at: 1)) {
+            _ = books.remove(at: 1)
+        }
+        XCTAssertEqual(titles.value, ["foo", "baz", "fred"])
+        mock.expecting(3, .replace("baz", at: 1, with: "bazaar")) {
+            b3.title.value = "bazaar"
+        }
+        XCTAssertEqual(titles.value, ["foo", "bazaar", "fred"])
+    }
 
-        XCTAssertEqual(files.count, 6)
-        XCTAssertEqual(filenames.count, 6)
-        XCTAssertEqual(files.value.map { $0.name.value }, ["1/a", "1/b", "1/b2", "1/c", "2/a.renamed", "2/b"])
-        XCTAssertEqual(filenames.value, ["1/a", "1/b", "1/b2", "1/c", "2/a.renamed", "2/b"])
+    func test_flatMap_arrayField() {
+        let b1 = Book("foo", ["a", "b", "c"])
+        let b2 = Book("bar", ["b", "d"])
+        let b3 = Book("baz", ["a"])
+        let b4 = Book("zoo", [])
+        let books: ArrayVariable<Book> = [b1, b2, b3, b4]
 
-        // Delete a file from folder 1
-        folder1.files.remove(at: 1)
+        let authors = books.flatMap{$0.authors}
 
-        XCTAssertEqual(files.count, 5)
-        XCTAssertEqual(filenames.count, 5)
-        XCTAssertEqual(files.value.map { $0.name.value }, ["1/a", "1/b2", "1/c", "2/a.renamed", "2/b"])
-        XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "2/a.renamed", "2/b"])
+        XCTAssertEqual(authors.isBuffered, false)
+        XCTAssertEqual(authors.value, ["a", "b", "c", "b", "d", "a"])
+        XCTAssertEqual(authors.count, 6)
+        XCTAssertEqual(authors[0], "a")
+        XCTAssertEqual(authors[4], "d")
+        XCTAssertEqual(authors[2..<4], ArraySlice(["c", "b"]))
 
-        // Add a new subfolder between folders 1 and 2
-        let folder3 = Folder(name: "Folder 3", files: [
-            File(name: "3/1"),
-        ])
-        root.subfolders.insert(folder3, at: 1)
+        func checkSlices(file: StaticString = #file, line: UInt = #line) {
+            let value = authors.value
+            for i in 0 ..< authors.count {
+                for j in i ..< authors.count {
+                    XCTAssertEqual(authors[i ..< j], value[i ..< j], file: file, line: line)
+                }
+            }
+        }
 
-        XCTAssertEqual(files.count, 6)
-        XCTAssertEqual(filenames.count, 6)
-        XCTAssertEqual(files.value.map { $0.name.value }, ["1/a", "1/b2", "1/c", "3/1", "2/a.renamed", "2/b"])
-        XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1", "2/a.renamed", "2/b"])
+        checkSlices()
 
-        // Delete folder 2
-        root.subfolders.remove(at: 2)
+        let mock = MockArrayObserver(authors)
 
-        XCTAssertEqual(files.count, 4)
-        XCTAssertEqual(filenames.count, 4)
-        XCTAssertEqual(files.value.map { $0.name.value }, ["1/a", "1/b2", "1/c", "3/1"])
-        XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
+        let b5 = Book("fred", ["e"])
+        mock.expecting(6, .insert("e", at: 6)) {
+            books.append(b5)
+        }
+        XCTAssertEqual(authors.value, ["a", "b", "c", "b", "d", "a", "e"]) // b1 b2 b3 b4 b5
 
-        // Add a file to the root folder. (This should be an unrelated change.)
-        root.files.append(File(name: "/a"))
+        mock.expecting(7, .replaceSlice(["b", "d"], at: 3, with: [])) {
+            _ = books.remove(at: 1)
+        }
+        XCTAssertEqual(authors.value, ["a", "b", "c", "a", "e"]) // b1 b3 b4 b5
 
-        XCTAssertEqual(files.count, 4)
-        XCTAssertEqual(filenames.count, 4)
-        XCTAssertEqual(files.value.map { $0.name.value }, ["1/a", "1/b2", "1/c", "3/1"])
-        XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
+        mock.expecting(5, .replaceSlice([], at: 0, with: ["b", "d"])) {
+            books.insert(b2, at: 0)
+        }
+        XCTAssertEqual(authors.value, ["b", "d", "a", "b", "c", "a", "e"]) // b2 b1 b3 b4 b5
 
-        // Rename folder 1. (This should be an unrelated change.)
-        folder1.name.value = "Foobar"
 
-        XCTAssertEqual(files.count, 4)
-        XCTAssertEqual(filenames.count, 4)
-        XCTAssertEqual(files.value.map { $0.name.value }, ["1/a", "1/b2", "1/c", "3/1"])
-        XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
-}
+        mock.expecting(7, .insert("*", at: 1)) {
+            b2.authors.insert("*", at: 1)
+        }
+        XCTAssertEqual(authors.value, ["b", "*", "d", "a", "b", "c", "a", "e"]) // b2 b1 b3 b4 b5
+        checkSlices()
 
-    func testSelectObservingChanges() {
-        let folder1 = Folder(name: "Folder 1", files: [
-            File(name: "1/a"),
-            File(name: "1/b"),
-            File(name: "1/c"),
-            ])
-        let folder2 = Folder(name: "Folder 2", files: [
-            File(name: "2/a"),
-            File(name: "2/b"),
-            ])
-        let root = Folder(name: "Root", subfolders: [folder1, folder2])
 
-        // Get the filenames of all files in subfolders of the root folder.
-        let filenames = root.subfolders.selectEach{$0.files}.selectEach{$0.name}
+        mock.expecting(8, .replace("*", at: 1, with: "f")) {
+            b2.authors[1] = "f"
+        }
+        XCTAssertEqual(authors.value, ["b", "f", "d", "a", "b", "c", "a", "e"]) // b2 b1 b3 b4 b5
+        checkSlices()
 
-        var changes = [ArrayChange<String>]()
-        var expected = [ArrayChange<String>]()
-        let c1 = filenames.changes.connect { changes.append($0) }
+        mock.expecting(8, .insert("g", at: 8)) {
+            b5.authors.append("g")
+        }
+        XCTAssertEqual(authors.value, ["b", "f", "d", "a", "b", "c", "a", "e", "g"]) // b2 b1 b3 b4 b5
 
-        // Add a new file to folder 1
-        folder1.files.insert(File(name: "1/b2"), at: 2)
+        // Remove all authors from each book, one by one.
 
-        expected.append(ArrayChange(initialCount: 5, modification: .insert("1/b2", at: 2)))
+        mock.expecting(9, .remove("a", at: 6)) {
+            b3.authors.value = []
+        }
+        XCTAssertEqual(authors.value, ["b", "f", "d", "a", "b", "c", "e", "g"]) // b2 b1 b3 b4 b5
+        checkSlices()
 
-        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
-        XCTAssertEqual(filenames.value, ["1/a", "1/b", "1/b2", "1/c", "2/a", "2/b"])
+        mock.expecting(8, .replaceSlice(["a", "b", "c"], at: 3, with: [])) {
+            b1.authors.value = []
+        }
+        XCTAssertEqual(authors.value, ["b", "f", "d", "e", "g"]) // b2 b1 b3 b4 b5
+        checkSlices()
 
-        // Rename a file in folder 2
-        folder2.files[0].name.value = "2/a.renamed"
+        mock.expecting(5, .replaceSlice([], at: 5, with: ["b", "f", "d", "e", "g"])) {
+            books.append(contentsOf: books.value)
+        }
+        XCTAssertEqual(authors.value, ["b", "f", "d", "e", "g", "b", "f", "d", "e", "g"]) // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        checkSlices()
 
-        expected.append(ArrayChange(initialCount: 6, modification: .replace("2/a", at: 4, with: "2/a.renamed")))
+        mock.expecting(10, [.replaceSlice(["b", "f", "d"], at: 0, with: []),
+                            .replaceSlice(["b", "f", "d"], at: 2, with: [])]) {
+            b2.authors.value = []
+        }
+        XCTAssertEqual(authors.value, ["e", "g", "e", "g"]) // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        checkSlices()
 
-        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
-        XCTAssertEqual(filenames.value, ["1/a", "1/b", "1/b2", "1/c", "2/a.renamed", "2/b"])
+        mock.expecting(4, .replaceSlice(["e", "g"], at: 2, with: [])) {
+            books.removeSubrange(5 ..< 10)
+        }
+        XCTAssertEqual(authors.value, ["e", "g"]) // b2 b1 b3 b4 b5
+        checkSlices()
 
-        // Delete a file from folder 1
-        folder1.files.remove(at: 1)
 
-        expected.append(ArrayChange(initialCount: 6, modification: .remove("1/b", at: 1)))
+        mock.expecting(2, .replaceSlice(["e", "g"], at: 0, with: [])) {
+            b5.authors.value = []
+        }
+        XCTAssertEqual(authors.value, []) // b2 b1 b3 b4 b5
+        checkSlices()
 
-        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
-        XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "2/a.renamed", "2/b"])
+        // At this point, no book has any author.
 
-        // Add a new subfolder between folders 1 and 2
-        let folder3 = Folder(name: "Folder 3", files: [
-            File(name: "3/1"),
-            ])
-        root.subfolders.insert(folder3, at: 1)
+        mock.expectingNoChange {
+            books.append(contentsOf: books.value)
+        }
+        XCTAssertEqual(authors.value, []) // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        checkSlices()
 
-        expected.append(ArrayChange(initialCount: 5, modification: .insert("3/1", at: 3)))
+        mock.expecting(0, .replaceSlice([], at: 0, with: ["3a", "3b", "3a", "3b"])) {
+            b3.authors.value = ["3a", "3b"]
+        }
+        XCTAssertEqual(authors.value, ["3a", "3b", "3a", "3b"]) // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        checkSlices()
 
-        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
-        XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1", "2/a.renamed", "2/b"])
+        mock.expecting(4, [.insert("1", at: 0), .insert("1", at: 3)]) {
+            b1.authors.value = ["1"]
+        }
+        XCTAssertEqual(authors.value, ["1", "3a", "3b", "1", "3a", "3b"]) // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        checkSlices()
 
-        // Delete folder 2
-        root.subfolders.remove(at: 2)
+        mock.expecting(6, .replaceSlice(["3a", "3b"], at: 4, with: [])) {
+            books.removeSubrange(7 ..< 10)
+        }
+        XCTAssertEqual(authors.value, ["1", "3a", "3b", "1"]) // b2 b1 b3 b4 b5 b2 b1
+        checkSlices()
 
-        expected.append(ArrayChange(initialCount: 6, modification: .replaceSlice(["2/a.renamed", "2/b"], at: 4, with: [])))
+        mock.expecting(4, .insert("5a", at: 3)) {
+            b5.authors.append("5a")
+        }
+        XCTAssertEqual(authors.value, ["1", "3a", "3b", "5a", "1"]) // b2 b1 b3 b4 b5 b2 b1
+        checkSlices()
 
-        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
-        XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
+        mock.expecting(5, .insert("5b", at: 4)) {
+            b5.authors.append("5b")
+        }
+        XCTAssertEqual(authors.value, ["1", "3a", "3b", "5a", "5b", "1"]) // b2 b1 b3 b4 b5 b2 b1
+        checkSlices()
 
-        // Add a file to the root folder. (This should be an unrelated change.)
-        root.files.append(File(name: "/a"))
+        mock.expecting(6, [.insert("2", at: 0), .insert("2", at: 6)]) {
+            b2.authors.append("2")
+        }
+        XCTAssertEqual(authors.value, ["2", "1", "3a", "3b", "5a", "5b", "2", "1"]) // b2 b1 b3 b4 b5 b2 b1
+        checkSlices()
 
-        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
-        XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
+        mock.expecting(8, .remove("2", at: 6)) {
+            _ = books.remove(at: 5) // b2
+        }
+        XCTAssertEqual(authors.value, ["2", "1", "3a", "3b", "5a", "5b", "1"]) // b2 b1 b3 b4 b5 b1
+        checkSlices()
 
-        // Rename folder 1. (This should be an unrelated change.)
-        folder1.name.value = "Foobar"
+        mock.expecting(7, .remove("1", at: 1)) {
+            _ = books.remove(at: 1) // b1
+        }
+        XCTAssertEqual(authors.value, ["2", "3a", "3b", "5a", "5b", "1"]) // b2 b3 b4 b5 b1
+        checkSlices()
 
-        XCTAssertTrue(changes.elementsEqual(expected, by: ==))
-        XCTAssertEqual(filenames.value, ["1/a", "1/b2", "1/c", "3/1"])
+        mock.expecting(6, .replaceSlice(["5a", "5b"], at: 3, with: [])) {
+            b5.authors.value = []
+        }
+        XCTAssertEqual(authors.value, ["2", "3a", "3b", "1"]) // b2 b3 b4 b5 b1
+        checkSlices()
 
-        c1.disconnect()
+        mock.expecting(4, .remove("1", at: 3)) {
+            _ = books.removeLast() // b1
+        }
+        XCTAssertEqual(authors.value, ["2", "3a", "3b"]) // b2 b3 b4 b5
+        checkSlices()
 
-        let reducedChanges = changes.reduce(ArrayChange(initialCount: 5)) { m, c in m.merged(with: c) }
-        let expectedreducedMods: [ArrayModification<String>] = [
-            .replace("1/b", at: 1, with: "1/b2"),
-            .replaceSlice(["2/a", "2/b"], at: 3, with: ["3/1"])
-        ]
-        XCTAssertTrue(reducedChanges.modifications.elementsEqual(expectedreducedMods, by: ==))
+        mock.expectingNoChange {
+            _ = books.removeLast() // b5
+        }
+        XCTAssertEqual(authors.value, ["2", "3a", "3b"]) // b2 b3 b4
+        checkSlices()
+
+        mock.expecting(3, .remove("2", at: 0)) {
+            b2.authors.value = []
+        }
+        XCTAssertEqual(authors.value, ["3a", "3b"]) // b2 b3 b4
+        checkSlices()
+
+        mock.expectingNoChange {
+            _ = books.removeFirst() // b2
+        }
+        XCTAssertEqual(authors.value, ["3a", "3b"]) // b3 b4
+        checkSlices()
+
+        mock.expectingNoChange {
+            _ = books.removeLast() // b4
+        }
+        XCTAssertEqual(authors.value, ["3a", "3b"]) // b3
+        checkSlices()
+
+        mock.expecting(2, .replaceSlice(["3a", "3b"], at: 0, with: [])) {
+            _ = books.removeLast() // b3
+        }
+        XCTAssertEqual(authors.value, [])
+        checkSlices()
     }
 }
 

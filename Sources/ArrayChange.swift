@@ -351,6 +351,10 @@ public func ==<Element: Equatable>(a: ArrayModification<Element>, b: ArrayModifi
         && a.oldElements == b.oldElements
         && a.newElements == b.newElements
 }
+public func !=<Element: Equatable>(a: ArrayModification<Element>, b: ArrayModification<Element>) -> Bool {
+    return !(a == b)
+}
+
 
 //MARK: ArrayChange
 
@@ -576,6 +580,9 @@ extension ArrayChange where Element: Equatable {
 public func ==<Element: Equatable>(a: ArrayChange<Element>, b: ArrayChange<Element>) -> Bool {
     return (a.initialCount == b.initialCount
         && a.modifications.elementsEqual(b.modifications, by: ==))
+}
+public func !=<Element: Equatable>(a: ArrayChange<Element>, b: ArrayChange<Element>) -> Bool {
+    return !(a == b)
 }
 
 extension RangeReplaceableCollection where Index == Int, IndexDistance == Int {

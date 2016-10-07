@@ -80,14 +80,14 @@ let shelves = ArrayVariable<Bookshelf>([topShelf, bottomShelf])
 
 
 // Let's get an array of the title of each book in the library.
-let allTitles = shelves.selectEach{$0.books}.selectEach{$0.title}
+let allTitles = shelves.flatMap{$0.books}.map{$0.title}
 allTitles.value
 
-let allAuthors = shelves.selectEach{$0.books}.distinctUnion().flatMap{$0.authors}
+let allAuthors = shelves.flatMap{$0.books}.distinctUnion().flatMap{$0.authors}
 allAuthors.value
 
 // Here are all books that have Neal Stephenson as one of their authors.
-let booksByStephenson = shelves.selectEach{$0.books}.filter { book in book.authors.observableContains(stephenson) }
+let booksByStephenson = shelves.flatMap{$0.books}.filter { book in book.authors.observableContains(stephenson) }
 booksByStephenson.value
 
 // Let's imagine Stephenson was a co-author of The TeXBook, and it him to its author list.
@@ -98,7 +98,7 @@ booksByStephenson.value
 
 
 // How many books do I have?
-let bookCount = shelves.selectEach{$0.books}.observableCount
+let bookCount = shelves.flatMap{$0.books}.observableCount
 bookCount.value
 
 // What if I buy a new book?

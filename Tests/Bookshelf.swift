@@ -86,13 +86,13 @@ class BookshelfTests: XCTestCase {
     func testAllTitles() {
         var f = Fixture()
         // Let's get an array of the title of each book in the library.
-        let allTitles = f.shelves.selectEach{$0.books}.selectEach{$0.title}
+        let allTitles = f.shelves.flatMap{$0.books}.map{$0.title}
         XCTAssertEqual(allTitles.value, ["The Colour of Magic", "Small Gods", "Seveneves", "Good Omens", "American Gods", "Cryptonomicon", "Anathem", "The TeXBook", "The Art of Computer Programming vol. 1: Fundamental Algorithms. 3rd ed."])
     }
 
     func testBooksByStephenson() {
         var f = Fixture()
-        let booksByStephenson = f.shelves.selectEach{$0.books}.filter { book in book.authors.observableContains(f.stephenson) }
+        let booksByStephenson = f.shelves.flatMap{$0.books}.filter { book in book.authors.observableContains(f.stephenson) }
         XCTAssertEqual(booksByStephenson.value, [f.seveneves, f.cryptonomicon, f.anathem])
     }
 }

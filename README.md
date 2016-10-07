@@ -182,16 +182,16 @@ it uses a specially constructed Swift closure to represent the key path:
 let cocoaKeyPath: String = "projects.issues.owner.email"
 
 let swiftKeyPath: Document -> Observable<[String]> = { document in 
-    document.projects.selectEach{$0.issues}.selectEach{$0.owner}.select{$0.email} 
+    document.projects.flatMap{$0.issues}.flatMap{$0.owner}.map{$0.email} 
 }
 ```
 
 (The type declarations are included to make it clear that GlueKit is fully type-safe. Swift's type inference is able
 to find these out automatically, so typically you'd omit specifying types in declarations like this.)
 The GlueKit syntax is certainly much more verbose, but in exchange it is typesafe, much more flexible, and also extensible. 
-Plus, there is a visual difference between selecting a single value (`select`) or a collection of values (`selectEach`), 
+Plus, there is a visual difference between selecting a single value (`map`) or a collection of values (`flatMap`), 
 which alerts you that using this key path might be more expensive than usual. (GlueKit's key paths are really just 
-combinations of observables. `select` is a combinator that is used to build one-to-one key paths; there are many other
+combinations of observables. `map` is a combinator that is used to build one-to-one key paths; there are many other
 interesting combinators available.)
 
 In Cocoa, you would get the current list of emails using KVC's accessor method. In GlueKit, if you give the key path a
@@ -222,7 +222,7 @@ You'll be happy to know that one-to-one key paths are assignable in both Cocoa a
 ```Swift
 let issue: Issue = ...
 /* Cocoa */   issue.setValue("karoly@example.com", forKeyPath: "owner.email") // OK
-/* GlueKit */ issue.owner.select{$0.email}.value = "karoly@example.com"  // OK
+/* GlueKit */ issue.owner.map{$0.email}.value = "karoly@example.com"  // OK
 ```
 
 (In GlueKit, you generally just use the observable combinators directly instead of creating key path entities.
@@ -233,7 +233,7 @@ More interestingly, you can ask to be notified whenever a key path changes its v
 
 ```Swift
 // GlueKit
-let c = document.projects.selectEach{$0.issues}.selectEach{$0.owner}.select{$0.name}.connect { emails in 
+let c = document.projects.flatMap{$0.issues}.flatMap{$0.owner}.map{$0.name}.connect { emails in 
     print("Owners' email addresses are: \(emails)")
 }
 // Call c.disconnect() when you get bored of getting so many emails.
@@ -282,7 +282,7 @@ class ProjectSummaryViewModel {
     
     /// The name of the current project.
 	var projectName: Updatable<String> { 
-	    return project.select { $0.name } 
+	    return project.map { $0.name } 
 	}
 	
     /// The number of issues (open and closed) in the current project.
