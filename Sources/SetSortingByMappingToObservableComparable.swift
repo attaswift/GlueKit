@@ -17,7 +17,7 @@ extension ObservableSetType where Element: AnyObject {
     }
 }
 
-private class SetSortingByMappingToObservableComparable<S: ObservableSetType, R: ObservableValueType>: ObservableArrayType
+private class SetSortingByMappingToObservableComparable<S: ObservableSetType, R: ObservableValueType>: ObservableArrayBase<R.Value>
 where S.Element: AnyObject, R.Value: Comparable {
     typealias Element = R.Value
     typealias Change = ArrayChange<Element>
@@ -33,6 +33,7 @@ where S.Element: AnyObject, R.Value: Comparable {
     init(base: S, transform: @escaping (S.Element) -> R) {
         self.base = base
         self.transform = transform
+        super.init()
 
         for element in base.value {
             _ = self._insert(newElement(element))
@@ -116,12 +117,11 @@ where S.Element: AnyObject, R.Value: Comparable {
         }
     }
 
-    var isBuffered: Bool { return false }
-    var count: Int { return state.count }
-    var value: Array<Element> { return Array(state.lazy.map { $0.0 }) }
-    subscript(index: Int) -> Element { return state.element(atOffset: index).0 }
-    subscript(bounds: Range<Int>) -> ArraySlice<Element> { return ArraySlice(state.submap(withOffsets: bounds).lazy.map { $0.0 }) }
-
-    var changes: Source<ArrayChange<Element>> { return signal.with(retained: self).source }
+    override var isBuffered: Bool { return false }
+    override subscript(index: Int) -> Element { return state.element(atOffset: index).0 }
+    override subscript(bounds: Range<Int>) -> ArraySlice<Element> { return ArraySlice(state.submap(withOffsets: bounds).lazy.map { $0.0 }) }
+    override var value: Array<Element> { return Array(state.lazy.map { $0.0 }) }
+    override var count: Int { return state.count }
+    override var changes: Source<ArrayChange<Element>> { return signal.with(retained: self).source }
 }
 
