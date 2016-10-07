@@ -17,7 +17,7 @@ extension ObservableArrayType {
 }
 
 /// Maintains an index mapping for an operation mapping an array of arrays into a single flat array.
-private struct IndexMapping {
+private struct Indexmap {
     // TODO: A weight-augmented tree-backed list would work much better here.
 
     private var postindices: SortedSet<Int> = [0] // Always ends with the overall count of elements.
@@ -111,7 +111,7 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
 
     private var parentConnection: Connection? = nil
     private var fieldConnections = RefList<Connection>([])
-    private var indexMapping = IndexMapping() // This always has an extra element at the end with the count of all elements
+    private var indexMapping = Indexmap() // This always has an extra element at the end with the count of all elements
 
     init(parent: Parent, key: @escaping (Parent.Element) -> Field) {
         self.parent = parent
