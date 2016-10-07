@@ -107,6 +107,7 @@ class ObservableSetBase<Element: Hashable>: ObservableSetType {
     func isSuperset(of other: Set<Element>) -> Bool { abstract() }
 
     var changes: Source<SetChange<Element>> { abstract() }
+
     var observable: Observable<Set<Element>> { return Observable(getter: { self.value }, changes: { self.valueChanges }) }
     var observableCount: Observable<Int> { return Observable(getter: { self.count }, changes: { self.countChanges }) }
 

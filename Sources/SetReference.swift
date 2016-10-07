@@ -1,5 +1,5 @@
 //
-//  ObservableSetReference.swift
+//  SetReference.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-08-17.
@@ -10,7 +10,7 @@ import Foundation
 
 /// A mutable reference to an `ObservableSet` that's also an observable set.
 /// You can switch to another target set without having to re-register subscribers.
-public class ObservableSetReference<Element: Hashable>: ObservableSetType, SignalDelegate {
+public final class ObservableSetReference<Element: Hashable>: ObservableSetBase<Element>, SignalDelegate {
     public typealias Base = Set<Element>
     public typealias Change = SetChange<Element>
 
@@ -18,12 +18,14 @@ public class ObservableSetReference<Element: Hashable>: ObservableSetType, Signa
     private var _changes = OwningSignal<Change>()
     private var _connection: Connection?
 
-    public init() {
+    public override init() {
         _target = ObservableSet.emptyConstant()
+        super.init()
     }
 
     public init<Target: ObservableSetType>(target: Target) where Target.Element == Element {
         _target = target.observableSet
+        super.init()
     }
 
     public func retarget<Target: ObservableSetType>(to target: Target) where Target.Element == Element {
@@ -39,9 +41,13 @@ public class ObservableSetReference<Element: Hashable>: ObservableSetType, Signa
         }
     }
 
-    public var isBuffered: Bool { return false }
-    public var value: Set<Element> { return _target.value }
-    public var changes: Source<Change> { return _changes.with(self).source }
+    public override var isBuffered: Bool { return false }
+    public override var count: Int { return _target.count }
+    public override var value: Set<Element> { return _target.value }
+    public override func contains(_ member: Element) -> Bool { return _target.contains(member) }
+    public override func isSubset(of other: Set<Element>) -> Bool { return _target.isSubset(of: other) }
+    public override func isSuperset(of other: Set<Element>) -> Bool { return _target.isSuperset(of: other) }
+    public override var changes: Source<Change> { return _changes.with(self).source }
 
     internal func start(_ signal: Signal<Change>) {
         precondition(_connection == nil)

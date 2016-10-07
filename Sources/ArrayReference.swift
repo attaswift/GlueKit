@@ -1,5 +1,5 @@
 //
-//  ObservableArrayReference.swift
+//  ArrayReference.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-08-17.
@@ -10,7 +10,7 @@ import Foundation
 
 /// A mutable reference to an `ObservableArray` that's also an observable array.
 /// You can switch to another target array without having to re-register subscribers.
-public class ObservableArrayReference<Element>: ObservableArrayType, SignalDelegate {
+public final class ObservableArrayReference<Element>: ObservableArrayBase<Element>, SignalDelegate {
     public typealias Base = [Element]
     public typealias Change = ArrayChange<Element>
 
@@ -18,12 +18,14 @@ public class ObservableArrayReference<Element>: ObservableArrayType, SignalDeleg
     private var _changes = OwningSignal<Change>()
     private var _connection: Connection?
 
-    public init() {
+    public override init() {
         _target = ObservableArray.emptyConstant()
+        super.init()
     }
     
     public init<Target: ObservableArrayType>(target: Target) where Target.Element == Element {
         _target = target.observableArray
+        super.init()
     }
 
     public func retarget<Target: ObservableArrayType>(to target: Target) where Target.Element == Element {
@@ -39,14 +41,12 @@ public class ObservableArrayReference<Element>: ObservableArrayType, SignalDeleg
         }
     }
 
-    public var isBuffered: Bool { return false }
-    public var count: Int {
-        return self._target.count
-    }
-    public var value: Base { return _target.value }
-    public subscript(_ index: Int) -> Element { return _target[index] }
-    public subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _target[range] }
-    public var changes: Source<Change> { return _changes.with(self).source }
+    public override var isBuffered: Bool { return false }
+    public override subscript(_ index: Int) -> Element { return _target[index] }
+    public override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _target[range] }
+    public override var value: Base { return _target.value }
+    public override var count: Int { return self._target.count }
+    public override var changes: Source<Change> { return _changes.with(self).source }
 
     internal func start(_ signal: Signal<Change>) {
         precondition(_connection == nil)
