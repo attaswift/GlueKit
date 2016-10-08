@@ -317,6 +317,9 @@
 		BBC4AE551D9ACA6800FF7DE0 /* SignalTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */; };
 		BBC4AE561D9ACA6800FF7DE0 /* SignalTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */; };
 		BBCBAA9C1CBEB7BD004A1BD5 /* Connector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B221C8FCC810050DDA9 /* Connector.swift */; };
+		BBCD9DF51DA9104A00E85FB9 /* RefListTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9DF41DA9104A00E85FB9 /* RefListTests.swift */; };
+		BBCD9DF61DA9104A00E85FB9 /* RefListTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9DF41DA9104A00E85FB9 /* RefListTests.swift */; };
+		BBCD9DF71DA9104A00E85FB9 /* RefListTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9DF41DA9104A00E85FB9 /* RefListTests.swift */; };
 		BBE4DF401DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
 		BBE4DF411DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
 		BBE4DF421DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
@@ -502,6 +505,7 @@
 		BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIControl Extensions.swift"; sourceTree = "<group>"; };
 		BBC4AE4D1D9A829500FF7DE0 /* ArrayFilteringTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayFilteringTests.swift; sourceTree = "<group>"; };
 		BBC4AE521D9ACA6800FF7DE0 /* SignalTools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTools.swift; sourceTree = "<group>"; };
+		BBCD9DF41DA9104A00E85FB9 /* RefListTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RefListTests.swift; sourceTree = "<group>"; };
 		BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableType.swift; sourceTree = "<group>"; };
 		BBE4DF441DA3A908005EC162 /* SimpleChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleChange.swift; sourceTree = "<group>"; };
 		BBE4DF491DA409EE005EC162 /* DistinctUnion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DistinctUnion.swift; sourceTree = "<group>"; };
@@ -716,6 +720,7 @@
 			children = (
 				BBB55AC31C8F80020050DDA9 /* Info.plist */,
 				BBB55BA41C8FCE2C0050DDA9 /* TestUtilities.swift */,
+				BBCD9DF41DA9104A00E85FB9 /* RefListTests.swift */,
 				BBB55BD81C8FCE740050DDA9 /* Sources and Signals */,
 				BBB55BD91C8FCE9D0050DDA9 /* Observable Values */,
 				BBB55BDA1C8FCEAE0050DDA9 /* Observable Arrays */,
@@ -1273,6 +1278,7 @@
 				BBE4DF661DA5656B005EC162 /* SetMappingTests.swift in Sources */,
 				BB471D9A1DA57FF8002550B0 /* SetSortingTests.swift in Sources */,
 				BBC4AE4E1D9A829500FF7DE0 /* ArrayFilteringTests.swift in Sources */,
+				BBCD9DF51DA9104A00E85FB9 /* RefListTests.swift in Sources */,
 				BBB55BBD1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */,
 				BBA033661DA7CFFE00E83AC1 /* ArrayModificationTests.swift in Sources */,
 				BBB55BA81C8FCE2C0050DDA9 /* ArrayVariableTests.swift in Sources */,
@@ -1375,6 +1381,7 @@
 				BBE4DF671DA5656C005EC162 /* SetMappingTests.swift in Sources */,
 				BB471D9B1DA57FF8002550B0 /* SetSortingTests.swift in Sources */,
 				BBC4AE4F1D9A829500FF7DE0 /* ArrayFilteringTests.swift in Sources */,
+				BBCD9DF61DA9104A00E85FB9 /* RefListTests.swift in Sources */,
 				BBB55BBE1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */,
 				BBA033671DA7CFFE00E83AC1 /* ArrayModificationTests.swift in Sources */,
 				BBB55BA91C8FCE2C0050DDA9 /* ArrayVariableTests.swift in Sources */,
@@ -1546,6 +1553,7 @@
 				BBE4DF681DA5656D005EC162 /* SetMappingTests.swift in Sources */,
 				BB471D9C1DA57FF8002550B0 /* SetSortingTests.swift in Sources */,
 				BBC4AE501D9A829500FF7DE0 /* ArrayFilteringTests.swift in Sources */,
+				BBCD9DF71DA9104A00E85FB9 /* RefListTests.swift in Sources */,
 				BBB55BBF1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */,
 				BBA033681DA7CFFE00E83AC1 /* ArrayModificationTests.swift in Sources */,
 				BBB55BAA1C8FCE2C0050DDA9 /* ArrayVariableTests.swift in Sources */,

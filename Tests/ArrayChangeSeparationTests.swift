@@ -82,7 +82,7 @@ class ArrayChangeSeparationTests: XCTestCase {
 
     func testSeparation() {
         let input = [-1, -2, -3]
-        generateArrayChanges(input: input, depth: 3, maxInsertion: 2) { change in
+        generateArrayChanges(input: input, depth: 2, maxInsertion: 2) { change in
             // We'll emulate UITableView's content update logic, feed it the change and see if we
             // arrive at a result that matches the updated array.
             var output = input

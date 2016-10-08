@@ -15,17 +15,26 @@ protocol RefListElement: class {
 }
 
 internal struct RefListLink<Element: RefListElement> {
-    fileprivate var parent: RefListNode<Element>?
+    fileprivate var _parent: UnownedReference<RefListNode<Element>>?
 
     internal init() {
-        self.parent = nil
+        self._parent = nil
     }
 }
 
 extension RefListElement {
     fileprivate var parent: RefListNode<Self>? {
-        get { return refListLink.parent }
-        set { refListLink.parent = newValue }
+        get {
+            return refListLink._parent?.value
+        }
+        set {
+            if let p = newValue {
+                refListLink._parent = UnownedReference(p)
+            }
+            else {
+                refListLink._parent = nil
+            }
+        }
     }
 }
 
@@ -40,14 +49,18 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
 
     fileprivate var root: Node
 
-    required init() {
-        self.root = Node()
+    required convenience init() {
+        self.init(order: Node.defaultOrder)
     }
 
     required convenience init<S: Sequence>(_ elements: S) where S.Iterator.Element == Element {
         // TODO: Implement bulk loader
         self.init()
         self.append(contentsOf: elements)
+    }
+
+    init(order: Int) {
+        self.root = Node(order: order)
     }
 
     internal var count: Int { return root.count }
@@ -83,7 +96,7 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
     }
 
     internal func index(of element: Element) -> Int? {
-        guard var node = element.parent else { fatalError() }
+        var node = element.parent!
         var offset = node.offset(of: element)
         while let parent = node.parent {
             offset += parent.offset(of: node)
@@ -139,6 +152,8 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
             ascend: { node, slot in
                 node.count += 1
                 if let s = splinter {
+                    s.separator.parent = node
+                    s.node.parent = node
                     node.elements.insert(s.separator, at: slot)
                     node.children.insert(s.node, at: slot + 1)
                     splinter = node.isTooLarge ? node.split() : nil
@@ -148,6 +163,7 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
         if let s = splinter {
             root = Node(left: root, separator: s.separator, right: s.node)
         }
+        assert(element.parent != nil)
     }
 
     internal func insert<C: Collection>(contentsOf newElements: C, at index: Int) where C.Iterator.Element == Iterator.Element {
@@ -217,6 +233,7 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
         if root.children.count == 1 {
             assert(root.elements.count == 0)
             root = root.children[0]
+            root.parent = nil
         }
         return old!
     }
@@ -238,7 +255,7 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
 fileprivate final class RefListNode<Element: RefListElement> {
     typealias Node = RefListNode<Element>
 
-    var parent: RefListNode?
+    var _parent: UnownedReference<RefListNode>?
     var elements: [Element]
     var children: [RefListNode]
     var count: Int = 0
@@ -253,15 +270,14 @@ fileprivate final class RefListNode<Element: RefListElement> {
     init(order: Int, elements: [Element], children: [Node], count: Int) {
         precondition(elements.count <= order)
         precondition(children.count == 0 || children.count == elements.count + 1)
-        self.parent = nil
+        self._parent = nil
         self.elements = elements
         self.children = children
         self.count = count
         self.order = order
         self.depth = (children.count == 0 ? 0 : children[0].depth + 1)
-        children.forEach {
-            $0.parent = self
-        }
+        elements.forEach { $0.parent = self }
+        children.forEach { $0.parent = self }
     }
 
     convenience init(order: Int = RefListNode.defaultOrder) {
@@ -290,6 +306,20 @@ fileprivate final class RefListNode<Element: RefListElement> {
         }
     }
 
+    var parent: RefListNode? {
+        get {
+            return _parent?.value
+        }
+        set {
+            if let p = newValue {
+                _parent = UnownedReference(p)
+            }
+            else {
+                _parent = nil
+            }
+        }
+    }
+
     var maxChildren: Int { return order }
     var minChildren: Int { return (maxChildren + 1) / 2 }
     var maxElements: Int { return maxChildren - 1 }
@@ -299,14 +329,6 @@ fileprivate final class RefListNode<Element: RefListElement> {
     var isTooSmall: Bool { return elements.count < minElements }
     var isTooLarge: Bool { return elements.count > maxElements }
     var isBalanced: Bool { return elements.count >= minElements && elements.count <= maxElements }
-
-    var root: RefListNode {
-        var node = self
-        while let parent = node.parent {
-            node = parent
-        }
-        return node
-    }
 }
 
 extension RefListNode {
@@ -329,29 +351,6 @@ extension RefListNode {
         elements.insert(element, at: slot)
         count += 1
         element.parent = self
-    }
-
-    func slot(of element: Element) -> Int? {
-        return elements.index { $0 === element }
-    }
-
-    func slot(of child: Node) -> Int? {
-        return children.index { $0 === child }
-    }
-
-    fileprivate func offset(ofSlot slot: Int) -> Int {
-        let c = elements.count
-        assert(slot >= 0 && slot <= c)
-        if isLeaf {
-            return slot
-        }
-        if slot == c {
-            return count
-        }
-        if slot <= c / 2 {
-            return children[0...slot].reduce(slot) { $0 + $1.count }
-        }
-        return count - children[slot + 1 ... c].reduce(c - slot) { $0 + $1.count }
     }
 
     func offset(of element: Element) -> Int {
@@ -472,45 +471,72 @@ extension RefListNode {
 
     func rotateRight(_ slot: Int) {
         assert(slot > 0)
-        children[slot].elements.insert(elements[slot - 1], at: 0)
-        if !children[slot].isLeaf {
-            let lastGrandChildBeforeSlot = children[slot - 1].children.removeLast()
-            children[slot].children.insert(lastGrandChildBeforeSlot, at: 0)
 
-            children[slot - 1].count -= lastGrandChildBeforeSlot.count
-            children[slot].count += lastGrandChildBeforeSlot.count
+        let previous = children[slot - 1]
+        let child = children[slot]
+
+        let e = elements[slot - 1]
+        child.elements.insert(e, at: 0)
+        e.parent = child
+
+        if !child.isLeaf {
+            let lastGrandChildBeforeSlot = previous.children.removeLast()
+            lastGrandChildBeforeSlot.parent = child
+            child.children.insert(lastGrandChildBeforeSlot, at: 0)
+
+            previous.count -= lastGrandChildBeforeSlot.count
+            child.count += lastGrandChildBeforeSlot.count
         }
-        elements[slot - 1] = children[slot - 1].elements.removeLast()
-        children[slot - 1].count -= 1
-        children[slot].count += 1
+        let element = previous.elements.removeLast()
+        element.parent = self
+        elements[slot - 1] = element
+        previous.count -= 1
+        child.count += 1
     }
 
     func rotateLeft(_ slot: Int) {
         assert(slot < children.count - 1)
-        children[slot].elements.append(elements[slot])
-        if !children[slot].isLeaf {
-            let firstGrandChildAfterSlot = children[slot + 1].children.remove(at: 0)
-            children[slot].children.append(firstGrandChildAfterSlot)
+        let child = children[slot]
+        let next = children[slot + 1]
 
-            children[slot + 1].count -= firstGrandChildAfterSlot.count
-            children[slot].count += firstGrandChildAfterSlot.count
+        let e = elements[slot]
+        e.parent = child
+        child.elements.append(e)
+        if !child.isLeaf {
+            let firstGrandChildAfterSlot = next.children.remove(at: 0)
+            firstGrandChildAfterSlot.parent = child
+            child.children.append(firstGrandChildAfterSlot)
+
+            next.count -= firstGrandChildAfterSlot.count
+            child.count += firstGrandChildAfterSlot.count
         }
-        elements[slot] = children[slot + 1].elements.remove(at: 0)
-        children[slot].count += 1
-        children[slot + 1].count -= 1
+        let element = next.elements.remove(at: 0)
+        element.parent = self
+        elements[slot] = element
+        child.count += 1
+        next.count -= 1
     }
 
     func collapse(_ slot: Int) {
         assert(slot < children.count - 1)
-        let next = children.remove(at: slot + 1)
-        children[slot].elements.append(elements.remove(at: slot))
-        children[slot].count += 1
-        children[slot].elements.append(contentsOf: next.elements)
-        children[slot].count += next.count
-        if !next.isLeaf {
-            children[slot].children.append(contentsOf: next.children)
+        let target = children[slot]
+
+        let collapsed = children.remove(at: slot + 1)
+        collapsed.parent = nil
+
+        let e = elements.remove(at: slot)
+        e.parent = target
+        target.elements.append(e)
+        target.count += 1
+
+        collapsed.elements.forEach { $0.parent = target }
+        target.elements.append(contentsOf: collapsed.elements)
+        target.count += collapsed.count
+        if !collapsed.isLeaf {
+            collapsed.children.forEach { $0.parent = target }
+            target.children.append(contentsOf: collapsed.children)
         }
-        assert(children[slot].isBalanced)
+        assert(target.isBalanced)
     }
 }
 
