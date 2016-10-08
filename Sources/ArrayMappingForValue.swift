@@ -58,11 +58,11 @@ private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: O
 
 extension ObservableArrayType {
     public func bufferedMap<Output>(_ transform: @escaping (Element) -> Output) -> ObservableArray<Output> {
-        return BufferedObservableArrayMap(self, transform: transform).observableArray
+        return BufferedArrayMappingForValue(self, transform: transform).observableArray
     }
 }
 
-private class BufferedObservableArrayMap<Input, Output, Content: ObservableArrayType>: ObservableArrayBase<Output> where Content.Element == Input {
+private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArrayType>: ObservableArrayBase<Output> where Content.Element == Input {
     typealias Element = Output
     typealias Change = ArrayChange<Output>
 
@@ -99,10 +99,11 @@ private class BufferedObservableArrayMap<Input, Output, Content: ObservableArray
                     _value[index] = tnew
                     mappedChange.add(.replace(old, at: index, with: tnew))
                 case .replaceSlice(let old, at: let index, with: let new):
-                    let told = Array(value[index ..< index + old.count])
+                    let range = index ..< index + old.count
+                    let told = Array(value[range])
                     let tnew = new.map(transform)
                     mappedChange.add(.replaceSlice(told, at: index, with: tnew))
-                    _value.replaceSubrange(index ..< told.count, with: tnew)
+                    _value.replaceSubrange(range, with: tnew)
                 }
             }
             changeSignal.send(mappedChange)
@@ -117,7 +118,7 @@ private class BufferedObservableArrayMap<Input, Output, Content: ObservableArray
                 case .replace(_, at: let index, with: let new):
                     _value[index] = transform(new)
                 case .replaceSlice(let old, at: let index, with: let new):
-                    _value.replaceSubrange(index ..< old.count, with: new.map(transform))
+                    _value.replaceSubrange(index ..< index + old.count, with: new.map(transform))
                 }
             }
         }

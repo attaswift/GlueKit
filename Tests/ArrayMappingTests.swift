@@ -21,6 +21,125 @@ private class Book {
 
 class ArrayMappingTests: XCTestCase {
 
+    func test_map_value() {
+        let b1 = Book("foo")
+        let b2 = Book("bar")
+        let b3 = Book("baz")
+        let books: ArrayVariable<Book> = [b1, b2, b3]
+
+        // Ignoring observability like this isn't a good idea; if we change the title of a book, the titles
+        // array won't get updated. However, it simplifies testing that we don't need to set up a read-only
+        // property in our fixture.
+        let titles = books.map{ $0.title.value }
+
+        XCTAssertFalse(titles.isBuffered)
+        XCTAssertEqual(titles.count, 3)
+        XCTAssertEqual(titles.observableCount.value, 3)
+        XCTAssertEqual(titles[0], "foo")
+        XCTAssertEqual(titles[1 ..< 3], ArraySlice(["bar", "baz"]))
+
+        XCTAssertEqual(titles.value, ["foo", "bar", "baz"])
+
+        let mock = MockArrayObserver(titles)
+
+        mock.expecting(3, .insert("fred", at: 3)) {
+            books.append(Book("fred"))
+        }
+        XCTAssertEqual(titles.value, ["foo", "bar", "baz", "fred"])
+        mock.expecting(4, .remove("bar", at: 1)) {
+            _ = books.remove(at: 1)
+        }
+        XCTAssertEqual(titles.value, ["foo", "baz", "fred"])
+        mock.expecting(3, .replace("foo", at: 0, with: "fuzzy")) {
+            _ = books[0] = Book("fuzzy")
+        }
+        XCTAssertEqual(titles.value, ["fuzzy", "baz", "fred"])
+        let barney = Book("barney")
+        mock.expecting(3, .replaceSlice(["baz", "fred"], at: 1, with: ["barney"])) {
+            _ = books.replaceSubrange(1 ..< 3, with: [barney])
+        }
+        XCTAssertEqual(titles.value, ["fuzzy", "barney"])
+
+        // The observable doesn't know the title of a book may change, so it won't notice when we modify it.
+        mock.expectingNoChange {
+            barney.title.value = "bazaar"
+        }
+        // However, this particular observable generates results on the fly, so the pull-based API includes the change.
+        XCTAssertEqual(titles.value, ["fuzzy", "bazaar"])
+    }
+
+    func test_bufferedMap_observed() {
+        let b1 = Book("foo")
+        let b2 = Book("bar")
+        let b3 = Book("baz")
+        let books: ArrayVariable<Book> = [b1, b2, b3]
+
+        // Ignoring observability like this isn't a good idea; if we change the title of a book, the titles
+        // array won't get updated. However, it simplifies testing that we don't need to set up a read-only
+        // property in our fixture.
+        let titles = books.bufferedMap{ $0.title.value }
+
+        XCTAssertTrue(titles.isBuffered)
+        XCTAssertEqual(titles.count, 3)
+        XCTAssertEqual(titles.observableCount.value, 3)
+        XCTAssertEqual(titles[0], "foo")
+        XCTAssertEqual(titles[1 ..< 3], ArraySlice(["bar", "baz"]))
+
+        XCTAssertEqual(titles.value, ["foo", "bar", "baz"])
+
+        let mock = MockArrayObserver(titles)
+
+        mock.expecting(3, .insert("fred", at: 3)) {
+            books.append(Book("fred"))
+        }
+        XCTAssertEqual(titles.value, ["foo", "bar", "baz", "fred"])
+        mock.expecting(4, .remove("bar", at: 1)) {
+            _ = books.remove(at: 1)
+        }
+        XCTAssertEqual(titles.value, ["foo", "baz", "fred"])
+        mock.expecting(3, .replace("foo", at: 0, with: "fuzzy")) {
+            _ = books[0] = Book("fuzzy")
+        }
+        XCTAssertEqual(titles.value, ["fuzzy", "baz", "fred"])
+        let barney = Book("barney")
+        mock.expecting(3, .replaceSlice(["baz", "fred"], at: 1, with: ["barney"])) {
+            _ = books.replaceSubrange(1 ..< 3, with: [barney])
+        }
+        XCTAssertEqual(titles.value, ["fuzzy", "barney"])
+
+        // The observable doesn't know the title of a book may change, so it won't notice when we modify it.
+        mock.expectingNoChange {
+            barney.title.value = "bazaar"
+        }
+        // The observable is buffered, so if we pull a value out of it, it won't include the update.
+        XCTAssertEqual(titles.value, ["fuzzy", "barney"])
+    }
+
+    func test_bufferedMap_unobserved() {
+        let b1 = Book("foo")
+        let b2 = Book("bar")
+        let b3 = Book("baz")
+        let books: ArrayVariable<Book> = [b1, b2, b3]
+
+        let titles = books.bufferedMap{ $0.title.value }
+
+        // If the buffered map is not observed, it runs a differed code path, so test that as well.
+        books.append(Book("fred"))
+        XCTAssertEqual(titles.value, ["foo", "bar", "baz", "fred"])
+        _ = books.remove(at: 1)
+        XCTAssertEqual(titles.value, ["foo", "baz", "fred"])
+        _ = books[0] = Book("fuzzy")
+        XCTAssertEqual(titles.value, ["fuzzy", "baz", "fred"])
+        let barney = Book("barney")
+        _ = books.replaceSubrange(1 ..< 3, with: [barney])
+        XCTAssertEqual(titles.value, ["fuzzy", "barney"])
+
+        // The observable doesn't know the title of a book may change, so it won't notice when we modify it.
+        barney.title.value = "bazaar"
+        // The observable is buffered, so if we pull a value out of it, it won't include the update.
+        XCTAssertEqual(titles.value, ["fuzzy", "barney"])
+    }
+
     func test_map_valueField() {
         let b1 = Book("foo")
         let b2 = Book("bar")
