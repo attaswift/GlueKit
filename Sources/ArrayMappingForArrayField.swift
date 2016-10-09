@@ -142,7 +142,7 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
 
             // Replace field connections.
             let prerange: Range<Int> = preindex ..< preindex + oldFields.count
-            self.fieldConnections.forEach(range: prerange) { $0.disconnect() }
+            self.fieldConnections.forEach(in: prerange) { $0.disconnect() }
             self.fieldConnections.replaceSubrange(prerange, with: newFields.map { self.connectField($0) })
 
             // Update index mapping.

@@ -73,10 +73,11 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
             return node.elements[slot]
         }
         set {
+            precondition(newValue.parent == nil)
             let (node, slot) = self.slot(of: index)
             let old = node.elements[slot]
             node.elements[slot] = newValue
-            node.elements[slot].parent = node
+            newValue.parent = node
             old.parent = nil
         }
     }
@@ -90,9 +91,13 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
         }
     }
 
-    internal func forEach(range: Range<Int>? = nil, body: (Element) throws -> ()) rethrows {
-        let range = range ?? 0 ..< count
-        try root.forEach(range, body)
+    internal func forEach(in range: Range<Int>? = nil, body: (Element) throws -> ()) rethrows {
+        if let range = range, range != 0 ..< count {
+            try root.forEach(range, body)
+        }
+        else {
+            try root.forEach(body)
+        }
     }
 
     internal func index(of element: Element) -> Int? {
@@ -123,6 +128,7 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
     }
 
     internal func insert(_ element: Element, at index: Int) {
+        precondition(element.parent == nil)
         precondition(index >= 0 && index <= count)
         var pos = count - index
         var splinter: (separator: Element, node: Node)? = nil
@@ -207,6 +213,7 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
                 if node.isLeaf {
                     // The offset we're looking for is in a leaf node; we can remove it directly.
                     old = node.elements.remove(at: slot.index)
+                    old!.parent = nil
                     node.count -= 1
                     return nil
                 }
@@ -222,7 +229,9 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
                 if let m = matching, m.node === node {
                     // We've removed the element at the next offset; put it back in place of the
                     // element we actually want to remove.
+                    old!.parent = node
                     old = node.setElement(inSlot: m.slot, to: old!)
+                    old!.parent = nil
                     matching = nil
                 }
                 if node.children[slot].isTooSmall {
@@ -235,6 +244,7 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
             root = root.children[0]
             root.parent = nil
         }
+        precondition(old?.parent == nil)
         return old!
     }
 
@@ -550,7 +560,7 @@ extension RefListNode {
                 try children[i].forEach(body)
                 try body(elements[i])
             }
-            try children[children.count - 1].forEach(body)
+            try children[elements.count].forEach(body)
         }
     }
 
@@ -564,24 +574,22 @@ extension RefListNode {
         var c = range.count
         let slot = self.slot(atOffset: range.lowerBound)
         guard range.count > 0 else { return }
-        if slot.match {
-            try body(elements[slot.index])
-            c -= 1
-        }
-        else {
+        if !slot.match {
             let child = children[slot.index]
-            let childRange: Range<Int> = range.lowerBound - slot.offset ..< min(range.upperBound - slot.offset, child.count)
+            let childCount = child.count
+            let childStartOffset = slot.offset - childCount
+            let childRange: Range<Int> = range.lowerBound - childStartOffset ..< min(childCount, range.upperBound - childStartOffset)
             try child.forEach(childRange, body)
             c -= childRange.count
         }
         var index = slot.index
         while c > 0 {
-            index += 1
-            try body(elements[slot.index])
+            try body(elements[index])
             c -= 1
-            guard c > 0 else { continue }
+            guard c > 0 else { break }
+            index += 1
             let child = children[index]
-            if child.count >= c {
+            if c >= child.count {
                 try child.forEach(body)
                 c -= child.count
             }
