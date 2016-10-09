@@ -87,7 +87,8 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
             return .init(base: self, bounds: bounds)
         }
         set {
-            self.replaceSubrange(bounds, with: newValue)
+            // Elements can only belong to a single RefList, but slices contain elements that are already in one.
+            fatalError("RefList does not support range replacement.")
         }
     }
 
@@ -179,6 +180,10 @@ internal final class RefList<Element: RefListElement>: RandomAccessCollection, M
             self.insert(element, at: i)
             i += 1
         }
+    }
+
+    internal func append(_ newElement: Element) {
+        self.insert(newElement, at: count)
     }
 
     internal func append<S: Sequence>(contentsOf newElements: S) where S.Iterator.Element == Iterator.Element {

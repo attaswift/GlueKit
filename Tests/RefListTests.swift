@@ -30,7 +30,7 @@ class RefListTests: XCTestCase {
 
         // Append even elements.
         for i in 0 ..< 50 {
-            list.insert(Fixture(2 * i), at: i)
+            list.append(Fixture(2 * i))
             verify(list)
         }
         XCTAssertEqual(list.map { $0.value }, (0 ..< 50).map { 2 * $0 })
@@ -64,10 +64,34 @@ class RefListTests: XCTestCase {
     func test_remove() {
         for removedIndex in 0 ..< 30 {
             let list = RefList<Fixture>(order: 5)
-            for i in 0 ..< 30 { list.insert(Fixture(i), at: i) }
+            list.append(contentsOf: (0 ..< 30).map { Fixture($0) })
             XCTAssertEqual(list.remove(at: removedIndex).value, removedIndex)
             verify(list)
         }
+    }
+
+    func test_subscript_setter() {
+        let list = RefList<Fixture>(order: 5)
+        list.append(contentsOf: (0 ..< 30).map { Fixture($0) })
+        for i in 0 ..< 30 {
+            list[i] = Fixture(2 * i)
+            verify(list)
+        }
+        XCTAssertEqual(list.map { $0.value }, (0 ..< 30).map { 2 * $0 })
+    }
+
+    func test_rangeSubscript() {
+        let list = RefList<Fixture>(order: 5)
+        list.append(contentsOf: (0 ..< 30).map { Fixture($0) })
+
+        for start in 0 ..< 30 {
+            for end in start ..< 30 {
+                let slice = list[start ..< end]
+                XCTAssertEqual(slice.map { $0.value }, Array(start ..< end))
+            }
+        }
+
+        
     }
 
     func test_leaks() {
@@ -75,7 +99,7 @@ class RefListTests: XCTestCase {
         weak var test: Fixture? = nil
         do {
             let l = RefList<Fixture>(order: 5)
-            for i in 0 ..< 30 { l.insert(Fixture(i), at: i) }
+            l.append(contentsOf: (0 ..< 30).map { Fixture($0) })
             list = l
             test = l[10]
         }
@@ -85,9 +109,7 @@ class RefListTests: XCTestCase {
 
     func test_forEach() {
         let list = RefList<Fixture>(order: 5)
-        for i in 0 ..< 100 {
-            list.insert(Fixture(i), at: i)
-        }
+        list.append(contentsOf: (0 ..< 100).map { Fixture($0) })
 
         var i = 0
         list.forEach { e in
