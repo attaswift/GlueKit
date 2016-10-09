@@ -172,7 +172,7 @@
 		BBA0336B1DA7D03300E83AC1 /* ArrayChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA033691DA7D03300E83AC1 /* ArrayChangeTests.swift */; };
 		BBA0336C1DA7D03300E83AC1 /* ArrayChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA033691DA7D03300E83AC1 /* ArrayChangeTests.swift */; };
 		BBAA826D1C91D16600586903 /* ObservableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* ObservableValue.swift */; };
-		BBAA826E1C91D17400586903 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* Updatable.swift */; };
+		BBAA826E1C91D17400586903 /* UpdatableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* UpdatableValue.swift */; };
 		BBAA826F1C91D17A00586903 /* Observable Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */; };
 		BBAA82701C91D18100586903 /* Variable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B351C8FCC820050DDA9 /* Variable.swift */; };
 		BBAA82781C91D24200586903 /* TimerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B321C8FCC820050DDA9 /* TimerSource.swift */; };
@@ -236,9 +236,9 @@
 		BBB55B821C8FCC820050DDA9 /* TimerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B321C8FCC820050DDA9 /* TimerSource.swift */; };
 		BBB55B841C8FCC820050DDA9 /* TimerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B321C8FCC820050DDA9 /* TimerSource.swift */; };
 		BBB55B851C8FCC820050DDA9 /* TimerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B321C8FCC820050DDA9 /* TimerSource.swift */; };
-		BBB55B861C8FCC820050DDA9 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* Updatable.swift */; };
-		BBB55B881C8FCC820050DDA9 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* Updatable.swift */; };
-		BBB55B891C8FCC820050DDA9 /* Updatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* Updatable.swift */; };
+		BBB55B861C8FCC820050DDA9 /* UpdatableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* UpdatableValue.swift */; };
+		BBB55B881C8FCC820050DDA9 /* UpdatableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* UpdatableValue.swift */; };
+		BBB55B891C8FCC820050DDA9 /* UpdatableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* UpdatableValue.swift */; };
 		BBB55B8E1C8FCC820050DDA9 /* Variable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B351C8FCC820050DDA9 /* Variable.swift */; };
 		BBB55B901C8FCC820050DDA9 /* Variable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B351C8FCC820050DDA9 /* Variable.swift */; };
 		BBB55B911C8FCC820050DDA9 /* Variable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B351C8FCC820050DDA9 /* Variable.swift */; };
@@ -506,7 +506,7 @@
 		BBB55B301C8FCC810050DDA9 /* Source.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Source.swift; sourceTree = "<group>"; };
 		BBB55B311C8FCC810050DDA9 /* SourceOperators.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceOperators.swift; sourceTree = "<group>"; };
 		BBB55B321C8FCC820050DDA9 /* TimerSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimerSource.swift; sourceTree = "<group>"; };
-		BBB55B331C8FCC820050DDA9 /* Updatable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Updatable.swift; sourceTree = "<group>"; };
+		BBB55B331C8FCC820050DDA9 /* UpdatableValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdatableValue.swift; sourceTree = "<group>"; };
 		BBB55B341C8FCC820050DDA9 /* UpdatableArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdatableArray.swift; sourceTree = "<group>"; };
 		BBB55B351C8FCC820050DDA9 /* Variable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Variable.swift; sourceTree = "<group>"; };
 		BBB55B981C8FCE2C0050DDA9 /* ArrayVariableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayVariableTests.swift; sourceTree = "<group>"; };
@@ -910,7 +910,7 @@
 			children = (
 				BBE4DF441DA3A908005EC162 /* SimpleChange.swift */,
 				BBB55B291C8FCC810050DDA9 /* ObservableValue.swift */,
-				BBB55B331C8FCC820050DDA9 /* Updatable.swift */,
+				BBB55B331C8FCC820050DDA9 /* UpdatableValue.swift */,
 				BBB55B351C8FCC820050DDA9 /* Variable.swift */,
 				BBB55B281C8FCC810050DDA9 /* Observable Transformations.swift */,
 				BBCD9E0E1DAAC33700E85FB9 /* ValueMappingForValue.swift */,
@@ -1293,7 +1293,7 @@
 				BBB55B421C8FCC820050DDA9 /* Connector.swift in Sources */,
 				BB1657EC1D71F3E700094BAC /* Atomics.swift in Sources */,
 				BBE4DF4A1DA409EE005EC162 /* DistinctUnion.swift in Sources */,
-				BBB55B861C8FCC820050DDA9 /* Updatable.swift in Sources */,
+				BBB55B861C8FCC820050DDA9 /* UpdatableValue.swift in Sources */,
 				BB69A8001D6B2377001D2821 /* BufferedArray.swift in Sources */,
 				BBB55B3E1C8FCC820050DDA9 /* Connection.swift in Sources */,
 				BBB55B7A1C8FCC820050DDA9 /* Source.swift in Sources */,
@@ -1372,7 +1372,7 @@
 				BB69A81E1D6B71FA001D2821 /* SetChange.swift in Sources */,
 				BB69A8051D6B344D001D2821 /* UpdatableArray.swift in Sources */,
 				BBE4DF411DA3A88C005EC162 /* ObservableType.swift in Sources */,
-				BBAA826E1C91D17400586903 /* Updatable.swift in Sources */,
+				BBAA826E1C91D17400586903 /* UpdatableValue.swift in Sources */,
 				BBE4DF461DA3A908005EC162 /* SimpleChange.swift in Sources */,
 				BBC2A82A1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BB8D366B1DA10F5D000D44C5 /* ObservableContains.swift in Sources */,
@@ -1537,7 +1537,7 @@
 				BBE4DF5E1DA55DA3005EC162 /* SetMappingBase.swift in Sources */,
 				BBCD9E041DAA910500E85FB9 /* SetFolding.swift in Sources */,
 				BB7E04DE1DA7244A00BE3051 /* SetMappingForArrayField.swift in Sources */,
-				BBB55B881C8FCC820050DDA9 /* Updatable.swift in Sources */,
+				BBB55B881C8FCC820050DDA9 /* UpdatableValue.swift in Sources */,
 				BBB55B401C8FCC820050DDA9 /* Connection.swift in Sources */,
 				BBB55B7C1C8FCC820050DDA9 /* Source.swift in Sources */,
 				BBB55B4C1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
@@ -1600,7 +1600,7 @@
 				BBAA82801C91D43700586903 /* Type Helpers.swift in Sources */,
 				BBB55B451C8FCC820050DDA9 /* Connector.swift in Sources */,
 				BB7E04CB1DA7233B00BE3051 /* ArrayMappingForArrayField.swift in Sources */,
-				BBB55B891C8FCC820050DDA9 /* Updatable.swift in Sources */,
+				BBB55B891C8FCC820050DDA9 /* UpdatableValue.swift in Sources */,
 				BB69A8201D6B71FB001D2821 /* SetChange.swift in Sources */,
 				BB7E04DF1DA7244A00BE3051 /* SetMappingForArrayField.swift in Sources */,
 				BB69A8131D6B539A001D2821 /* ValueMappingForValueField.swift in Sources */,

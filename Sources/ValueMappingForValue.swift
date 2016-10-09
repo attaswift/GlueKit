@@ -35,13 +35,13 @@ private final class ValueMappingForValue<Parent: ObservableValueType, Value>: Ob
     }
 }
 
-extension UpdatableType {
+extension UpdatableValueType {
     public func map<Output>(_ transform: @escaping (Value) -> Output, inverse: @escaping (Output) -> Value) -> Updatable<Output> {
         return ValueMappingForUpdatableValue<Self, Output>(parent: self, transform: transform, inverse: inverse).updatable
     }
 }
 
-private final class ValueMappingForUpdatableValue<Parent: UpdatableType, Value>: UpdatableBoxBase<Value> {
+private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: UpdatableBoxBase<Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
     let inverse: (Value) -> Parent.Value

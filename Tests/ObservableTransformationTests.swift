@@ -21,7 +21,7 @@ private class TestObservable: ObservableValueType {
     var changes: Source<SimpleChange<Int>> { return _signal.source }
 }
 
-private class TestUpdatable: UpdatableType {
+private class TestUpdatable: UpdatableValueType {
     var _signal = Signal<SimpleChange<Int>>()
 
     var value: Int = 0 {

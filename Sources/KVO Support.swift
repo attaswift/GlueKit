@@ -38,7 +38,7 @@ public extension NSObject {
 
 }
 
-private struct KVOUpdatable: UpdatableType {
+private struct KVOUpdatable: UpdatableValueType {
     typealias Value = Any?
     typealias Change = SimpleChange<Any?>
 

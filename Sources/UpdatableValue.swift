@@ -9,30 +9,26 @@
 import Foundation
 
 /// An observable thing that also includes support for updating its value.
-public protocol UpdatableType: ObservableValueType, SinkType {
-    /// The current value of this UpdatableType. You can modify the current value by setting this property.
+public protocol UpdatableValueType: ObservableValueType, UpdatableType {
+    /// The current value of this UpdatableValueType. You can modify the current value by setting this property.
     var value: Value {
         get
-        nonmutating set // Nonmutating because UpdatableType needs to be a class if it holds the value directly.
+        nonmutating set // Nonmutating because UpdatableValueType needs to be a class if it holds the value directly.
     }
 
-    /// Returns the type-lifted version of this UpdatableType.
+    /// Returns the type-lifted version of this UpdatableValueType.
     var updatable: Updatable<Value> { get }
 }
 
-extension UpdatableType {
-    public func receive(_ value: Value) -> Void {
-        self.value = value
-    }
-
-    /// Returns the type-lifted version of this UpdatableType.
+extension UpdatableValueType {
+    /// Returns the type-lifted version of this UpdatableValueType.
     public var updatable: Updatable<Value> {
         return Updatable(self)
     }
 }
 
-/// The type lifted representation of an UpdatableType.
-public struct Updatable<Value>: UpdatableType {
+/// The type lifted representation of an UpdatableValueType.
+public struct Updatable<Value>: UpdatableValueType {
     public typealias SinkValue = Value
 
     private let box: UpdatableBoxBase<Value>
@@ -45,7 +41,7 @@ public struct Updatable<Value>: UpdatableType {
         self.box = UpdatableClosureBox(getter: getter, setter: setter, changes: changes)
     }
 
-    public init<Base: UpdatableType>(_ base: Base) where Base.Value == Value {
+    public init<Base: UpdatableValueType>(_ base: Base) where Base.Value == Value {
         self.box = UpdatableBox(base)
     }
 
@@ -80,7 +76,7 @@ public struct Updatable<Value>: UpdatableType {
     }
 }
 
-internal class UpdatableBoxBase<Value>: ObservableBoxBase<Value>, UpdatableType {
+internal class UpdatableBoxBase<Value>: ObservableBoxBase<Value>, UpdatableValueType {
     override var value: Value {
         get { abstract() }
         set { abstract() }
@@ -89,7 +85,7 @@ internal class UpdatableBoxBase<Value>: ObservableBoxBase<Value>, UpdatableType 
     final var updatable: Updatable<Value> { return Updatable(box: self) }
 }
 
-internal class UpdatableBox<Base: UpdatableType>: UpdatableBoxBase<Base.Value> {
+internal class UpdatableBox<Base: UpdatableValueType>: UpdatableBoxBase<Base.Value> {
     private let base: Base
 
     init(_ base: Base) {
@@ -132,12 +128,12 @@ private class UpdatableClosureBox<Value>: UpdatableBoxBase<Value> {
     }
 }
 
-extension UpdatableType {
+extension UpdatableValueType {
     /// Create a two-way binding from self to a target updatable. The target is updated to the current value of self.
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, you must provide an equality test that returns true if two values are to be
     /// considered equivalent.
-    public func bind<Target: UpdatableType>(_ target: Target, equalityTest: @escaping (Value, Value) -> Bool) -> Connection where Target.Value == Value {
+    public func bind<Target: UpdatableValueType>(_ target: Target, equalityTest: @escaping (Value, Value) -> Bool) -> Connection where Target.Value == Value {
         let forward = self.futureValues.connect { value in
             if !equalityTest(value, target.value) {
                 target.value = value
@@ -154,12 +150,12 @@ extension UpdatableType {
     }
 }
 
-extension UpdatableType where Value: Equatable {
+extension UpdatableValueType where Value: Equatable {
     /// Create a two-way binding from self to a target variable. The target is updated to the current value of self.
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, the variables aren't synched when a bound variable is set to a value that is equal
     /// to the value of its counterpart.
-    public func bind<Target: UpdatableType>(_ target: Target) -> Connection where Target.Value == Value {
+    public func bind<Target: UpdatableValueType>(_ target: Target) -> Connection where Target.Value == Value {
         return self.bind(target, equalityTest: ==)
     }
 }

@@ -55,11 +55,11 @@ public class Connector {
         return source.values.connect(sink).putInto(self)
     }
 
-    public func bind<Source: UpdatableType, Target: UpdatableType>(_ source: Source, to target: Target, withEqualityTest equalityTest: @escaping (Source.Value, Source.Value) -> Bool) where Source.Value == Target.Value {
+    public func bind<Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target, withEqualityTest equalityTest: @escaping (Source.Value, Source.Value) -> Bool) where Source.Value == Target.Value {
         source.bind(target, equalityTest: equalityTest).putInto(self)
     }
 
-    public func bind<Value: Equatable, Source: UpdatableType, Target: UpdatableType>(_ source: Source, to target: Target) where Source.Value == Value, Target.Value == Value {
+    public func bind<Value: Equatable, Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target) where Source.Value == Value, Target.Value == Value {
         source.bind(target).putInto(self)
     }
 }

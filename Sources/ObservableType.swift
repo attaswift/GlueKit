@@ -17,3 +17,14 @@ public protocol ObservableType {
     /// A source that reports changes to the value of this observable.
     var changes: Source<Change> { get }
 }
+
+public protocol UpdatableType: ObservableType, SinkType {
+    /// The current value of this observable.
+    var value: Change.Value { get nonmutating set } // Nonmutating because UpdatableType needs to be a class if it holds the value directly.
+}
+
+extension UpdatableType {
+    public func receive(_ value: Change.Value) -> Void {
+        self.value = value
+    }
+}

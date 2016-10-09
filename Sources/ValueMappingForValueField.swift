@@ -145,12 +145,12 @@ extension ObservableValueType {
     /// author changes their avatar. The updatable can also be used to simply retrieve the avatar at any time,
     /// or to update it.
     ///
-    public func map<U: UpdatableType>(_ key: @escaping (Value) -> U) -> Updatable<U.Value> {
+    public func map<U: UpdatableValueType>(_ key: @escaping (Value) -> U) -> Updatable<U.Value> {
         return ValueMappingForUpdatableField<Self, U>(parent: self, key: key).updatable
     }
 }
 
-private final class ValueMappingForUpdatableField<Parent: ObservableValueType, Field: UpdatableType>: UpdatableBoxBase<Field.Value> {
+private final class ValueMappingForUpdatableField<Parent: ObservableValueType, Field: UpdatableValueType>: UpdatableBoxBase<Field.Value> {
     private let _observable: ValueMappingForValueField<Parent, Field>
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {

@@ -35,7 +35,7 @@ public struct UnownedStorage<Object: AnyObject>: StorageType {
     public init(_ value: Value) { self.value = value }
 }
 
-/// A property implements `UpdatableType` by accessing and updating its value in a piece of storage it owns.
+/// A property implements `UpdatableValueType` by accessing and updating its value in a piece of storage it owns.
 /// The storage is configurable, and specified by the generic type parameter `Storage`.
 ///
 /// Note that the storage must only be updated via the property's setters in order for update notifications to trigger 
@@ -43,7 +43,7 @@ public struct UnownedStorage<Object: AnyObject>: StorageType {
 ///
 /// - SeeAlso: Variable<Value>, UnownedVariable<Value>, WeakVariable<Value>
 ///
-public class Property<Storage: StorageType>: UpdatableType {
+public class Property<Storage: StorageType>: UpdatableValueType {
     public typealias Value = Storage.Value
 
     private var storage: Storage

@@ -56,7 +56,7 @@ public extension ObservableValueType where Value: Equatable {
     }
 }
 
-public extension UpdatableType {
+public extension UpdatableValueType {
     public func distinct(_ equalityTest: @escaping (Value, Value) -> Bool) -> Updatable<Value> {
         return Updatable(getter: { self.value },
                          setter: { self.value = $0 },
@@ -64,7 +64,7 @@ public extension UpdatableType {
     }
 }
 
-public extension UpdatableType where Value: Equatable {
+public extension UpdatableValueType where Value: Equatable {
     public func distinct() -> Updatable<Value> {
         return distinct(==)
     }
@@ -170,7 +170,7 @@ public func combine<O1: ObservableValueType, O2: ObservableValueType, O3: Observ
 
 
 /// An Updatable that is a composite of two other updatables.
-internal final class CompositeUpdatable<A: UpdatableType, B: UpdatableType>: UpdatableType, SignalDelegate {
+internal final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueType>: UpdatableValueType, SignalDelegate {
     typealias Value = (A.Value, B.Value)
     private let first: A
     private let second: B
@@ -233,35 +233,35 @@ internal final class CompositeUpdatable<A: UpdatableType, B: UpdatableType>: Upd
     }
 }
 
-public extension UpdatableType {
-    public func combine<Other: UpdatableType>(_ other: Other) -> Updatable<(Value, Other.Value)> {
+public extension UpdatableValueType {
+    public func combine<Other: UpdatableValueType>(_ other: Other) -> Updatable<(Value, Other.Value)> {
         return CompositeUpdatable(first: self, second: other).updatable
     }
 }
 
-public func combine<O1: UpdatableType, O2: UpdatableType>(_ o1: O1, _ o2: O2) -> Updatable<(O1.Value, O2.Value)> {
+public func combine<O1: UpdatableValueType, O2: UpdatableValueType>(_ o1: O1, _ o2: O2) -> Updatable<(O1.Value, O2.Value)> {
     return o1.combine(o2)
 }
 
-public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType>(_ o1: O1, _ o2: O2, _ o3: O3) -> Updatable<(O1.Value, O2.Value, O3.Value)> {
+public func combine<O1: UpdatableValueType, O2: UpdatableValueType, O3: UpdatableValueType>(_ o1: O1, _ o2: O2, _ o3: O3) -> Updatable<(O1.Value, O2.Value, O3.Value)> {
     return o1.combine(o2).combine(o3)
         .map({ a, b in (a.0, a.1, b) },
              inverse: { v in ((v.0, v.1), v.2) })
 }
 
-public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value)> {
+public func combine<O1: UpdatableValueType, O2: UpdatableValueType, O3: UpdatableValueType, O4: UpdatableValueType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value)> {
     return o1.combine(o2).combine(o3).combine(o4)
         .map({ a, b in (a.0.0, a.0.1, a.1, b) },
              inverse: { v in (((v.0, v.1), v.2), v.3) })
 }
 
-public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType, O5: UpdatableType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value)> {
+public func combine<O1: UpdatableValueType, O2: UpdatableValueType, O3: UpdatableValueType, O4: UpdatableValueType, O5: UpdatableValueType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value)> {
     return o1.combine(o2).combine(o3).combine(o4).combine(o5)
         .map({ a, b in (a.0.0.0, a.0.0.1, a.0.1, a.1, b) },
              inverse: { v in ((((v.0, v.1), v.2), v.3), v.4) })
 }
 
-public func combine<O1: UpdatableType, O2: UpdatableType, O3: UpdatableType, O4: UpdatableType, O5: UpdatableType, O6: UpdatableType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5, _ o6: O6) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value, O6.Value)> {
+public func combine<O1: UpdatableValueType, O2: UpdatableValueType, O3: UpdatableValueType, O4: UpdatableValueType, O5: UpdatableValueType, O6: UpdatableValueType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5, _ o6: O6) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value, O6.Value)> {
     return o1.combine(o2).combine(o3).combine(o4).combine(o5).combine(o6)
         .map({ a, b in (a.0.0.0.0, a.0.0.0.1, a.0.0.1, a.0.1, a.1, b) },
              inverse: { v in (((((v.0, v.1), v.2), v.3), v.4), v.5) })
