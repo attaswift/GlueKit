@@ -89,9 +89,8 @@ private final class ChangeSourceForObservableArrayField<Parent: ObservableValueT
     }
 
     func stop(_ signal: Signal<Change>) {
-        precondition(parentConnection != nil)
-        fieldConnection?.disconnect()
-        parentConnection?.disconnect()
+        fieldConnection!.disconnect()
+        parentConnection!.disconnect()
         fieldConnection = nil
         parentConnection = nil
         _field = nil
@@ -100,7 +99,7 @@ private final class ChangeSourceForObservableArrayField<Parent: ObservableValueT
     private func connect(to field: Field) {
         _field = field
         fieldConnection?.disconnect()
-        fieldConnection = field.changes.connect { [unowned self] in self.signal.send($0) }
+        fieldConnection = field.changes.connect { [unowned self] change in self.signal.send(change) }
     }
 
     private func apply(_ change: SimpleChange<Parent.Value>) {

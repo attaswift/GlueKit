@@ -218,4 +218,97 @@ class ValueMappingTests: XCTestCase {
         XCTAssertEqual(chapters.value, ["foo", "bar"])
         XCTAssertEqual(book2.chapters.value, ["foo", "bar"])
     }
+
+    func test_setField() {
+        let book = Book("book", authors: ["a", "b", "c"])
+        let v = Variable<Book>(book)
+        let authors = v.map{ $0.authors.map { $0.uppercased() } } // Uppercased to loose updatability.
+
+        XCTAssertEqual(authors.isBuffered, false)
+        XCTAssertEqual(authors.count, 3)
+        XCTAssertEqual(authors.observableCount.value, 3)
+        XCTAssertEqual(authors.value, ["A", "B", "C"])
+        XCTAssertEqual(authors.contains("A"), true)
+        XCTAssertEqual(authors.contains("0"), false)
+        XCTAssertEqual(authors.isSubset(of: ["A", "B", "C"]), true)
+        XCTAssertEqual(authors.isSubset(of: ["A", "B", "C", "D"]), true)
+        XCTAssertEqual(authors.isSubset(of: ["B", "C", "D"]), false)
+        XCTAssertEqual(authors.isSuperset(of: ["A", "B", "C"]), true)
+        XCTAssertEqual(authors.isSuperset(of: ["B", "C"]), true)
+        XCTAssertEqual(authors.isSuperset(of: ["C", "D"]), false)
+
+        let mock = MockSetObserver(authors)
+        mock.expecting("[]/[D]") {
+            book.authors.insert("d")
+        }
+        XCTAssertEqual(authors.value, ["A", "B", "C", "D"])
+        mock.expecting("[B]/[]") {
+            book.authors.remove("b")
+        }
+        XCTAssertEqual(authors.value, ["A", "C", "D"])
+
+        mock.expecting("[A, C, D]/[BARNEY, FRED]") {
+            v.value = Book("other", authors: ["fred", "barney"])
+        }
+        XCTAssertEqual(authors.value, ["FRED", "BARNEY"])
+    }
+
+    func test_updatableSetField() {
+        let book = Book("book", authors: ["a", "b", "c"])
+        let v = Variable<Book>(book)
+        let authors = v.map{$0.authors}
+
+        XCTAssertEqual(authors.isBuffered, true)
+        XCTAssertEqual(authors.count, 3)
+        XCTAssertEqual(authors.observableCount.value, 3)
+        XCTAssertEqual(authors.value, ["a", "b", "c"])
+        XCTAssertEqual(authors.contains("a"), true)
+        XCTAssertEqual(authors.contains("0"), false)
+        XCTAssertEqual(authors.isSubset(of: ["a", "b", "c"]), true)
+        XCTAssertEqual(authors.isSubset(of: ["a", "b", "c", "d"]), true)
+        XCTAssertEqual(authors.isSubset(of: ["b", "c", "d"]), false)
+        XCTAssertEqual(authors.isSuperset(of: ["a", "b", "c"]), true)
+        XCTAssertEqual(authors.isSuperset(of: ["b", "c"]), true)
+        XCTAssertEqual(authors.isSuperset(of: ["c", "d"]), false)
+
+        let mock = MockSetObserver(authors)
+        mock.expecting("[]/[d]") {
+            book.authors.insert("d")
+        }
+        XCTAssertEqual(authors.value, ["a", "b", "c", "d"])
+        mock.expecting("[b]/[]") {
+            book.authors.remove("b")
+        }
+        XCTAssertEqual(authors.value, ["a", "c", "d"])
+
+        mock.expecting("[]/[e]") {
+            authors.insert("e")
+        }
+        XCTAssertEqual(authors.value, ["a", "c", "d", "e"])
+        XCTAssertEqual(book.authors.value, ["a", "c", "d", "e"])
+
+        mock.expecting("[c]/[]") {
+            authors.remove("c")
+        }
+        XCTAssertEqual(authors.value, ["a", "d", "e"])
+        XCTAssertEqual(book.authors.value, ["a", "d", "e"])
+
+        mock.expecting("[]/[b, c]") {
+            authors.apply(SetChange(removed: [], inserted: ["b", "c"]))
+        }
+        XCTAssertEqual(authors.value, ["a", "b", "c", "d", "e"])
+        XCTAssertEqual(book.authors.value, ["a", "b", "c", "d", "e"])
+
+        mock.expecting("[a, b, c, d, e]/[bar, foo]") {
+            authors.value = ["foo", "bar"]
+        }
+        XCTAssertEqual(authors.value, ["foo", "bar"])
+        XCTAssertEqual(book.authors.value, ["foo", "bar"])
+
+        mock.expecting("[bar, foo]/[barney, fred]") {
+            v.value = Book("other", authors: ["fred", "barney"])
+        }
+        XCTAssertEqual(authors.value, ["fred", "barney"])
+    }
+
 }
