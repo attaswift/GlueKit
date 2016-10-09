@@ -1,76 +1,13 @@
 //
-//  Observable Transformations.swift
+//  CompositeObservable.swift
 //  GlueKit
 //
-//  Created by Károly Lőrentey on 2015-12-07.
-//  Copyright © 2015 Károly Lőrentey. All rights reserved.
+//  Created by Károly Lőrentey on 2016-10-09.
+//  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
 import Foundation
 
-// MARK: Buffered
-
-internal class BufferedObservable<Base: ObservableValueType>: ObservableValueType {
-    typealias Value = Base.Value
-
-    private var base: Base
-
-    var value: Base.Value
-    var connection: Connection? = nil
-
-    init(_ base: Base) {
-        self.base = base
-        self.value = base.value
-
-        connection = base.futureValues.connect { [weak self] value in
-            self?.value = value
-        }
-    }
-
-    var changes: Source<SimpleChange<Base.Value>> {
-        return base.changes
-    }
-    var futureValues: Source<Base.Value> {
-        return base.futureValues
-    }
-}
-
-extension ObservableValueType {
-    public func buffered() -> Observable<Value> {
-        return BufferedObservable(self).observable
-    }
-}
-
-// MARK: Distinct
-
-public extension ObservableValueType {
-    public func distinct(_ equalityTest: @escaping (Value, Value) -> Bool) -> Observable<Value> {
-        return Observable(getter: { self.value },
-                          changes: { self.changes.filter { !equalityTest($0.old, $0.new) } })
-    }
-}
-
-public extension ObservableValueType where Value: Equatable {
-    public func distinct() -> Observable<Value> {
-        return distinct(==)
-    }
-}
-
-public extension UpdatableValueType {
-    public func distinct(_ equalityTest: @escaping (Value, Value) -> Bool) -> Updatable<Value> {
-        return Updatable(getter: { self.value },
-                         setter: { self.value = $0 },
-                         changes: { self.changes.filter { !equalityTest($0.old, $0.new) } })
-    }
-}
-
-public extension UpdatableValueType where Value: Equatable {
-    public func distinct() -> Updatable<Value> {
-        return distinct(==)
-    }
-}
-
-// MARK: Combine
 
 /// An Observable that is calculated from two other observables.
 public final class BinaryCompositeObservable<Input1: ObservableValueType, Input2: ObservableValueType, Value>: ObservableValueType, SignalDelegate {
