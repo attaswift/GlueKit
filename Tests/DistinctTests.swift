@@ -9,34 +9,9 @@
 import XCTest
 import GlueKit
 
-private class TestObservable: ObservableValueType {
-    var _signal = Signal<SimpleChange<Int>>()
-
-    var value: Int = 0{
-        didSet {
-            _signal.send(.init(from: oldValue, to: value))
-        }
-    }
-
-    var changes: Source<SimpleChange<Int>> { return _signal.source }
-}
-
-private class TestUpdatable: UpdatableValueType {
-    var _signal = Signal<SimpleChange<Int>>()
-
-    var value: Int = 0 {
-        didSet {
-            _signal.send(.init(from: oldValue, to: value))
-        }
-    }
-
-    var changes: Source<SimpleChange<Int>> { return _signal.source }
-}
-
-
 class DistinctTests: XCTestCase {
     func testDistinct_DefaultEqualityTestOnValues() {
-        let test = TestObservable()
+        let test = TestObservable(0)
         var r = [Int]()
         let c = test.distinct().values.connect { i in r.append(i) }
 
@@ -52,7 +27,7 @@ class DistinctTests: XCTestCase {
     }
 
     func testDistinct_DefaultEqualityTestOnFutureValues() {
-        let test = TestObservable()
+        let test = TestObservable(0)
         var r = [Int]()
         let c = test.distinct().futureValues.connect { i in r.append(i) }
 
@@ -67,7 +42,7 @@ class DistinctTests: XCTestCase {
     }
 
     func testDistinct_CustomEqualityTest() {
-        let test = TestObservable()
+        let test = TestObservable(0)
 
         // This is a really stupid equality test: 1 is never equal to anything, while everything else is the same.
         // This will only let through changes from/to a 1 value.
@@ -95,7 +70,7 @@ class DistinctTests: XCTestCase {
     }
 
     func testDistinct_IsUpdatableWhenCalledOnUpdatables() {
-        let test = TestUpdatable()
+        let test = TestUpdatable(0)
 
         let d = test.distinct()
 

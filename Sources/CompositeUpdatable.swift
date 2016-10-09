@@ -9,37 +9,33 @@
 import Foundation
 
 extension UpdatableValueType {
-    public func combine<Other: UpdatableValueType>(_ other: Other) -> Updatable<(Value, Other.Value)> {
+    public func combined<Other: UpdatableValueType>(_ other: Other) -> Updatable<(Value, Other.Value)> {
         return CompositeUpdatable(first: self, second: other).updatable
     }
-}
 
-public func combine<O1: UpdatableValueType, O2: UpdatableValueType>(_ o1: O1, _ o2: O2) -> Updatable<(O1.Value, O2.Value)> {
-    return o1.combine(o2)
-}
+    public func combined<A: UpdatableValueType, B: UpdatableValueType>(_ a: A, _ b: B) -> Updatable<(Value, A.Value, B.Value)> {
+        return combined(a).combined(b)
+            .map({ a, b in (a.0, a.1, b) },
+                 inverse: { v in ((v.0, v.1), v.2) })
+    }
 
-public func combine<O1: UpdatableValueType, O2: UpdatableValueType, O3: UpdatableValueType>(_ o1: O1, _ o2: O2, _ o3: O3) -> Updatable<(O1.Value, O2.Value, O3.Value)> {
-    return o1.combine(o2).combine(o3)
-        .map({ a, b in (a.0, a.1, b) },
-             inverse: { v in ((v.0, v.1), v.2) })
-}
-
-public func combine<O1: UpdatableValueType, O2: UpdatableValueType, O3: UpdatableValueType, O4: UpdatableValueType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value)> {
-    return o1.combine(o2).combine(o3).combine(o4)
+    public func combined<A: UpdatableValueType, B: UpdatableValueType, C: UpdatableValueType>(_ a: A, _ b: B, _ c: C) -> Updatable<(Value, A.Value, B.Value, C.Value)> {
+        return combined(a).combined(b).combined(c)
         .map({ a, b in (a.0.0, a.0.1, a.1, b) },
              inverse: { v in (((v.0, v.1), v.2), v.3) })
-}
+    }
 
-public func combine<O1: UpdatableValueType, O2: UpdatableValueType, O3: UpdatableValueType, O4: UpdatableValueType, O5: UpdatableValueType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value)> {
-    return o1.combine(o2).combine(o3).combine(o4).combine(o5)
-        .map({ a, b in (a.0.0.0, a.0.0.1, a.0.1, a.1, b) },
-             inverse: { v in ((((v.0, v.1), v.2), v.3), v.4) })
-}
+    public func combined<A: UpdatableValueType, B: UpdatableValueType, C: UpdatableValueType, D: UpdatableValueType>(_ a: A, _ b: B, _ c: C, _ d: D) -> Updatable<(Value, A.Value, B.Value, C.Value, D.Value)> {
+        return combined(a).combined(b).combined(c).combined(d)
+            .map({ a, b in (a.0.0.0, a.0.0.1, a.0.1, a.1, b) },
+                 inverse: { v in ((((v.0, v.1), v.2), v.3), v.4) })
+    }
 
-public func combine<O1: UpdatableValueType, O2: UpdatableValueType, O3: UpdatableValueType, O4: UpdatableValueType, O5: UpdatableValueType, O6: UpdatableValueType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5, _ o6: O6) -> Updatable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value, O6.Value)> {
-    return o1.combine(o2).combine(o3).combine(o4).combine(o5).combine(o6)
-        .map({ a, b in (a.0.0.0.0, a.0.0.0.1, a.0.0.1, a.0.1, a.1, b) },
-             inverse: { v in (((((v.0, v.1), v.2), v.3), v.4), v.5) })
+    public func combined<A: UpdatableValueType, B: UpdatableValueType, C: UpdatableValueType, D: UpdatableValueType, E: UpdatableValueType>(_ a: A, _ b: B, _ c: C, _ d: D, _ e: E) -> Updatable<(Value, A.Value, B.Value, C.Value, D.Value, E.Value)> {
+        return combined(a).combined(b).combined(c).combined(d).combined(e)
+            .map({ a, b in (a.0.0.0.0, a.0.0.0.1, a.0.0.1, a.0.1, a.1, b) },
+                 inverse: { v in (((((v.0, v.1), v.2), v.3), v.4), v.5) })
+    }
 }
 
 /// An Updatable that is a composite of two other updatables.
@@ -52,6 +48,7 @@ private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueT
     private var firstValue: A.Value? = nil
     private var secondValue: B.Value? = nil
     private var connections: (Connection, Connection)? = nil
+    private var updating = 0
 
     init(first: A, second: B) {
         self.first = first
@@ -66,15 +63,23 @@ private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueT
             return (first.value, second.value)
         }
         set {
-            // Updating a composite updatable is tricky, because updating the components will trigger a synchronous update,
-            // which can lead to us broadcasting intermediate states, which can result in infinite feedback loops.
-            // To prevent this, we update our idea of most recent values before setting our component updatables.
-
-            firstValue = newValue.0
-            secondValue = newValue.1
-
-            first.value = newValue.0
-            second.value = newValue.1
+            if let v1 = firstValue, let v2 = secondValue {
+                // Updating a composite updatable is tricky, because updating the components will trigger a synchronous update,
+                // which can lead to us broadcasting intermediate states, which can result in infinite feedback loops.
+                // This simple workaround solves the simplest cases.
+                updating += 1
+                let old = (v1, v2)
+                first.value = newValue.0
+                second.value = newValue.1
+                updating -= 1
+                if updating == 0 {
+                    signal.send(.init(from: old, to: (firstValue!, secondValue!)))
+                }
+            }
+            else {
+                first.value = newValue.0
+                second.value = newValue.1
+            }
         }
     }
 
@@ -83,16 +88,26 @@ private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueT
         firstValue = first.value
         secondValue = second.value
         let c1 = first.changes.connect { [unowned self] change in
-            let old = (change.old, self.secondValue!)
-            let new = (change.new, self.secondValue!)
-            self.firstValue = change.new
-            signal.send(SimpleChange(from: old, to: new))
+            if self.updating > 0 {
+                self.firstValue = change.new
+            }
+            else {
+                let old = (change.old, self.secondValue!)
+                let new = (change.new, self.secondValue!)
+                self.firstValue = change.new
+                signal.send(SimpleChange(from: old, to: new))
+            }
         }
         let c2 = second.changes.connect { [unowned self] change in
-            let old = (self.firstValue!, change.old)
-            let new = (self.firstValue!, change.new)
-            self.secondValue = change.new
-            signal.send(SimpleChange(from: old, to: new))
+            if self.updating > 0 {
+                self.secondValue = change.new
+            }
+            else {
+                let old = (self.firstValue!, change.old)
+                let new = (self.firstValue!, change.new)
+                self.secondValue = change.new
+                signal.send(SimpleChange(from: old, to: new))
+            }
         }
         connections = (c1, c2)
     }

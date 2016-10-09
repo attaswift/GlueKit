@@ -9,38 +9,47 @@
 import Foundation
 
 extension ObservableValueType {
-    public func combine<Other: ObservableValueType>(_ other: Other) -> Observable<(Value, Other.Value)> {
+    public func combined<Other: ObservableValueType>(_ other: Other) -> Observable<(Value, Other.Value)> {
         return CompositeObservable(first: self, second: other, combinator: { ($0, $1) }).observable
     }
 
-    public func combine<Other: ObservableValueType, Output>(_ other: Other, via combinator: @escaping (Value, Other.Value) -> Output) -> Observable<Output> {
+    public func combined<A: ObservableValueType, B: ObservableValueType>(_ a: A, _ b: B) -> Observable<(Value, A.Value, B.Value)> {
+        return combined(a).combined(b, via: { a, b in (a.0, a.1, b) })
+    }
+
+    public func combined<A: ObservableValueType, B: ObservableValueType, C: ObservableValueType>(_ a: A, _ b: B, _ c: C) -> Observable<(Value, A.Value, B.Value, C.Value)> {
+        return combined(a, b).combined(c, via: { a, b in (a.0, a.1, a.2, b) })
+    }
+
+    public func combined<A: ObservableValueType, B: ObservableValueType, C: ObservableValueType, D: ObservableValueType>(_ a: A, _ b: B, _ c: C, _ d: D) -> Observable<(Value, A.Value, B.Value, C.Value, D.Value)> {
+        return combined(a, b, c).combined(d, via: { a, b in (a.0, a.1, a.2, a.3, b) })
+    }
+
+    public func combined<A: ObservableValueType, B: ObservableValueType, C: ObservableValueType, D: ObservableValueType, E: ObservableValueType>(_ a: A, _ b: B, _ c: C, _ d: D, _ e: E) -> Observable<(Value, A.Value, B.Value, C.Value, D.Value, E.Value)> {
+        return combined(a, b, c, d).combined(e, via: { a, b in (a.0, a.1, a.2, a.3, a.4, b) })
+    }
+
+
+    public func combined<Other: ObservableValueType, Output>(_ other: Other, via combinator: @escaping (Value, Other.Value) -> Output) -> Observable<Output> {
         return CompositeObservable(first: self, second: other, combinator: combinator).observable
     }
+
+    public func combined<A: ObservableValueType, B: ObservableValueType, Output>(_ a: A, _ b: B, via combinator: @escaping (Value, A.Value, B.Value) -> Output) -> Observable<Output> {
+        return combined(a).combined(b, via: { a, b in combinator(a.0, a.1, b) })
+    }
+
+    public func combined<A: ObservableValueType, B: ObservableValueType, C: ObservableValueType, Output>(_ a: A, _ b: B, _ c: C, via combinator: @escaping (Value, A.Value, B.Value, C.Value) -> Output) -> Observable<Output> {
+        return combined(a, b).combined(c, via: { a, b in combinator(a.0, a.1, a.2, b) })
+    }
+
+    public func combined<A: ObservableValueType, B: ObservableValueType, C: ObservableValueType, D: ObservableValueType, Output>(_ a: A, _ b: B, _ c: C, _ d: D, via combinator: @escaping (Value, A.Value, B.Value, C.Value, D.Value) -> Output) -> Observable<Output> {
+        return combined(a, b, c).combined(d, via: { a, b in combinator(a.0, a.1, a.2, a.3, b) })
+    }
+
+    public func combined<A: ObservableValueType, B: ObservableValueType, C: ObservableValueType, D: ObservableValueType, E: ObservableValueType, Output>(_ a: A, _ b: B, _ c: C, _ d: D, _ e: E, via combinator: @escaping (Value, A.Value, B.Value, C.Value, D.Value, E.Value) -> Output) -> Observable<Output> {
+        return combined(a, b, c, d).combined(e, via: { a, b in combinator(a.0, a.1, a.2, a.3, a.4, b) })
+    }
 }
-
-public func combine<O1: ObservableValueType, O2: ObservableValueType>(_ o1: O1, _ o2: O2) -> Observable<(O1.Value, O2.Value)> {
-    return o1.combine(o2)
-}
-
-public func combine<O1: ObservableValueType, O2: ObservableValueType, O3: ObservableValueType>(_ o1: O1, _ o2: O2, _ o3: O3) -> Observable<(O1.Value, O2.Value, O3.Value)> {
-    return o1.combine(o2).combine(o3, via: { a, b in (a.0, a.1, b) })
-}
-
-public func combine<O1: ObservableValueType, O2: ObservableValueType, O3: ObservableValueType, O4: ObservableValueType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value)> {
-
-    return combine(o1, o2, o3).combine(o4, via: { a, b in (a.0, a.1, a.2, b) })
-}
-
-public func combine<O1: ObservableValueType, O2: ObservableValueType, O3: ObservableValueType, O4: ObservableValueType, O5: ObservableValueType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value)> {
-
-    return combine(o1, o2, o3, o4).combine(o5, via: { a, b in (a.0, a.1, a.2, a.3, b) })
-}
-
-public func combine<O1: ObservableValueType, O2: ObservableValueType, O3: ObservableValueType, O4: ObservableValueType, O5: ObservableValueType, O6: ObservableValueType>(_ o1: O1, _ o2: O2, _ o3: O3, _ o4: O4, _ o5: O5, _ o6: O6) -> Observable<(O1.Value, O2.Value, O3.Value, O4.Value, O5.Value, O6.Value)> {
-
-    return combine(o1, o2, o3, o4, o5).combine(o6, via: { a, b in (a.0, a.1, a.2, a.3, a.4, b) })
-}
-
 
 /// An Observable that is calculated from two other observables.
 private final class CompositeObservable<Input1: ObservableValueType, Input2: ObservableValueType, Value>: ObservableValueType, SignalDelegate {
@@ -107,98 +116,113 @@ private final class CompositeObservable<Input1: ObservableValueType, Input2: Obs
 
 //MARK: Operations with observables of equatable values
 
-public func == <Value: Equatable>(a: Observable<Value>, b: Observable<Value>) -> Observable<Bool> {
-    return a.combine(b, via: ==)
+public func == <A: ObservableValueType, B: ObservableValueType>(a: A, b: B) -> Observable<Bool>
+where A.Value == B.Value, A.Value: Equatable {
+    return a.combined(b, via: ==)
 }
 
-public func != <Value: Equatable>(a: Observable<Value>, b: Observable<Value>) -> Observable<Bool> {
-    return a.combine(b, via: !=)
+public func != <A: ObservableValueType, B: ObservableValueType>(a: A, b: B) -> Observable<Bool>
+where A.Value == B.Value, A.Value: Equatable {
+    return a.combined(b, via: !=)
 }
 
 //MARK: Operations with observables of comparable values
 
-public func < <Value: Comparable>(a: Observable<Value>, b: Observable<Value>) -> Observable<Bool> {
-    return a.combine(b, via: <)
+public func < <A: ObservableValueType, B: ObservableValueType>(a: A, b: B) -> Observable<Bool>
+where A.Value == B.Value, A.Value: Comparable {
+    return a.combined(b, via: <)
 }
 
-public func > <Value: Comparable>(a: Observable<Value>, b: Observable<Value>) -> Observable<Bool> {
-    return a.combine(b, via: >)
+public func > <A: ObservableValueType, B: ObservableValueType>(a: A, b: B) -> Observable<Bool>
+where A.Value == B.Value, A.Value: Comparable {
+    return a.combined(b, via: >)
 }
 
-public func <= <Value: Comparable>(a: Observable<Value>, b: Observable<Value>) -> Observable<Bool> {
-    return a.combine(b, via: <=)
+public func <= <A: ObservableValueType, B: ObservableValueType>(a: A, b: B) -> Observable<Bool>
+where A.Value == B.Value, A.Value: Comparable {
+    return a.combined(b, via: <=)
 }
 
-public func >= <Value: Comparable>(a: Observable<Value>, b: Observable<Value>) -> Observable<Bool> {
-    return a.combine(b, via: >=)
+public func >= <A: ObservableValueType, B: ObservableValueType>(a: A, b: B) -> Observable<Bool>
+where A.Value == B.Value, A.Value: Comparable {
+    return a.combined(b, via: >=)
 }
 
-public func min<Value: Comparable>(_ a: Observable<Value>, _ b: Observable<Value>) -> Observable<Value> {
-    return a.combine(b, via: min)
+public func min<A: ObservableValueType, B: ObservableValueType, Value: Comparable>(_ a: A, _ b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: min)
 }
 
-public func max<Value: Comparable>(_ a: Observable<Value>, _ b: Observable<Value>) -> Observable<Value> {
-    return a.combine(b, via: max)
+public func max<A: ObservableValueType, B: ObservableValueType, Value: Comparable>(_ a: A, _ b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: max)
 }
 
 //MARK: Operations with observables of boolean values
 
-public prefix func !(v: Observable<Bool>) -> Observable<Bool> {
+public prefix func ! <O: ObservableValueType>(v: O) -> Observable<Bool> where O.Value == Bool {
     return v.map { !$0 }
 }
 
-public func &&(a: Observable<Bool>, b: Observable<Bool>) -> Observable<Bool> {
-    return a.combine(b, via: { a, b in a && b })
+public func && <A: ObservableValueType, B: ObservableValueType>(a: A, b: B) -> Observable<Bool>
+where A.Value == Bool, B.Value == Bool {
+    return a.combined(b, via: { a, b in a && b })
 }
 
-public func ||(a: Observable<Bool>, b: Observable<Bool>) -> Observable<Bool> {
-    return a.combine(b, via: { a, b in a || b })
+public func || <A: ObservableValueType, B: ObservableValueType>(a: A, b: B) -> Observable<Bool>
+where A.Value == Bool, B.Value == Bool {
+    return a.combined(b, via: { a, b in a || b })
 }
 
 //MARK: Operations with observables of integer arithmetic values
 
-public prefix func - <Num: SignedNumber>(v: Observable<Num>) -> Observable<Num> {
+public prefix func - <O: ObservableValueType>(v: O) -> Observable<O.Value> where O.Value: SignedNumber {
     return v.map { -$0 }
 }
 
-public func + <Num: IntegerArithmetic>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
-    return a.combine(b, via: +)
+public func + <A: ObservableValueType, B: ObservableValueType, Value: IntegerArithmetic>(a: A, b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: +)
 }
 
-public func - <Num: IntegerArithmetic>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
-    return a.combine(b, via: -)
+public func - <A: ObservableValueType, B: ObservableValueType, Value: IntegerArithmetic>(a: A, b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: -)
 }
 
-public func * <Num: IntegerArithmetic>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
-    return a.combine(b, via: *)
+public func * <A: ObservableValueType, B: ObservableValueType, Value: IntegerArithmetic>(a: A, b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: *)
 }
 
-public func / <Num: IntegerArithmetic>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
-    return a.combine(b, via: /)
+public func / <A: ObservableValueType, B: ObservableValueType, Value: IntegerArithmetic>(a: A, b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: /)
 }
 
-public func % <Num: IntegerArithmetic>(a: Observable<Num>, b: Observable<Num>) -> Observable<Num> {
-    return a.combine(b, via: %)
+public func % <A: ObservableValueType, B: ObservableValueType, Value: IntegerArithmetic>(a: A, b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: %)
 }
 
 //MARK: Operations with floating point values
 
-public prefix func - <Number: FloatingPoint>(v: Observable<Number>) -> Observable<Number> {
-    return v.map { -$0 }
+public func + <A: ObservableValueType, B: ObservableValueType, Value: FloatingPoint>(a: A, b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: +)
 }
 
-public func + <Number: FloatingPoint>(a: Observable<Number>, b: Observable<Number>) -> Observable<Number> {
-    return a.combine(b, via: +)
+public func - <A: ObservableValueType, B: ObservableValueType, Value: FloatingPoint>(a: A, b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: -)
 }
 
-public func - <Number: FloatingPoint>(a: Observable<Number>, b: Observable<Number>) -> Observable<Number> {
-    return a.combine(b, via: -)
+public func * <A: ObservableValueType, B: ObservableValueType, Value: FloatingPoint>(a: A, b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: *)
 }
 
-public func * <Number: FloatingPoint>(a: Observable<Number>, b: Observable<Number>) -> Observable<Number> {
-    return a.combine(b, via: *)
-}
-
-public func / <Number: FloatingPoint>(a: Observable<Number>, b: Observable<Number>) -> Observable<Number> {
-    return a.combine(b, via: /)
+public func / <A: ObservableValueType, B: ObservableValueType, Value: FloatingPoint>(a: A, b: B) -> Observable<Value>
+where A.Value == Value, B.Value == Value {
+    return a.combined(b, via: /)
 }

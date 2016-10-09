@@ -9,21 +9,9 @@
 import XCTest
 import GlueKit
 
-private class TestObservable: ObservableValueType {
-    var _signal = Signal<SimpleChange<Int>>()
-
-    var value: Int = 0 {
-        didSet {
-            _signal.send(.init(from: oldValue, to: value))
-        }
-    }
-
-    var changes: Source<SimpleChange<Int>> { return _signal.source }
-}
-
 class ObservableTests: XCTestCase {
     func testObservableValueType_values_SendsInitialValue() {
-        let test = TestObservable()
+        let test = TestObservable(0)
 
         var res = [Int]()
 
@@ -38,7 +26,7 @@ class ObservableTests: XCTestCase {
     }
 
     func testObservableValueType_values_SupportsNestedSendsBySerializingThem() {
-        let test = TestObservable()
+        let test = TestObservable(0)
         var s = ""
 
         let c1 = test.values.connect { i in

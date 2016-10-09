@@ -10,61 +10,32 @@ import Foundation
 import XCTest
 import GlueKit
 
-private class TestObservable: ObservableValueType {
-    var _signal = Signal<SimpleChange<Int>>()
-
-    var value: Int = 0{
-        didSet {
-            _signal.send(.init(from: oldValue, to: value))
-        }
-    }
-
-    var changes: Source<SimpleChange<Int>> { return _signal.source }
-}
-
-private class TestUpdatable: UpdatableValueType {
-    var _signal = Signal<SimpleChange<Int>>()
-
-    var value: Int = 0 {
-        didSet {
-            _signal.send(.init(from: oldValue, to: value))
-        }
-    }
-
-    var changes: Source<SimpleChange<Int>> { return _signal.source }
-}
-
 class CombinedObservableTests: XCTestCase {
     func testCombine_Works() {
-        let a = TestObservable()
-        let b = TestObservable()
+        let a = TestObservable(1)
+        let b = TestObservable(2)
 
-        a.value = 1
-        b.value = 2
+        let combined = a.combined(b) { a, b in "\(a),\(b)" }
 
-        let combined = a.combine(b) { a, b in "\(a) - \(b)" }
+        let mock = MockValueObserver(combined)
 
-        var r = [String]()
-        let c = combined.values.connect { r.append($0) }
-        XCTAssertEqual(r, ["1 - 2"])
-        a.value = 3
-        XCTAssertEqual(r, ["1 - 2", "3 - 2"])
-        b.value = 4
-        XCTAssertEqual(r, ["1 - 2", "3 - 2", "3 - 4"])
-        a.value = 5
-        a.value = 5
-        b.value = 6
-        XCTAssertEqual(r, ["1 - 2", "3 - 2", "3 - 4", "5 - 4", "5 - 4", "5 - 6"])
-        c.disconnect()
+        mock.expecting(.init(from: "1,2", to: "3,2")) {
+            a.value = 3
+        }
+
+        XCTAssertEqual(combined.value, "3,2")
+
+        mock.expecting(.init(from: "3,2", to: "3,4")) {
+            b.value = 4
+        }
+
+        XCTAssertEqual(combined.value, "3,4")
     }
 
     func testCombineDistinct_WithNestedUpdates() {
-        let a = TestObservable()
-        let b = TestObservable()
-        let combined = a.combine(b) { a, b in (a, b) }.distinct { old, new in old.0 == new.0 && old.1 == new.1 }
-
-        a.value = 3
-        b.value = 2
+        let a = TestObservable(3)
+        let b = TestObservable(2)
+        let combined = a.combined(b) { a, b in (a, b) }.distinct(==)
 
         var r = ""
         let c = combined.values.connect { av, bv in
@@ -82,12 +53,45 @@ class CombinedObservableTests: XCTestCase {
         c.disconnect()
     }
 
-    func testEquatableOperators() {
-        let a = TestObservable()
-        let b = TestObservable()
+    func testCombineUpToSixObservables() {
+        let a = TestObservable(1)
+        let b = TestObservable(2)
+        let c = TestObservable(3)
+        let d = TestObservable(4)
+        let e = TestObservable(5)
+        let f = TestObservable(6)
 
-        let eq = (a.observable == b.observable)
-        let ne = (a.observable != b.observable)
+        let t2 = a.combined(b)
+        let t3 = a.combined(b, c)
+        let t4 = a.combined(b, c, d)
+        let t5 = a.combined(b, c, d, e)
+        let t6 = a.combined(b, c, d, e, f)
+
+        let c2 = a.combined(b, via: +)
+        let c3 = a.combined(b, c, via: { $0 + $1 + $2 })
+        let c4 = a.combined(b, c, d, via: { $0 + $1 + $2 + $3 })
+        let c5 = a.combined(b, c, d, e, via: { $0 + $1 + $2 + $3 + $4 })
+        let c6 = a.combined(b, c, d, e, f, via: { $0 + $1 + $2 + $3 + $4 + $5 })
+
+        XCTAssertTrue(t2.value == (1, 2))
+        XCTAssertTrue(t3.value == (1, 2, 3))
+        XCTAssertTrue(t4.value == (1, 2, 3, 4))
+        XCTAssertTrue(t5.value == (1, 2, 3, 4, 5))
+        XCTAssertTrue(t6.value == (1, 2, 3, 4, 5, 6))
+
+        XCTAssertTrue(c2.value == 3)
+        XCTAssertTrue(c3.value == 6)
+        XCTAssertTrue(c4.value == 10)
+        XCTAssertTrue(c5.value == 15)
+        XCTAssertTrue(c6.value == 21)
+    }
+
+    func testEquatableOperators() {
+        let a = TestObservable(0)
+        let b = TestObservable(0)
+
+        let eq = (a == b)
+        let ne = (a != b)
 
         XCTAssertTrue(eq.value)
         XCTAssertFalse(ne.value)
@@ -99,15 +103,15 @@ class CombinedObservableTests: XCTestCase {
     }
 
     func testComparableOperators() {
-        let a = TestObservable()
-        let b = TestObservable()
+        let a = TestObservable(0)
+        let b = TestObservable(0)
 
-        let lt = (a.observable < b.observable)
-        let gt = (a.observable > b.observable)
-        let le = (a.observable <= b.observable)
-        let ge = (a.observable >= b.observable)
-        let mi = min(a.observable, b.observable)
-        let ma = max(a.observable, b.observable)
+        let lt = (a < b)
+        let gt = (a > b)
+        let le = (a <= b)
+        let ge = (a >= b)
+        let mi = min(a, b)
+        let ma = max(a, b)
 
         XCTAssertFalse(lt.value)
         XCTAssertFalse(gt.value)
@@ -145,13 +149,13 @@ class CombinedObservableTests: XCTestCase {
     }
 
     func testBooleanOperators() {
-        let a = TestUpdatable()
-        let b = TestUpdatable()
-        let c = TestUpdatable()
+        let a = TestUpdatable(0)
+        let b = TestUpdatable(0)
+        let c = TestUpdatable(0)
 
-        let bIsBetweenAAndC = a.observable < b.observable && b.observable < c.observable
+        let bIsBetweenAAndC = a < b && b < c
         let bIsNotBetweenAAndC = !bIsBetweenAAndC
-        let aIsNotTheGreatest = a.observable < b.observable || a.observable < c.observable
+        let aIsNotTheGreatest = a < b || a < c
 
         XCTAssertFalse(bIsBetweenAAndC.value)
         XCTAssertTrue(bIsNotBetweenAAndC.value)
@@ -176,14 +180,28 @@ class CombinedObservableTests: XCTestCase {
         XCTAssertTrue(aIsNotTheGreatest.value)
     }
 
-    func testArithmeticOperators() {
-        let a = TestUpdatable()
-        let b = TestUpdatable()
-        let c = TestUpdatable()
+    func testIntegerNegation() {
+        let a = TestUpdatable(1)
 
-        let e1 = a.observable % Observable.constant(10)
-        let e2 = b.observable * c.observable / (a.observable + Observable.constant(1))
-        let expression = e1 + e2 - c.observable
+        let n = -a
+
+        XCTAssertEqual(n.value, -1)
+
+        let mock = MockValueObserver(n)
+
+        mock.expecting(.init(from: -1, to: -2)) {
+            a.value = 2
+        }
+    }
+
+    func testIntegerArithmeticOperators() {
+        let a = TestUpdatable(0)
+        let b = TestUpdatable(0)
+        let c = TestUpdatable(0)
+
+        let e1 = a % Observable.constant(10)
+        let e2 = b * c / (a + Observable.constant(1))
+        let expression = e1 + e2 - c
 
         var r = [Int]()
         let connection = expression.values.connect { r.append($0) }
@@ -221,5 +239,51 @@ class CombinedObservableTests: XCTestCase {
         
         connection.disconnect()
     }
+
+    func testFloatingPointArithmeticOperators() {
+        let a = TestUpdatable(0.0)
+        let b = TestUpdatable(0.0)
+        let c = TestUpdatable(0.0)
+
+        let expression = a + b * c / (a + Observable.constant(1)) - c
+
+        XCTAssertEqual(expression.value, 0)
+
+        var r: [Double] = []
+        let connection = expression.values.connect { r.append($0) }
+
+        XCTAssertEqual(r, [0])
+        r = []
+
+        a.value = 1
+
+        // The observable 'a' occurs twice in the expression above, so the expression will be evaluated twice.
+        // The first evaluation will only apply the new value to one of the sources.
+        XCTAssertEqual(r.count, 2)
+        XCTAssertEqual(r.last, 1)
+
+        r = []
+
+        b.value = 2
+
+        XCTAssertEqual(r.count, 1)
+        XCTAssertEqual(r.last, 1)
+        r = []
+
+        c.value = 3
+
+        XCTAssertEqual(r.count, 2)
+        XCTAssertEqual(r.last, 1 + 2 * 3 / 2 - 3)
+        r = []
+
+        a.value = 15
+
+        XCTAssertEqual(r.count, 2)
+        XCTAssertEqual(r.last, 15 + 2 * 3 / 16 - 3)
+        r = []
+        
+        connection.disconnect()
+    }
+
 }
 

@@ -21,3 +21,36 @@ func XCTAssertEqual<E: Equatable>(_ a: @autoclosure () -> [[E]], _ b: @autoclosu
         XCTFail(message ?? "\(av) is not equal to \(bv)", file: file, line: line)
     }
 }
+
+class TestObservable<Value>: ObservableValueType {
+    var _signal = Signal<SimpleChange<Value>>()
+
+    var value: Value {
+        didSet {
+            _signal.send(.init(from: oldValue, to: value))
+        }
+    }
+
+    init(_ value: Value) {
+        self.value = value
+    }
+
+    var changes: Source<SimpleChange<Value>> { return _signal.source }
+}
+
+class TestUpdatable<Value>: UpdatableValueType {
+    var _signal = Signal<SimpleChange<Value>>()
+
+    var value: Value {
+        didSet {
+            _signal.send(.init(from: oldValue, to: value))
+        }
+    }
+
+    init(_ value: Value) {
+        self.value = value
+    }
+
+    var changes: Source<SimpleChange<Value>> { return _signal.source }
+}
+
