@@ -22,6 +22,43 @@ private class Book {
 }
 
 class ValueMappingTests: XCTestCase {
+    func test_value() {
+        let book = Book("foo")
+
+        let title = book.title.map { $0.uppercased() }
+
+        XCTAssertEqual(title.value, "FOO")
+
+        let mock = MockValueObserver(title)
+
+        mock.expecting(.init(from: "FOO", to: "BAR")) {
+            book.title.value = "bar"
+        }
+        XCTAssertEqual(title.value, "BAR")
+    }
+
+    func test_updatableValue() {
+        let book = Book("foo")
+
+        // This is a simple mapping that ignores that a book's title is itself observable.
+        let title = book.title.map({ $0.uppercased() }, inverse: { $0.lowercased() })
+
+        XCTAssertEqual(title.value, "FOO")
+
+        let mock = MockValueObserver(title)
+
+        mock.expecting(.init(from: "FOO", to: "BAR")) {
+            book.title.value = "bar"
+        }
+        XCTAssertEqual(title.value, "BAR")
+
+        mock.expecting(.init(from: "BAR", to: "BAZ")) {
+            title.value = "BAZ"
+        }
+        XCTAssertEqual(title.value, "BAZ")
+        XCTAssertEqual(book.title.value, "baz")
+    }
+
     func test_sourceField() {
         let b1 = Book("foo")
         let v = Variable<Book>(b1)

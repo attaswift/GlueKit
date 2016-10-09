@@ -41,24 +41,6 @@ extension ObservableValueType {
     }
 }
 
-// MARK: Map
-
-public extension ObservableValueType {
-    /// Returns an observable that calculates `transform` on all current and future values of this observable.
-    public func map<Output>(_ transform: @escaping (Value) -> Output) -> Observable<Output> {
-        return Observable(getter: { transform(self.value) },
-                          changes: { self.changes.map { $0.map(transform) } })
-    }
-}
-
-extension UpdatableType {
-    public func map<Output>(_ transform: @escaping (Value) -> Output, inverse: @escaping (Output) -> Value) -> Updatable<Output> {
-        return Updatable(getter: { transform(self.value) },
-                         setter: { self.value = inverse($0) },
-                         changes: { self.changes.map { $0.map(transform) } })
-    }
-}
-
 // MARK: Distinct
 
 public extension ObservableValueType {
