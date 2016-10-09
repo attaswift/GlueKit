@@ -43,7 +43,7 @@ class MockArrayObserver<Element: Equatable> {
         return try run(file: file, line: line, body)
     }
 
-    private func run<R>(file: StaticString = #file, line: UInt = #line, _ body: () throws -> R) rethrows -> R {
+    private func run<R>(file: StaticString, line: UInt, _ body: () throws -> R) rethrows -> R {
         let result = try body()
         
         let actual = merged(actualChanges)
