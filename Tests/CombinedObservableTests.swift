@@ -1,11 +1,12 @@
 //
-//  ObservableTransformationTests.swift
+//  CombinedObservableTests.swift
 //  GlueKit
 //
-//  Created by Károly Lőrentey on 2015-12-08.
-//  Copyright © 2015 Károly Lőrentey. All rights reserved.
+//  Created by Károly Lőrentey on 2016-10-09.
+//  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
+import Foundation
 import XCTest
 import GlueKit
 
@@ -33,113 +34,7 @@ private class TestUpdatable: UpdatableValueType {
     var changes: Source<SimpleChange<Int>> { return _signal.source }
 }
 
-
-class ObservableTransformationTests: XCTestCase {
-
-    func testMap_Works() {
-        let observable = TestObservable()
-
-        let mapped = observable.map { "\($0)" }
-
-        XCTAssertEqual(mapped.value, "0")
-
-        observable.value = 1
-        XCTAssertEqual(mapped.value, "1") // mapped observable reflects upstream's changes
-
-        var r = [String]()
-        let c = mapped.values.connect { r.append($0) }
-
-        observable.value = 2
-        observable.value = 3
-
-        c.disconnect()
-
-        observable.value = 4
-
-        XCTAssertEqual(r, ["1", "2", "3"])
-    }
-
-    func testMap_RetainsItsInput() {
-        weak var test: TestObservable? = nil
-        var mapped: Observable<String>? = nil
-        do {
-            let o = TestObservable()
-            test = o
-            mapped = o.map { "\($0)" }
-            o.value = 42
-        }
-        XCTAssertNotNil(test)
-        XCTAssertEqual(mapped?.value, "42")
-    }
-
-    func testDistinct_DefaultEqualityTestOnValues() {
-        let test = TestObservable()
-        var r = [Int]()
-        let c = test.distinct().values.connect { i in r.append(i) }
-
-        test.value = 0
-        test.value = 1
-        test.value = 1
-        test.value = 1
-        test.value = 2
-
-        XCTAssertEqual(r, [0, 1, 2])
-
-        c.disconnect()
-    }
-
-    func testDistinct_DefaultEqualityTestOnFutureValues() {
-        let test = TestObservable()
-        var r = [Int]()
-        let c = test.distinct().futureValues.connect { i in r.append(i) }
-
-        test.value = 0 // This will be not sent to the future source.
-        test.value = 1
-        test.value = 1
-        test.value = 1
-        test.value = 2
-
-        XCTAssertEqual(r, [1, 2])
-        c.disconnect()
-    }
-
-    func testDistinct_CustomEqualityTest() {
-        let test = TestObservable()
-
-        // This is a really stupid equality test: 1 is never equal to anything, while everything else is the same.
-        // This will only let through changes from/to a 1 value.
-        let distinctTest = test.distinct { a, b in a != 1 && b != 1 }
-
-        var defaultValues = [Int]()
-        let defaultConnection = distinctTest.values.connect { i in defaultValues.append(i) }
-
-        var futureValues = [Int]()
-        let futureConnection = distinctTest.futureValues.connect { i in futureValues.append(i) }
-
-        test.value = 0
-        test.value = 1
-        test.value = 1
-        test.value = 1
-        test.value = 2
-        test.value = 2
-        test.value = 2
-        test.value = 3
-
-        XCTAssertEqual(defaultValues, [0, 1, 1, 1, 2])
-        XCTAssertEqual(futureValues, [1, 1, 1, 2])
-        defaultConnection.disconnect()
-        futureConnection.disconnect()
-    }
-
-    func testDistinct_IsUpdatableWhenCalledOnUpdatables() {
-        let test = TestUpdatable()
-
-        let d = test.distinct()
-
-        d.value = 42
-        XCTAssertEqual(test.value, 42)
-    }
-
+class CombinedObservableTests: XCTestCase {
     func testCombine_Works() {
         let a = TestObservable()
         let b = TestObservable()
@@ -310,22 +205,21 @@ class ObservableTransformationTests: XCTestCase {
         XCTAssertEqual(r.count, 1)
         XCTAssertEqual(r.last, 1)
         r = []
-
+        
         c.value = 3
-
+        
         XCTAssertEqual(r.count, 2)
         XCTAssertEqual(r.last, 1 + 2 * 3 / 2 - 3)
         r = []
-
+        
         a.value = 15
-
+        
         XCTAssertEqual(r.count, 2)
         XCTAssertEqual(r.last, 5 + 2 * 3 / 16 - 3)
         r = []
-
-
+        
+        
         connection.disconnect()
     }
-
 }
 

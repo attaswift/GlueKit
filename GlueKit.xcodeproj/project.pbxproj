@@ -260,9 +260,9 @@
 		BBB55BB71C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9D1C8FCE2C0050DDA9 /* ObservableTests.swift */; };
 		BBB55BB81C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9D1C8FCE2C0050DDA9 /* ObservableTests.swift */; };
 		BBB55BB91C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9D1C8FCE2C0050DDA9 /* ObservableTests.swift */; };
-		BBB55BBA1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9E1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift */; };
-		BBB55BBB1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9E1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift */; };
-		BBB55BBC1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9E1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift */; };
+		BBB55BBA1C8FCE2C0050DDA9 /* DistinctTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9E1C8FCE2C0050DDA9 /* DistinctTests.swift */; };
+		BBB55BBB1C8FCE2C0050DDA9 /* DistinctTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9E1C8FCE2C0050DDA9 /* DistinctTests.swift */; };
+		BBB55BBC1C8FCE2C0050DDA9 /* DistinctTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9E1C8FCE2C0050DDA9 /* DistinctTests.swift */; };
 		BBB55BBD1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */; };
 		BBB55BBE1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */; };
 		BBB55BBF1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */; };
@@ -365,6 +365,12 @@
 		BBCD9E2E1DAAD4BC00E85FB9 /* CompositeUpdatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E2C1DAAD4BC00E85FB9 /* CompositeUpdatable.swift */; };
 		BBCD9E2F1DAAD4BC00E85FB9 /* CompositeUpdatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E2C1DAAD4BC00E85FB9 /* CompositeUpdatable.swift */; };
 		BBCD9E301DAAD4BC00E85FB9 /* CompositeUpdatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E2C1DAAD4BC00E85FB9 /* CompositeUpdatable.swift */; };
+		BBCD9E321DAAD66500E85FB9 /* CombinedObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E311DAAD66500E85FB9 /* CombinedObservableTests.swift */; };
+		BBCD9E331DAAD66500E85FB9 /* CombinedObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E311DAAD66500E85FB9 /* CombinedObservableTests.swift */; };
+		BBCD9E341DAAD66500E85FB9 /* CombinedObservableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E311DAAD66500E85FB9 /* CombinedObservableTests.swift */; };
+		BBCD9E361DAAD74600E85FB9 /* CombinedUpdatableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E351DAAD74600E85FB9 /* CombinedUpdatableTests.swift */; };
+		BBCD9E371DAAD74600E85FB9 /* CombinedUpdatableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E351DAAD74600E85FB9 /* CombinedUpdatableTests.swift */; };
+		BBCD9E381DAAD74600E85FB9 /* CombinedUpdatableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E351DAAD74600E85FB9 /* CombinedUpdatableTests.swift */; };
 		BBE4DF401DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
 		BBE4DF411DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
 		BBE4DF421DA3A88C005EC162 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
@@ -527,7 +533,7 @@
 		BBB55B9B1C8FCE2C0050DDA9 /* MergedSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MergedSourceTests.swift; sourceTree = "<group>"; };
 		BBB55B9C1C8FCE2C0050DDA9 /* NotificationCenterSupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationCenterSupportTests.swift; sourceTree = "<group>"; };
 		BBB55B9D1C8FCE2C0050DDA9 /* ObservableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTests.swift; sourceTree = "<group>"; };
-		BBB55B9E1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTransformationTests.swift; sourceTree = "<group>"; };
+		BBB55B9E1C8FCE2C0050DDA9 /* DistinctTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DistinctTests.swift; sourceTree = "<group>"; };
 		BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayMappingTests.swift; sourceTree = "<group>"; };
 		BBB55BA01C8FCE2C0050DDA9 /* ValueMappingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueMappingTests.swift; sourceTree = "<group>"; };
 		BBB55BA11C8FCE2C0050DDA9 /* SignalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalTests.swift; sourceTree = "<group>"; };
@@ -563,6 +569,8 @@
 		BBCD9E221DAAD26200E85FB9 /* CompositeObservable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CompositeObservable.swift; sourceTree = "<group>"; };
 		BBCD9E271DAAD2B900E85FB9 /* DistinctValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DistinctValue.swift; sourceTree = "<group>"; };
 		BBCD9E2C1DAAD4BC00E85FB9 /* CompositeUpdatable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CompositeUpdatable.swift; sourceTree = "<group>"; };
+		BBCD9E311DAAD66500E85FB9 /* CombinedObservableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinedObservableTests.swift; sourceTree = "<group>"; };
+		BBCD9E351DAAD74600E85FB9 /* CombinedUpdatableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinedUpdatableTests.swift; sourceTree = "<group>"; };
 		BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableType.swift; sourceTree = "<group>"; };
 		BBE4DF441DA3A908005EC162 /* SimpleChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleChange.swift; sourceTree = "<group>"; };
 		BBE4DF491DA409EE005EC162 /* DistinctUnion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DistinctUnion.swift; sourceTree = "<group>"; };
@@ -866,7 +874,9 @@
 			isa = PBXGroup;
 			children = (
 				BBB55B9D1C8FCE2C0050DDA9 /* ObservableTests.swift */,
-				BBB55B9E1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift */,
+				BBB55B9E1C8FCE2C0050DDA9 /* DistinctTests.swift */,
+				BBCD9E311DAAD66500E85FB9 /* CombinedObservableTests.swift */,
+				BBCD9E351DAAD74600E85FB9 /* CombinedUpdatableTests.swift */,
 				BBB55BA61C8FCE2C0050DDA9 /* UpdatableTests.swift */,
 				BBB55BA71C8FCE2C0050DDA9 /* VariableTests.swift */,
 				BBCD9E0A1DAAB6E700E85FB9 /* MockValueObserver.swift */,
@@ -1349,12 +1359,13 @@
 			files = (
 				BBB55BCC1C8FCE2C0050DDA9 /* TestUtilities.swift in Sources */,
 				BBB55BB41C8FCE2C0050DDA9 /* NotificationCenterSupportTests.swift in Sources */,
-				BBB55BBA1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift in Sources */,
+				BBB55BBA1C8FCE2C0050DDA9 /* DistinctTests.swift in Sources */,
 				BBB55BAE1C8FCE2C0050DDA9 /* KVOSupportTests.swift in Sources */,
 				BBB55BC31C8FCE2C0050DDA9 /* SignalTests.swift in Sources */,
 				BBCD9E0B1DAAB6E700E85FB9 /* MockValueObserver.swift in Sources */,
 				BBC36AEB1DA8452F00AB3E9D /* ArrayChangeSeparationTests.swift in Sources */,
 				BBE4DF661DA5656B005EC162 /* SetMappingTests.swift in Sources */,
+				BBCD9E361DAAD74600E85FB9 /* CombinedUpdatableTests.swift in Sources */,
 				BBCD9DFE1DAA8F7800E85FB9 /* ArrayFoldingTests.swift in Sources */,
 				BB471D9A1DA57FF8002550B0 /* SetSortingTests.swift in Sources */,
 				BBC4AE4E1D9A829500FF7DE0 /* ArrayFilteringTests.swift in Sources */,
@@ -1364,6 +1375,7 @@
 				BBA033661DA7CFFE00E83AC1 /* ArrayModificationTests.swift in Sources */,
 				BBB55BA81C8FCE2C0050DDA9 /* ArrayVariableTests.swift in Sources */,
 				BBB55BD51C8FCE2C0050DDA9 /* VariableTests.swift in Sources */,
+				BBCD9E321DAAD66500E85FB9 /* CombinedObservableTests.swift in Sources */,
 				BBB55BC61C8FCE2C0050DDA9 /* SimpleSourcesTests.swift in Sources */,
 				BBB55BD21C8FCE2C0050DDA9 /* UpdatableTests.swift in Sources */,
 				BB568AEF1DA693F700BC4B58 /* SetFilteringTests.swift in Sources */,
@@ -1464,12 +1476,13 @@
 			files = (
 				BBB55BCD1C8FCE2C0050DDA9 /* TestUtilities.swift in Sources */,
 				BBB55BB51C8FCE2C0050DDA9 /* NotificationCenterSupportTests.swift in Sources */,
-				BBB55BBB1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift in Sources */,
+				BBB55BBB1C8FCE2C0050DDA9 /* DistinctTests.swift in Sources */,
 				BBB55BAF1C8FCE2C0050DDA9 /* KVOSupportTests.swift in Sources */,
 				BBB55BC41C8FCE2C0050DDA9 /* SignalTests.swift in Sources */,
 				BBCD9E0C1DAAB6E700E85FB9 /* MockValueObserver.swift in Sources */,
 				BBC36AEC1DA8453000AB3E9D /* ArrayChangeSeparationTests.swift in Sources */,
 				BBE4DF671DA5656C005EC162 /* SetMappingTests.swift in Sources */,
+				BBCD9E371DAAD74600E85FB9 /* CombinedUpdatableTests.swift in Sources */,
 				BBCD9DFF1DAA8F7800E85FB9 /* ArrayFoldingTests.swift in Sources */,
 				BB471D9B1DA57FF8002550B0 /* SetSortingTests.swift in Sources */,
 				BBC4AE4F1D9A829500FF7DE0 /* ArrayFilteringTests.swift in Sources */,
@@ -1479,6 +1492,7 @@
 				BBA033671DA7CFFE00E83AC1 /* ArrayModificationTests.swift in Sources */,
 				BBB55BA91C8FCE2C0050DDA9 /* ArrayVariableTests.swift in Sources */,
 				BBB55BD61C8FCE2C0050DDA9 /* VariableTests.swift in Sources */,
+				BBCD9E331DAAD66500E85FB9 /* CombinedObservableTests.swift in Sources */,
 				BBB55BC71C8FCE2C0050DDA9 /* SimpleSourcesTests.swift in Sources */,
 				BBB55BD31C8FCE2C0050DDA9 /* UpdatableTests.swift in Sources */,
 				BB568AF01DA693F700BC4B58 /* SetFilteringTests.swift in Sources */,
@@ -1657,12 +1671,13 @@
 			files = (
 				BBB55BCE1C8FCE2C0050DDA9 /* TestUtilities.swift in Sources */,
 				BBB55BB61C8FCE2C0050DDA9 /* NotificationCenterSupportTests.swift in Sources */,
-				BBB55BBC1C8FCE2C0050DDA9 /* ObservableTransformationTests.swift in Sources */,
+				BBB55BBC1C8FCE2C0050DDA9 /* DistinctTests.swift in Sources */,
 				BBB55BB01C8FCE2C0050DDA9 /* KVOSupportTests.swift in Sources */,
 				BBB55BC51C8FCE2C0050DDA9 /* SignalTests.swift in Sources */,
 				BBCD9E0D1DAAB6E700E85FB9 /* MockValueObserver.swift in Sources */,
 				BBC36AED1DA8453000AB3E9D /* ArrayChangeSeparationTests.swift in Sources */,
 				BBE4DF681DA5656D005EC162 /* SetMappingTests.swift in Sources */,
+				BBCD9E381DAAD74600E85FB9 /* CombinedUpdatableTests.swift in Sources */,
 				BBCD9E001DAA8F7800E85FB9 /* ArrayFoldingTests.swift in Sources */,
 				BB471D9C1DA57FF8002550B0 /* SetSortingTests.swift in Sources */,
 				BBC4AE501D9A829500FF7DE0 /* ArrayFilteringTests.swift in Sources */,
@@ -1672,6 +1687,7 @@
 				BBA033681DA7CFFE00E83AC1 /* ArrayModificationTests.swift in Sources */,
 				BBB55BAA1C8FCE2C0050DDA9 /* ArrayVariableTests.swift in Sources */,
 				BBB55BD71C8FCE2C0050DDA9 /* VariableTests.swift in Sources */,
+				BBCD9E341DAAD66500E85FB9 /* CombinedObservableTests.swift in Sources */,
 				BBB55BC81C8FCE2C0050DDA9 /* SimpleSourcesTests.swift in Sources */,
 				BBB55BD41C8FCE2C0050DDA9 /* UpdatableTests.swift in Sources */,
 				BB568AF11DA693F700BC4B58 /* SetFilteringTests.swift in Sources */,
