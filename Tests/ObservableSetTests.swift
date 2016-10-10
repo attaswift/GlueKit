@@ -323,5 +323,29 @@ class ObservableSetTypeTests: XCTestCase {
         check { Variable<T>(T($0)).map { $0.foo } }
     }
 
+    func testObservableContains() {
+        let test = SetVariable<Int>([1, 2, 3])
+        let containsTwo = test.observableContains(2)
+
+        XCTAssertEqual(containsTwo.value, true)
+
+        let mock = MockValueObserver(containsTwo)
+
+        mock.expectingNoChange {
+            test.insert(5)
+            test.remove(1)
+        }
+        XCTAssertEqual(containsTwo.value, true)
+
+        mock.expecting(.init(from: true, to: false)) {
+            test.remove(2)
+        }
+        XCTAssertEqual(containsTwo.value, false)
+
+        mock.expecting(.init(from: false, to: true)) {
+            test.formUnion([2, 6])
+        }
+        XCTAssertEqual(containsTwo.value, true)
+    }
 }
 
