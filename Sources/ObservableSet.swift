@@ -26,6 +26,7 @@ public protocol ObservableSetType: ObservableType {
 }
 
 extension ObservableSetType {
+    public var isBuffered: Bool { return false }
     public var count: Int { return value.count }
     public func contains(_ member: Element) -> Bool { return value.contains(member) }
     public func isSubset(of other: Set<Element>) -> Bool { return value.isSubset(of: other) }
@@ -70,10 +71,6 @@ public struct ObservableSet<Element: Hashable>: ObservableSetType {
 
     init(box: ObservableSetBase<Element>) {
         self.box = box
-    }
-
-    public init<S: ObservableSetType>(_ set: S) where S.Element == Element {
-        self = set.observableSet
     }
 
     public var isBuffered: Bool { return box.isBuffered }
