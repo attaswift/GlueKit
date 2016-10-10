@@ -58,10 +58,6 @@ public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
         self.box = box
     }
 
-    public init<S: UpdatableSetType>(_ set: S) where S.Element == Element {
-        self = set.updatableSet
-    }
-
     public var isBuffered: Bool { return box.isBuffered }
     public var count: Int { return box.count }
     public var value: Set<Element> {
