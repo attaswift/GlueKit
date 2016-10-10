@@ -120,6 +120,12 @@ extension UpdatableArrayType {
         return old
     }
 
+    public func removeLast(_ n: Int) {
+        let c = count
+        let old = Array(self[count - n ..< count])
+        apply(ArrayChange(initialCount: c, modification: .replaceSlice(old, at: count - n, with: [])))
+    }
+
     public func removeAll() {
         let c = count
         let old = self.value
@@ -137,10 +143,6 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
 
     init(box: UpdatableArrayBase<Element>) {
         self.box = box
-    }
-
-    public init<Contents: UpdatableArrayType>(_ contents: Contents) where Contents.Element == Element {
-        self = contents.updatableArray
     }
 
     public var isBuffered: Bool { return box.isBuffered }

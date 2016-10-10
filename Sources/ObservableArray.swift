@@ -25,13 +25,13 @@ public protocol ObservableArrayType: ObservableType, CustomReflectable {
     typealias Base = Array<Element>
 
     // Required methods
-    var isBuffered: Bool { get }
     var count: Int { get }
-    var value: Base { get }
     subscript(bounds: Range<Int>) -> ArraySlice<Element> { get }
     var changes: Source<ArrayChange<Element>> { get }
 
     // Extras
+    var isBuffered: Bool { get }
+    var value: Base { get }
     subscript(index: Int) -> Element { get }
     var observableCount: Observable<Int> { get }
     var observable: Observable<Base> { get }
@@ -42,6 +42,14 @@ extension ObservableArrayType {
 
     public var customMirror: Mirror {
         return Mirror(self, unlabeledChildren: self.value, displayStyle: .collection)
+    }
+
+    public var isBuffered: Bool {
+        return false
+    }
+
+    public var value: [Element] {
+        return Array(self[0 ..< count])
     }
 
     public subscript(_ index: Int) -> Element {

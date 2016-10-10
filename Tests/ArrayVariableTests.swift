@@ -15,13 +15,16 @@ class ArrayVariableTests: XCTestCase {
         XCTAssertEqual(a0.count, 0)
 
         let a1 = ArrayVariable([1, 2, 3, 4])
-        XCTAssert([1, 2, 3, 4].elementsEqual(a1.value, by: ==))
+        XCTAssertEqual(a1.value, [1, 2, 3, 4])
 
-        let a2 = ArrayVariable(elements: 1, 2, 3, 4)
-        XCTAssert([1, 2, 3, 4].elementsEqual(a2.value, by: ==))
+        let a2 = ArrayVariable(1 ... 4)
+        XCTAssertEqual(a2.value, [1, 2, 3, 4])
 
-        let a3: ArrayVariable<Int> = [1, 2, 3, 4] // From array literal
-        XCTAssert([1, 2, 3, 4].elementsEqual(a3.value, by: ==))
+        let a3 = ArrayVariable(elements: 1, 2, 3, 4)
+        XCTAssertEqual(a3.value, [1, 2, 3, 4])
+
+        let a4: ArrayVariable<Int> = [1, 2, 3, 4] // From array literal
+        XCTAssertEqual(a4.value, [1, 2, 3, 4])
     }
 
     func testEquality() {
