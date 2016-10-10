@@ -8,7 +8,7 @@
 
 import Foundation
 
-public final class SetVariable<Element: Hashable>: UpdatableSetType {
+public final class SetVariable<Element: Hashable>: UpdatableSetBase<Element> {
     public typealias Value = Set<Element>
     public typealias Base = Set<Element>
     public typealias Change = SetChange<Element>
@@ -16,7 +16,7 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
     fileprivate var _value: Base
     fileprivate var _changeSignal = LazySignal<Change>()
 
-    public init() {
+    public override init() {
         _value = []
     }
 
@@ -36,7 +36,7 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         _value = Set(elements)
     }
 
-    public var isBuffered: Bool {
+    public override var isBuffered: Bool {
         return true
     }
 
@@ -44,11 +44,11 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         return _value.isEmpty
     }
 
-    public var count: Int {
+    public override var count: Int {
         return _value.count
     }
 
-    public var value: Value {
+    public override var value: Value {
         get {
             return _value
         }
@@ -59,19 +59,19 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         }
     }
 
-    public func contains(_ member: Element) -> Bool {
+    public override func contains(_ member: Element) -> Bool {
         return _value.contains(member)
     }
 
-    public func isSubset(of other: Set<Element>) -> Bool {
+    public override func isSubset(of other: Set<Element>) -> Bool {
         return _value.isSubset(of: other)
     }
 
-    public func isSuperset(of other: Set<Element>) -> Bool {
+    public override func isSuperset(of other: Set<Element>) -> Bool {
         return _value.isSuperset(of: other)
     }
 
-    public var changes: Source<SetChange<Element>> {
+    public override var changes: Source<SetChange<Element>> {
         return _changeSignal.source
     }
 
@@ -84,33 +84,79 @@ public final class SetVariable<Element: Hashable>: UpdatableSetType {
         }
     }
 
-    public var observable: Observable<Set<Element>> {
+    public override var observable: Observable<Set<Element>> {
         return Observable(getter: { self._value }, changes: { self.valueChanges.source })
     }
 
-    public func apply(_ change: SetChange<Element>) {
+    public override func apply(_ change: SetChange<Element>) {
         guard !change.isEmpty else { return }
         _value.apply(change)
         _changeSignal.sendIfConnected(change)
     }
 
-    public func remove(_ member: Element) {
+    public override func remove(_ member: Element) {
         guard _value.contains(member) else { return }
         _value.remove(member)
         _changeSignal.sendIfConnected(SetChange(removed: [member], inserted: []))
     }
 
-    public func removeAll() {
+    public override func insert(_ member: Element) {
+        guard !_value.contains(member) else { return }
+        _value.insert(member)
+        _changeSignal.sendIfConnected(SetChange(removed: [], inserted: [member]))
+    }
+
+    public override func removeAll() {
         guard !isEmpty else { return }
         let value = self._value
         _value.removeAll()
         _changeSignal.sendIfConnected(SetChange(removed: value, inserted: []))
     }
 
-    public func insert(_ member: Element) {
-        guard !_value.contains(member) else { return }
-        _value.insert(member)
-        _changeSignal.sendIfConnected(SetChange(removed: [], inserted: [member]))
+
+    public override func formUnion(_ other: Set<Element>) {
+        if _changeSignal.isConnected {
+            let difference = other.subtracting(_value)
+            _value.formUnion(difference)
+            _changeSignal.sendIfConnected(SetChange(removed: [], inserted: difference))
+        }
+        else {
+            _value.formUnion(other)
+        }
+    }
+
+    public override func formIntersection(_ other: Set<Element>) {
+        if _changeSignal.isConnected {
+            let difference = _value.subtracting(other)
+            _value.subtract(difference)
+            _changeSignal.sendIfConnected(SetChange(removed: difference, inserted: []))
+        }
+        else {
+            _value.formIntersection(other)
+        }
+    }
+
+    public override func formSymmetricDifference(_ other: Set<Element>) {
+        if _changeSignal.isConnected {
+            let intersection = _value.intersection(other)
+            let additions = other.subtracting(self.value)
+            _value.formSymmetricDifference(other)
+            _changeSignal.sendIfConnected(SetChange(removed: intersection, inserted: additions))
+        }
+        else {
+            _value.formSymmetricDifference(other)
+        }
+    }
+
+    public override func subtract(_ other: Set<Element>) {
+        if _changeSignal.isConnected {
+            let intersection = _value.intersection(other)
+            _value.subtract(other)
+            _changeSignal.sendIfConnected(SetChange(removed: intersection, inserted: []))
+        }
+        else {
+            _value.subtract(other)
+        }
     }
 }
 
@@ -130,50 +176,5 @@ extension SetVariable {
             _changeSignal.sendIfConnected(SetChange(removed: [], inserted: [member]))
         }
         return old
-    }
-
-    public func formUnion(_ other: Set<Element>) {
-        if _changeSignal.isConnected {
-            let difference = other.subtracting(_value)
-            _value.formUnion(difference)
-            _changeSignal.sendIfConnected(SetChange(removed: [], inserted: difference))
-        }
-        else {
-            _value.formUnion(other)
-        }
-    }
-
-    public func formIntersection(_ other: Set<Element>) {
-        if _changeSignal.isConnected {
-            let difference = _value.subtracting(other)
-            _value.subtract(difference)
-            _changeSignal.sendIfConnected(SetChange(removed: difference, inserted: []))
-        }
-        else {
-            _value.formIntersection(other)
-        }
-    }
-
-    public func formSymmetricDifference(_ other: Set<Element>) {
-        if _changeSignal.isConnected {
-            let intersection = _value.intersection(other)
-            let additions = other.subtracting(self.value)
-            _value.formSymmetricDifference(other)
-            _changeSignal.sendIfConnected(SetChange(removed: intersection, inserted: additions))
-        }
-        else {
-            _value.formSymmetricDifference(other)
-        }
-    }
-
-    public func subtract(_ other: Set<Element>) {
-        if _changeSignal.isConnected {
-            let intersection = _value.intersection(other)
-            _value.subtract(other)
-            _changeSignal.sendIfConnected(SetChange(removed: intersection, inserted: []))
-        }
-        else {
-            _value.subtract(other)
-        }
     }
 }

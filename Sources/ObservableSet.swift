@@ -32,6 +32,8 @@ extension ObservableSetType {
     public func isSubset(of other: Set<Element>) -> Bool { return value.isSubset(of: other) }
     public func isSuperset(of other: Set<Element>) -> Bool { return value.isSuperset(of: other) }
 
+    public var isEmpty: Bool { return count == 0 }
+    
     internal var valueChanges: Source<SimpleChange<Base>> {
         var value = self.value
         return self.changes.map { (c: SetChange<Element>) -> SimpleChange<Base> in
@@ -96,14 +98,14 @@ class ObservableSetBase<Element: Hashable>: ObservableSetType {
         }
     }
 
-    var isBuffered: Bool { abstract() }
-    var count: Int { abstract() }
     var value: Set<Element> { abstract() }
-    func contains(_ member: Element) -> Bool { abstract() }
-    func isSubset(of other: Set<Element>) -> Bool { abstract() }
-    func isSuperset(of other: Set<Element>) -> Bool { abstract() }
-
     var changes: Source<SetChange<Element>> { abstract() }
+
+    var isBuffered: Bool { return false }
+    var count: Int { return value.count }
+    func contains(_ member: Element) -> Bool { return value.contains(member) }
+    func isSubset(of other: Set<Element>) -> Bool { return value.isSubset(of: other) }
+    func isSuperset(of other: Set<Element>) -> Bool { return value.isSuperset(of: other) }
 
     var observable: Observable<Set<Element>> { return Observable(getter: { self.value }, changes: { self.valueChanges }) }
     var observableCount: Observable<Int> { return Observable(getter: { self.count }, changes: { self.countChanges }) }

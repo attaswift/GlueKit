@@ -12,23 +12,64 @@ public protocol UpdatableSetType: ObservableSetType {
     var value: Base { get nonmutating set }
     func apply(_ change: SetChange<Element>)
 
+    // Optional members
     func remove(_ member: Element)
     func insert(_ member: Element)
-
+    func removeAll()
+    func formUnion(_ other: Set<Element>)
+    func formIntersection(_ other: Set<Element>)
+    func formSymmetricDifference(_ other: Set<Element>)
+    func subtract(_ other: Set<Element>)
+    
     var updatableSet: UpdatableSet<Element> { get }
 }
 
 extension UpdatableSetType {
     public func remove(_ member: Element) {
+        // Note: This should be kept in sync with the same member in UpdatableSetBase.
         if contains(member) {
-            apply(SetChange(removed: [member], inserted: []))
+            apply(SetChange(removed: [member]))
         }
     }
 
     public func insert(_ member: Element) {
+        // Note: This should be kept in sync with the same member in UpdatableSetBase.
         if !contains(member) {
-            apply(SetChange(removed: [], inserted: [member]))
+            apply(SetChange(inserted: [member]))
         }
+    }
+
+    public func removeAll() {
+        // Note: This should be kept in sync with the same member in UpdatableSetBase.
+        if !isEmpty {
+            apply(SetChange(removed: self.value))
+        }
+    }
+
+    public func formUnion(_ other: Set<Element>) {
+        // Note: This should be kept in sync with the same member in UpdatableSetBase.
+        let difference = other.subtracting(value)
+        self.apply(SetChange(inserted: difference))
+    }
+
+    public func formIntersection(_ other: Set<Element>) {
+        // Note: This should be kept in sync with the same member in UpdatableSetBase.
+        let difference = value.subtracting(other)
+        self.apply(SetChange(removed: difference))
+    }
+
+    public func formSymmetricDifference(_ other: Set<Element>) {
+        // Note: This should be kept in sync with the same member in UpdatableSetBase.
+        let value = self.value
+        let intersection = value.intersection(other)
+        let additions = other.subtracting(value)
+        self.apply(SetChange(removed: intersection, inserted: additions))
+    }
+
+    public func subtract(_ other: Set<Element>) {
+        // Note: This should be kept in sync with the same member in UpdatableSetBase.
+        let intersection = value.intersection(other)
+        self.apply(SetChange(removed: intersection))
     }
 
     public var updatableSet: UpdatableSet<Element> {
@@ -71,6 +112,11 @@ public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
     public func apply(_ change: SetChange<Element>) { box.apply(change) }
     public func remove(_ member: Element) { box.remove(member) }
     public func insert(_ member: Element) { box.insert(member) }
+    public func removeAll() { box.removeAll() }
+    public func formUnion(_ other: Set<Element>) { box.formUnion(other) }
+    public func formIntersection(_ other: Set<Element>) { box.formIntersection(other) }
+    public func formSymmetricDifference(_ other: Set<Element>) { box.formSymmetricDifference(other) }
+    public func subtract(_ other: Set<Element>) { box.subtract(other) }
 
     public var changes: Source<SetChange<Element>> { return box.changes }
     public var observable: Observable<Set<Element>> { return box.observable }
@@ -86,10 +132,56 @@ class UpdatableSetBase<Element: Hashable>: ObservableSetBase<Element>, Updatable
     }
     func apply(_ change: SetChange<Element>) { abstract() }
 
-    func remove(_ member: Element) { abstract() }
-    func insert(_ member: Element) { abstract() }
+    func remove(_ member: Element) {
+        // Note: This should be kept in sync with the same member in the UpdatableSetType extension above.
+        if contains(member) {
+            apply(SetChange(removed: [member]))
+        }
+    }
 
-    final var updatableSet: UpdatableSet<Element> { return UpdatableSet(box: self) }
+    func insert(_ member: Element) {
+        // Note: This should be kept in sync with the same member in the UpdatableSetType extension above.
+        if !contains(member) {
+            apply(SetChange(inserted: [member]))
+        }
+    }
+
+    func removeAll() {
+        // Note: This should be kept in sync with the same member in the UpdatableSetType extension above.
+        if !isEmpty {
+            apply(SetChange(removed: self.value))
+        }
+    }
+
+    public func formUnion(_ other: Set<Element>) {
+        // Note: This should be kept in sync with the same member in the UpdatableSetType extension above.
+        let difference = other.subtracting(value)
+        self.apply(SetChange(inserted: difference))
+    }
+
+    public func formIntersection(_ other: Set<Element>) {
+        // Note: This should be kept in sync with the same member in the UpdatableSetType extension above.
+        let difference = value.subtracting(other)
+        self.apply(SetChange(removed: difference))
+    }
+
+    public func formSymmetricDifference(_ other: Set<Element>) {
+        // Note: This should be kept in sync with the same member in the UpdatableSetType extension above.
+        let value = self.value
+        let intersection = value.intersection(other)
+        let additions = other.subtracting(value)
+        self.apply(SetChange(removed: intersection, inserted: additions))
+    }
+
+    public func subtract(_ other: Set<Element>) {
+        // Note: This should be kept in sync with the same member in the UpdatableSetType extension above.
+        let intersection = value.intersection(other)
+        self.apply(SetChange(removed: intersection))
+    }
+
+    final var updatableSet: UpdatableSet<Element> {
+        return UpdatableSet(box: self)
+    }
 }
 
 class UpdatableSetBox<Contents: UpdatableSetType>: UpdatableSetBase<Contents.Element> {
@@ -113,6 +205,11 @@ class UpdatableSetBox<Contents: UpdatableSetType>: UpdatableSetBase<Contents.Ele
 
     override func remove(_ member: Element) { contents.remove(member) }
     override func insert(_ member: Element) { contents.insert(member) }
+    override func removeAll() { contents.removeAll() }
+    override func formUnion(_ other: Set<Element>) { contents.formUnion(other) }
+    override func formIntersection(_ other: Set<Element>) { contents.formIntersection(other) }
+    override func formSymmetricDifference(_ other: Set<Element>) { contents.formSymmetricDifference(other) }
+    override func subtract(_ other: Set<Element>) { contents.subtract(other) }
 
     override func contains(_ member: Element) -> Bool { return contents.contains(member) }
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }

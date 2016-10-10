@@ -119,6 +119,11 @@ private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType
 
     override func remove(_ member: Element) { field.remove(member) }
     override func insert(_ member: Element) { field.insert(member) }
+    override func removeAll() { field.removeAll() }
+    override func formUnion(_ other: Set<Field.Element>) { field.formUnion(other) }
+    override func formIntersection(_ other: Set<Field.Element>) { field.formIntersection(other) }
+    override func formSymmetricDifference(_ other: Set<Field.Element>) { field.formSymmetricDifference(other) }
+    override func subtract(_ other: Set<Field.Element>) { field.subtract(other) }
 
     override var changes: Source<SetChange<Element>> { return changeSource.source }
 }
