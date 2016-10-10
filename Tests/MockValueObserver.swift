@@ -51,6 +51,4 @@ class MockValueObserver<Value: Equatable> {
         expectedChanges = []
         return result
     }
-
-
 }
