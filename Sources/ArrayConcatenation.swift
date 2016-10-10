@@ -10,15 +10,15 @@ import Foundation
 
 extension ObservableArrayType {
     public func concatenate<A: ObservableArrayType>(with other: A) -> ObservableArray<Element> where A.Element == Element {
-        return ConcatenatedObservableArray(first: self, second: other).observableArray
+        return ArrayConcatenation(first: self, second: other).observableArray
     }
 }
 
 public func +<A: ObservableArrayType, B: ObservableArrayType>(a: A, b: B) -> ObservableArray<A.Element> where A.Element == B.Element {
-    return ConcatenatedObservableArray(first: a, second: b).observableArray
+    return a.concatenate(with: b)
 }
 
-class ConcatenatedObservableArray<First: ObservableArrayType, Second: ObservableArrayType>: ObservableArrayType, SignalDelegate where First.Element == Second.Element {
+class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArrayType>: ObservableArrayBase<First.Element>, SignalDelegate where First.Element == Second.Element {
     typealias Element = First.Element
     typealias Change = ArrayChange<Element>
 
@@ -36,13 +36,8 @@ class ConcatenatedObservableArray<First: ObservableArrayType, Second: Observable
         self.second = second
     }
 
-    var isBuffered: Bool { return false }
-
-    var count: Int { return first.count + second.count }
-    var value: [Element] { return first.value + second.value }
-    var changes: Source<Change> { return changeSignal.with(self).source }
-
-    subscript(index: Int) -> Element {
+    override var isBuffered: Bool { return false }
+    override subscript(index: Int) -> Element {
         let c = first.count
         if index < c {
             return first[index]
@@ -50,7 +45,7 @@ class ConcatenatedObservableArray<First: ObservableArrayType, Second: Observable
         return second[index - c]
     }
 
-    subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+    override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
         let c = first.count
         if bounds.upperBound <= c {
             return first[bounds]
@@ -60,6 +55,10 @@ class ConcatenatedObservableArray<First: ObservableArrayType, Second: Observable
         }
         return ArraySlice(first[bounds.lowerBound ..< c] + second[0 ..< bounds.upperBound - c])
     }
+    override var value: [Element] { return first.value + second.value }
+    override var count: Int { return first.count + second.count }
+    override var changes: Source<Change> { return changeSignal.with(self).source }
+
 
     func start(_ signal: Signal<Change>) {
         firstCount = first.count
