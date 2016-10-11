@@ -182,7 +182,12 @@ class ArrayMappingTests: XCTestCase {
         let authors = books.flatMap{$0.authors}
 
         XCTAssertEqual(authors.isBuffered, false)
-        XCTAssertEqual(authors.value, ["a", "b", "c", "b", "d", "a"])
+        XCTAssertEqual(authors.value, [
+            /*b1*/ "a", "b", "c",
+            /*b2*/ "b", "d",
+            /*b3*/ "a",
+            /*b4*/
+        ])
         XCTAssertEqual(authors.count, 6)
         XCTAssertEqual(authors[0], "a")
         XCTAssertEqual(authors[4], "d")
@@ -205,75 +210,153 @@ class ArrayMappingTests: XCTestCase {
         mock.expecting(6, .insert("e", at: 6)) {
             books.append(b5)
         }
-        XCTAssertEqual(authors.value, ["a", "b", "c", "b", "d", "a", "e"]) // b1 b2 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b1*/ "a", "b", "c",
+            /*b2*/ "b", "d",
+            /*b3*/ "a",
+            /*b4*/
+            /*b5*/ "e"
+        ])
+        checkSlices()
 
         mock.expecting(7, .replaceSlice(["b", "d"], at: 3, with: [])) {
-            _ = books.remove(at: 1)
+            _ = books.remove(at: 1) // b2
         }
-        XCTAssertEqual(authors.value, ["a", "b", "c", "a", "e"]) // b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b1*/ "a", "b", "c",
+            /*b3*/ "a",
+            /*b4*/
+            /*b5*/ "e"
+        ])
+        checkSlices()
 
         mock.expecting(5, .replaceSlice([], at: 0, with: ["b", "d"])) {
             books.insert(b2, at: 0)
         }
-        XCTAssertEqual(authors.value, ["b", "d", "a", "b", "c", "a", "e"]) // b2 b1 b3 b4 b5
-
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "b", "d",
+            /*b1*/ "a", "b", "c",
+            /*b3*/ "a",
+            /*b4*/
+            /*b5*/ "e"
+        ])
+        checkSlices()
 
         mock.expecting(7, .insert("*", at: 1)) {
             b2.authors.insert("*", at: 1)
         }
-        XCTAssertEqual(authors.value, ["b", "*", "d", "a", "b", "c", "a", "e"]) // b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "b", "*", "d",
+            /*b1*/ "a", "b", "c",
+            /*b3*/ "a",
+            /*b4*/
+            /*b5*/ "e"
+        ])
         checkSlices()
-
 
         mock.expecting(8, .replace("*", at: 1, with: "f")) {
             b2.authors[1] = "f"
         }
-        XCTAssertEqual(authors.value, ["b", "f", "d", "a", "b", "c", "a", "e"]) // b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "b", "f", "d",
+            /*b1*/ "a", "b", "c",
+            /*b3*/ "a",
+            /*b4*/
+            /*b5*/ "e"
+        ])
         checkSlices()
 
         mock.expecting(8, .insert("g", at: 8)) {
             b5.authors.append("g")
         }
-        XCTAssertEqual(authors.value, ["b", "f", "d", "a", "b", "c", "a", "e", "g"]) // b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "b", "f", "d",
+            /*b1*/ "a", "b", "c",
+            /*b3*/ "a",
+            /*b4*/
+            /*b5*/ "e", "g"
+        ])
+        checkSlices()
 
         // Remove all authors from each book, one by one.
 
         mock.expecting(9, .remove("a", at: 6)) {
             b3.authors.value = []
         }
-        XCTAssertEqual(authors.value, ["b", "f", "d", "a", "b", "c", "e", "g"]) // b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "b", "f", "d",
+            /*b1*/ "a", "b", "c",
+            /*b3*/
+            /*b4*/
+            /*b5*/ "e", "g"
+        ])
         checkSlices()
 
         mock.expecting(8, .replaceSlice(["a", "b", "c"], at: 3, with: [])) {
             b1.authors.value = []
         }
-        XCTAssertEqual(authors.value, ["b", "f", "d", "e", "g"]) // b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "b", "f", "d",
+            /*b1*/
+            /*b3*/
+            /*b4*/
+            /*b5*/ "e", "g"
+        ])
         checkSlices()
 
         mock.expecting(5, .replaceSlice([], at: 5, with: ["b", "f", "d", "e", "g"])) {
             books.append(contentsOf: books.value)
         }
-        XCTAssertEqual(authors.value, ["b", "f", "d", "e", "g", "b", "f", "d", "e", "g"]) // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "b", "f", "d",
+            /*b1*/
+            /*b3*/
+            /*b4*/
+            /*b5*/ "e", "g",
+            /*b2*/ "b", "f", "d",
+            /*b1*/
+            /*b3*/
+            /*b4*/
+            /*b5*/ "e", "g"
+        ])
         checkSlices()
 
         mock.expecting(10, [.replaceSlice(["b", "f", "d"], at: 0, with: []),
                             .replaceSlice(["b", "f", "d"], at: 2, with: [])]) {
             b2.authors.value = []
         }
-        XCTAssertEqual(authors.value, ["e", "g", "e", "g"]) // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/
+            /*b1*/
+            /*b3*/
+            /*b4*/
+            /*b5*/ "e", "g",
+            /*b2*/
+            /*b1*/
+            /*b3*/
+            /*b4*/
+            /*b5*/ "e", "g"
+        ])
         checkSlices()
 
         mock.expecting(4, .replaceSlice(["e", "g"], at: 2, with: [])) {
             books.removeSubrange(5 ..< 10)
         }
-        XCTAssertEqual(authors.value, ["e", "g"]) // b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/
+            /*b1*/
+            /*b3*/
+            /*b4*/
+            /*b5*/ "e", "g"
+        ])
         checkSlices()
-
 
         mock.expecting(2, .replaceSlice(["e", "g"], at: 0, with: [])) {
             b5.authors.value = []
         }
-        XCTAssertEqual(authors.value, []) // b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            // b2 b1 b3 b4 b5
+        ])
         checkSlices()
 
         // At this point, no book has any author.
@@ -281,91 +364,184 @@ class ArrayMappingTests: XCTestCase {
         mock.expectingNoChange {
             books.append(contentsOf: books.value)
         }
-        XCTAssertEqual(authors.value, []) // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        ])
         checkSlices()
 
         mock.expecting(0, .replaceSlice([], at: 0, with: ["3a", "3b", "3a", "3b"])) {
             b3.authors.value = ["3a", "3b"]
         }
-        XCTAssertEqual(authors.value, ["3a", "3b", "3a", "3b"]) // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/
+            /*b1*/
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/
+            /*b2*/
+            /*b1*/
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/
+        ])
         checkSlices()
 
         mock.expecting(4, [.insert("1", at: 0), .insert("1", at: 3)]) {
             b1.authors.value = ["1"]
         }
-        XCTAssertEqual(authors.value, ["1", "3a", "3b", "1", "3a", "3b"]) // b2 b1 b3 b4 b5 b2 b1 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/
+            /*b1*/ "1",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/
+            /*b2*/
+            /*b1*/ "1",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/
+        ])
         checkSlices()
 
         mock.expecting(6, .replaceSlice(["3a", "3b"], at: 4, with: [])) {
             books.removeSubrange(7 ..< 10)
         }
-        XCTAssertEqual(authors.value, ["1", "3a", "3b", "1"]) // b2 b1 b3 b4 b5 b2 b1
+        XCTAssertEqual(authors.value, [
+            /*b2*/
+            /*b1*/ "1",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/
+            /*b2*/
+            /*b1*/ "1",
+        ])
         checkSlices()
 
         mock.expecting(4, .insert("5a", at: 3)) {
             b5.authors.append("5a")
         }
-        XCTAssertEqual(authors.value, ["1", "3a", "3b", "5a", "1"]) // b2 b1 b3 b4 b5 b2 b1
+        XCTAssertEqual(authors.value, [
+            /*b2*/
+            /*b1*/ "1",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/ "5a",
+            /*b2*/
+            /*b1*/ "1",
+        ])
         checkSlices()
 
         mock.expecting(5, .insert("5b", at: 4)) {
             b5.authors.append("5b")
         }
-        XCTAssertEqual(authors.value, ["1", "3a", "3b", "5a", "5b", "1"]) // b2 b1 b3 b4 b5 b2 b1
+        XCTAssertEqual(authors.value, [
+            /*b2*/
+            /*b1*/ "1",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/ "5a", "5b",
+            /*b2*/
+            /*b1*/ "1",
+        ])
         checkSlices()
 
         mock.expecting(6, [.insert("2", at: 0), .insert("2", at: 6)]) {
             b2.authors.append("2")
         }
-        XCTAssertEqual(authors.value, ["2", "1", "3a", "3b", "5a", "5b", "2", "1"]) // b2 b1 b3 b4 b5 b2 b1
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "2",
+            /*b1*/ "1",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/ "5a", "5b",
+            /*b2*/ "2",
+            /*b1*/ "1",
+        ])
         checkSlices()
 
         mock.expecting(8, .remove("2", at: 6)) {
             _ = books.remove(at: 5) // b2
         }
-        XCTAssertEqual(authors.value, ["2", "1", "3a", "3b", "5a", "5b", "1"]) // b2 b1 b3 b4 b5 b1
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "2",
+            /*b1*/ "1",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/ "5a", "5b",
+            /*b1*/ "1",
+        ])
         checkSlices()
 
         mock.expecting(7, .remove("1", at: 1)) {
             _ = books.remove(at: 1) // b1
         }
-        XCTAssertEqual(authors.value, ["2", "3a", "3b", "5a", "5b", "1"]) // b2 b3 b4 b5 b1
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "2",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/ "5a", "5b",
+            /*b1*/ "1",
+        ])
         checkSlices()
 
         mock.expecting(6, .replaceSlice(["5a", "5b"], at: 3, with: [])) {
             b5.authors.value = []
         }
-        XCTAssertEqual(authors.value, ["2", "3a", "3b", "1"]) // b2 b3 b4 b5 b1
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "2",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/
+            /*b1*/ "1",
+        ])
         checkSlices()
 
         mock.expecting(4, .remove("1", at: 3)) {
             _ = books.removeLast() // b1
         }
-        XCTAssertEqual(authors.value, ["2", "3a", "3b"]) // b2 b3 b4 b5
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "2",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+            /*b5*/
+        ])
         checkSlices()
 
         mock.expectingNoChange {
             _ = books.removeLast() // b5
         }
-        XCTAssertEqual(authors.value, ["2", "3a", "3b"]) // b2 b3 b4
+        XCTAssertEqual(authors.value, [
+            /*b2*/ "2",
+            /*b3*/ "3a", "3b",
+            /*b4*/
+        ])
         checkSlices()
 
         mock.expecting(3, .remove("2", at: 0)) {
             b2.authors.value = []
         }
-        XCTAssertEqual(authors.value, ["3a", "3b"]) // b2 b3 b4
+        XCTAssertEqual(authors.value, [
+            /*b2*/
+            /*b3*/ "3a", "3b",
+            /*b4*/
+        ])
         checkSlices()
 
         mock.expectingNoChange {
             _ = books.removeFirst() // b2
         }
-        XCTAssertEqual(authors.value, ["3a", "3b"]) // b3 b4
+        XCTAssertEqual(authors.value, [
+            /*b3*/ "3a", "3b",
+            /*b4*/
+        ])
         checkSlices()
 
         mock.expectingNoChange {
             _ = books.removeLast() // b4
         }
-        XCTAssertEqual(authors.value, ["3a", "3b"]) // b3
+        XCTAssertEqual(authors.value, [
+            /*b3*/ "3a", "3b",
+        ])
         checkSlices()
 
         mock.expecting(2, .replaceSlice(["3a", "3b"], at: 0, with: [])) {

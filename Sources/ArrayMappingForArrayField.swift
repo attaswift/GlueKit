@@ -17,67 +17,46 @@ extension ObservableArrayType {
 }
 
 /// Maintains an index mapping for an operation mapping an array of arrays into a single flat array.
+///
+/// Terminology:
+/// - preindex, precount refers to indices/count of the original array of arrays.
+/// - postindex, postcount refers to indices/count of the resulting flat array.
 private struct Indexmap {
     // TODO: A weight-augmented tree-backed list would work much better here.
 
-    private var postindices: SortedSet<Int> = [0] // Always ends with the overall count of elements.
-    // We don't have a SortedBag (yet), so empty arrays cause some elements in postindices to collapse. :-(
-    // Keep track of preindices whose value is empty here, and take this into account in all algorithms below.
-    private var emptyPreindices = SortedSet<Int>()
+    // The ith element in this sorted bag gives us the starting postindex of the source array corresponding to preindex i.
+    // The bag always ends with an extra element with the overall count of elements.
+    private var postindices: SortedBag<Int> = [0]
 
-    var precount: Int { return postindices.count - 1 + emptyPreindices.count }
+    var precount: Int { return postindices.count - 1 }
     var postcount: Int { return postindices.last! }
-
-    private func empties(before preindex: Int) -> Int {
-        guard let i = emptyPreindices.highestIndex(below: preindex) else { return 0 }
-        return emptyPreindices.offset(of: i) + 1
-    }
 
     func preindex(for postindex: Int) -> (preindex: Int, offset: Int) {
         let p = postindices.highestIndex(notAbove: postindex)!
         let start = postindices[p]
-        var preindex = postindices.offset(of: p)
-        if var i = emptyPreindices.highestIndex(notAbove: preindex) {
-            preindex += emptyPreindices.offset(of: i) + 1
-            emptyPreindices.formIndex(after: &i)
-            while emptyPreindices.offset(of: i) != emptyPreindices.count && emptyPreindices[i] <= preindex {
-                preindex += 1
-                emptyPreindices.formIndex(after: &i)
-            }
-        }
+        let preindex = postindices.offset(of: p)
         return (preindex, postindex - start)
     }
 
     func postindex(for preindex: Int) -> Int {
-        let empties = self.empties(before: preindex)
-        let offset = preindex - empties
-        return postindices[offset]
+        return postindices[preindex]
     }
 
     mutating func appendArray(withCount count: Int) {
-        let postcount = self.postcount
-        if count == 0 {
-            emptyPreindices.insert(precount)
-        }
         postindices.insert(postcount + count)
     }
 
     mutating func replaceArrays(in prerange: Range<Int>, withCounts counts: [Int]) {
         let postrange: Range<Int> = postindex(for: prerange.lowerBound) ..< postindex(for: prerange.upperBound)
         let postdelta = counts.reduce(0, +) - postrange.count
-        postindices.subtract(elementsIn: postrange)
-        postindices.shift(startingAt: postrange.upperBound, by: postdelta)
-
-        let predelta = counts.count - prerange.count
-        emptyPreindices.subtract(elementsIn: prerange)
-        emptyPreindices.shift(startingAt: prerange.upperBound, by: predelta)
+        for i in CountableRange(prerange).reversed() { // TODO: SortedBag.remove(offsetsIn: prerange)
+            postindices.remove(atOffset: i)
+        }
+        postindices.shift(startingAt: postindices.index(ofOffset: prerange.lowerBound), by: postdelta)
 
         var poststart = postrange.lowerBound
         for i in 0 ..< counts.count {
             let count = counts[i]
-            if count == 0 {
-                emptyPreindices.insert(prerange.lowerBound + i)
-            }
             postindices.insert(poststart)
             poststart += count
         }
@@ -85,19 +64,9 @@ private struct Indexmap {
 
     mutating func setCount(forArrayAt preindex: Int, from old: Int, to new: Int) {
         if old == new { return }
-        let start = self.postindex(for: preindex)
-        if old == 0 {
-            emptyPreindices.remove(preindex)
-            postindices.shift(startingAt: start, by: new)
-            postindices.insert(start)
-        }
-        else if new == 0 {
-            emptyPreindices.insert(preindex)
-            postindices.shift(startingAt: start + old, by: -old)
-        }
-        else {
-            postindices.shift(startingAt: start + old, by: new - old)
-        }
+        var i = postindices.index(ofOffset: preindex)
+        postindices.formIndex(after: &i)
+        postindices.shift(startingAt: i, by: new - old)
     }
 }
 
@@ -111,7 +80,7 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
 
     private var parentConnection: Connection? = nil
     private var fieldConnections = RefList<Connection>([])
-    private var indexMapping = Indexmap() // This always has an extra element at the end with the count of all elements
+    private var indexMapping = Indexmap()
 
     init(parent: Parent, key: @escaping (Parent.Element) -> Field) {
         self.parent = parent
