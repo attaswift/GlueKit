@@ -8,8 +8,8 @@
 
 import Foundation
 
-class AtomicBool {
-    private let lock = NSLock()
+class AtomicBool { // TODO: Replace this with a struct using real atomic ops when they become available in Swift.
+    private let lock = Lock()
     private var value: Bool
 
     init(_ value: Bool = false) {
