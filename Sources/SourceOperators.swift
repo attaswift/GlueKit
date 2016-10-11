@@ -79,12 +79,12 @@ extension SourceType {
     public static func latestOf<B: SourceType>(_ a: Self, _ b: B) -> MergedSource<(SourceValue, B.SourceValue)> {
         typealias A = Self
         typealias Result = (A.SourceValue, B.SourceValue)
-        let mutex = Mutex()
+        let lock = Lock()
         var av: A.SourceValue? = nil
         var bv: B.SourceValue? = nil
 
         let sa: Source<(A.SourceValue, B.SourceValue)> = a.flatMap { (value: A.SourceValue) -> (A.SourceValue, B.SourceValue)? in
-            return mutex.withLock {
+            return lock.withLock {
                 av = value
                 if let bv = bv {
                     return (value, bv)
@@ -93,7 +93,7 @@ extension SourceType {
             }
         }
         let sb: Source<(A.SourceValue, B.SourceValue)> = b.flatMap { (value: B.SourceValue) -> (A.SourceValue, B.SourceValue)? in
-            return mutex.withLock {
+            return lock.withLock {
                 bv = value
                 if let av = av {
                     return (av, value)

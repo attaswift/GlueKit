@@ -37,7 +37,7 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
 
     private var signal = OwningSignal<Value>()
 
-    private let mutex = Mutex()
+    private let lock = Lock()
     private var connections: [Connection] = []
 
     /// Initializes a new merged source with `sources` as its input sources.
@@ -56,14 +56,14 @@ public final class MergedSource<Value>: SourceType, SignalDelegate {
     }
 
     internal func start(_ signal: Signal<Value>) {
-        mutex.withLock {
+        lock.withLock {
             assert(connections.isEmpty)
             connections = inputs.map { $0.connect(signal) }
         }
     }
 
     internal func stop(_ signal: Signal<Value>) {
-        mutex.withLock {
+        lock.withLock {
             for c in connections {
                 c.disconnect()
             }

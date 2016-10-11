@@ -71,7 +71,7 @@ private struct KVOUpdatable: UpdatableValueType {
 
     var object: NSObject
 
-    let mutex = Mutex()
+    let lock = Lock()
     var signals: [String: UnownedReference<Signal<Change>>] = [:]
     var observerContext: Int8 = 0
 
@@ -96,7 +96,7 @@ private struct KVOUpdatable: UpdatableValueType {
     }
 
     func _source(forKeyPath keyPath: String) -> Source<Change> {
-        return mutex.withLock {
+        return lock.withLock {
             if let signal = signals[keyPath] {
                 return signal.value.source
             }
@@ -110,14 +110,14 @@ private struct KVOUpdatable: UpdatableValueType {
     }
 
     private func startObservingKeyPath(_ keyPath: String, signal: Signal<Change>) {
-        mutex.withLock {
+        lock.withLock {
             self.signals[keyPath] = UnownedReference(signal)
             self.object.addObserver(self, forKeyPath: keyPath, options: [.old, .new], context: &self.observerContext)
         }
     }
 
     private func stopObservingKeyPath(_ keyPath: String) {
-        mutex.withLock {
+        lock.withLock {
             self.signals[keyPath] = nil
             self.object.removeObserver(self, forKeyPath: keyPath, context: &self.observerContext)
         }
@@ -128,7 +128,7 @@ private struct KVOUpdatable: UpdatableValueType {
             if let keyPath = keyPath, let change = change {
                 let oldValue = change[.oldKey]
                 let newValue = change[.newKey]
-                if let signal = mutex.withLock({ self.signals[keyPath]?.value }) {
+                if let signal = lock.withLock({ self.signals[keyPath]?.value }) {
                     let old: Any? = (oldValue is NSNull ? nil : oldValue)
                     let new: Any? = (newValue is NSNull ? nil : newValue)
                     signal.send(.init(from: old, to: new))

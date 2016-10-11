@@ -25,7 +25,7 @@ public final class Connection: RefListElement {
     // - All references (closures, source, sink) are directly or indirectly released when disconnect() is called.
 
     typealias Callback = (ConnectionID) -> Void
-    private let mutex = Mutex()
+    private let lock = Lock()
     private var callbacks = [Callback]()
     private var disconnected = false
     var refListLink = RefListLink<Connection>()
@@ -47,7 +47,7 @@ public final class Connection: RefListElement {
     /// This method is safe to call it at any time from any thread. 
     /// It is OK to call this method multiple times; the second and subsequent calls will do nothing.
     public func disconnect() {
-        let callbacks: [Callback] = mutex.withLock {
+        let callbacks: [Callback] = lock.withLock {
             if !self.disconnected {
                 self.disconnected = true
                 let callbacks = self.callbacks
@@ -73,7 +73,7 @@ public final class Connection: RefListElement {
     ///
     /// The callbacks are called synchronously on the thread that called disconnect().
     internal func addCallback(_ callback: @escaping (ConnectionID) -> Void) {
-        let disconnected = mutex.withLock { () -> Bool in
+        let disconnected = lock.withLock { () -> Bool in
             if !self.disconnected {
                 self.callbacks.append(callback)
             }
@@ -92,15 +92,15 @@ extension Connection {
     public var disconnectSource: Source<Void> {
         return Source { [weak self] sink in
             if let c = self {
-                let mutex = Mutex()
+                let lock = Lock()
                 var maybeSink: Sink<Void>? = sink
                 c.addCallback { id in
-                    if let sink = mutex.withLock({ maybeSink }) {
+                    if let sink = lock.withLock({ maybeSink }) {
                         sink.receive()
                     }
                 }
                 return Connection(callback: { id in
-                    mutex.withLock { maybeSink = nil }
+                    lock.withLock { maybeSink = nil }
                 })
             }
             else {

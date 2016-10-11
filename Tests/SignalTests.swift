@@ -612,7 +612,7 @@ class SignalTests: XCTestCase {
 private class Counter: SourceType {
     typealias SourceValue = Int
 
-    private let mutex = Mutex()
+    private let lock = Lock()
     private var counter: Int = 0
     private var signal = Signal<Int>()
 
@@ -622,7 +622,7 @@ private class Counter: SourceType {
 
     @discardableResult
     func increment() -> Int {
-        let value: Int = mutex.withLock {
+        let value: Int = lock.withLock {
             self.counter += 1
             let v = self.counter
             signal.sendLater(v)

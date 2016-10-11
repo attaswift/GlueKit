@@ -78,7 +78,7 @@ public final class Signal<Value>: SourceType, SinkType {
     public typealias SourceValue = Value
     public typealias SinkValue = Value
 
-    private let mutex = Mutex()
+    private let lock = Lock()
     private var sending = AtomicBool(false)
     private var sinks: Dictionary<ConnectionID, Ripening<Sink<Value>>> = [:]
     private var pendingItems: [PendingItem<Value>] = []
@@ -131,7 +131,7 @@ public final class Signal<Value>: SourceType, SinkType {
     /// Atomically return the pending value that needs to be sent next, or nil. 
     /// If there are no more values, exit the sending state.
     private func _nextValueToSendOrElseLeaveSendingState() -> Value? {
-        return mutex.withLock {
+        return lock.withLock {
             assert(self.sending.get())
             while case .some(let item) = self.pendingItems.first {
                 self.pendingItems.removeFirst()
@@ -159,8 +159,8 @@ public final class Signal<Value>: SourceType, SinkType {
         // This loop is constructed to support this correctly:
         // - New sinks added while we are sending a value will not fire.
         // - Sinks removed during the iteration will not fire.
-        for (id, _) in mutex.withLock({ return self.sinks }) {
-            if let sink = mutex.withLock({ return self.sinks[id]?.ripeValue }) {
+        for (id, _) in lock.withLock({ return self.sinks }) {
+            if let sink = lock.withLock({ return self.sinks[id]?.ripeValue }) {
                 sink.receive(value)
             }
         }
@@ -214,7 +214,7 @@ public final class Signal<Value>: SourceType, SinkType {
     /// }
     /// ```
     internal func sendLater(_ value: Value) {
-        mutex.withLock {
+        lock.withLock {
             self.pendingItems.append(.sendValue(value))
         }
     }
@@ -232,7 +232,7 @@ public final class Signal<Value>: SourceType, SinkType {
     public func connect(_ sink: Sink<Value>) -> Connection {
         let c = Connection(callback: self.disconnect) // c now holds a strong reference to self.
         let id = c.connectionID
-        let first: Bool = mutex.withLock {
+        let first: Bool = lock.withLock {
             let first = self.sinks.isEmpty
             if self.pendingItems.isEmpty {
                 self.sinks[id] = .ripe(sink)
@@ -253,10 +253,10 @@ public final class Signal<Value>: SourceType, SinkType {
         return c
     }
 
-    public var isConnected: Bool { return mutex.withLock { !self.sinks.isEmpty } }
+    public var isConnected: Bool { return lock.withLock { !self.sinks.isEmpty } }
 
     private func disconnect(_ id: ConnectionID) {
-        let last = mutex.withLock { () -> Bool in
+        let last = lock.withLock { () -> Bool in
             return self.sinks.removeValue(forKey: id) != nil && self.sinks.isEmpty
         }
         if last {
