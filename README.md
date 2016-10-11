@@ -10,27 +10,46 @@
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg)](https://github.com/Carthage/Carthage)
 [![CocoaPod Version](https://img.shields.io/cocoapods/v/GlueKit.svg)](http://cocoapods.org/pods/GlueKit)
 
-GlueKit is a Swift framework for creating observable values and connecting them up in interesting and useful ways.
+GlueKit is a Swift framework for creating observables and manipulating them in interesting and useful ways.
 It is called GlueKit because it lets you stick stuff together. 
 
-GlueKit contains type-safe analogues for Cocoa's 
-[Key-Value Coding](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/Overview.html) 
-and 
-[Key-Value Observing](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html)
-subsystems, written in pure Swift.
-Besides providing the basic observation mechanism, it also supports full-blown *key path*
-observing, where you're observing a value that's not directly available, but can be looked up
-via a sequence of nested observables, some of which may represent one-to-one or one-to-many
-relationships between model objects. 
+GlueKit contains type-safe analogues for Cocoa's [Key-Value Coding][KVC] and [Key-Value Observing][KVO] subsystems, 
+written in pure Swift.
+Besides providing the basic observation mechanism, GlueKit also supports full-blown *key path*
+observing, where a sequence of properties starting at a particular entity is observed at once. (E.g., you can observe
+a person's best friend's favorite color, which might change whenever the person gets a new best friend, or when the friend
+changes their mind about which color they like best.)
 
-GlueKit also provides a rich set of observable transformations and combinations
+[KVC]: https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/Overview.html
+[KVO]: https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueObserving/KeyValueObserving.html
+
+(Note though that GlueKit's keys are functions so they aren't as easy to serialize as KVC's string-based keys and key paths.
+It is definitely possible to implement serializable type-safe keys in Swift; but it involves some boilerplate code 
+that's better handled by code generation or core language enhancements such as property behaviors or improved 
+reflection capabilities.)
+
+Like KVC/KVO, GlueKit supports observing not only individual values, but also collections like sets or arrays.
+This includes full support for key path observing, too -- e.g., you can observe a person's children's children 
+as a single set.
+These observable collections report fine-grained incremental changes (e.g., "'foo' was inserted at index 5"), allowing
+you to efficiently react to their changes.
+
+Beyond key path observing, GlueKit also provides a rich set of transformations and combinations for observables
 as a more flexible and extensible Swift version of KVC's 
-[collection operators](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/CollectionOperators.html).
-(These are being actively developed.)
+[collection operators][KVC ops]. E.g., given an observable array of integers, you can (efficiently!) observe 
+the sum of its elements; you can filter it for elements that match a particular predicate; you can get an observable
+concatenation of it with another observable array; and you can do much more.
 
-GlueKit does not rely on the Objective-C runtime for its functionality, but on Apple platforms
-it does provide easy-to-use adapters for that turn KVO-compatible key paths on NSObjects into
-GlueKit observables.
+[KVC ops]: https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/CollectionOperators.html
+
+You can use GlueKit's observable arrays to efficiently provide data to a `UITableView` or `UICollectionView`, including
+providing them with incremental changes for animated updates. This functionality is roughly equivalent to what
+[`NSFetchedResultsController`][NSFRC] does in Core Data.
+
+[NSFRC]: https://developer.apple.com/reference/coredata/nsfetchedresultscontroller
+
+GlueKit is written in pure Swift; it does not require the Objective-C runtime for its functionality. 
+However, it does provide easy-to-use adapters that turn KVO-compatible key paths on NSObjects into GlueKit observables.
 
 ##  Presentation
 
