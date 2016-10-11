@@ -51,6 +51,10 @@ providing them with incremental changes for animated updates. This functionality
 GlueKit is written in pure Swift; it does not require the Objective-C runtime for its functionality. 
 However, it does provide easy-to-use adapters that turn KVO-compatible key paths on NSObjects into GlueKit observables.
 
+GlueKit hasn't been officially released yet. Its API is still in flux, and it has wildly outdated and woefully 
+incomplete documentation. However, the project is getting close to a feature set that would make a coherent 1.0 version;
+I expect to have a useful first release before the end of 2016.
+
 ##  Presentation
 
 Károly gave a talk on GlueKit during [Functional Swift Conference 2016][FunSwift16] in Budapest.
