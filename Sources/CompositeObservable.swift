@@ -53,10 +53,18 @@ extension ObservableValueType {
 
 /// An Observable that is calculated from two other observables.
 private final class CompositeObservable<Input1: ObservableValueType, Input2: ObservableValueType, Value>: ObservableValueType, SignalDelegate {
+    typealias Change = SimpleChange<Value>
+
     private let first: Input1
     private let second: Input2
     private let combinator: (Input1.Value, Input2.Value) -> Value
-    private var signal = OwningSignal<SimpleChange<Value>>()
+    private var signal = ChangeSignal<Change>()
+
+    private var _firstValue: Input1.Value? = nil
+    private var _secondValue: Input2.Value? = nil
+    private var _value: Value? = nil
+    private var _connections: (Connection, Connection)? = nil
+    private var _state: ObservableStateForTwoDependencies<Value> = .normal
 
     public init(first: Input1, second: Input2, combinator: @escaping (Input1.Value, Input2.Value) -> Value) {
         self.first = first
@@ -69,17 +77,12 @@ private final class CompositeObservable<Input1: ObservableValueType, Input2: Obs
     }
 
     public var value: Value {
-        if let value = _value { return value }
+        if let value = _value, case .normal = _state { return value }
         return combinator(first.value, second.value)
     }
-    public var changes: Source<SimpleChange<Value>> { return signal.with(self).source }
+    public var changeEvents: Source<ChangeEvent<Change>> { return signal.source(holdingDelegate: self) }
 
-    private var _firstValue: Input1.Value? = nil
-    private var _secondValue: Input2.Value? = nil
-    private var _value: Value? = nil
-    private var _connections: (Connection, Connection)? = nil
-
-    internal func start(_ signal: Signal<SimpleChange<Value>>) {
+    internal func start(_ signal: Signal<ChangeEvent<Change>>) {
         assert(_connections == nil)
         let v1 = first.value
         let v2 = second.value
@@ -87,24 +90,32 @@ private final class CompositeObservable<Input1: ObservableValueType, Input2: Obs
         _secondValue = v2
         _value = combinator(v1, v2)
 
-        let c1 = first.changes.connect { [unowned self] change in
-            let old = self._value!
-            let new = self.combinator(change.new, self._secondValue!)
-            self._firstValue = change.new
-            self._value = new
-            self.signal.send(SimpleChange(from: old, to: new))
+        let c1 = first.changeEvents.connect { [unowned self] event in
+            let followup = self._state.applyEventFromFirst(self._value!, event)
+            if let change = event.change {
+                self._firstValue = change.new
+                let new = self.combinator(self._firstValue!, self._secondValue!)
+                self._value = new
+            }
+            if let event = followup.with(new: self._value!) {
+                self.signal.send(event)
+            }
         }
-        let c2 = second.changes.connect { [unowned self] change in
-            let old = self._value!
-            let new = self.combinator(self._firstValue!, change.new)
-            self._secondValue = change.new
-            self._value = new
-            self.signal.send(SimpleChange(from: old, to: new))
+        let c2 = second.changeEvents.connect { [unowned self] event in
+            let followup = self._state.applyEventFromSecond(self._value!, event)
+            if let change = event.change {
+                self._secondValue = change.new
+                let new = self.combinator(self._firstValue!, self._secondValue!)
+                self._value = new
+            }
+            if let event = followup.with(new: self._value!) {
+                self.signal.send(event)
+            }
         }
         _connections = (c1, c2)
     }
 
-    internal func stop(_ signal: Signal<SimpleChange<Value>>) {
+    internal func stop(_ signal: Signal<ChangeEvent<Change>>) {
         _connections!.0.disconnect()
         _connections!.1.disconnect()
         _value = nil

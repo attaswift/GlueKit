@@ -32,7 +32,7 @@ extension ObservableArrayType where Element: IntegerArithmetic & ExpressibleByIn
     }
 }
 
-private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: ObservableBoxBase<Value> {
+private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: AbstractObservableBase<Value> {
     private var _value: Value
     private var _signal = OwningSignal<SimpleChange<Value>>()
 

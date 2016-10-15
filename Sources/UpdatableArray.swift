@@ -23,6 +23,7 @@ import Foundation
 public protocol UpdatableArrayType: ObservableArrayType {
 
     // Required members
+    func batchUpdate(_ body: () -> Void)
     func apply(_ change: ArrayChange<Element>)
     var value: [Element] { get nonmutating set }
     subscript(index: Int) -> Element { get nonmutating set }
@@ -38,22 +39,13 @@ extension UpdatableArrayType {
     public var updatable: Updatable<[Element]> {
         return Updatable(
             getter: { self.value },
-            setter: { self.value = $0 },
-            changes: { self.valueChanges }
+            updater: { self.value = $0(self.value) },
+            changeEvents: { self.valueChanges }
         )
     }
 
     public var updatableArray: UpdatableArray<Element> {
         return UpdatableArray(box: UpdatableArrayBox(self))
-    }
-
-    public func modify(_ block: (ArrayVariable<Element>) throws -> Void) rethrows -> Void {
-        let array = ArrayVariable<Element>(self.value)
-        var change = ArrayChange<Element>(initialCount: array.count)
-        let connection = array.changes.connect { c in change.merge(with: c) }
-        defer { connection.disconnect() }
-        try block(array)
-        self.apply(change)
     }
 
     public func replaceSubrange<C: Collection>(_ range: Range<Int>, with elements: C) where C.Iterator.Element == Element {
@@ -147,8 +139,9 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
 
     public var isBuffered: Bool { return box.isBuffered }
     public var count: Int { return box.count }
-    public var changes: Source<ArrayChange<Element>> { return box.changes }
+    public var changeEvents: Source<ChangeEvent<Change>> { return box.changeEvents }
 
+    public func batchUpdate(_ body: () -> Void) { box.batchUpdate(body) }
     public func apply(_ change: ArrayChange<Element>) { box.apply(change) }
     public var value: [Element] {
         get { return box.value }
@@ -172,6 +165,8 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
 
 internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, UpdatableArrayType {
 
+    func batchUpdate(_ body: () -> Void) { abstract() }
+
     func apply(_ change: ArrayChange<Element>) { abstract() }
 
     override var value: [Element] {
@@ -189,8 +184,8 @@ internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, Updata
 
     var updatable: Updatable<[Element]> {
         return Updatable(getter: { self.value },
-                         setter: { self.value = $0 },
-                         changes: { self.valueChanges })
+                         updater: { body in self.value = body(self.value) },
+                         changeEvents: { self.valueChanges })
     }
 
     final var updatableArray: UpdatableArray<Element> { return UpdatableArray(box: self) }
@@ -203,6 +198,10 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: UpdatableArrayBa
 
     init(_ contents: Contents) {
         self.contents = contents
+    }
+
+    override func batchUpdate(_ body: () -> Void) {
+        contents.batchUpdate(body)
     }
 
     override func apply(_ change: ArrayChange<Element>) {
@@ -230,7 +229,7 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: UpdatableArrayBa
 
     override var isBuffered: Bool { return contents.isBuffered }
     override var count: Int { return contents.count }
-    override var changes: Source<ArrayChange<Element>> { return contents.changes }
+    override var changeEvents: Source<ChangeEvent<Change>> { return contents.changeEvents }
     override var observable: Observable<[Element]> { return contents.observable }
     override var observableCount: Observable<Int> { return contents.observableCount }
 }

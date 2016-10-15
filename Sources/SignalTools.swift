@@ -51,6 +51,14 @@ internal struct OwningSignal<Value> {
         signal?.send(value)
     }
 
+    internal func sendLater(_ value: Value) {
+        signal?.sendLater(value)
+    }
+
+    internal func sendNow() {
+        signal?.sendNow()
+    }
+
     internal func sendIfConnected(_ value: @autoclosure (Void) -> Value) {
         if let s = signal, s.isConnected {
             s.send(value())

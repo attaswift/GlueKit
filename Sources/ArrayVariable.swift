@@ -10,8 +10,7 @@ import Foundation
 
 //MARK: ArrayVariable
 
-public final class ArrayVariable<E>: UpdatableArrayType {
-    public typealias Element = E
+public final class ArrayVariable<Element>: UpdatableArrayBase<Element> {
     public typealias Index = Int
     public typealias IndexDistance = Int
     public typealias Indices = CountableRange<Int>
@@ -22,9 +21,10 @@ public final class ArrayVariable<E>: UpdatableArrayType {
     public typealias SubSequence = Array<Element>.SubSequence
 
     fileprivate var _value: [Element]
-    fileprivate var _changeSignal = LazySignal<Change>()
+    fileprivate var _apply: ((Change) -> Void)? = nil
+    fileprivate var _signal = ChangeSignal<Change>()
 
-    public init() {
+    public override init() {
         _value = []
     }
     public init(_ elements: [Element]) {
@@ -37,85 +37,81 @@ public final class ArrayVariable<E>: UpdatableArrayType {
         _value = elements
     }
 
-    public var value: Base {
+    public override func batchUpdate(_ body: () -> Void) {
+        _signal.willChange()
+        body()
+        _signal.didNotChange()
+    }
+
+    public override func apply(_ change: ArrayChange<Iterator.Element>) {
+        if change.isEmpty { return }
+        _signal.willChange()
+        _value.apply(change)
+        _signal.didChange(change)
+    }
+
+    public override var value: Base {
         get {
             return _value
         }
         set {
-            let c = _value.count
-            let old = _value
-            _value = newValue
-            _changeSignal.sendIfConnected(ArrayChange(initialCount: c, modification: .replaceSlice(old, at: 0, with: newValue)))
+            if !_signal.isActive {
+                _value = newValue
+            }
+            else {
+                let old = _value
+                _signal.willChange()
+                _value = newValue
+                _signal.didChange(ArrayChange(initialCount: old.count, modification: .replaceSlice(old, at: 0, with: newValue)))
+            }
         }
     }
 
-    public var count: Int {
+    public override var count: Int {
         return _value.count
     }
 
     /// A source that reports all future changes of this variable.
-    public var changes: Source<ArrayChange<Element>> {
-        return _changeSignal.source
+    public override var changeEvents: Source<ChangeEvent<Change>> {
+        return _signal.source(holding: self)
     }
 
-    internal var valueChanges: Source<SimpleChange<Value>> {
-        var v = value
-        return changes.map { change in
-            let old = v
-            v.apply(change)
-            return .init(from: old, to: v)
-        }
-    }
-
-    public var observable: Observable<[Element]> {
-        return Observable(getter: { self.value }, changes: { self.valueChanges })
-    }
-
-    public var isBuffered: Bool {
+    public override var isBuffered: Bool {
         return true
     }
 
-    public subscript(index: Int) -> Element {
+    public override subscript(index: Int) -> Element {
         get {
             return _value[index]
         }
         set {
-            if _changeSignal.isConnected {
-                let old = _value[index]
+            if !_signal.isActive {
                 _value[index] = newValue
-                _changeSignal.send(ArrayChange(initialCount: _value.count, modification: .replace(old, at: index, with: newValue)))
             }
             else {
+                let old = _value[index]
+                _signal.willChange()
                 _value[index] = newValue
+                _signal.didChange(ArrayChange(initialCount: _value.count, modification: .replace(old, at: index, with: newValue)))
             }
         }
     }
 
-    public subscript(bounds: Range<Int>) -> SubSequence {
+    public override subscript(bounds: Range<Int>) -> SubSequence {
         get {
             return value[bounds]
         }
         set {
-            if _changeSignal.isConnected {
+            if !_signal.isActive {
+                _value[bounds] = newValue
+            }
+            if _signal.isConnected {
                 let oldCount = _value.count
                 let old = Array(_value[bounds])
                 _value[bounds] = newValue
-                _changeSignal.send(ArrayChange(initialCount: oldCount, modification: .replaceSlice(old, at: bounds.lowerBound, with: Array(newValue))))
-            }
-            else {
-                _value[bounds] = newValue
+                _signal.didChange(ArrayChange(initialCount: oldCount, modification: .replaceSlice(old, at: bounds.lowerBound, with: Array(newValue))))
             }
         }
-    }
-
-    public func apply(_ change: ArrayChange<Iterator.Element>) {
-        guard !change.isEmpty else { return }
-        _value.apply(change)
-        _changeSignal.sendIfConnected(change)
-    }
-
-    public var updatable: Updatable<[Element]> {
-        return Updatable(getter: { self.value }, setter: { self.value = $0 }, changes: { self.valueChanges })
     }
 }
 

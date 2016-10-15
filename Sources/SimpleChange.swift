@@ -10,8 +10,8 @@ import Foundation
 
 /// A simple change description that includes a snapshot of the value before and after the change.
 public struct SimpleChange<Value>: ChangeType {
-    public let old: Value
-    public let new: Value
+    public var old: Value
+    public var new: Value
 
     public init(from old: Value, to new: Value) {
         self.old = old
@@ -29,6 +29,10 @@ public struct SimpleChange<Value>: ChangeType {
 
     public func applied(on value: Value) -> Value {
         return new
+    }
+
+    public mutating func merge(with next: SimpleChange) {
+        self.new = next.new
     }
 
     public func merged(with next: SimpleChange) -> SimpleChange {

@@ -32,7 +32,7 @@ extension ObservableSetType where Element: IntegerArithmetic & ExpressibleByInte
     }
 }
 
-private class SetFoldingByTwoWayFunction<Base: ObservableSetType, Value>: ObservableBoxBase<Value> {
+private class SetFoldingByTwoWayFunction<Base: ObservableSetType, Value>: AbstractObservableBase<Value> {
     private var _value: Value
     private var _signal = OwningSignal<SimpleChange<Value>>()
 

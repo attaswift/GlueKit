@@ -15,7 +15,13 @@ public protocol ObservableType {
     var value: Change.Value { get }
 
     /// A source that reports changes to the value of this observable.
-    var changes: Source<Change> { get }
+    var changeEvents: Source<ChangeEvent<Change>> { get }
+}
+
+extension ObservableType {
+    public var changes: Source<Change> {
+        return changeEvents.flatMap { $0.change }
+    }
 }
 
 public protocol UpdatableType: ObservableType, SinkType {

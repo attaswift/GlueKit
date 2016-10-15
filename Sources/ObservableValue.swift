@@ -33,7 +33,7 @@ public protocol ObservableValueType: ObservableType, CustomPlaygroundQuickLookab
     var value: Value { get }
 
     /// A source that delivers change descriptions whenever the value of this observable changes.
-    var changes: Source<SimpleChange<Value>> { get }
+    var changeEvents: Source<ChangeEvent<SimpleChange<Value>>> { get }
 
     /// A source that delivers new values whenever this observable changes.
     var futureValues: Source<Value> { get }
@@ -52,7 +52,7 @@ extension ObservableValueType {
         return Observable(self)
     }
 
-    public var futureValues: Source<Value> { return changes.map { $0.new } }
+    public var futureValues: Source<Value> { return changeEvents.flatMap { $0.change?.new } }
 
     /// A source that, for each new sink, immediately sends it the current value, and thereafter delivers updated values,
     /// like `futureValues`. Implemented in terms of `futureValues` and `value`.
@@ -82,17 +82,17 @@ extension ObservableValueType {
 public struct Observable<Value>: ObservableValueType {
     public typealias Change = SimpleChange<Value>
 
-    private let box: ObservableBoxBase<Value>
+    private let box: AbstractObservableBase<Value>
 
-    init(box: ObservableBoxBase<Value>) {
+    init(box: AbstractObservableBase<Value>) {
         self.box = box
     }
     
     /// Initializes an Observable from the given getter closure and source of future changes.
     /// @param getter A closure that returns the current value of the observable at the time of the call.
     /// @param futureValues A closure that returns a source that triggers whenever the observable changes.
-    public init(getter: @escaping (Void) -> Value, changes: @escaping (Void) -> Source<SimpleChange<Value>>) {
-        self.box = ObservableClosureBox(getter: getter, changes: changes)
+    public init(getter: @escaping (Void) -> Value, changeEvents: @escaping (Void) -> Source<ChangeEvent<Change>>) {
+        self.box = ObservableClosureBox(getter: getter, changeEvents: changeEvents)
     }
 
     public init<Base: ObservableValueType>(_ base: Base) where Base.Value == Value {
@@ -100,48 +100,50 @@ public struct Observable<Value>: ObservableValueType {
     }
 
     public var value: Value { return box.value }
-    public var changes: Source<Change> { return box.changes }
+    public var changeEvents: Source<ChangeEvent<Change>> { return box.changeEvents }
     public var futureValues: Source<Value> { return box.futureValues }
     public var observable: Observable<Value> { return self }
 }
 
-internal class ObservableBoxBase<Value>: ObservableValueType {
+internal class AbstractObservableBase<Value>: ObservableValueType {
+    typealias Change = SimpleChange<Value>
+    
     var value: Value { abstract() }
-    var changes: Source<SimpleChange<Value>> { abstract() }
-    var futureValues: Source<Value> { return changes.map { $0.new } }
+    var changeEvents: Source<ChangeEvent<Change>> { abstract() }
+    var futureValues: Source<Value> { return changeEvents.flatMap { $0.change?.new } }
 
     final var observable: Observable<Value> {
         return Observable(box: self)
     }
 }
 
-internal class ObservableBox<Base: ObservableValueType>: ObservableBoxBase<Base.Value> {
+internal class ObservableBox<Base: ObservableValueType>: AbstractObservableBase<Base.Value> {
     private let base: Base
 
     init(_ base: Base) {
         self.base = base
     }
     override var value: Base.Value { return base.value }
-    override var changes: Source<SimpleChange<Base.Value>> { return base.changes }
+    override var changeEvents: Source<ChangeEvent<Change>> { return base.changeEvents }
     override var futureValues: Source<Base.Value> { return base.futureValues }
 }
 
-private class ObservableClosureBox<Value>: ObservableBoxBase<Value> {
+private class ObservableClosureBox<Value>: AbstractObservableBase<Value> {
     private let _value: () -> Value
-    private let _changes: () -> Source<SimpleChange<Value>>
+    private let _changeEvents: () -> Source<ChangeEvent<Change>>
 
-    public init(getter: @escaping (Void) -> Value, changes: @escaping (Void) -> Source<SimpleChange<Value>>) {
+    public init(getter: @escaping (Void) -> Value, changeEvents: @escaping (Void) -> Source<ChangeEvent<Change>>) {
         self._value = getter
-        self._changes = changes
+        self._changeEvents = changeEvents
     }
 
     override var value: Value { return _value() }
-    override var changes: Source<SimpleChange<Value>> { return _changes() }
+    override var changeEvents: Source<ChangeEvent<Change>> { return _changeEvents() }
 }
 
 public extension ObservableValueType {
     /// Creates a constant observable wrapping the given value. The returned observable is not modifiable and it will not ever send updates.
     public static func constant(_ value: Value) -> Observable<Value> {
-        return Observable(getter: { value }, changes: { Source.empty() })
+        return Observable(getter: { value }, changeEvents: { Source.empty() })
     }
 }

@@ -62,51 +62,59 @@ private final class ChangeSourceForObservableArrayField<Parent: ObservableValueT
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var signal = OwningSignal<Change>()
+    private var signal = ChangeSignal<Change>()
     private var parentConnection: Connection? = nil
     private var fieldConnection: Connection? = nil
-    private var _field: Field? = nil
+    private var state = ObservableState<Change>()
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    func connect(_ sink: Sink<ArrayChange<Element>>) -> Connection {
-        return signal.with(self).connect(sink)
+    func connect(_ sink: Sink<ChangeEvent<Change>>) -> Connection {
+        return signal.source(holdingDelegate: self).connect(sink)
     }
 
-    fileprivate var field: Field {
-        if let field = _field { return field }
-        return key(parent.value)
-    }
-
-    func start(_ signal: Signal<Change>) {
+    func start(_ signal: Signal<ChangeEvent<Change>>) {
         precondition(parentConnection == nil)
         let field = key(parent.value)
         self.connect(to: field)
-        parentConnection = parent.changes.connect { [unowned self] change in self.apply(change) }
+        parentConnection = parent.changeEvents.connect { [unowned self] event in self.apply(event) }
     }
 
-    func stop(_ signal: Signal<Change>) {
+    func stop(_ signal: Signal<ChangeEvent<Change>>) {
         fieldConnection!.disconnect()
         parentConnection!.disconnect()
         fieldConnection = nil
         parentConnection = nil
-        _field = nil
     }
 
     private func connect(to field: Field) {
-        _field = field
         fieldConnection?.disconnect()
-        fieldConnection = field.changes.connect { [unowned self] change in self.signal.send(change) }
+        fieldConnection = field.changeEvents.connect { [unowned self] event in self.apply(event) }
     }
 
-    private func apply(_ change: SimpleChange<Parent.Value>) {
-        let oldValue = self._field!.value
-        let field = self.key(change.new)
-        self.connect(to: field)
-        signal.send(ArrayChange<Element>(from: oldValue, to: field.value))
+    private func apply(_ event: ChangeEvent<SimpleChange<Parent.Value>>) {
+        switch event {
+        case .willChange:
+            if let e = state.willChange() { signal.send(e) }
+        case .didNotChange:
+            if let e = state.didNotChange() { signal.send(e) }
+        case .didChange(let change):
+            if let e = state.willChange() { signal.send(e) }
+            let oldValue = key(change.old).value
+            let field = self.key(change.new)
+            if let e = state.didChange(.init(from: oldValue, to: field.value)) { signal.send(e) }
+            self.connect(to: field)
+            if let e = state.didNotChange() { signal.send(e) }
+        }
+    }
+
+    private func apply(_ event: ChangeEvent<ArrayChange<Field.Element>>) {
+        if let e = state.applyEvent(event) {
+            signal.send(e)
+        }
     }
 }
 
@@ -122,7 +130,7 @@ private class ValueMappingForArrayField<Parent: ObservableValueType, Field: Obse
     }
     var parent: Parent { return _changeSource.parent }
     var key: (Parent.Value) -> Field { return _changeSource.key }
-    var field: Field { return _changeSource.field }
+    var field: Field { return _changeSource.key(_changeSource.parent.value) }
 
     override var isBuffered: Bool { return field.isBuffered }
     override subscript(_ index: Int) -> Element { return field[index] }
@@ -130,7 +138,7 @@ private class ValueMappingForArrayField<Parent: ObservableValueType, Field: Obse
     override var value: Array<Element> { return field.value }
     override var count: Int { return field.count }
     override var observableCount: Observable<Int> { return parent.map { self.key($0).observableCount } }
-    override var changes: Source<ArrayChange<Field.Element>> { return _changeSource.source }
+    override var changeEvents: Source<ChangeEvent<Change>> { return _changeSource.source }
 }
 
 private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Field: UpdatableArrayType>: UpdatableArrayBase<Field.Element> {
@@ -145,7 +153,7 @@ private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Fi
     }
     var parent: Parent { return _changeSource.parent }
     var key: (Parent.Value) -> Field { return _changeSource.key }
-    var field: Field { return _changeSource.field }
+    var field: Field { return _changeSource.key(_changeSource.parent.value) }
 
     override var isBuffered: Bool { return field.isBuffered }
     override subscript(_ index: Int) -> Element {
@@ -162,6 +170,7 @@ private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Fi
     }
     override var count: Int { return field.count }
     override var observableCount: Observable<Int> { return parent.map { self.key($0).observableCount } }
-    override var changes: Source<ArrayChange<Field.Element>> { return _changeSource.source }
+    override var changeEvents: Source<ChangeEvent<Change>> { return _changeSource.source }
+    override func batchUpdate(_ body: () -> Void) { field.batchUpdate(body) }
     override func apply(_ change: ArrayChange<Field.Element>) { field.apply(change) }
 }

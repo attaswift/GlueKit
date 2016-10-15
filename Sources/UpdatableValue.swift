@@ -10,17 +10,21 @@ import Foundation
 
 /// An observable thing that also includes support for updating its value.
 public protocol UpdatableValueType: ObservableValueType, UpdatableType {
-    /// The current value of this UpdatableValueType. You can modify the current value by setting this property.
-    var value: Value {
-        get
-        nonmutating set // Nonmutating because UpdatableValueType needs to be a class if it holds the value directly.
-    }
+    func get() -> Value
+    func update(_ body: (Value) -> Value)
 
     /// Returns the type-lifted version of this UpdatableValueType.
     var updatable: Updatable<Value> { get }
 }
 
 extension UpdatableValueType {
+    /// The current value of this UpdatableValueType. 
+    /// You can modify the current value by setting this property.
+    public var value: Value {
+        get { return get() }
+        nonmutating set { update { _ in newValue } }
+    }
+
     /// Returns the type-lifted version of this UpdatableValueType.
     public var updatable: Updatable<Value> {
         return Updatable(self)
@@ -30,37 +34,43 @@ extension UpdatableValueType {
 /// The type lifted representation of an UpdatableValueType.
 public struct Updatable<Value>: UpdatableValueType {
     public typealias SinkValue = Value
+    public typealias Change = SimpleChange<Value>
 
-    private let box: UpdatableBoxBase<Value>
+    private let box: AbstractUpdatableBase<Value>
 
-    init(box: UpdatableBoxBase<Value>) {
+    init(box: AbstractUpdatableBase<Value>) {
         self.box = box
     }
 
-    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, changes: @escaping (Void) -> Source<SimpleChange<Value>>) {
-        self.box = UpdatableClosureBox(getter: getter, setter: setter, changes: changes)
+    public init(getter: @escaping (Void) -> Value,
+                updater: @escaping ((Value) -> Value) -> Void,
+                changeEvents: @escaping (Void) -> Source<ChangeEvent<Change>>) {
+        self.box = UpdatableClosureBox(getter: getter, updater: updater, changeEvents: changeEvents)
     }
 
     public init<Base: UpdatableValueType>(_ base: Base) where Base.Value == Value {
         self.box = UpdatableBox(base)
     }
 
-    /// The current value of the updatable. It's called an `Updatable` because this value is settable.
     public var value: Value {
-        get {
-            return box.value
-        }
-        nonmutating set {
-            box.value = newValue
-        }
+        get { return box.value }
+        set { box.value = newValue }
+    }
+
+    public func get() -> Value {
+        return box.get()
+    }
+
+    public func update(_ body: (Value) -> Value) {
+        box.update(body)
     }
 
     public func receive(_ value: Value) {
         box.receive(value)
     }
 
-    public var changes: Source<SimpleChange<Value>> {
-        return box.changes
+    public var changeEvents: Source<ChangeEvent<Change>> {
+        return box.changeEvents
     }
 
     public var futureValues: Source<Value> {
@@ -76,55 +86,54 @@ public struct Updatable<Value>: UpdatableValueType {
     }
 }
 
-internal class UpdatableBoxBase<Value>: ObservableBoxBase<Value>, UpdatableValueType {
+internal class AbstractUpdatableBase<Value>: AbstractObservableBase<Value>, UpdatableValueType {
+    typealias Change = SimpleChange<Value>
+
     override var value: Value {
-        get { abstract() }
-        set { abstract() }
+        get { return get() }
+        set { update { _ in newValue } }
     }
     func receive(_ value: Value) { abstract() }
+    func get() -> Value { abstract() }
+    func update(_ body: (Value) -> Value) { abstract() }
     final var updatable: Updatable<Value> { return Updatable(box: self) }
 }
 
-internal class UpdatableBox<Base: UpdatableValueType>: UpdatableBoxBase<Base.Value> {
+internal class UpdatableBox<Base: UpdatableValueType>: AbstractUpdatableBase<Base.Value> {
     private let base: Base
 
     init(_ base: Base) {
         self.base = base
     }
 
-    override var value: Base.Value {
-        get { return base.value }
-        set { base.value = newValue }
-    }
-    override var changes: Source<SimpleChange<Base.Value>> { return base.changes }
+    override func get() -> Base.Value { return base.get() }
+    override func update(_ body: (Base.Value) -> Base.Value) { return base.update(body) }
+    override var changeEvents: Source<ChangeEvent<Change>> { return base.changeEvents }
     override var futureValues: Source<Base.Value> { return base.futureValues }
 }
 
-private class UpdatableClosureBox<Value>: UpdatableBoxBase<Value> {
+private class UpdatableClosureBox<Value>: AbstractUpdatableBase<Value> {
     /// The getter closure for the current value of this updatable.
-    let getter: (Void) -> Value
+    private let _getter: (Void) -> Value
     /// The setter closure for updating the current value of this updatable.
-    let setter: (Value) -> Void
+    private let _updater: ((Value) -> Value) -> Void
     /// A closure returning a source providing the values of future updates to this updatable.
-    let changeSource: (Void) -> Source<SimpleChange<Value>>
+    private let _changeEvents: (Void) -> Source<ChangeEvent<Change>>
 
-    public init(getter: @escaping (Void) -> Value, setter: @escaping (Value) -> Void, changes: @escaping (Void) -> Source<SimpleChange<Value>>) {
-        self.getter = getter
-        self.setter = setter
-        self.changeSource = changes
-    }
-
-    override var value: Value {
-        get { return getter() }
-        set { setter(newValue) }
+    public init(getter: @escaping (Void) -> Value,
+                updater: @escaping ((Value) -> Value) -> Void,
+                changeEvents: @escaping (Void) -> Source<ChangeEvent<Change>>) {
+        self._getter = getter
+        self._updater = updater
+        self._changeEvents = changeEvents
     }
 
     override func receive(_ value: Value) {
-        setter(value)
+        _updater { _ in value }
     }
 
-    override var changes: Source<SimpleChange<Value>> {
-        return changeSource()
+    override var changeEvents: Source<ChangeEvent<Change>> {
+        return _changeEvents()
     }
 }
 

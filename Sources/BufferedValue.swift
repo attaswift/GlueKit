@@ -8,19 +8,20 @@
 
 import Foundation
 
-extension ObservableValueType {
+extension ObservableValueType where Change == SimpleChange<Value> {
     public func buffered() -> Observable<Value> {
         return BufferedObservableValue(self).observable
     }
 }
 
-internal class BufferedObservableValue<Base: ObservableValueType>: ObservableBoxBase<Base.Value> {
+internal class BufferedObservableValue<Base: ObservableValueType>: AbstractObservableBase<Base.Value>
+where Base.Change == SimpleChange<Base.Value> {
     typealias Value = Base.Value
 
     private var base: Base
 
     var _value: Base.Value
-    var signal = OwningSignal<SimpleChange<Value>>()
+    var signal = ChangeSignal<Change>()
     var connection: Connection? = nil
 
     init(_ base: Base) {
@@ -28,10 +29,17 @@ internal class BufferedObservableValue<Base: ObservableValueType>: ObservableBox
         self._value = base.value
         super.init()
 
-        connection = base.changes.connect { [unowned self] change in
-            let old = self._value
-            self._value = change.new
-            self.signal.send(.init(from: old, to: change.new))
+        connection = base.changeEvents.connect { [unowned self] event in
+            switch event {
+            case .willChange:
+                self.signal.willChange()
+            case .didNotChange:
+                self.signal.didNotChange()
+            case .didChange(let change):
+                let old = self._value
+                self._value = change.new
+                self.signal.didChange(Change(from: old, to: change.new))
+            }
         }
     }
 
@@ -40,6 +48,6 @@ internal class BufferedObservableValue<Base: ObservableValueType>: ObservableBox
     }
 
     override var value: Base.Value { return _value }
-    override var changes: Source<SimpleChange<Base.Value>> { return signal.with(retained: self).source }
+    override var changeEvents: Source<ChangeEvent<Change>> { return signal.source(holding: self) }
 }
 

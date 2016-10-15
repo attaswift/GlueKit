@@ -10,8 +10,9 @@ import Foundation
 
 public extension ObservableValueType {
     public func distinct(_ equalityTest: @escaping (Value, Value) -> Bool) -> Observable<Value> {
-        return Observable(getter: { self.value },
-                          changes: { self.changes.filter { !equalityTest($0.old, $0.new) } })
+        return Observable(
+            getter: { self.value },
+            changeEvents: { self.changeEvents.map { event in event.filter { !equalityTest($0.old, $0.new) } } })
     }
 }
 
@@ -23,9 +24,10 @@ public extension ObservableValueType where Value: Equatable {
 
 public extension UpdatableValueType {
     public func distinct(_ equalityTest: @escaping (Value, Value) -> Bool) -> Updatable<Value> {
-        return Updatable(getter: { self.value },
-                         setter: { self.value = $0 },
-                         changes: { self.changes.filter { !equalityTest($0.old, $0.new) } })
+        return Updatable(
+            getter: self.get,
+            updater: self.update,
+            changeEvents: { self.changeEvents.map { event in event.filter { !equalityTest($0.old, $0.new) } } })
     }
 }
 
