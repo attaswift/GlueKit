@@ -382,6 +382,7 @@
 		BBEBFF2F1DB15629008AC632 /* ValueMappingForArrayField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E131DAAC4DC00E85FB9 /* ValueMappingForArrayField.swift */; };
 		BBEBFF301DB16485008AC632 /* UpdatableArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B341C8FCC820050DDA9 /* UpdatableArray.swift */; };
 		BBEBFF311DB165B4008AC632 /* ArrayVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B201C8FCC810050DDA9 /* ArrayVariable.swift */; };
+		BBEBFF321DB3BCA1008AC632 /* BufferedArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A7FF1D6B2377001D2821 /* BufferedArray.swift */; };
 		BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
@@ -1418,6 +1419,7 @@
 				BBCBAA9C1CBEB7BD004A1BD5 /* Connector.swift in Sources */,
 				BBB55B671C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BBEBFF231DB11330008AC632 /* ValueMappingForValueField.swift in Sources */,
+				BBEBFF321DB3BCA1008AC632 /* BufferedArray.swift in Sources */,
 				BBEBFF211DB1027A008AC632 /* CompositeUpdatable.swift in Sources */,
 				BBEBFF2B1DB15466008AC632 /* ArrayChange.swift in Sources */,
 				BBEBFF181DB0E30E008AC632 /* SimpleChange.swift in Sources */,

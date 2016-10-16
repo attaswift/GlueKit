@@ -19,41 +19,77 @@ extension ObservableArrayType {
     }
 }
 
-internal class BufferedObservableArray<Content: ObservableArrayType>: ObservableArrayType {
+internal class BufferedObservableArray<Content: ObservableArrayType>: ObservableArrayBase<Content.Element> {
     typealias Element = Content.Element
     typealias Change = ArrayChange<Element>
 
     let content: Content
-    private(set) var value: [Element]
-    private var connection: Connection!
-    private var valueSignal = OwningSignal<[Element]>()
+    private var _value: [Element]
+    private var connection: Connection? = nil
+    private var changeSignal = ChangeSignal<Change>()
+    private var valueSignal = ChangeSignal<SimpleChange<[Element]>>()
 
     init(_ content: Content) {
         self.content = content
-        self.value = content.value
-        self.connection = content.changes.connect { [weak self] change in
-            guard let this = self else { return }
-            this.value.apply(change)
-            this.valueSignal.sendIfConnected(this.value)
+        self._value = content.value
+        super.init()
+        self.connection = content.changeEvents.connect { [unowned self] event in self.apply(event) }
+    }
+
+    deinit {
+        self.connection!.disconnect()
+    }
+
+    private func apply(_ event: ChangeEvent<Change>) {
+        switch event {
+        case .willChange:
+            self.changeSignal.willChange()
+            self.valueSignal.willChange()
+        case .didNotChange:
+            self.changeSignal.didNotChange()
+            self.valueSignal.didNotChange()
+        case .didChange(let change):
+            if self.valueSignal.isConnected {
+                let old = self._value
+                _value.apply(change)
+                self.changeSignal.didChange(change)
+                self.valueSignal.didChange(.init(from: old, to: _value))
+            }
+            else {
+                self.changeSignal.didChange(change)
+                // Nobody is listening on the value observer, so nobody will know if we tell it a little white lie:
+                self.valueSignal.didNotChange()
+            }
         }
     }
 
-    var isBuffered: Bool { return true }
-
-    subscript(_ index: Int) -> Content.Element {
-        return value[index]
+    override var isBuffered: Bool {
+        return true
     }
 
-    subscript(_ range: Range<Int>) -> ArraySlice<Content.Element> {
-        return value[range]
+    override subscript(_ index: Int) -> Content.Element {
+        return _value[index]
     }
 
-    var count: Int {
-        return value.count
+    override subscript(_ range: Range<Int>) -> ArraySlice<Content.Element> {
+        return _value[range]
     }
 
-    var changes: Source<ArrayChange<Content.Element>> {
-        return content.changes
+    override var value: [Element] {
+        return _value
+    }
+
+    override var count: Int {
+        return _value.count
+    }
+
+    override var changeEvents: Source<ChangeEvent<Change>> {
+        return changeSignal.source(holding: self)
+    }
+
+    override var observable: Observable<[Element]> {
+        return Observable(getter: { self.value },
+                          changeEvents: { self.valueSignal.source(holding: self) })
     }
 }
 
