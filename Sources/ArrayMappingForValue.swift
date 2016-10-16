@@ -46,8 +46,8 @@ private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: O
         return input.value.map(transform)
     }
 
-    override var changes: Source<ArrayChange<Element>> {
-        return input.changes.map { $0.map(self.transform) }
+    override var changeEvents: Source<ChangeEvent<Change>> {
+        return input.changeEvents.map { $0.map { $0.map(self.transform) } }
     }
 
     override var observableCount: Observable<Int> {
@@ -69,63 +69,77 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
     let content: Content
     let transform: (Input) -> Output
     private var _value: [Output]
-    private var connection: Connection!
-    private var changeSignal = OwningSignal<Change>()
+    private var connection: Connection? = nil
+    private var changeSignal = ChangeSignal<Change>()
 
     init(_ content: Content, transform: @escaping (Input) -> Output) {
         self.content = content
         self.transform = transform
         self._value = content.value.map(transform)
         super.init()
-        self.connection = content.changes.connect { [weak self] change in self?.apply(change) }
+        self.connection = content.changeEvents.connect { [unowned self] event in self.apply(event) }
     }
 
-    private func apply(_ change: ArrayChange<Input>) {
-        precondition(change.initialCount == value.count)
-        if changeSignal.isConnected {
-            var mappedChange = Change(initialCount: value.count)
-            for modification in change.modifications {
-                switch modification {
-                case .insert(let new, at: let index):
-                    let tnew = transform(new)
-                    mappedChange.add(.insert(tnew, at: index))
-                    _value.insert(tnew, at: index)
-                case .remove(_, at: let index):
-                    let old = _value.remove(at: index)
-                    mappedChange.add(.remove(old, at: index))
-                case .replace(_, at: let index, with: let new):
-                    let old = value[index]
-                    let tnew = transform(new)
-                    _value[index] = tnew
-                    mappedChange.add(.replace(old, at: index, with: tnew))
-                case .replaceSlice(let old, at: let index, with: let new):
-                    let range = index ..< index + old.count
-                    let told = Array(value[range])
-                    let tnew = new.map(transform)
-                    mappedChange.add(.replaceSlice(told, at: index, with: tnew))
-                    _value.replaceSubrange(range, with: tnew)
+    deinit {
+        connection!.disconnect()
+    }
+
+    private func apply(_ event: ChangeEvent<ArrayChange<Input>>) {
+        switch event {
+        case .willChange:
+            changeSignal.willChange()
+        case .didNotChange:
+            changeSignal.didNotChange()
+        case .didChange(let change):
+            precondition(change.initialCount == value.count)
+            if changeSignal.isConnected {
+                var mappedChange = Change(initialCount: value.count)
+                for modification in change.modifications {
+                    switch modification {
+                    case .insert(let new, at: let index):
+                        let tnew = transform(new)
+                        mappedChange.add(.insert(tnew, at: index))
+                        _value.insert(tnew, at: index)
+                    case .remove(_, at: let index):
+                        let old = _value.remove(at: index)
+                        mappedChange.add(.remove(old, at: index))
+                    case .replace(_, at: let index, with: let new):
+                        let old = value[index]
+                        let tnew = transform(new)
+                        _value[index] = tnew
+                        mappedChange.add(.replace(old, at: index, with: tnew))
+                    case .replaceSlice(let old, at: let index, with: let new):
+                        let range = index ..< index + old.count
+                        let told = Array(value[range])
+                        let tnew = new.map(transform)
+                        mappedChange.add(.replaceSlice(told, at: index, with: tnew))
+                        _value.replaceSubrange(range, with: tnew)
+                    }
                 }
+                changeSignal.didChange(mappedChange)
             }
-            changeSignal.send(mappedChange)
-        }
-        else {
-            for modification in change.modifications {
-                switch modification {
-                case .insert(let new, at: let index):
-                    _value.insert(transform(new), at: index)
-                case .remove(_, at: let index):
-                    _value.remove(at: index)
-                case .replace(_, at: let index, with: let new):
-                    _value[index] = transform(new)
-                case .replaceSlice(let old, at: let index, with: let new):
-                    _value.replaceSubrange(index ..< index + old.count, with: new.map(transform))
+            else {
+                // If the signal isn't connected, we don't need to generate a mapped change; we can just tell the signal that we didn't change, while applying the change directly.
+                changeSignal.didNotChange()
+                for modification in change.modifications {
+                    switch modification {
+                    case .insert(let new, at: let index):
+                        _value.insert(transform(new), at: index)
+                    case .remove(_, at: let index):
+                        _value.remove(at: index)
+                    case .replace(_, at: let index, with: let new):
+                        _value[index] = transform(new)
+                    case .replaceSlice(let old, at: let index, with: let new):
+                        _value.replaceSubrange(index ..< index + old.count, with: new.map(transform))
+                    }
                 }
             }
         }
     }
 
-    override var isBuffered: Bool { return true }
-
+    override var isBuffered: Bool {
+        return true
+    }
 
     override subscript(_ index: Int) -> Element {
         return value[index]
@@ -141,8 +155,8 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
         return value.count
     }
 
-    override var changes: Source<ArrayChange<Element>> {
-        return changeSignal.with(retained: self).source
+    override var changeEvents: Source<ChangeEvent<Change>> {
+        return changeSignal.source(holding: self)
     }
 }
 
