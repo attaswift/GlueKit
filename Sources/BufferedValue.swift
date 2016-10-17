@@ -8,46 +8,50 @@
 
 import Foundation
 
-extension ObservableValueType where Change == SimpleChange<Value> {
+extension ObservableValueType where Change == ValueChange<Value> {
     public func buffered() -> Observable<Value> {
         return BufferedObservableValue(self).observable
     }
 }
 
 internal class BufferedObservableValue<Base: ObservableValueType>: AbstractObservableBase<Base.Value>
-where Base.Change == SimpleChange<Base.Value> {
+where Base.Change == ValueChange<Base.Value> {
     typealias Value = Base.Value
 
-    private var base: Base
+    private var _base: Base
 
-    var _value: Base.Value
-    var signal = ChangeSignal<Change>()
-    var connection: Connection? = nil
+    private var _value: Base.Value
+    private var _state = TransactionState<Change>()
+    private var _pending: Value? = nil
+    private var _connection: Connection? = nil
 
     init(_ base: Base) {
-        self.base = base
+        self._base = base
         self._value = base.value
         super.init()
 
-        connection = base.changeEvents.connect { [unowned self] event in
-            switch event {
-            case .willChange:
-                self.signal.willChange()
-            case .didNotChange:
-                self.signal.didNotChange()
-            case .didChange(let change):
-                let old = self._value
-                self._value = change.new
-                self.signal.didChange(Change(from: old, to: change.new))
+        self._connection = base.updates.connect { [unowned self] update in self.apply(update) }
+    }
+
+    deinit {
+        _connection!.disconnect()
+    }
+
+    private func apply(_ update: ValueUpdate<Value>) {
+        switch update {
+        case .beginTransaction:
+            _state.begin()
+        case .change(let change):
+            _pending = change.new
+        case .endTransaction:
+            if let pending = _pending {
+                _value = pending
+                _pending = nil
             }
         }
     }
 
-    deinit {
-        connection!.disconnect()
-    }
-
     override var value: Base.Value { return _value }
-    override var changeEvents: Source<ChangeEvent<Change>> { return signal.source(holding: self) }
+    override var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }
 

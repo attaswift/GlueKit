@@ -103,7 +103,7 @@ where S.Element: AnyObject, R.Value: Comparable {
         }
     }
 
-    private func apply(_ change: SimpleChange<Element>) {
+    private func apply(_ change: ValueChange<Element>) {
         var arrayChange = ArrayChange<Element>(initialCount: self.state.count)
         if change.old == change.new { return }
         if let mod = remove(change.old) {

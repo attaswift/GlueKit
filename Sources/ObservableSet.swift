@@ -34,12 +34,12 @@ extension ObservableSetType {
 
     public var isEmpty: Bool { return count == 0 }
     
-    internal var valueChanges: Source<SimpleChange<Base>> {
+    internal var valueChanges: Source<ValueChange<Base>> {
         var value = self.value
-        return self.changes.map { (c: SetChange<Element>) -> SimpleChange<Base> in
+        return self.changes.map { (c: SetChange<Element>) -> ValueChange<Base> in
             let old = value
             value.apply(c)
-            return SimpleChange(from: old, to: value)
+            return ValueChange(from: old, to: value)
         }
     }
 
@@ -47,7 +47,7 @@ extension ObservableSetType {
         return Observable(getter: { self.value }, changes: { self.valueChanges })
     }
 
-    internal var countChanges: Source<SimpleChange<Int>> {
+    internal var countChanges: Source<ValueChange<Int>> {
         var count = self.count
         return self.changes.map { change in
             let old = count

@@ -60,150 +60,154 @@ extension ChangeType {
     }
 }
 
-public enum ChangeEvent<Change: ChangeType> {
-    case willChange
-    case didNotChange
-    case didChange(Change)
-
+/// Updates are events that describe a change that is happening to an observable.
+/// Observables only change inside transactions. A transaction consists three phases, represented
+/// by the three cases of this enum type:
+///
+/// - `beginTransaction` signals the start of a new transaction.
+/// - `change` describes a (partial) change to the value of the observable. 
+///   Each transaction may include any number of such changes.
+/// - `endTransaction` closes the transaction.
+///
+/// While a transaction is in progress, the value of an observable includes all changes that have already been
+/// reported in updates.
+///
+/// Note that is perfectly legal for a transaction to include no actual changes.
+public enum Update<Change: ChangeType> {
+    /// Hang on, I feel a change coming up.
+    case beginTransaction
+    /// Here is one change, but I think there might be more coming.
+    case change(Change)
+    /// OK, I'm done changing.
+    case endTransaction
 }
 
-extension ChangeEvent {
+extension Update {
     public var change: Change? {
-        if case let .didChange(change) = self { return change }
+        if case let .change(change) = self { return change }
         return nil
     }
 
-    public func filter(_ test: (Change) -> Bool) -> ChangeEvent<Change> {
+    public func filter(_ test: (Change) -> Bool) -> Update<Change>? {
         switch self {
-        case .willChange, .didNotChange:
+        case .beginTransaction, .endTransaction:
             return self
-        case .didChange(let change):
+        case .change(let change):
             if test(change) {
                 return self
             }
-            return .didNotChange
+            return nil
         }
     }
 
-    public func map<Result: ChangeType>(_ transform: (Change) -> Result) -> ChangeEvent<Result> {
+    public func map<Result: ChangeType>(_ transform: (Change) -> Result) -> Update<Result> {
         switch self {
-        case .willChange:
-            return .willChange
-        case .didNotChange:
-            return .didNotChange
-        case .didChange(let change):
-            return .didChange(transform(change))
+        case .beginTransaction:
+            return .beginTransaction
+        case .change(let change):
+            return .change(transform(change))
+        case .endTransaction:
+            return .endTransaction
         }
     }
 }
 
-private class _ChangeSignal<Change: ChangeType>: Signal<ChangeEvent<Change>> {
-    typealias SourceValue = ChangeEvent<Change>
-    var pendingCount = 0
-    var pendingChange: Change? = nil
+private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
+    typealias SourceValue = Update<Change>
+    var isInTransaction = false
+
+    func begin() {
+        assert(!isInTransaction)
+        isInTransaction = true
+        send(.beginTransaction)
+    }
+
+    func end() {
+        assert(isInTransaction)
+        isInTransaction = false
+        send(.endTransaction)
+    }
+
+    func send(_ change: Change) {
+        assert(isInTransaction)
+        send(.change(change))
+    }
 
     override func connect(_ sink: Sink<SourceValue>) -> Connection {
-        if self.pendingCount > 0 {
-            sink.receive(.willChange)
+        if self.isInTransaction {
+            // Make sure the new subscriber knows we're in the middle of a transaction.
+            sink.receive(.beginTransaction)
         }
         let c = super.connect(sink)
         c.addCallback { id in
-            if self.pendingCount > 0 {
-                if let change = self.pendingChange {
-                    sink.receive(.didChange(change))
-                }
-                else {
-                    sink.receive(.didNotChange)
-                }
+            if self.isInTransaction {
+                // Wave goodbye by sending a virtual endTransaction that makes state management easier.
+                sink.receive(.endTransaction)
             }
         }
         return c
     }
 }
 
-struct ChangeSignal<Change: ChangeType> {
-    typealias SourceValue = ChangeEvent<Change>
+struct TransactionState<Change: ChangeType> {
+    private weak var signal: TransactionSignal<Change>? = nil
+    private var transactionCount = 0
 
-    private weak var signal: _ChangeSignal<Change>? = nil
-
-    mutating func source(holding owner: AnyObject) -> Source<SourceValue> {
+    mutating func source(retaining owner: AnyObject) -> Source<Update<Change>> {
         if let signal = self.signal { return signal.source }
-        let signal = _ChangeSignal<Change>(delegateCallback: { _, _ in _ = owner })
+        let signal = TransactionSignal<Change>(delegateCallback: { _, _ in _ = owner })
+        signal.isInTransaction = self.isChanging
         self.signal = signal
         return signal.source
     }
 
-    mutating func source<D: SignalDelegate>(holdingDelegate delegate: D) -> Source<SourceValue> where D.SignalValue == SourceValue {
+    mutating func source<D: SignalDelegate>(retainingDelegate delegate: D) -> Source<Update<Change>> where D.SignalValue == Update<Change> {
         if let signal = self.signal { return signal.source }
-        let signal = _ChangeSignal<Change>(stronglyHeldDelegate: delegate)
+        let signal = TransactionSignal<Change>(stronglyHeldDelegate: delegate)
+        signal.isInTransaction = self.isChanging
         self.signal = signal
         return signal.source
     }
 
-
+    var isChanging: Bool { return transactionCount > 0 }
     var isConnected: Bool { return signal?.isConnected ?? false }
-    var isChanging: Bool { return signal?.pendingCount != 0 }
+    var isActive: Bool { return isChanging || isConnected }
 
-    var isActive: Bool {
-        guard let signal = self.signal else { return false }
-        return signal.isConnected || signal.pendingCount > 0
-    }
-
-    func willChange() {
-        guard let signal = signal else { return }
-        signal.pendingCount += 1
-        if signal.pendingCount == 1 {
-            signal.send(.willChange)
+    mutating func begin() {
+        transactionCount += 1
+        if transactionCount == 1 {
+            signal?.begin()
         }
     }
 
-    func didNotChange() {
-        guard let signal = signal else { return }
-        precondition(signal.pendingCount > 0)
-        signal.pendingCount -= 1
-        if signal.pendingCount == 0 {
-            if let c = signal.pendingChange {
-                signal.pendingChange = nil
-                signal.send(.didChange(c))
-            }
-            else {
-                signal.send(.didNotChange)
-            }
+    mutating func end() {
+        precondition(transactionCount > 0)
+        transactionCount -= 1
+        if transactionCount == 0 {
+            signal?.end()
         }
     }
 
-    func didChange(_ change: Change) {
-        guard let signal = signal else { return }
-        precondition(signal.pendingCount > 0)
-        signal.pendingCount -= 1
-        if signal.pendingCount == 0 {
-            if var c = signal.pendingChange {
-                signal.pendingChange = nil
-                c.merge(with: change)
-                signal.send(.didChange(c))
-            }
-            else {
-                signal.send(.didChange(change))
-            }
-        }
-        else {
-            if var c = signal.pendingChange {
-                signal.pendingChange = nil
-                c.merge(with: change)
-                signal.pendingChange = c
-            }
-            else {
-                signal.pendingChange = change
-            }
-        }
+    func send(_ change: Change) {
+        precondition(transactionCount > 0)
+        signal?.send(change)
     }
 
-    func send(_ event: ChangeEvent<Change>) {
-        switch event {
-        case .willChange: willChange()
-        case .didNotChange: didNotChange()
-        case .didChange(let change): didChange(change)
+    func sendLater(_ change: Change) {
+        precondition(transactionCount > 0)
+        signal?.sendLater(.change(change))
+    }
+
+    func sendNow() {
+        precondition(transactionCount > 0)
+        signal?.sendNow()
+    }
+
+    mutating func send(_ update: Update<Change>) {
+        switch update {
+        case .beginTransaction: begin()
+        case .change(let change): send(change)
+        case .endTransaction: end()
         }
     }
 }
-

@@ -22,7 +22,7 @@ class ArrayChangeTests: XCTestCase {
         XCTAssertEqual(change.initialCount, 10)
         XCTAssertEqual(change.finalCount, 11)
         XCTAssertEqual(change.deltaCount, 1)
-        XCTAssertTrue(change.countChange == SimpleChange<Int>(from: 10, to: 11))
+        XCTAssertTrue(change.countChange == ValueChange<Int>(from: 10, to: 11))
     }
 
     func testExerciseMerging() {

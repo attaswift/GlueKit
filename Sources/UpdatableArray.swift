@@ -40,7 +40,7 @@ extension UpdatableArrayType {
         return Updatable(
             getter: { self.value },
             updater: { self.value = $0(self.value) },
-            changeEvents: { self.valueChanges }
+            updates: { self.valueChanges }
         )
     }
 
@@ -139,7 +139,7 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
 
     public var isBuffered: Bool { return box.isBuffered }
     public var count: Int { return box.count }
-    public var changeEvents: Source<ChangeEvent<Change>> { return box.changeEvents }
+    public var updates: ArrayUpdateSource<Element> { return box.updates }
 
     public func batchUpdate(_ body: () -> Void) { box.batchUpdate(body) }
     public func apply(_ change: ArrayChange<Element>) { box.apply(change) }
@@ -185,7 +185,7 @@ internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, Updata
     var updatable: Updatable<[Element]> {
         return Updatable(getter: { self.value },
                          updater: { body in self.value = body(self.value) },
-                         changeEvents: { self.valueChanges })
+                         updates: { self.valueChanges })
     }
 
     final var updatableArray: UpdatableArray<Element> { return UpdatableArray(box: self) }
@@ -229,7 +229,7 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: UpdatableArrayBa
 
     override var isBuffered: Bool { return contents.isBuffered }
     override var count: Int { return contents.count }
-    override var changeEvents: Source<ChangeEvent<Change>> { return contents.changeEvents }
+    override var updates: ArrayUpdateSource<Element> { return contents.updates }
     override var observable: Observable<[Element]> { return contents.observable }
     override var observableCount: Observable<Int> { return contents.observableCount }
 }

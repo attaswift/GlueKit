@@ -22,7 +22,7 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
     private let test: (Element) -> Test
 
     private var indexMapping: ArrayFilteringIndexmap<Element>
-    private var changeSignal = OwningSignal<Change>()
+    private var state = TransactionState<Change>()
     private var baseConnection: Connection? = nil
     private var elementConnections = RefList<Connection>()
 
@@ -32,7 +32,7 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
         let elements = parent.value
         self.indexMapping = ArrayFilteringIndexmap(initialValues: elements, test: { test($0).value })
         super.init()
-        self.baseConnection = parent.changes.connect { [unowned self] change in self.apply(change) }
+        self.baseConnection = parent.updates.connect { [unowned self] update in self.apply(update) }
         self.elementConnections = RefList(elements.lazy.map { [unowned self] element in self.connect(to: element) })
     }
 
@@ -41,33 +41,47 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
         self.elementConnections.forEach { $0.disconnect() }
     }
 
-    private func apply(_ change: ArrayChange<Element>) {
-        for mod in change.modifications {
-            let inputRange = mod.inputRange
-            inputRange.forEach { elementConnections[$0].disconnect() }
-            elementConnections.replaceSubrange(inputRange, with: mod.newElements.map { self.connect(to: $0) })
-        }
-        let filteredChange = self.indexMapping.apply(change)
-        if !filteredChange.isEmpty {
-            self.changeSignal.send(filteredChange)
+    private func apply(_ update: ArrayUpdate<Element>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            for mod in change.modifications {
+                let inputRange = mod.inputRange
+                inputRange.forEach { elementConnections[$0].disconnect() }
+                elementConnections.replaceSubrange(inputRange, with: mod.newElements.map { self.connect(to: $0) })
+            }
+            let filteredChange = self.indexMapping.apply(change)
+            if !filteredChange.isEmpty {
+                state.send(filteredChange)
+            }
+        case .endTransaction:
+            state.end()
         }
     }
 
     private func connect(to element: Element) -> Connection {
-        var connection: Connection! = nil
-        connection = test(element).changes.connect { [unowned self] change in self.apply(change, from: connection) }
-        return connection
+        var connection: Connection? = nil
+        connection = test(element).updates.connect { [unowned self] update in self.apply(update, from: connection) }
+        return connection!
     }
 
-    private func apply(_ change: SimpleChange<Bool>, from connection: Connection) {
-        if change.old == change.new { return }
-        let index = elementConnections.index(of: connection)!
-        let c = indexMapping.matchingIndices.count
-        if change.new, let filteredIndex = indexMapping.insert(index) {
-            self.changeSignal.send(ArrayChange(initialCount: c, modification: .insert(parent[index], at: filteredIndex)))
-        }
-        else if !change.new, let filteredIndex = indexMapping.remove(index) {
-            self.changeSignal.send(ArrayChange(initialCount: c, modification: .remove(parent[index], at: filteredIndex)))
+    private func apply(_ update: ValueUpdate<Bool>, from connection: Connection?) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            if change.old == change.new { return }
+            let index = elementConnections.index(of: connection!)!
+            let c = indexMapping.matchingIndices.count
+            if change.new, let filteredIndex = indexMapping.insert(index) {
+                state.send(ArrayChange(initialCount: c, modification: .insert(parent[index], at: filteredIndex)))
+            }
+            else if !change.new, let filteredIndex = indexMapping.remove(index) {
+                state.send(ArrayChange(initialCount: c, modification: .remove(parent[index], at: filteredIndex)))
+            }
+        case .endTransaction:
+            state.end()
         }
     }
 
@@ -95,7 +109,7 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
         return indexMapping.matchingIndices.count
     }
 
-    override var changes: Source<ArrayChange<Base.Element>> {
-        return changeSignal.with(retained: self).source
+    override var updates: ArrayUpdateSource<Base.Element> {
+        return state.source(retaining: self)
     }
 }

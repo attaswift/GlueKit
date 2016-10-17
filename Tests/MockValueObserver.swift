@@ -10,8 +10,8 @@ import XCTest
 import GlueKit
 
 class MockValueObserver<Value: Equatable> {
-    var expectedChanges: [SimpleChange<Value>] = []
-    var actualChanges: [SimpleChange<Value>] = []
+    var expectedChanges: [ValueChange<Value>] = []
+    var actualChanges: [ValueChange<Value>] = []
     var connection: Connection? = nil
 
     init<O: ObservableValueType>(_ target: O) where O.Value == Value {
@@ -22,7 +22,7 @@ class MockValueObserver<Value: Equatable> {
         self.connection!.disconnect()
     }
 
-    private func apply(_ change: SimpleChange<Value>) {
+    private func apply(_ change: ValueChange<Value>) {
         actualChanges.append(change)
     }
 
@@ -30,12 +30,12 @@ class MockValueObserver<Value: Equatable> {
         return try run(file: file, line: line, body)
     }
 
-    func expecting<R>(_ change: SimpleChange<Value>, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+    func expecting<R>(_ change: ValueChange<Value>, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
         expectedChanges.append(change)
         return try run(file: file, line: line, body)
     }
 
-    func expecting<R>(_ changes: [SimpleChange<Value>], file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+    func expecting<R>(_ changes: [ValueChange<Value>], file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
         expectedChanges.append(contentsOf: changes)
         return try run(file: file, line: line, body)
     }

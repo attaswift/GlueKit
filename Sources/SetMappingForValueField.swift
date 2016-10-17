@@ -67,7 +67,7 @@ class SetMappingForValueField<S: ObservableSetType, Field: ObservableValueType>:
         }
     }
 
-    private func apply(_ change: SimpleChange<Field.Value>) {
+    private func apply(_ change: ValueChange<Field.Value>) {
         if change.old == change.new { return }
         var transformedChange = SetChange<Element>()
         if self.remove(change.old) {

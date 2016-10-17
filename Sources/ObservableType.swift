@@ -14,13 +14,35 @@ public protocol ObservableType {
     /// The current value of this observable.
     var value: Change.Value { get }
 
-    /// A source that reports changes to the value of this observable.
-    var changeEvents: Source<ChangeEvent<Change>> { get }
+    /// A source that reports update transaction events for this observable.
+    var updates: Source<Update<Change>> { get }
 }
 
 extension ObservableType {
+    /// A source that reports changes to the value of this observable.
+    /// Changes reported correspond to complete transactions in `self.updates`.
     public var changes: Source<Change> {
-        return changeEvents.flatMap { $0.change }
+        return Source { sink in
+            var merged: Change? = nil
+            return self.updates.connect { event in
+                switch event {
+                case .beginTransaction:
+                    assert(merged == nil)
+                case .change(let change):
+                    if merged == nil {
+                        merged = change
+                    }
+                    else {
+                        merged!.merge(with: change)
+                    }
+                case .endTransaction:
+                    if let change = merged {
+                        sink.receive(change)
+                        merged = nil
+                    }
+                }
+            }
+        }
     }
 }
 

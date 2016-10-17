@@ -40,7 +40,7 @@ public extension NSObject {
 
 private struct KVOUpdatable: UpdatableValueType {
     typealias Value = Any?
-    typealias Change = SimpleChange<Any?>
+    typealias Change = ValueChange<Any?>
 
     private let object: NSObject
     private let keyPath: String
@@ -65,7 +65,7 @@ private struct KVOUpdatable: UpdatableValueType {
 // A single object that observes all key paths currently registered as Sources on a target object.
 // Each Source associated with a key path holds a strong reference to this object.
 @objc private class KVOObserver: NSObject {
-    typealias Change = SimpleChange<Any?>
+    typealias Change = ValueChange<Any?>
 
     static private var associatedObjectKey: Int8 = 0
 

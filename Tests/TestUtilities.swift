@@ -23,7 +23,7 @@ func XCTAssertEqual<E: Equatable>(_ a: @autoclosure () -> [[E]], _ b: @autoclosu
 }
 
 class TestObservable<Value>: ObservableValueType {
-    var _signal = Signal<SimpleChange<Value>>()
+    var _signal = Signal<ValueChange<Value>>()
 
     var value: Value {
         didSet {
@@ -35,11 +35,11 @@ class TestObservable<Value>: ObservableValueType {
         self.value = value
     }
 
-    var changes: Source<SimpleChange<Value>> { return _signal.source }
+    var changes: Source<ValueChange<Value>> { return _signal.source }
 }
 
 class TestUpdatable<Value>: UpdatableValueType {
-    var _signal = Signal<SimpleChange<Value>>()
+    var _signal = Signal<ValueChange<Value>>()
 
     var value: Value {
         didSet {
@@ -51,6 +51,6 @@ class TestUpdatable<Value>: UpdatableValueType {
         self.value = value
     }
 
-    var changes: Source<SimpleChange<Value>> { return _signal.source }
+    var changes: Source<ValueChange<Value>> { return _signal.source }
 }
 

@@ -30,8 +30,8 @@ private final class ValueMappingForValue<Parent: ObservableValueType, Value>: Ab
         return transform(parent.value)
     }
 
-    override var changeEvents: Source<ChangeEvent<Change>> {
-        return parent.changeEvents.map { event in event.map { $0.map(self.transform) } }
+    override var updates: Source<Update<Change>> {
+        return parent.updates.map { update in update.map { $0.map(self.transform) } }
     }
 }
 
@@ -65,7 +65,7 @@ private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Va
         set { parent.value = inverse(newValue) }
     }
 
-    override var changeEvents: Source<ChangeEvent<Change>> {
-        return parent.changeEvents.map { event in event.map { $0.map(self.transform) } }
+    override var updates: Source<Update<Change>> {
+        return parent.updates.map { update in update.map { $0.map(self.transform) } }
     }
 }

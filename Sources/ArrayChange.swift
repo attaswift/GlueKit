@@ -393,7 +393,7 @@ public struct ArrayChange<Element>: ChangeType {
     /// The expected change in the count of elements in the array as a result of this change.
     public var deltaCount: Int { return modifications.reduce(0) { s, mod in s + mod.deltaCount } }
 
-    public var countChange: SimpleChange<Int> { return .init(from: initialCount, to: finalCount) }
+    public var countChange: ValueChange<Int> { return .init(from: initialCount, to: finalCount) }
 
     public var finalCount: Int { return initialCount + deltaCount }
 

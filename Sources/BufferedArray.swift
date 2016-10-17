@@ -23,43 +23,53 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: Observable
     typealias Element = Content.Element
     typealias Change = ArrayChange<Element>
 
-    let content: Content
+    private let _content: Content
     private var _value: [Element]
-    private var connection: Connection? = nil
-    private var changeSignal = ChangeSignal<Change>()
-    private var valueSignal = ChangeSignal<SimpleChange<[Element]>>()
+    private var _connection: Connection? = nil
+    private var _state = TransactionState<Change>()
+    private var _valueState = TransactionState<ValueChange<[Element]>>()
+    private var _pendingChange: Change? = nil
 
     init(_ content: Content) {
-        self.content = content
-        self._value = content.value
+        _content = content
+        _value = content.value
         super.init()
-        self.connection = content.changeEvents.connect { [unowned self] event in self.apply(event) }
+        _connection = content.updates.connect { [unowned self] update in self.apply(update) }
     }
 
     deinit {
-        self.connection!.disconnect()
+        _connection!.disconnect()
     }
 
-    private func apply(_ event: ChangeEvent<Change>) {
-        switch event {
-        case .willChange:
-            self.changeSignal.willChange()
-            self.valueSignal.willChange()
-        case .didNotChange:
-            self.changeSignal.didNotChange()
-            self.valueSignal.didNotChange()
-        case .didChange(let change):
-            if self.valueSignal.isConnected {
-                let old = self._value
-                _value.apply(change)
-                self.changeSignal.didChange(change)
-                self.valueSignal.didChange(.init(from: old, to: _value))
+    private func apply(_ update: ArrayUpdate<Element>) {
+        switch update {
+        case .beginTransaction:
+            _state.begin()
+        case .change(let change):
+            if _pendingChange != nil {
+                _pendingChange!.merge(with: change)
             }
             else {
-                self.changeSignal.didChange(change)
-                // Nobody is listening on the value observer, so nobody will know if we tell it a little white lie:
-                self.valueSignal.didNotChange()
+                _pendingChange = change
             }
+        case .endTransaction:
+            if let change = _pendingChange {
+                if _valueState.isConnected {
+                    let old = _value
+                    _value.apply(change)
+                    _pendingChange = nil
+                    let new = _value
+                    _valueState.sendLater(ValueChange(from: old, to: new))
+                    _state.send(change)
+                    _valueState.sendNow()
+                }
+                else {
+                    _value.apply(change)
+                    _pendingChange = nil
+                    _state.send(change)
+                }
+            }
+            _state.end()
         }
     }
 
@@ -83,13 +93,12 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: Observable
         return _value.count
     }
 
-    override var changeEvents: Source<ChangeEvent<Change>> {
-        return changeSignal.source(holding: self)
+    override var updates: Source<Update<Change>> {
+        return _state.source(retaining: self)
     }
 
     override var observable: Observable<[Element]> {
         return Observable(getter: { self.value },
-                          changeEvents: { self.valueSignal.source(holding: self) })
+                          updates: { self._valueState.source(retaining: self) })
     }
 }
-

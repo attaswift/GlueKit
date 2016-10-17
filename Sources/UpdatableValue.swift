@@ -34,7 +34,7 @@ extension UpdatableValueType {
 /// The type lifted representation of an UpdatableValueType.
 public struct Updatable<Value>: UpdatableValueType {
     public typealias SinkValue = Value
-    public typealias Change = SimpleChange<Value>
+    public typealias Change = ValueChange<Value>
 
     private let box: AbstractUpdatableBase<Value>
 
@@ -44,8 +44,8 @@ public struct Updatable<Value>: UpdatableValueType {
 
     public init(getter: @escaping (Void) -> Value,
                 updater: @escaping ((Value) -> Value) -> Void,
-                changeEvents: @escaping (Void) -> Source<ChangeEvent<Change>>) {
-        self.box = UpdatableClosureBox(getter: getter, updater: updater, changeEvents: changeEvents)
+                updates: @escaping (Void) -> ValueUpdateSource<Value>) {
+        self.box = UpdatableClosureBox(getter: getter, updater: updater, updates: updates)
     }
 
     public init<Base: UpdatableValueType>(_ base: Base) where Base.Value == Value {
@@ -69,8 +69,8 @@ public struct Updatable<Value>: UpdatableValueType {
         box.receive(value)
     }
 
-    public var changeEvents: Source<ChangeEvent<Change>> {
-        return box.changeEvents
+    public var updates: ValueUpdateSource<Value> {
+        return box.updates
     }
 
     public var futureValues: Source<Value> {
@@ -87,7 +87,7 @@ public struct Updatable<Value>: UpdatableValueType {
 }
 
 internal class AbstractUpdatableBase<Value>: AbstractObservableBase<Value>, UpdatableValueType {
-    typealias Change = SimpleChange<Value>
+    typealias Change = ValueChange<Value>
 
     override var value: Value {
         get { return get() }
@@ -100,16 +100,17 @@ internal class AbstractUpdatableBase<Value>: AbstractObservableBase<Value>, Upda
 }
 
 internal class UpdatableBox<Base: UpdatableValueType>: AbstractUpdatableBase<Base.Value> {
+    typealias Value = Base.Value
     private let base: Base
 
     init(_ base: Base) {
         self.base = base
     }
 
-    override func get() -> Base.Value { return base.get() }
-    override func update(_ body: (Base.Value) -> Base.Value) { return base.update(body) }
-    override var changeEvents: Source<ChangeEvent<Change>> { return base.changeEvents }
-    override var futureValues: Source<Base.Value> { return base.futureValues }
+    override func get() -> Value { return base.get() }
+    override func update(_ body: (Value) -> Value) { return base.update(body) }
+    override var updates: ValueUpdateSource<Value> { return base.updates }
+    override var futureValues: Source<Value> { return base.futureValues }
 }
 
 private class UpdatableClosureBox<Value>: AbstractUpdatableBase<Value> {
@@ -118,22 +119,22 @@ private class UpdatableClosureBox<Value>: AbstractUpdatableBase<Value> {
     /// The setter closure for updating the current value of this updatable.
     private let _updater: ((Value) -> Value) -> Void
     /// A closure returning a source providing the values of future updates to this updatable.
-    private let _changeEvents: (Void) -> Source<ChangeEvent<Change>>
+    private let _updates: (Void) -> ValueUpdateSource<Value>
 
     public init(getter: @escaping (Void) -> Value,
                 updater: @escaping ((Value) -> Value) -> Void,
-                changeEvents: @escaping (Void) -> Source<ChangeEvent<Change>>) {
+                updates: @escaping (Void) -> ValueUpdateSource<Value>) {
         self._getter = getter
         self._updater = updater
-        self._changeEvents = changeEvents
+        self._updates = updates
     }
 
     override func receive(_ value: Value) {
         _updater { _ in value }
     }
 
-    override var changeEvents: Source<ChangeEvent<Change>> {
-        return _changeEvents()
+    override var updates: ValueUpdateSource<Value> {
+        return _updates()
     }
 }
 

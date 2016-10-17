@@ -64,10 +64,10 @@ class ValueMappingTests: XCTestCase {
         let v = Variable<Book>(b1)
         let titleChanges = v.map { $0.title.changes }
 
-        var expected: [SimpleChange<String>] = []
-        var actual: [SimpleChange<String>] = []
+        var expected: [ValueChange<String>] = []
+        var actual: [ValueChange<String>] = []
         let connection = titleChanges.connect { change in actual.append(change) }
-        func expect(_ change: SimpleChange<String>? = nil, file: StaticString = #file, line: UInt = #line, body: () -> ()) {
+        func expect(_ change: ValueChange<String>? = nil, file: StaticString = #file, line: UInt = #line, body: () -> ()) {
             if let change = change {
                 expected.append(change)
             }
@@ -79,14 +79,14 @@ class ValueMappingTests: XCTestCase {
             actual = []
         }
 
-        expect(SimpleChange(from: "foo", to: "bar")) {
+        expect(ValueChange(from: "foo", to: "bar")) {
             b1.title.value = "bar"
         }
         let b2 = Book("fred")
         expect() {
             v.value = b2
         }
-        expect(SimpleChange(from: "fred", to: "barney")) {
+        expect(ValueChange(from: "fred", to: "barney")) {
             b2.title.value = "barney"
         }
         connection.disconnect()

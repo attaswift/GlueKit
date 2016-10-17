@@ -73,6 +73,21 @@ extension SourceType {
             }
         }
     }
+
+    public func mapNext(_ transform: @escaping (SourceValue) -> SourceValue) -> Source<SourceValue> {
+        return Source { sink in
+            var transform: Optional<(SourceValue) -> SourceValue> = transform
+            return self.connect { value in
+                if let t = transform {
+                    sink.receive(t(value))
+                    transform = nil
+                }
+                else {
+                    sink.receive(value)
+                }
+            }
+        }
+    }
 }
 
 extension SourceType {

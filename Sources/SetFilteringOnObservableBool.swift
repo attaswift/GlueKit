@@ -120,7 +120,7 @@ private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult
         }
     }
 
-    private func apply(_ change: SimpleChange<Bool>, from element: Parent.Element) {
+    private func apply(_ change: ValueChange<Bool>, from element: Parent.Element) {
         if !change.old && change.new {
             matchingElements.insert(element)
             signal.send(SetChange(inserted: [element]))

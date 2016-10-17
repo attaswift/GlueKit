@@ -130,7 +130,7 @@ class KVOSupportTests: XCTestCase {
     }
 
     func testSourceRetainsObject() {
-        var source: Source<SimpleChange<Int>>? = nil
+        var source: Source<ValueChange<Int>>? = nil
         weak var weakObject: NSObject? = nil
 
         do {

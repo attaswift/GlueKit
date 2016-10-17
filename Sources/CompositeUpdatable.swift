@@ -41,7 +41,7 @@ extension UpdatableValueType {
 /// An Updatable that is a composite of two other updatables.
 private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueType>: UpdatableValueType, SignalDelegate {
     typealias Value = (A.Value, B.Value)
-    typealias Change = SimpleChange<Value>
+    typealias Change = ValueChange<Value>
 
     private let first: A
     private let second: B
@@ -71,7 +71,7 @@ private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueT
         }
     }
 
-    final var changeEvents: Source<ChangeEvent<Change>> { return signal.source(holdingDelegate: self) }
+    final var updates: Source<Update<Change>> { return signal.source(retainingDelegate: self) }
 
     final var value: Value {
         get {
@@ -87,10 +87,10 @@ private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueT
         }
     }
 
-    final func start(_ signal: Signal<ChangeEvent<Change>>) {
+    final func start(_ signal: Signal<Update<Change>>) {
         precondition(connections == nil)
         latest = (first.get(), second.get())
-        let c1 = first.changeEvents.connect { [unowned self] event in
+        let c1 = first.updates.connect { [unowned self] event in
             let followup = self.state.applyEventFromFirst(self.latest!, event)
             if let change = event.change {
                 self.latest!.0 = change.new
@@ -99,7 +99,7 @@ private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueT
                 signal.send(event)
             }
         }
-        let c2 = second.changeEvents.connect { [unowned self] event in
+        let c2 = second.updates.connect { [unowned self] event in
             let followup = self.state.applyEventFromFirst(self.latest!, event)
             if let change = event.change {
                 self.latest!.1 = change.new
@@ -111,7 +111,7 @@ private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueT
         connections = (c1, c2)
     }
 
-    final func stop(_ signal: Signal<ChangeEvent<Change>>) {
+    final func stop(_ signal: Signal<Update<Change>>) {
         connections!.0.disconnect()
         connections!.1.disconnect()
         connections = nil

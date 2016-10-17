@@ -1,5 +1,5 @@
 //
-//  SimpleChange.swift
+//  ValueChange.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-10-04.
@@ -9,7 +9,7 @@
 import Foundation
 
 /// A simple change description that includes a snapshot of the value before and after the change.
-public struct SimpleChange<Value>: ChangeType {
+public struct ValueChange<Value>: ChangeType {
     public var old: Value
     public var new: Value
 
@@ -31,27 +31,27 @@ public struct SimpleChange<Value>: ChangeType {
         return new
     }
 
-    public mutating func merge(with next: SimpleChange) {
+    public mutating func merge(with next: ValueChange) {
         self.new = next.new
     }
 
-    public func merged(with next: SimpleChange) -> SimpleChange {
+    public func merged(with next: ValueChange) -> ValueChange {
         return .init(from: old, to: next.new)
     }
 
-    public func reversed() -> SimpleChange {
+    public func reversed() -> ValueChange {
         return .init(from: new, to: old)
     }
 
-    public func map<R>(_ transform: (Value) -> R) -> SimpleChange<R> {
+    public func map<R>(_ transform: (Value) -> R) -> ValueChange<R> {
         return .init(from: transform(old), to: transform(new))
     }
 }
 
-public func ==<Value: Equatable>(a: SimpleChange<Value>, b: SimpleChange<Value>) -> Bool {
+public func ==<Value: Equatable>(a: ValueChange<Value>, b: ValueChange<Value>) -> Bool {
     return a.old == b.old && a.new == b.new
 }
 
-public func !=<Value: Equatable>(a: SimpleChange<Value>, b: SimpleChange<Value>) -> Bool {
+public func !=<Value: Equatable>(a: ValueChange<Value>, b: ValueChange<Value>) -> Bool {
     return !(a == b)
 }

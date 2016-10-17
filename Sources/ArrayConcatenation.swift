@@ -25,7 +25,7 @@ class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArrayType
     let first: First
     let second: Second
 
-    private var changeSignal = OwningSignal<Change>()
+    private var state = TransactionState<Change>()
     private var c1: Connection? = nil
     private var c2: Connection? = nil
     private var firstCount = 0
@@ -57,25 +57,42 @@ class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArrayType
     }
     override var value: [Element] { return first.value + second.value }
     override var count: Int { return first.count + second.count }
-    override var changes: Source<Change> { return changeSignal.with(self).source }
+    override var updates: ArrayUpdateSource<Element> { return state.source(retainingDelegate: self) }
 
-
-    func start(_ signal: Signal<Change>) {
+    func start(_ signal: Signal<ArrayUpdate<Element>>) {
         firstCount = first.count
         secondCount = second.count
-        c1 = first.changes.connect { change in
+        c1 = first.updates.connect { [unowned self] update in self.applyFirst(update) }
+        c2 = second.updates.connect { [unowned self] update in self.applySecond(update) }
+    }
+
+    private func applyFirst(_ update: ArrayUpdate<Element>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
             precondition(self.firstCount == change.initialCount)
-            self.firstCount = change.finalCount
-            self.changeSignal.send(change.widen(startIndex: 0, initialCount: change.initialCount + self.secondCount))
-        }
-        c2 = second.changes.connect { change in
-            precondition(self.secondCount == change.initialCount)
-            self.secondCount = change.finalCount
-            self.changeSignal.send(change.widen(startIndex: self.firstCount, initialCount: self.firstCount + change.initialCount))
+            firstCount = change.finalCount
+            state.send(change.widen(startIndex: 0, initialCount: change.initialCount + self.secondCount))
+        case .endTransaction:
+            state.end()
         }
     }
 
-    func stop(_ signal: Signal<Change>) {
+    private func applySecond(_ update: ArrayUpdate<Element>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            precondition(self.secondCount == change.initialCount)
+            secondCount = change.finalCount
+            state.send(change.widen(startIndex: self.firstCount, initialCount: self.firstCount + change.initialCount))
+        case .endTransaction:
+            state.end()
+        }
+    }
+
+    func stop(_ signal: Signal<ArrayUpdate<Element>>) {
         c1!.disconnect()
         c2!.disconnect()
         c1 = nil

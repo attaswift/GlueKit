@@ -65,7 +65,7 @@ private final class ChangeSourceForObservableSetField<Parent: ObservableValueTyp
         fieldConnection = field.changes.connect { [unowned self] change in self.signal.send(change) }
     }
 
-    private func apply(_ change: SimpleChange<Parent.Value>) {
+    private func apply(_ change: ValueChange<Parent.Value>) {
         let oldValue = self._field!.value
         let field = self.key(change.new)
         self.connect(to: field)

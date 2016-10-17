@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension ObservableValueType where Change == SimpleChange<Value> {
+extension ObservableValueType where Change == ValueChange<Value> {
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects a child component (a.k.a "field") of its value that is a source,
     /// `map` returns a new source that can be used connect to the field indirectly through the parent.
@@ -23,7 +23,7 @@ extension ObservableValueType where Change == SimpleChange<Value> {
 
 /// A source of values for a Source field.
 private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: SignalDelegate, SourceType
-where Parent.Change == SimpleChange<Parent.Value> {
+where Parent.Change == ValueChange<Parent.Value> {
 
     typealias Value = Field.SourceValue
 
@@ -55,7 +55,7 @@ where Parent.Change == SimpleChange<Parent.Value> {
         parentConnection = nil
     }
 
-    private func apply(_ change: SimpleChange<Parent.Value>) {
+    private func apply(_ change: ValueChange<Parent.Value>) {
         let field = key(change.new)
         self.fieldConnection!.disconnect()
         self.fieldConnection = field.connect(signal.with(self))

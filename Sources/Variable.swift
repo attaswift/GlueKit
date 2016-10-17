@@ -8,42 +8,15 @@
 
 import Foundation
 
-/// A Storage allows read-write access to an individual piece of data.
-public protocol StorageType {
-    associatedtype Value
-    var value: Value { get set }
-}
-
-/// `StrongStorage` directly contains a value, or a strong reference to a class instance.
-public struct StrongStorage<Value>: StorageType {
-    public var value: Value
-    public init(_ value: Value) { self.value = value }
-}
-
-/// `WeakStorage` contains a weak reference to a class instance, as an optional value.
-public struct WeakStorage<Object: AnyObject>: StorageType {
-    public typealias Value = Object?
-    public weak var value: Object?
-    public init(_ value: Value) { self.value = value }
-}
-
-/// `UnownedStorage` containes an unowned reference to a class instance.
-public struct UnownedStorage<Object: AnyObject>: StorageType {
-    public typealias Value = Object
-    public unowned var value: Object
-
-    public init(_ value: Value) { self.value = value }
-}
-
 /// A variable implements `UpdatableValueType` by having internal storage to a value.
 ///
 /// - SeeAlso: UnownedVariable<Value>, WeakVariable<Value>
 ///
 public class Variable<Value>: AbstractUpdatableBase<Value> {
-    public typealias Change = SimpleChange<Value>
+    public typealias Change = ValueChange<Value>
 
     private var _value: Value
-    private var _signal = ChangeSignal<Change>()
+    private var _state = TransactionState<Change>()
 
     /// Create a new variable with an initial value.
     internal init(_ value: Value) {
@@ -56,28 +29,24 @@ public class Variable<Value>: AbstractUpdatableBase<Value> {
     }
 
     public final override func update(_ body: (Value) -> Value) {
-        if _signal.isChanging {
-            _value = body(_value)
-        }
-        else {
-            let old = _value
-            _signal.willChange()
-            _value = body(old)
-            _signal.didChange(Change(from: old, to: value))
-        }
+        let old = _value
+        _state.begin()
+        _value = body(old)
+        _state.send(Change(from: old, to: value))
+        _state.end()
     }
 
-    public final override var changeEvents: Source<ChangeEvent<Change>> {
-        return _signal.source(holding: self)
+    public final override var updates: ValueUpdateSource<Value> {
+        return _state.source(retaining: self)
     }
 }
 
 /// An unowned variable contains an unowned reference to an object that can be read and updated. Updates are observable.
 public class UnownedVariable<Value: AnyObject>: AbstractUpdatableBase<Value> {
-    public typealias Change = SimpleChange<Value>
+    public typealias Change = ValueChange<Value>
 
     private unowned var _value: Value
-    private var _signal = ChangeSignal<Change>()
+    private var _state = TransactionState<Change>()
 
     /// Create a new variable with an initial value.
     internal init(_ value: Value) {
@@ -90,29 +59,25 @@ public class UnownedVariable<Value: AnyObject>: AbstractUpdatableBase<Value> {
     }
 
     public final override func update(_ body: (Value) -> Value) {
-        if _signal.isChanging {
-            _value = body(_value)
-        }
-        else {
-            let old = _value
-            _signal.willChange()
-            _value = body(old)
-            _signal.didChange(Change(from: old, to: value))
-        }
+        let old = _value
+        _state.begin()
+        _value = body(old)
+        _state.send(Change(from: old, to: value))
+        _state.end()
     }
 
-    public final override var changeEvents: Source<ChangeEvent<Change>> {
-        return _signal.source(holding: self)
+    public final override var updates: ValueUpdateSource<Value> {
+        return _state.source(retaining: self)
     }
 }
 
 /// A weak variable contains a weak reference to an object that can be read and updated. Updates are observable.
 public class WeakVariable<Object: AnyObject>: AbstractUpdatableBase<Object?> {
     public typealias Value = Object?
-    public typealias Change = SimpleChange<Value>
+    public typealias Change = ValueChange<Value>
 
     private weak var _value: Object?
-    private var _signal = ChangeSignal<Change>()
+    private var _state = TransactionState<Change>()
 
     /// Create a new variable with an initial value.
     internal init(_ value: Value) {
@@ -125,19 +90,15 @@ public class WeakVariable<Object: AnyObject>: AbstractUpdatableBase<Object?> {
     }
 
     public final override func update(_ body: (Value) -> Value) {
-        if _signal.isChanging {
-            _value = body(_value)
-        }
-        else {
-            let old = _value
-            _signal.willChange()
-            _value = body(old)
-            _signal.didChange(Change(from: old, to: value))
-        }
+        let old = _value
+        _state.begin()
+        _value = body(old)
+        _state.send(Change(from: old, to: value))
+        _state.end()
     }
 
-    public final override var changeEvents: Source<ChangeEvent<Change>> {
-        return _signal.source(holding: self)
+    public final override var updates: ValueUpdateSource<Value> {
+        return _state.source(retaining: self)
     }
 }
 
@@ -198,4 +159,3 @@ public final class OptionalVariable<Wrapped>: Variable<Optional<Wrapped>>, Expre
         super.init(nil)
     }
 }
-

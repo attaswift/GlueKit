@@ -53,18 +53,17 @@ extension ObservableValueType {
 
 /// An Observable that is calculated from two other observables.
 private final class CompositeObservable<Input1: ObservableValueType, Input2: ObservableValueType, Value>: ObservableValueType, SignalDelegate {
-    typealias Change = SimpleChange<Value>
+    typealias Change = ValueChange<Value>
 
     private let first: Input1
     private let second: Input2
     private let combinator: (Input1.Value, Input2.Value) -> Value
-    private var signal = ChangeSignal<Change>()
 
+    private var _state = TransactionState<Change>()
     private var _firstValue: Input1.Value? = nil
     private var _secondValue: Input2.Value? = nil
     private var _value: Value? = nil
     private var _connections: (Connection, Connection)? = nil
-    private var _state: ObservableStateForTwoDependencies<Value> = .normal
 
     public init(first: Input1, second: Input2, combinator: @escaping (Input1.Value, Input2.Value) -> Value) {
         self.first = first
@@ -77,12 +76,12 @@ private final class CompositeObservable<Input1: ObservableValueType, Input2: Obs
     }
 
     public var value: Value {
-        if let value = _value, case .normal = _state { return value }
+        if let value = _value { return value }
         return combinator(first.value, second.value)
     }
-    public var changeEvents: Source<ChangeEvent<Change>> { return signal.source(holdingDelegate: self) }
+    public var updates: Source<Update<Change>> { return _state.source(retainingDelegate: self) }
 
-    internal func start(_ signal: Signal<ChangeEvent<Change>>) {
+    internal func start(_ signal: Signal<Update<Change>>) {
         assert(_connections == nil)
         let v1 = first.value
         let v2 = second.value
@@ -90,38 +89,47 @@ private final class CompositeObservable<Input1: ObservableValueType, Input2: Obs
         _secondValue = v2
         _value = combinator(v1, v2)
 
-        let c1 = first.changeEvents.connect { [unowned self] event in
-            let followup = self._state.applyEventFromFirst(self._value!, event)
-            if let change = event.change {
-                self._firstValue = change.new
-                let new = self.combinator(self._firstValue!, self._secondValue!)
-                self._value = new
-            }
-            if let event = followup.with(new: self._value!) {
-                self.signal.send(event)
-            }
-        }
-        let c2 = second.changeEvents.connect { [unowned self] event in
-            let followup = self._state.applyEventFromSecond(self._value!, event)
-            if let change = event.change {
-                self._secondValue = change.new
-                let new = self.combinator(self._firstValue!, self._secondValue!)
-                self._value = new
-            }
-            if let event = followup.with(new: self._value!) {
-                self.signal.send(event)
-            }
-        }
+        let c1 = first.updates.connect { [unowned self] update in self.apply(update) }
+        let c2 = second.updates.connect { [unowned self] update in self.apply(update) }
         _connections = (c1, c2)
     }
 
-    internal func stop(_ signal: Signal<ChangeEvent<Change>>) {
+    internal func stop(_ signal: Signal<Update<Change>>) {
         _connections!.0.disconnect()
         _connections!.1.disconnect()
         _value = nil
         _firstValue = nil
         _secondValue = nil
         _connections = nil
+    }
+
+    private func apply(_ update: ValueUpdate<Input1.Value>) {
+        switch update {
+        case .beginTransaction:
+            _state.begin()
+        case .change(let change):
+            _firstValue = change.new
+            let old = _value!
+            let new = combinator(_firstValue!, _secondValue!)
+            _value = new
+            _state.send(ValueChange(from: old, to: new))
+        case .endTransaction:
+            _state.end()
+        }
+    }
+    private func apply(_ update: ValueUpdate<Input2.Value>) {
+        switch update {
+        case .beginTransaction:
+            _state.begin()
+        case .change(let change):
+            _secondValue = change.new
+            let old = _value!
+            let new = combinator(_firstValue!, _secondValue!)
+            _value = new
+            _state.send(ValueChange(from: old, to: new))
+        case .endTransaction:
+            self._state.end()
+        }
     }
 }
 

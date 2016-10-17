@@ -12,7 +12,7 @@ extension ObservableSetType {
     public func observableContains(_ member: Element) -> Observable<Bool> {
         return Observable(
             getter: { self.contains(member) },
-            changes: { () -> Source<SimpleChange<Bool>> in
+            changes: { () -> Source<ValueChange<Bool>> in
                 self.changes
                     .filter { $0.inserted.contains(member) || $0.removed.contains(member) }
                     .map {

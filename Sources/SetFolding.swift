@@ -34,7 +34,7 @@ extension ObservableSetType where Element: IntegerArithmetic & ExpressibleByInte
 
 private class SetFoldingByTwoWayFunction<Base: ObservableSetType, Value>: AbstractObservableBase<Value> {
     private var _value: Value
-    private var _signal = OwningSignal<SimpleChange<Value>>()
+    private var _signal = OwningSignal<ValueChange<Value>>()
 
     let add: (Value, Base.Element) -> Value
     let remove: (Value, Base.Element) -> Value
@@ -57,9 +57,9 @@ private class SetFoldingByTwoWayFunction<Base: ObservableSetType, Value>: Abstra
         let old = _value
         for old in change.removed { _value = remove(_value, old) }
         for new in change.inserted { _value = add(_value, new) }
-        _signal.send(SimpleChange(from: old, to: _value))
+        _signal.send(ValueChange(from: old, to: _value))
     }
 
     override var value: Value { return _value }
-    override var changes: Source<SimpleChange<Value>> { return _signal.with(retained: self).source }
+    override var changes: Source<ValueChange<Value>> { return _signal.with(retained: self).source }
 }
