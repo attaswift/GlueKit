@@ -45,6 +45,7 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: Observable
         switch update {
         case .beginTransaction:
             _state.begin()
+            _valueState.begin()
         case .change(let change):
             if _pendingChange != nil {
                 _pendingChange!.merge(with: change)
@@ -70,6 +71,7 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: Observable
                 }
             }
             _state.end()
+            _valueState.end()
         }
     }
 

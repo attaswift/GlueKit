@@ -134,6 +134,9 @@ class ObservableArrayTests: XCTestCase {
         check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.observableArray }, apply: { $0.apply($1) })
         check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.updatableArray }, apply: { $0.apply($1) })
         check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.updatableArray.observableArray }, apply: { $0.apply($1) })
+
+        check(isBuffered: true, make: { TestObservableArray($0) }, convert: { $0.buffered() }, apply: { $0.apply($1) })
+        check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.buffered() }, apply: { $0.apply($1) })
     }
 
     func testConstant() {
