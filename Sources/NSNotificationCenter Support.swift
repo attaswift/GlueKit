@@ -19,26 +19,47 @@ extension NotificationCenter {
     /// - Parameter queue: The operation queue on which the source will trigger. If you pass nil, the sinks are run synchronously on the thread that posted the notification. This parameter is nil by default.
     /// - Returns: A Source that triggers when the specified notification is posted.
     public func source(forName name: NSNotification.Name, sender: AnyObject? = nil, queue: OperationQueue? = nil) -> Source<Notification> {
-        let lock = Lock()
-        var observer: NSObjectProtocol? = nil
+        return NotificationSource(center: self, name: name, sender: sender, queue: queue).source
+    }
+}
 
-        let signal = Signal<Notification>(
-            start: { signal in
-                lock.withLock {
-                    precondition(observer == nil)
-                    observer = self.addObserver(forName: name, object: sender, queue: queue) { [unowned signal] notification in
-                        signal.send(notification)
-                    }
-                }
-            },
-            stop: { signal in
-                lock.withLock {
-                    precondition(observer != nil)
-                    self.removeObserver(observer!)
-                    observer = nil
-                }
-        })
+@objc private class NotificationSource: NSObject, SourceType, SignalDelegate {
+    typealias SourceValue = Notification
 
-        return signal.source
+    let center: NotificationCenter
+    let name: NSNotification.Name
+    let sender: AnyObject?
+    let queue: OperationQueue?
+
+    var signal = OwningSignal<Notification>()
+
+    init(center: NotificationCenter, name: NSNotification.Name, sender: AnyObject?, queue: OperationQueue?) {
+        self.center = center
+        self.name = name
+        self.sender = sender
+        self.queue = queue
+    }
+
+    func connect(_ sink: Sink<SourceValue>) -> Connection {
+        return signal.with(self).connect(sink)
+    }
+
+    @objc private func didReceive(_ notification: Notification) {
+        if let queue = queue {
+            queue.addOperation {
+                self.signal.send(notification)
+            }
+        }
+        else {
+            self.signal.send(notification)
+        }
+    }
+
+    func start(_ signal: Signal<Notification>) {
+        center.addObserver(self, selector: #selector(didReceive(_:)), name: name, object: sender)
+    }
+
+    func stop(_ signal: Signal<Notification>) {
+        center.removeObserver(self, name: name, object: sender)
     }
 }
