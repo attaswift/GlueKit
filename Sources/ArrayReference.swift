@@ -10,7 +10,7 @@ import Foundation
 
 /// A mutable reference to an `ObservableArray` that's also an observable array.
 /// You can switch to another target array without having to re-register subscribers.
-public final class ObservableArrayReference<Element>: ObservableArrayBase<Element>, SignalDelegate {
+public final class ObservableArrayReference<Element>: _ObservableArrayBase<Element>, SignalDelegate {
     public typealias Base = [Element]
     public typealias Change = ArrayChange<Element>
 

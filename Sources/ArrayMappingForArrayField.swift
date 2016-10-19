@@ -70,7 +70,7 @@ private struct Indexmap {
     }
 }
 
-private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: ObservableArrayBase<Field.Element> {
+private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: _ObservableArrayBase<Field.Element> {
     typealias Element = Field.Element
 
     private let parent: Parent

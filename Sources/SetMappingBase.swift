@@ -11,7 +11,7 @@ import Foundation
 /// An observable set where the value is internally represented as a dictionary of element multiplicities.
 /// This class implements the full `ObservableSetType` protocol, and serves as the base class for several transformations
 /// on observable sets.
-class SetMappingBase<Element: Hashable>: ObservableSetBase<Element> {
+class SetMappingBase<Element: Hashable>: _ObservableSetBase<Element> {
     typealias Change = SetChange<Element>
 
     private(set) var contents: [Element: Int] = [:]

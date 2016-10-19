@@ -113,9 +113,9 @@ public struct ObservableArray<Element>: ObservableArrayType {
     public typealias Base = Array<Element>
     public typealias Change = ArrayChange<Element>
 
-    let box: ObservableArrayBase<Element>
+    let box: _ObservableArrayBase<Element>
 
-    init(box: ObservableArrayBase<Element>) {
+    init(box: _ObservableArrayBase<Element>) {
         self.box = box
     }
 
@@ -136,9 +136,9 @@ public struct ObservableArray<Element>: ObservableArrayType {
     func holding(_ connection: Connection) -> ObservableArray<Element> { box.hold(connection); return self }
 }
 
-internal class ObservableArrayBase<Element>: ObservableArrayType {
-    typealias Base = Array<Element>
-    typealias Change = ArrayChange<Element>
+open class _ObservableArrayBase<Element>: ObservableArrayType {
+    public typealias Base = Array<Element>
+    public typealias Change = ArrayChange<Element>
 
     private var connections: [Connection] = []
 
@@ -148,27 +148,27 @@ internal class ObservableArrayBase<Element>: ObservableArrayType {
         }
     }
 
-    var isBuffered: Bool { abstract() }
-    subscript(_ index: Int) -> Element { abstract() }
-    subscript(_ range: Range<Int>) -> ArraySlice<Element> { abstract() }
-    var value: Array<Element> { abstract() }
-    var count: Int { abstract() }
-    var updates: ArrayUpdateSource<Element> { abstract() }
+    open var isBuffered: Bool { abstract() }
+    open subscript(_ index: Int) -> Element { abstract() }
+    open subscript(_ range: Range<Int>) -> ArraySlice<Element> { abstract() }
+    open var value: Array<Element> { abstract() }
+    open var count: Int { abstract() }
+    open var updates: ArrayUpdateSource<Element> { abstract() }
 
-    var observableCount: Observable<Int> {
+    open var observableCount: Observable<Int> {
         return Observable(getter: { self.count },
                           updates: { self.updates.map { $0.map { $0.countChange } } })
     }
 
-    var observable: Observable<[Element]> {
+    open var observable: Observable<[Element]> {
         return Observable(getter: { self.value }, updates: { self.valueUpdates })
     }
 
-    final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }
-    final func hold(_ connection: Connection) { connections.append(connection) }
+    public final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }
+    public final func hold(_ connection: Connection) { connections.append(connection) }
 }
 
-internal class ObservableArrayBox<Contents: ObservableArrayType>: ObservableArrayBase<Contents.Element> {
+internal class ObservableArrayBox<Contents: ObservableArrayType>: _ObservableArrayBase<Contents.Element> {
     typealias Element = Contents.Element
 
     let contents: Contents
@@ -187,7 +187,7 @@ internal class ObservableArrayBox<Contents: ObservableArrayType>: ObservableArra
     override var observable: Observable<[Element]> { return contents.observable }
 }
 
-internal class ObservableArrayConstant<Element>: ObservableArrayBase<Element> {
+internal class ObservableArrayConstant<Element>: _ObservableArrayBase<Element> {
     let _value: Array<Element>
 
     init(_ value: [Element]) {

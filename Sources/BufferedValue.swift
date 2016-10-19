@@ -14,7 +14,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
     }
 }
 
-internal class BufferedObservableValue<Base: ObservableValueType>: AbstractObservableBase<Base.Value>
+internal class BufferedObservableValue<Base: ObservableValueType>: _ObservableValueBase<Base.Value>
 where Base.Change == ValueChange<Base.Value> {
     typealias Value = Base.Value
 

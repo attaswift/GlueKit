@@ -19,7 +19,7 @@ extension ObservableArrayType {
     }
 }
 
-internal class BufferedObservableArray<Content: ObservableArrayType>: ObservableArrayBase<Content.Element> {
+internal class BufferedObservableArray<Content: ObservableArrayType>: _ObservableArrayBase<Content.Element> {
     typealias Element = Content.Element
     typealias Change = ArrayChange<Element>
 

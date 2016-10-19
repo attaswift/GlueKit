@@ -131,9 +131,9 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
     public typealias Base = [Element]
     public typealias Change = ArrayChange<Element>
 
-    let box: UpdatableArrayBase<Element>
+    let box: _UpdatableArrayBase<Element>
 
-    init(box: UpdatableArrayBase<Element>) {
+    init(box: _UpdatableArrayBase<Element>) {
         self.box = box
     }
 
@@ -169,38 +169,38 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
     public var updatableArray: UpdatableArray<Element> { return self }
 }
 
-internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, UpdatableArrayType {
+open class _UpdatableArrayBase<Element>: _ObservableArrayBase<Element>, UpdatableArrayType {
 
-    func apply(_ change: ArrayChange<Element>) { abstract() }
+    open func apply(_ change: ArrayChange<Element>) { abstract() }
 
-    func withTransaction<Result>(_ body: () -> Result) -> Result {
+    open func withTransaction<Result>(_ body: () -> Result) -> Result {
         abstract()
     }
 
-    override var value: [Element] {
+    open override var value: [Element] {
         get { abstract() }
         set { abstract() }
     }
-    override subscript(index: Int) -> Element {
+    open override subscript(index: Int) -> Element {
         get { abstract() }
         set { abstract() }
     }
-    override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+    open override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
         get { abstract() }
         set { abstract() }
     }
 
-    var updatable: Updatable<[Element]> {
+    open var updatable: Updatable<[Element]> {
         return Updatable(getter: { self.value },
                          setter: { self.value = $0 },
                          transaction: { self.withTransaction($0) },
                          updates: { self.valueUpdates })
     }
 
-    final var updatableArray: UpdatableArray<Element> { return UpdatableArray(box: self) }
+    public final var updatableArray: UpdatableArray<Element> { return UpdatableArray(box: self) }
 }
 
-internal class UpdatableArrayBox<Contents: UpdatableArrayType>: UpdatableArrayBase<Contents.Element> {
+internal class UpdatableArrayBox<Contents: UpdatableArrayType>: _UpdatableArrayBase<Contents.Element> {
     typealias Element = Contents.Element
 
     var contents: Contents

@@ -14,7 +14,7 @@ extension ObservableArrayType {
     }
 }
 
-private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: ObservableArrayBase<Parent.Element> {
+private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _ObservableArrayBase<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = ArrayChange<Element>
 

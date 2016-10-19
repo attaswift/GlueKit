@@ -83,9 +83,9 @@ extension ObservableValueType where Change == ValueChange<Value> {
 
 /// The type lifted representation of an ObservableValueType that contains a single value with simple changes.
 public struct Observable<Value>: ObservableValueType {
-    private let box: AbstractObservableBase<Value>
+    private let box: _ObservableValueBase<Value>
 
-    init(box: AbstractObservableBase<Value>) {
+    init(box: _ObservableValueBase<Value>) {
         self.box = box
     }
     
@@ -97,7 +97,7 @@ public struct Observable<Value>: ObservableValueType {
     }
 
     public init<Base: ObservableValueType>(_ base: Base) where Base.Value == Value {
-        self.box = ObservableBox(base)
+        self.box = ObservableValueBox(base)
     }
 
     public var value: Value { return box.value }
@@ -106,19 +106,19 @@ public struct Observable<Value>: ObservableValueType {
     public var observable: Observable<Value> { return self }
 }
 
-internal class AbstractObservableBase<Value>: ObservableValueType {
-    typealias Change = ValueChange<Value>
+open class _ObservableValueBase<Value>: ObservableValueType {
+    public typealias Change = ValueChange<Value>
 
-    var value: Value { abstract() }
-    var updates: ValueUpdateSource<Value> { abstract() }
-    var futureValues: Source<Value> { return changes.map { $0.new } }
+    open var value: Value { abstract() }
+    open var updates: ValueUpdateSource<Value> { abstract() }
+    open var futureValues: Source<Value> { return changes.map { $0.new } }
 
-    final var observable: Observable<Value> {
+    public final var observable: Observable<Value> {
         return Observable(box: self)
     }
 }
 
-internal class ObservableBox<Base: ObservableValueType>: AbstractObservableBase<Base.Value> {
+internal class ObservableValueBox<Base: ObservableValueType>: _ObservableValueBase<Base.Value> {
     typealias Value = Base.Value
 
     private let base: Base
@@ -131,7 +131,7 @@ internal class ObservableBox<Base: ObservableValueType>: AbstractObservableBase<
     override var futureValues: Source<Value> { return base.futureValues }
 }
 
-private class ObservableClosureBox<Value>: AbstractObservableBase<Value> {
+private class ObservableClosureBox<Value>: _ObservableValueBase<Value> {
     private let _value: () -> Value
     private let _updates: () -> ValueUpdateSource<Value>
 

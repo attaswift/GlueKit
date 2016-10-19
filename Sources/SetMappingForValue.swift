@@ -20,7 +20,7 @@ extension ObservableSetType {
     }
 }
 
-private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Element: Hashable>: ObservableSetBase<Element> {
+private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Element: Hashable>: _ObservableSetBase<Element> {
     typealias Change = SetChange<Element>
 
     let parent: Parent

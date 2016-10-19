@@ -73,7 +73,7 @@ public struct Updatable<Value>: UpdatableValueType {
     }
 }
 
-internal class AbstractUpdatableBase<Value>: AbstractObservableBase<Value>, UpdatableValueType {
+internal class AbstractUpdatableBase<Value>: _ObservableValueBase<Value>, UpdatableValueType {
     typealias Change = ValueChange<Value>
 
     override var value: Value {

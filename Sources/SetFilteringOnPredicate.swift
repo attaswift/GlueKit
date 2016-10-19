@@ -31,7 +31,7 @@ extension ObservableSetType {
     }
 }
 
-private final class SetFilteringOnPredicate<Parent: ObservableSetType>: ObservableSetBase<Parent.Element>, SignalDelegate {
+private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _ObservableSetBase<Parent.Element>, SignalDelegate {
     public typealias Element = Parent.Element
     public typealias Change = SetChange<Element>
 

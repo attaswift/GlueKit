@@ -18,7 +18,7 @@ extension ObservableValueType {
     }
 }
 
-private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: ObservableSetType>: SignalDelegate, SourceType {
+private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: ObservableSetType>: SignalDelegate {
     typealias Element = Field.Element
     typealias Change = SetChange<Element>
 
@@ -35,8 +35,8 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
         self.key = key
     }
 
-    func connect(_ sink: Sink<Update<Change>>) -> Connection {
-        return state.source(retainingDelegate: self).connect(sink)
+    var source: Source<Update<Change>> {
+        return state.source(retainingDelegate: self).source
     }
 
     fileprivate var field: Field {
@@ -84,7 +84,7 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
     }
 }
 
-private final class ValueMappingForSetField<Parent: ObservableValueType, Field: ObservableSetType>: ObservableSetBase<Field.Element> {
+private final class ValueMappingForSetField<Parent: ObservableValueType, Field: ObservableSetType>: _ObservableSetBase<Field.Element> {
     typealias Element = Field.Element
 
     private let updateSource: UpdateSourceForSetField<Parent, Field>
@@ -105,7 +105,7 @@ private final class ValueMappingForSetField<Parent: ObservableValueType, Field: 
     override var updates: SetUpdateSource<Element> { return updateSource.source }
 }
 
-private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType, Field: UpdatableSetType>: UpdatableSetBase<Field.Element> {
+private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType, Field: UpdatableSetType>: _UpdatableSetBase<Field.Element> {
     typealias Element = Field.Element
 
     private let updateSource: UpdateSourceForSetField<Parent, Field>

@@ -49,7 +49,7 @@ extension ObservableValueType {
 }
 
 /// A source of changes for an Observable field.
-private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: AbstractObservableBase<Field.Value>, SignalDelegate {
+private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: _ObservableValueBase<Field.Value>, SignalDelegate {
     typealias Value = Field.Value
     typealias Change = ValueChange<Value>
 

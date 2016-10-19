@@ -32,7 +32,7 @@ extension ObservableArrayType where Element: IntegerArithmetic & ExpressibleByIn
     }
 }
 
-private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: AbstractObservableBase<Value> {
+private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: _ObservableValueBase<Value> {
     private var _value: Value
     private var _state = TransactionState<ValueChange<Value>>()
 

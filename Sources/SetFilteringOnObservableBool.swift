@@ -14,7 +14,7 @@ extension ObservableSetType {
     }
 }
 
-private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult: ObservableValueType>: ObservableSetBase<Parent.Element>, SignalDelegate where TestResult.Value == Bool {
+private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult: ObservableValueType>: _ObservableSetBase<Parent.Element>, SignalDelegate where TestResult.Value == Bool {
     typealias Element = Parent.Element
     typealias Change = SetChange<Element>
 

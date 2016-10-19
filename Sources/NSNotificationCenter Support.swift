@@ -23,7 +23,7 @@ extension NotificationCenter {
     }
 }
 
-@objc private class NotificationSource: NSObject, SourceType, SignalDelegate {
+@objc private class NotificationSource: NSObject, SignalDelegate {
     typealias SourceValue = Notification
 
     let center: NotificationCenter
@@ -40,8 +40,8 @@ extension NotificationCenter {
         self.queue = queue
     }
 
-    func connect(_ sink: Sink<SourceValue>) -> Connection {
-        return signal.with(self).connect(sink)
+    var source: Source<Notification> {
+        return signal.with(self).source
     }
 
     @objc private func didReceive(_ notification: Notification) {

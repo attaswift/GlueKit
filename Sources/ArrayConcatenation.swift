@@ -18,7 +18,7 @@ public func +<A: ObservableArrayType, B: ObservableArrayType>(a: A, b: B) -> Obs
     return a.concatenate(with: b)
 }
 
-class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArrayType>: ObservableArrayBase<First.Element>, SignalDelegate where First.Element == Second.Element {
+class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArrayType>: _ObservableArrayBase<First.Element>, SignalDelegate where First.Element == Second.Element {
     typealias Element = First.Element
     typealias Change = ArrayChange<Element>
 

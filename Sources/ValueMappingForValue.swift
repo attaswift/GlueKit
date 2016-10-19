@@ -17,7 +17,7 @@ public extension ObservableValueType {
     }
 }
 
-private final class ValueMappingForValue<Parent: ObservableValueType, Value>: AbstractObservableBase<Value> {
+private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _ObservableValueBase<Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
 

@@ -54,7 +54,8 @@ extension ObservableValueType {
 }
 
 /// A source of changes for an ObservableArray field.
-private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>: SignalDelegate, SourceType {
+private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>
+: SignalDelegate {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
@@ -71,8 +72,8 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
         self.key = key
     }
 
-    func connect(_ sink: Sink<Update<Change>>) -> Connection {
-        return state.source(retainingDelegate: self).connect(sink)
+    var source: Source<Update<Change>> {
+        return state.source(retainingDelegate: self)
     }
 
     func start(_ signal: Signal<Update<Change>>) {
@@ -113,7 +114,7 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
     }
 }
 
-private class ValueMappingForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>: ObservableArrayBase<Field.Element> {
+private class ValueMappingForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>: _ObservableArrayBase<Field.Element> {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
@@ -136,7 +137,7 @@ private class ValueMappingForArrayField<Parent: ObservableValueType, Field: Obse
     override var updates: ArrayUpdateSource<Element> { return _updateSource.source }
 }
 
-private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Field: UpdatableArrayType>: UpdatableArrayBase<Field.Element> {
+private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Field: UpdatableArrayType>: _UpdatableArrayBase<Field.Element> {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
