@@ -12,7 +12,8 @@ import Foundation
 ///
 /// - SeeAlso: UnownedVariable<Value>, WeakVariable<Value>
 ///
-public class Variable<Value>: AbstractUpdatableBase<Value> {
+public class Variable<V>: AbstractUpdatableBase<V> {
+    public typealias Value = V
     public typealias Change = ValueChange<Value>
 
     private var _value: Value
@@ -47,7 +48,8 @@ public class Variable<Value>: AbstractUpdatableBase<Value> {
 }
 
 /// An unowned variable contains an unowned reference to an object that can be read and updated. Updates are observable.
-public class UnownedVariable<Value: AnyObject>: AbstractUpdatableBase<Value> {
+public class UnownedVariable<V: AnyObject>: AbstractUpdatableBase<V> {
+    public typealias Value = V
     public typealias Change = ValueChange<Value>
 
     private unowned var _value: Value
