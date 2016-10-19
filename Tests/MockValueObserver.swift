@@ -9,12 +9,14 @@
 import XCTest
 import GlueKit
 
-class MockValueObserver<Value: Equatable> {
+class MockValueObserver<Value> {
     var expectedChanges: [ValueChange<Value>] = []
     var actualChanges: [ValueChange<Value>] = []
     var connection: Connection? = nil
+    let eq: (Value, Value) -> Bool
 
-    init<O: ObservableValueType>(_ target: O) where O.Value == Value, O.Change == ValueChange<Value> {
+    init<O: ObservableValueType>(_ target: O, _ eq: @escaping (Value, Value) -> Bool) where O.Value == Value, O.Change == ValueChange<Value> {
+        self.eq = eq
         self.connection = target.changes.connect { [unowned self] change in self.apply(change) }
     }
 
@@ -43,12 +45,18 @@ class MockValueObserver<Value: Equatable> {
     private func run<R>(file: StaticString, line: UInt, _ body: () throws -> R) rethrows -> R {
         let result = try body()
 
-        if !actualChanges.elementsEqual(expectedChanges, by: ==) {
+        if !actualChanges.elementsEqual(expectedChanges, by: { eq($0.old, $1.old) && eq($0.new, $1.new) }) {
             XCTFail("\(actualChanges) is not equal to \(expectedChanges)", file: file, line: line)
         }
 
         actualChanges = []
         expectedChanges = []
         return result
+    }
+}
+
+extension MockValueObserver where Value: Equatable {
+    convenience init<O: ObservableValueType>(_ target: O) where O.Value == Value, O.Change == ValueChange<Value> {
+        self.init(target, ==)
     }
 }

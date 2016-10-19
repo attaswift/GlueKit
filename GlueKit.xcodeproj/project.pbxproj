@@ -404,6 +404,7 @@
 		BBEBFF941DB7892B008AC632 /* SetFilteringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AEE1DA693F700BC4B58 /* SetFilteringTests.swift */; };
 		BBEBFF951DB7892E008AC632 /* SetSortingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB471D991DA57FF8002550B0 /* SetSortingTests.swift */; };
 		BBEBFF961DB78930008AC632 /* SetFoldingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E061DAA918400E85FB9 /* SetFoldingTests.swift */; };
+		BBEBFF971DB7BA12008AC632 /* VariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BA71C8FCE2C0050DDA9 /* VariableTests.swift */; };
 		BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
@@ -1512,6 +1513,7 @@
 				BBEBFF951DB7892E008AC632 /* SetSortingTests.swift in Sources */,
 				BBEBFF831DB785D1008AC632 /* ValueMappingTests.swift in Sources */,
 				BBB55BC71C8FCE2C0050DDA9 /* SimpleSourcesTests.swift in Sources */,
+				BBEBFF971DB7BA12008AC632 /* VariableTests.swift in Sources */,
 				BBEBFF8F1DB7879E008AC632 /* DistinctUnionTests.swift in Sources */,
 				BBEBFF8B1DB7879E008AC632 /* ArrayVariableTests.swift in Sources */,
 				BBEBFF7D1DB77FD5008AC632 /* ObservableTests.swift in Sources */,

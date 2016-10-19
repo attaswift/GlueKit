@@ -129,8 +129,6 @@ public final class BoolVariable: Variable<Bool>, ExpressibleByBooleanLiteral {
     public init(booleanLiteral value: BooleanLiteralType) {
         super.init(value)
     }
-
-    public var boolValue: Bool { return self.value }
 }
 
 public final class IntVariable: Variable<Int>, ExpressibleByIntegerLiteral {
