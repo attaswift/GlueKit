@@ -17,7 +17,7 @@ public extension ObservableValueType {
     }
 }
 
-private final class ValueMappingForValue<Parent: ObservableValueType, Value>: ObservableBoxBase<Value> {
+private final class ValueMappingForValue<Parent: ObservableValueType, Value>: AbstractObservableBase<Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
 
@@ -30,18 +30,18 @@ private final class ValueMappingForValue<Parent: ObservableValueType, Value>: Ob
         return transform(parent.value)
     }
 
-    override var changes: Source<SimpleChange<Value>> {
-        return parent.changes.map { $0.map(self.transform) }
+    override var updates: Source<Update<Change>> {
+        return parent.updates.map { update in update.map { $0.map(self.transform) } }
     }
 }
 
-extension UpdatableValueType {
+extension UpdatableValueType where Change == ValueChange<Value> {
     public func map<Output>(_ transform: @escaping (Value) -> Output, inverse: @escaping (Output) -> Value) -> Updatable<Output> {
         return ValueMappingForUpdatableValue<Self, Output>(parent: self, transform: transform, inverse: inverse).updatable
     }
 }
 
-private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: UpdatableBoxBase<Value> {
+private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: AbstractUpdatableBase<Value> where Parent.Change == ValueChange<Parent.Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
     let inverse: (Value) -> Parent.Value
@@ -53,10 +53,19 @@ private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Va
     }
 
     override var value: Value {
-        get { return transform(parent.value) }
-        set { parent.value = inverse(newValue) }
+        get {
+            return transform(parent.value)
+        }
+        set {
+            parent.value = inverse(newValue)
+        }
     }
-    override var changes: Source<SimpleChange<Value>> {
-        return parent.changes.map { $0.map(self.transform) }
+
+    override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        return parent.withTransaction(body)
+    }
+
+    override var updates: Source<Update<Change>> {
+        return parent.updates.map { update in update.map { $0.map(self.transform) } }
     }
 }

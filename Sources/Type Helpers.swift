@@ -151,7 +151,7 @@ public extension ObservableValueType where Value == Any? {
     var asCGAffineTransform: Observable<CGAffineTransform> { return self.map(toCGAffineTransform) }
 }
 
-public extension UpdatableValueType where Value == Any? {
+public extension UpdatableValueType where Value == Any?, Change == ValueChange<Value> {
     /// Casts all values to Type using a forced cast. Traps if a value can't be casted to the specified type.
     func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> Updatable<T> {
         return self.map({ $0 as! T }, inverse: { $0 as Any? })

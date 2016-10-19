@@ -15,35 +15,49 @@ extension ObservableArrayType where Element: Hashable {
     }
 }
 
-private class DistinctUnion<Base: ObservableArrayType>: ObservableSetBase<Base.Element> where Base.Element: Hashable {
-    typealias Element = Base.Element
+private class DistinctUnion<Input: ObservableArrayType>: ObservableSetBase<Input.Element> where Input.Element: Hashable {
+    typealias Element = Input.Element
+    typealias Change = SetChange<Element>
 
     private var members = Dictionary<Element, Int>()
-    private var signal = OwningSignal<SetChange<Element>>()
+    private var state = TransactionState<Change>()
     private var connection: Connection? = nil
 
-    init(_ base: Base) {
+    init(_ input: Input) {
         super.init()
-        for element in base.value {
+        for element in input.value {
             _ = self.add(element)
         }
-        self.connection = base.changes.connect { [unowned self] change in
-            var setChange: SetChange<Element>? = self.signal.isConnected ? SetChange<Element>() : nil
+        self.connection = input.updates.connect { [unowned self] in self.apply($0) }
+    }
+
+    deinit {
+        connection!.disconnect()
+    }
+
+    private func apply(_ update: ArrayUpdate<Element>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            var setChange = SetChange<Element>()
             for mod in change.modifications {
                 mod.forEachOldElement {
-                    if self.remove($0) {
-                        setChange?.remove($0)
+                    if remove($0) {
+                        setChange.remove($0)
                     }
                 }
                 mod.forEachNewElement {
-                    if self.add($0) {
-                        setChange?.insert($0)
+                    if add($0) {
+                        setChange.insert($0)
                     }
                 }
             }
-            if let change = setChange, !change.isEmpty {
-                self.signal.send(change)
+            if !change.isEmpty {
+                state.send(setChange)
             }
+        case .endTransaction:
+            state.end()
         }
     }
 
@@ -68,16 +82,16 @@ private class DistinctUnion<Base: ObservableArrayType>: ObservableSetBase<Base.E
 
     override var isBuffered: Bool { return true }
     override var count: Int { return value.count }
-    override var value: Set<Base.Element> { return Set(members.keys) }
-    override func contains(_ element: Base.Element) -> Bool { return members[element] != nil }
-    override func isSubset(of other: Set<Base.Element>) -> Bool {
+    override var value: Set<Element> { return Set(members.keys) }
+    override func contains(_ element: Element) -> Bool { return members[element] != nil }
+    override func isSubset(of other: Set<Element>) -> Bool {
         guard count <= other.count else { return false }
         for (key, _) in members {
             guard other.contains(key) else { return false }
         }
         return true
     }
-    override func isSuperset(of other: Set<Base.Element>) -> Bool {
+    override func isSuperset(of other: Set<Element>) -> Bool {
         guard count >= other.count else { return false }
         for element in other {
             guard members[element] != nil else { return false }
@@ -85,5 +99,5 @@ private class DistinctUnion<Base: ObservableArrayType>: ObservableSetBase<Base.E
         return true
     }
 
-    override var changes: Source<SetChange<Base.Element>> { return signal.with(retained: self).source }
+    override var updates: SetUpdateSource<Element> { return state.source(retaining: self) }
 }

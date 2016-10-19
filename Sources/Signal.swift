@@ -40,7 +40,7 @@ private enum PendingItem<Value> {
     case ripenSinkWithID(ConnectionID)
 }
 
-/// A Signal provides a source and a sink. Sending a value to a signal's sink forwards it to all sinks that are 
+/// A Signal is both a source and a sink. Sending a value to a signal's sink forwards it to all sinks that are 
 /// currently connected to the signal. The signal's sink is named "send", and it is available as a direct method.
 ///
 /// The Five Rules of Signal:
@@ -74,12 +74,12 @@ private enum PendingItem<Value> {
 /// reentrancy, but it only makes sense when you have the concept of a current value, which Signal doesn't. 
 /// (Although Variable does.)
 ///
-public final class Signal<Value>: SourceType, SinkType {
+public class Signal<Value>: SourceType, SinkType {
     public typealias SourceValue = Value
     public typealias SinkValue = Value
 
     private let lock = Lock()
-    private var sending = AtomicBool(false)
+    private var sending = false
     private var sinks: Dictionary<ConnectionID, Ripening<Sink<Value>>> = [:]
     private var pendingItems: [PendingItem<Value>] = []
 
@@ -125,14 +125,18 @@ public final class Signal<Value>: SourceType, SinkType {
     /// Atomically enter sending state if the signal wasn't already in it.
     /// @returns true if the signal entered sending state due to this call.
     private func _enterSendingState() -> Bool {
-        return self.sending.set(true) == false
+        return lock.withLock {
+            if sending { return false }
+            sending = true
+            return true
+        }
     }
 
     /// Atomically return the pending value that needs to be sent next, or nil. 
     /// If there are no more values, exit the sending state.
     private func _nextValueToSendOrElseLeaveSendingState() -> Value? {
         return lock.withLock {
-            assert(self.sending.get())
+            assert(self.sending)
             while case .some(let item) = self.pendingItems.first {
                 self.pendingItems.removeFirst()
                 switch item {
@@ -146,14 +150,14 @@ public final class Signal<Value>: SourceType, SinkType {
                 }
             }
             // There are no more items to process.
-            self.sending.set(false)
+            self.sending = false
             return nil
         }
     }
 
     /// Synchronously send a value to all connected sinks.
     private func _sendValueNow(_ value: Value) {
-        assert(sending.get())
+        assert(lock.withLock { sending })
 
         // Note that sinks are allowed to freely add or remove connections. 
         // This loop is constructed to support this correctly:
@@ -248,7 +252,7 @@ public final class Signal<Value>: SourceType, SinkType {
         // c is holding us, and we now hold a strong reference to the sink, so c holds both us and the sink.
 
         if first {
-            self.startCallback(self)
+            start()
         }
         return c
     }
@@ -260,8 +264,16 @@ public final class Signal<Value>: SourceType, SinkType {
             return self.sinks.removeValue(forKey: id) != nil && self.sinks.isEmpty
         }
         if last {
-            self.stopCallback(self)
+            stop()
         }
+    }
+
+    func start() {
+        self.startCallback(self)
+    }
+
+    func stop() {
+        self.stopCallback(self)
     }
 }
 

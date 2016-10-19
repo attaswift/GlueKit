@@ -17,7 +17,7 @@ extension ObservableSetType {
         return self.filter(isIncluded.map { predicate -> Optional<(Element) -> Bool> in predicate })
     }
 
-    public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> ObservableSet<Element> where Predicate.Value == Optional<(Element) -> Bool> {
+    public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> ObservableSet<Element> where Predicate.Value == Optional<(Element) -> Bool>, Predicate.Change == ValueChange<Predicate.Value> {
         let reference = ObservableSetReference<Element>()
         let connection = isIncluded.values.connect { predicate in
             if let predicate = predicate {
@@ -38,7 +38,7 @@ private final class SetFilteringOnPredicate<Parent: ObservableSetType>: Observab
     private let parent: Parent
     private let test: (Element) -> Bool
 
-    private var changeSignal = OwningSignal<Change>()
+    private var state = TransactionState<Change>()
 
     private var active = false
     private var parentConnection: Connection? = nil
@@ -80,42 +80,47 @@ private final class SetFilteringOnPredicate<Parent: ObservableSetType>: Observab
         return true
     }
 
-    override var changes: Source<SetChange<Parent.Element>> { return changeSignal.with(self).source }
+    override var updates: SetUpdateSource<Element> { return state.source(retainingDelegate: self) }
 
-    internal func start(_ signal: Signal<Change>) {
+    internal func start(_ signal: Signal<Update<Change>>) {
         active = true
         for e in parent.value {
             if test(e) {
                 matchingElements.insert(e)
             }
         }
-        parentConnection = parent.changes.connect { [unowned self] change in
-            self.apply(change)
-        }
+        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
     }
 
-    internal func stop(_ signal: Signal<Change>) {
+    internal func stop(_ signal: Signal<Update<Change>>) {
         active = false
         parentConnection?.disconnect()
         parentConnection = nil
         matchingElements = []
     }
 
-    private func apply(_ change: SetChange<Parent.Element>) {
-        var c = SetChange<Element>()
-        for e in change.removed {
-            if let old = matchingElements.remove(e) {
-                c.remove(old)
+    private func apply(_ update: SetUpdate<Parent.Element>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            var c = SetChange<Element>()
+            for e in change.removed {
+                if let old = matchingElements.remove(e) {
+                    c.remove(old)
+                }
             }
-        }
-        for e in change.inserted {
-            if self.test(e) {
-                matchingElements.insert(e)
-                c.insert(e)
+            for e in change.inserted {
+                if self.test(e) {
+                    matchingElements.insert(e)
+                    c.insert(e)
+                }
             }
-        }
-        if !c.isEmpty {
-            changeSignal.send(c)
+            if !c.isEmpty {
+                state.send(c)
+            }
+        case .endTransaction:
+            state.end()
         }
     }
 }

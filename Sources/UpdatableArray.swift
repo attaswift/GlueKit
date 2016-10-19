@@ -20,7 +20,7 @@ import Foundation
 /// Also, it is not a good idea to do complex in-place manipulations (such as `sortInPlace`) on an array that has observers.
 /// Instead of `updatableArray.sortInPlace()`, which is not available, consider using
 /// `updatableArray.value = updatableArray.value.sort()`. The latter will probably be much more efficient.
-public protocol UpdatableArrayType: ObservableArrayType {
+public protocol UpdatableArrayType: ObservableArrayType, UpdatableType {
 
     // Required members
     func apply(_ change: ArrayChange<Element>)
@@ -39,21 +39,13 @@ extension UpdatableArrayType {
         return Updatable(
             getter: { self.value },
             setter: { self.value = $0 },
-            changes: { self.valueChanges }
+            transaction: { self.withTransaction($0) },
+            updates: { self.valueUpdates }
         )
     }
 
     public var updatableArray: UpdatableArray<Element> {
         return UpdatableArray(box: UpdatableArrayBox(self))
-    }
-
-    public func modify(_ block: (ArrayVariable<Element>) throws -> Void) rethrows -> Void {
-        let array = ArrayVariable<Element>(self.value)
-        var change = ArrayChange<Element>(initialCount: array.count)
-        let connection = array.changes.connect { c in change.merge(with: c) }
-        defer { connection.disconnect() }
-        try block(array)
-        self.apply(change)
     }
 
     public func replaceSubrange<C: Collection>(_ range: Range<Int>, with elements: C) where C.Iterator.Element == Element {
@@ -147,9 +139,16 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
 
     public var isBuffered: Bool { return box.isBuffered }
     public var count: Int { return box.count }
-    public var changes: Source<ArrayChange<Element>> { return box.changes }
+    public var updates: ArrayUpdateSource<Element> { return box.updates }
 
-    public func apply(_ change: ArrayChange<Element>) { box.apply(change) }
+    public func withTransaction<Result>(_ body: () -> Result) -> Result {
+        return self.box.withTransaction(body)
+    }
+
+    public func apply(_ change: ArrayChange<Element>) {
+        box.apply(change)
+    }
+
     public var value: [Element] {
         get { return box.value }
         nonmutating set { box.value = newValue }
@@ -174,6 +173,10 @@ internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, Updata
 
     func apply(_ change: ArrayChange<Element>) { abstract() }
 
+    func withTransaction<Result>(_ body: () -> Result) -> Result {
+        abstract()
+    }
+
     override var value: [Element] {
         get { abstract() }
         set { abstract() }
@@ -190,7 +193,8 @@ internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, Updata
     var updatable: Updatable<[Element]> {
         return Updatable(getter: { self.value },
                          setter: { self.value = $0 },
-                         changes: { self.valueChanges })
+                         transaction: { self.withTransaction($0) },
+                         updates: { self.valueUpdates })
     }
 
     final var updatableArray: UpdatableArray<Element> { return UpdatableArray(box: self) }
@@ -203,6 +207,10 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: UpdatableArrayBa
 
     init(_ contents: Contents) {
         self.contents = contents
+    }
+
+    override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        return contents.withTransaction(body)
     }
 
     override func apply(_ change: ArrayChange<Element>) {
@@ -230,7 +238,7 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: UpdatableArrayBa
 
     override var isBuffered: Bool { return contents.isBuffered }
     override var count: Int { return contents.count }
-    override var changes: Source<ArrayChange<Element>> { return contents.changes }
+    override var updates: ArrayUpdateSource<Element> { return contents.updates }
     override var observable: Observable<[Element]> { return contents.observable }
     override var observableCount: Observable<Int> { return contents.observableCount }
 }

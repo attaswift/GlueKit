@@ -8,7 +8,7 @@
 
 import XCTest
 import Foundation
-import GlueKit
+@testable import GlueKit
 
 @inline(never)
 func noop<Value>(_ value: Value) {
@@ -23,34 +23,51 @@ func XCTAssertEqual<E: Equatable>(_ a: @autoclosure () -> [[E]], _ b: @autoclosu
 }
 
 class TestObservable<Value>: ObservableValueType {
-    var _signal = Signal<SimpleChange<Value>>()
+    var _state = TransactionState<ValueChange<Value>>()
+    var _value: Value
+
+    init(_ value: Value) {
+        self._value = value
+    }
 
     var value: Value {
-        didSet {
-            _signal.send(.init(from: oldValue, to: value))
+        get { return _value }
+        set {
+            let old = _value
+            _state.begin()
+            _value = newValue
+            _state.send(.init(from: old, to: _value))
+            _state.end()
         }
     }
 
-    init(_ value: Value) {
-        self.value = value
-    }
-
-    var changes: Source<SimpleChange<Value>> { return _signal.source }
+    var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }
 
 class TestUpdatable<Value>: UpdatableValueType {
-    var _signal = Signal<SimpleChange<Value>>()
+    var _state = TransactionState<ValueChange<Value>>()
+    var _value: Value
+
+    init(_ value: Value) {
+        self._value = value
+    }
 
     var value: Value {
-        didSet {
-            _signal.send(.init(from: oldValue, to: value))
+        get { return _value }
+        set {
+            let old = _value
+            _state.begin()
+            _value = newValue
+            _state.send(.init(from: old, to: _value))
+            _state.end()
         }
     }
 
-    init(_ value: Value) {
-        self.value = value
+    func withTransaction<Result>(_ body: () -> Result) -> Result {
+        _state.begin()
+        defer { _state.end() }
+        return body()
     }
 
-    var changes: Source<SimpleChange<Value>> { return _signal.source }
+    var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }
-

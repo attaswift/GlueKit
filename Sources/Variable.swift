@@ -8,94 +8,112 @@
 
 import Foundation
 
-/// A Storage allows read-write access to an individual piece of data.
-public protocol StorageType {
-    associatedtype Value
-    var value: Value { get set }
-}
-
-/// `StrongStorage` directly contains a value, or a strong reference to a class instance.
-public struct StrongStorage<Value>: StorageType {
-    public var value: Value
-    public init(_ value: Value) { self.value = value }
-}
-
-/// `WeakStorage` contains a weak reference to a class instance, as an optional value.
-public struct WeakStorage<Object: AnyObject>: StorageType {
-    public typealias Value = Object?
-    public weak var value: Object?
-    public init(_ value: Value) { self.value = value }
-}
-
-/// `UnownedStorage` containes an unowned reference to a class instance.
-public struct UnownedStorage<Object: AnyObject>: StorageType {
-    public typealias Value = Object
-    public unowned var value: Object
-
-    public init(_ value: Value) { self.value = value }
-}
-
-/// A property implements `UpdatableValueType` by accessing and updating its value in a piece of storage it owns.
-/// The storage is configurable, and specified by the generic type parameter `Storage`.
+/// A variable implements `UpdatableValueType` by having internal storage to a value.
 ///
-/// Note that the storage must only be updated via the property's setters in order for update notifications to trigger 
-/// correctly.
+/// - SeeAlso: UnownedVariable<Value>, WeakVariable<Value>
 ///
-/// - SeeAlso: Variable<Value>, UnownedVariable<Value>, WeakVariable<Value>
-///
-public class Property<Storage: StorageType>: UpdatableValueType {
-    public typealias Value = Storage.Value
+public class Variable<Value>: AbstractUpdatableBase<Value> {
+    public typealias Change = ValueChange<Value>
 
-    private var storage: Storage
-
-    private lazy var signal = LazySignal<SimpleChange<Value>>()
+    private var _value: Value
+    private var _state = TransactionState<Change>()
 
     /// Create a new variable with an initial value.
-    internal init(_ storage: Storage) {
-        self.storage = storage
+    public init(_ value: Value) {
+        _value = value
     }
 
     /// The current value of the variable.
-    public final var value: Value {
-        get { return storage.value }
-        set { setValue(newValue) }
+    public final override var value: Value {
+        get { return _value }
+        set {
+            let old = _value
+            _state.begin()
+            _value = newValue
+            _state.send(Change(from: old, to: _value))
+            _state.end()
+        }
     }
 
-    public final var changes: Source<SimpleChange<Value>> { return self.signal.source }
-
-    /// Update the value of this variable, and send the new value to all sinks that are currently connected.
-    /// The sinks are only triggered if the value is not equal to the previous value, according to the equality test given in init.
-    public final func setValue(_ value: Value) {
-        let old = storage.value
-        storage.value = value
-        signal.sendIfConnected(.init(from: old, to: value))
+    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        _state.begin()
+        defer { _state.end() }
+        return body()
     }
-}
 
-/// A Variable contains a value that can be read and updated. Updates are observable.
-public class Variable<Value>: Property<StrongStorage<Value>> {
-    /// Create a new variable with an initial value.
-    /// @param value: The initial value of the variable.
-    public init(_ value: Value) {
-        super.init(StrongStorage(value))
+    public final override var updates: ValueUpdateSource<Value> {
+        return _state.source(retaining: self)
     }
 }
 
 /// An unowned variable contains an unowned reference to an object that can be read and updated. Updates are observable.
-public class UnownedVariable<Value: AnyObject>: Property<UnownedStorage<Value>> {
+public class UnownedVariable<Value: AnyObject>: AbstractUpdatableBase<Value> {
+    public typealias Change = ValueChange<Value>
+
+    private unowned var _value: Value
+    private var _state = TransactionState<Change>()
+
     /// Create a new variable with an initial value.
-    /// @param value: The initial value of the variable.
     public init(_ value: Value) {
-        super.init(UnownedStorage(value))
+        _value = value
+    }
+
+    /// The current value of the variable.
+    public final override var value: Value {
+        get { return _value }
+        set {
+            let old = _value
+            _state.begin()
+            _value = newValue
+            _state.send(Change(from: old, to: _value))
+            _state.end()
+        }
+    }
+
+    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        _state.begin()
+        defer { _state.end() }
+        return body()
+    }
+
+    public final override var updates: ValueUpdateSource<Value> {
+        return _state.source(retaining: self)
     }
 }
 
 /// A weak variable contains a weak reference to an object that can be read and updated. Updates are observable.
-public class WeakVariable<Object: AnyObject>: Property<WeakStorage<Object>> {
+public class WeakVariable<Object: AnyObject>: AbstractUpdatableBase<Object?> {
+    public typealias Value = Object?
+    public typealias Change = ValueChange<Value>
+
+    private weak var _value: Object?
+    private var _state = TransactionState<Change>()
+
     /// Create a new variable with an initial value.
-    /// @param value: The initial value of the variable.
-    public init(_ value: Object?) {
-        super.init(WeakStorage(value))
+    public init(_ value: Value) {
+        _value = value
+    }
+
+    /// The current value of the variable.
+    public final override var value: Value {
+        get { return _value }
+        set {
+            let old = _value
+            _state.begin()
+            _value = newValue
+            _state.send(Change(from: old, to: _value))
+            _state.end()
+        }
+    }
+
+    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        _state.begin()
+        defer { _state.end() }
+        return body()
+    }
+
+    public final override var updates: ValueUpdateSource<Value> {
+        return _state.source(retaining: self)
     }
 }
 
@@ -156,4 +174,3 @@ public final class OptionalVariable<Wrapped>: Variable<Optional<Wrapped>>, Expre
         super.init(nil)
     }
 }
-

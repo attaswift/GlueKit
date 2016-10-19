@@ -8,6 +8,9 @@
 
 import Foundation
 
+public typealias ArrayUpdate<Element> = Update<ArrayChange<Element>>
+public typealias ArrayUpdateSource<Element> = Source<ArrayUpdate<Element>>
+
 //MARK: ObservableArrayType
 
 /// An observable array type; i.e., a read-only, array-like observable collection that provides efficient change
@@ -27,7 +30,7 @@ public protocol ObservableArrayType: ObservableType, CustomReflectable {
     // Required methods
     var count: Int { get }
     subscript(bounds: Range<Int>) -> ArraySlice<Element> { get }
-    var changes: Source<ArrayChange<Element>> { get }
+    var updates: ArrayUpdateSource<Element> { get }
 
     // Extras
     var isBuffered: Bool { get }
@@ -56,22 +59,24 @@ extension ObservableArrayType {
         return self[index ..< index + 1].first!
     }
 
-    internal var valueChanges: Source<SimpleChange<Base>> {
+    internal var valueUpdates: ValueUpdateSource<[Element]> {
         var value = self.value
-        return self.changes.map { (c: ArrayChange<Element>) -> SimpleChange<Base> in
-            let old = value
-            value.apply(c)
-            return SimpleChange(from: old, to: value)
-        }
+        return self.updates.map { event in
+            event.map { change in
+                let old = value
+                value.apply(change)
+                return ValueChange(from: old, to: value)
+            }
+        }.buffered()
     }
 
     public var observable: Observable<Base> {
-        return Observable(getter: { self.value }, changes: { self.valueChanges })
+        return Observable(getter: { self.value }, updates: { self.valueUpdates })
     }
 
     public var observableCount: Observable<Int> {
         return Observable(getter: { self.count },
-                          changes: { self.changes.map { $0.countChange } })
+                          updates: { self.updates.map { $0.map { $0.countChange } } })
     }
 
     public var observableArray: ObservableArray<Element> {
@@ -123,7 +128,7 @@ public struct ObservableArray<Element>: ObservableArrayType {
     public subscript(_ range: Range<Int>) -> ArraySlice<Element> { return box[range] }
     public var value: Array<Element> { return box.value }
     public var count: Int { return box.count }
-    public var changes: Source<ArrayChange<Element>> { return box.changes }
+    public var updates: ArrayUpdateSource<Element> { return box.updates }
     public var observable: Observable<[Element]> { return box.observable }
     public var observableCount: Observable<Int> { return box.observableCount }
     public var observableArray: ObservableArray<Element> { return self }
@@ -148,16 +153,15 @@ internal class ObservableArrayBase<Element>: ObservableArrayType {
     subscript(_ range: Range<Int>) -> ArraySlice<Element> { abstract() }
     var value: Array<Element> { abstract() }
     var count: Int { abstract() }
-    var changes: Source<ArrayChange<Element>> { abstract() }
+    var updates: ArrayUpdateSource<Element> { abstract() }
 
     var observableCount: Observable<Int> {
         return Observable(getter: { self.count },
-                          changes: { self.changes.map { $0.countChange } })
+                          updates: { self.updates.map { $0.map { $0.countChange } } })
     }
 
     var observable: Observable<[Element]> {
-        return Observable(getter: { self.value },
-                          changes: { self.valueChanges })
+        return Observable(getter: { self.value }, updates: { self.valueUpdates })
     }
 
     final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }
@@ -178,7 +182,7 @@ internal class ObservableArrayBox<Contents: ObservableArrayType>: ObservableArra
     override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return contents[range] }
     override var value: Array<Element> { return contents.value }
     override var count: Int { return contents.count }
-    override var changes: Source<ArrayChange<Element>> { return contents.changes }
+    override var updates: ArrayUpdateSource<Element> { return contents.updates }
     override var observableCount: Observable<Int> { return contents.observableCount }
     override var observable: Observable<[Element]> { return contents.observable }
 }
@@ -195,7 +199,7 @@ internal class ObservableArrayConstant<Element>: ObservableArrayBase<Element> {
     override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _value[range] }
     override var value: Array<Element> { return _value }
     override var count: Int { return _value.count }
-    override var changes: Source<ArrayChange<Element>> { return Source.empty() }
+    override var updates: ArrayUpdateSource<Element> { return Source.empty() }
     override var observableCount: Observable<Int> { return Observable.constant(_value.count) }
     override var observable: Observable<[Element]> { return Observable.constant(_value) }
 }

@@ -38,104 +38,59 @@ public extension NSObject {
 
 }
 
-private struct KVOUpdatable: UpdatableValueType {
+private class KVOUpdatable: NSObject, UpdatableValueType, SignalDelegate {
     typealias Value = Any?
-    typealias Change = SimpleChange<Any?>
+    typealias Change = ValueChange<Any?>
 
     private let object: NSObject
     private let keyPath: String
-
-    private var observer: KVOObserver {
-        return .observer(for: object)
-    }
+    private var state = TransactionState<Change>()
+    private var context: UInt8 = 0
 
     init(object: NSObject, keyPath: String) {
         self.object = object
         self.keyPath = keyPath
-    }
-
-    var value: Any? {
-        get { return object.value(forKeyPath: keyPath) }
-        nonmutating set { object.setValue(newValue, forKeyPath: keyPath) }
-    }
-
-    var changes: Source<Change> { return observer._source(forKeyPath: keyPath) }
-}
-
-// A single object that observes all key paths currently registered as Sources on a target object.
-// Each Source associated with a key path holds a strong reference to this object.
-@objc private class KVOObserver: NSObject {
-    typealias Change = SimpleChange<Any?>
-
-    static private var associatedObjectKey: Int8 = 0
-
-    var object: NSObject
-
-    let lock = Lock()
-    var signals: [String: UnownedReference<Signal<Change>>] = [:]
-    var observerContext: Int8 = 0
-
-    static func observer(for object: NSObject) -> KVOObserver {
-        if let observer = objc_getAssociatedObject(object, &associatedObjectKey) as? KVOObserver {
-            return observer
-        }
-        else {
-            let observer = KVOObserver(object: object)
-            objc_setAssociatedObject(object, &associatedObjectKey, observer, .OBJC_ASSOCIATION_ASSIGN)
-            return observer
-        }
-    }
-
-    init(object: NSObject) {
-        self.object = object
         super.init()
     }
 
-    deinit {
-        objc_setAssociatedObject(object, &KVOObserver.associatedObjectKey, nil, .OBJC_ASSOCIATION_ASSIGN)
-    }
-
-    func _source(forKeyPath keyPath: String) -> Source<Change> {
-        return lock.withLock {
-            if let signal = signals[keyPath] {
-                return signal.value.source
-            }
-            let signal = Signal<Change>(
-                start: { signal in self.startObservingKeyPath(keyPath, signal: signal) },
-                stop: { signal in self.stopObservingKeyPath(keyPath) })
-            // Note that signal now holds strong references to this KVOObserver
-            signals[keyPath] = UnownedReference(signal)
-            return signal.source
+    var value: Any? {
+        get {
+            return object.value(forKeyPath: keyPath)
+        }
+        set {
+            object.setValue(newValue, forKeyPath: keyPath)
         }
     }
 
-    private func startObservingKeyPath(_ keyPath: String, signal: Signal<Change>) {
-        lock.withLock {
-            self.signals[keyPath] = UnownedReference(signal)
-            self.object.addObserver(self, forKeyPath: keyPath, options: [.old, .new], context: &self.observerContext)
-        }
+    func withTransaction<Result>(_ body: () -> Result) -> Result {
+        state.begin()
+        defer { state.end() }
+        return body()
     }
 
-    private func stopObservingKeyPath(_ keyPath: String) {
-        lock.withLock {
-            self.signals[keyPath] = nil
-            self.object.removeObserver(self, forKeyPath: keyPath, context: &self.observerContext)
-        }
+    var updates: ValueUpdateSource<Any?> { return state.source(retainingDelegate: self) }
+
+    func start(_ signal: Signal<ValueUpdate<Any?>>) {
+        object.addObserver(self, forKeyPath: keyPath, options: [.old, .new, .prior], context: &context)
     }
 
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if context == &observerContext {
-            if let keyPath = keyPath, let change = change {
-                let oldValue = change[.oldKey]
-                let newValue = change[.newKey]
-                if let signal = lock.withLock({ self.signals[keyPath]?.value }) {
-                    let old: Any? = (oldValue is NSNull ? nil : oldValue)
-                    let new: Any? = (newValue is NSNull ? nil : newValue)
-                    signal.send(.init(from: old, to: new))
-                }
+    func stop(_ signal: Signal<ValueUpdate<Any?>>) {
+        object.removeObserver(self, forKeyPath: keyPath, context: &context)
+    }
+
+    @objc override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if context == &self.context {
+            if (change![.notificationIsPriorKey] as? NSNumber)?.boolValue == true {
+                state.begin()
             }
             else {
-                fatalError("Unexpected KVO callback with key path '\(keyPath)'")
+                precondition(state.isChanging)
+                let oldValue = change![.oldKey]
+                let newValue = change![.newKey]
+                let old: Any? = (oldValue is NSNull ? nil : oldValue)
+                let new: Any? = (newValue is NSNull ? nil : newValue)
+                state.send(Change(from: old, to: new))
+                state.end()
             }
         }
         else {
@@ -143,4 +98,3 @@ private struct KVOUpdatable: UpdatableValueType {
         }
     }
 }
-

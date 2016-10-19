@@ -15,7 +15,7 @@ class MockArrayObserver<Element: Equatable> {
     var actualChanges: [ArrayChange<Element>] = []
     var connection: Connection? = nil
 
-    init<O: ObservableArrayType>(_ target: O) where O.Element == Element {
+    init<O: ObservableArrayType>(_ target: O) where O.Element == Element, O.Change == ArrayChange<Element> {
         self.connection = target.changes.connect { [unowned self] change in self.apply(change) }
     }
 

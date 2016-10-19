@@ -81,7 +81,7 @@ class DistinctUnionTests: XCTestCase {
 
         mock.expecting("[0, 4, 6]/[]") {
             // Remove even values
-            array.modify { array in
+            array.withTransaction {
                 for i in (0 ..< array.count).reversed() {
                     if array[i] & 1 == 0 {
                         array.remove(at: i)

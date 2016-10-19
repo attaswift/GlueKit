@@ -15,7 +15,7 @@ public final class ObservableSetReference<Element: Hashable>: ObservableSetBase<
     public typealias Change = SetChange<Element>
 
     private var _target: ObservableSet<Element>
-    private var _changes = OwningSignal<Change>()
+    private var _state = TransactionState<Change>()
     private var _connection: Connection?
 
     public override init() {
@@ -31,10 +31,12 @@ public final class ObservableSetReference<Element: Hashable>: ObservableSetBase<
     public func retarget<Target: ObservableSetType>(to target: Target) where Target.Element == Element {
         if let c = _connection {
             c.disconnect()
+            _state.begin()
             let change = SetChange(from: _target.value, to: target.observableSet.value)
             _target = target.observableSet
-            _connection = target.changes.connect { change in self._changes.send(change) }
-            _changes.send(change)
+            _state.send(change)
+            _connection = target.updates.connect { update in self._state.send(update) }
+            _state.end()
         }
         else {
             _target = target.observableSet
@@ -47,14 +49,14 @@ public final class ObservableSetReference<Element: Hashable>: ObservableSetBase<
     public override func contains(_ member: Element) -> Bool { return _target.contains(member) }
     public override func isSubset(of other: Set<Element>) -> Bool { return _target.isSubset(of: other) }
     public override func isSuperset(of other: Set<Element>) -> Bool { return _target.isSuperset(of: other) }
-    public override var changes: Source<Change> { return _changes.with(self).source }
+    public override var updates: SetUpdateSource<Element> { return _state.source(retainingDelegate: self) }
 
-    internal func start(_ signal: Signal<Change>) {
+    internal func start(_ signal: Signal<Update<Change>>) {
         precondition(_connection == nil)
-        _connection = _target.changes.connect { change in self._changes.send(change) }
+        _connection = _target.updates.connect { update in self._state.send(update) }
     }
 
-    internal func stop(_ signal: Signal<Change>) {
+    internal func stop(_ signal: Signal<Update<Change>>) {
         precondition(_connection != nil)
         _connection!.disconnect()
         _connection = nil

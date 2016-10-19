@@ -213,27 +213,23 @@ class CombinedObservableTests: XCTestCase {
 
         // The observable 'a' occurs twice in the expression above, so the expression will be evaluated twice.
         // The first evaluation will only apply the new value to one of the sources.
-        XCTAssertEqual(r.count, 2)
-        XCTAssertEqual(r.last, 1)
+        XCTAssertEqual(r, [1])
 
         r = []
 
         b.value = 2
 
-        XCTAssertEqual(r.count, 1)
-        XCTAssertEqual(r.last, 1)
+        XCTAssertEqual(r, [1])
         r = []
         
         c.value = 3
         
-        XCTAssertEqual(r.count, 2)
-        XCTAssertEqual(r.last, 1 + 2 * 3 / 2 - 3)
+        XCTAssertEqual(r, [1 + 2 * 3 / 2 - 3] as [Int])
         r = []
         
         a.value = 15
         
-        XCTAssertEqual(r.count, 2)
-        XCTAssertEqual(r.last, 5 + 2 * 3 / 16 - 3)
+        XCTAssertEqual(r, [5 + 2 * 3 / 16 - 3] as [Int])
         r = []
         
         
@@ -257,29 +253,23 @@ class CombinedObservableTests: XCTestCase {
 
         a.value = 1
 
-        // The observable 'a' occurs twice in the expression above, so the expression will be evaluated twice.
-        // The first evaluation will only apply the new value to one of the sources.
-        XCTAssertEqual(r.count, 2)
-        XCTAssertEqual(r.last, 1)
+        XCTAssertEqual(r, [1])
 
         r = []
 
         b.value = 2
 
-        XCTAssertEqual(r.count, 1)
-        XCTAssertEqual(r.last, 1)
+        XCTAssertEqual(r, [1])
         r = []
 
         c.value = 3
 
-        XCTAssertEqual(r.count, 2)
-        XCTAssertEqual(r.last, 1 + 2 * 3 / 2 - 3)
+        XCTAssertEqual(r, [1 + 2 * 3 / 2 - 3] as [Double])
         r = []
 
         a.value = 15
 
-        XCTAssertEqual(r.count, 2)
-        XCTAssertEqual(r.last, 15 + 2 * 3 / 16 - 3)
+        XCTAssertEqual(r, [15 + 2 * 3 / 16 - 3] as [Double])
         r = []
         
         connection.disconnect()

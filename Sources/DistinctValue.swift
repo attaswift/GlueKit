@@ -8,28 +8,33 @@
 
 import Foundation
 
-public extension ObservableValueType {
+public extension ObservableValueType where Change == ValueChange<Value> {
     public func distinct(_ equalityTest: @escaping (Value, Value) -> Bool) -> Observable<Value> {
-        return Observable(getter: { self.value },
-                          changes: { self.changes.filter { !equalityTest($0.old, $0.new) } })
+        let buffered = self.buffered()
+        return Observable(
+            getter: { buffered.value },
+            updates: { buffered.updates.flatMap { update in update.filter { !equalityTest($0.old, $0.new) } } })
     }
 }
 
-public extension ObservableValueType where Value: Equatable {
+public extension ObservableValueType where Change == ValueChange<Value>, Value: Equatable {
     public func distinct() -> Observable<Value> {
         return distinct(==)
     }
 }
 
-public extension UpdatableValueType {
+public extension UpdatableValueType where Change == ValueChange<Value> {
     public func distinct(_ equalityTest: @escaping (Value, Value) -> Bool) -> Updatable<Value> {
-        return Updatable(getter: { self.value },
-                         setter: { self.value = $0 },
-                         changes: { self.changes.filter { !equalityTest($0.old, $0.new) } })
+        let buffered = self.buffered()
+        return Updatable(
+            getter: { buffered.value },
+            setter: { self.value = $0 },
+            transaction: { self.withTransaction($0) },
+            updates: { buffered.updates.flatMap { update in update.filter { !equalityTest($0.old, $0.new) } } })
     }
 }
 
-public extension UpdatableValueType where Value: Equatable {
+public extension UpdatableValueType where Change == ValueChange<Value>, Value: Equatable {
     public func distinct() -> Updatable<Value> {
         return distinct(==)
     }

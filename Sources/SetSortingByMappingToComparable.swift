@@ -13,7 +13,7 @@ extension ObservableSetType {
     /// Given a transformation into a comparable type, return an observable array containing transformed
     /// versions of elements in this set, in increasing order.
     public func sorted<Result: Comparable>(by transform: @escaping (Element) -> Result) -> ObservableArray<Result> {
-        return SetSortingByMappingToComparable(base: self, transform: transform).observableArray
+        return SetSortingByMappingToComparable(parent: self, transform: transform).observableArray
     }
 }
 
@@ -24,70 +24,78 @@ extension ObservableSetType where Element: Comparable {
     }
 }
 
-private final class SetSortingByMappingToComparable<S: ObservableSetType, R: Comparable>: ObservableArrayBase<R> {
-    typealias Element = R
-    typealias Change = ArrayChange<R>
+private final class SetSortingByMappingToComparable<Parent: ObservableSetType, Element: Comparable>: ObservableArrayBase<Element> {
+    typealias Change = ArrayChange<Element>
 
-    private let base: S
-    private let transform: (S.Element) -> R
+    private let parent: Parent
+    private let transform: (Parent.Element) -> Element
 
-    private var state: Map<R, Int> = [:]
-    private var signal = OwningSignal<Change>()
+    private var contents: Map<Element, Int> = [:]
+    private var state = TransactionState<Change>()
     private var baseConnection: Connection? = nil
 
-    init(base: S, transform: @escaping (S.Element) -> R) {
-        self.base = base
+    init(parent: Parent, transform: @escaping (Parent.Element) -> Element) {
+        self.parent = parent
         self.transform = transform
         super.init()
 
-        for element in base.value {
+        for element in parent.value {
             let transformed = transform(element)
-            state[transformed] = (state[transformed] ?? 0) + 1
+            contents[transformed] = (contents[transformed] ?? 0) + 1
         }
-        baseConnection = base.changes.connect { [unowned self] change in self.apply(change) }
+        baseConnection = parent.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {
         baseConnection?.disconnect()
     }
 
-    private func apply(_ change: SetChange<S.Element>) {
-        var arrayChange: ArrayChange<Element>? = signal.isConnected ? ArrayChange(initialCount: state.count) : nil
-        for element in change.removed {
-            let transformed = transform(element)
-            guard let index = state.index(forKey: transformed) else { fatalError("Removed element '\(transformed)' not found in sorted set") }
-            let count = state[index].1
-            if count == 1 {
-                let offset = state.offset(of: index)
-                let old = state.remove(at: index)
-                arrayChange?.add(.remove(old.key, at: offset))
-            }
-            else {
-                state[transformed] = count - 1
-            }
-        }
-        for element in change.inserted {
-            let transformed = transform(element)
-            if let count = state[transformed] {
-                state[transformed] = count + 1
-            }
-            else {
-                state[transformed] = 1
-                if arrayChange != nil {
-                    let offset = state.offset(of: transformed)!
-                    arrayChange!.add(.insert(transformed, at: offset))
+    private func apply(_ update: SetUpdate<Parent.Element>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            var arrayChange = ArrayChange<Element>(initialCount: contents.count)
+            for element in change.removed {
+                let transformed = transform(element)
+                guard let index = contents.index(forKey: transformed) else { fatalError("Removed element '\(transformed)' not found in sorted set") }
+                let count = contents[index].1
+                if count == 1 {
+                    let offset = contents.offset(of: index)
+                    let old = contents.remove(at: index)
+                    if state.isConnected {
+                        arrayChange.add(.remove(old.key, at: offset))
+                    }
+                }
+                else {
+                    contents[transformed] = count - 1
                 }
             }
-        }
-        if let a = arrayChange, !a.isEmpty {
-            signal.send(a)
+            for element in change.inserted {
+                let transformed = transform(element)
+                if let count = contents[transformed] {
+                    contents[transformed] = count + 1
+                }
+                else {
+                    contents[transformed] = 1
+                    if state.isConnected {
+                        let offset = contents.offset(of: transformed)!
+                        arrayChange.add(.insert(transformed, at: offset))
+                    }
+                }
+            }
+            if state.isConnected, !arrayChange.isEmpty {
+                state.send(arrayChange)
+            }
+        case .endTransaction:
+            state.end()
         }
     }
 
     override var isBuffered: Bool { return false }
-    override subscript(index: Int) -> Element { return state.element(atOffset: index).0 }
-    override subscript(bounds: Range<Int>) -> ArraySlice<Element> { return ArraySlice(state.submap(withOffsets: bounds).lazy.map { $0.0 }) }
-    override var value: Array<Element> { return Array(state.lazy.map { $0.0 }) }
-    override var count: Int { return state.count }
-    override var changes: Source<ArrayChange<R>> { return signal.with(retained: self).source }
+    override subscript(index: Int) -> Element { return contents.element(atOffset: index).0 }
+    override subscript(bounds: Range<Int>) -> ArraySlice<Element> { return ArraySlice(contents.submap(withOffsets: bounds).lazy.map { $0.0 }) }
+    override var value: Array<Element> { return Array(contents.lazy.map { $0.0 }) }
+    override var count: Int { return contents.count }
+    override var updates: ArrayUpdateSource<Element> { return state.source(retaining: self) }
 }

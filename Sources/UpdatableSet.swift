@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol UpdatableSetType: ObservableSetType {
+public protocol UpdatableSetType: ObservableSetType, UpdatableType {
     var value: Base { get nonmutating set }
     func apply(_ change: SetChange<Element>)
 
@@ -77,17 +77,6 @@ extension UpdatableSetType {
     }
 }
 
-extension UpdatableSetType {
-    public func modify(_ block: (SetVariable<Element>)->Void) {
-        let set = SetVariable<Self.Element>(self.value)
-        var change = SetChange<Self.Element>()
-        let connection = set.changes.connect { c in change.merge(with: c) }
-        block(set)
-        connection.disconnect()
-        self.apply(change)
-    }
-}
-
 public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
     public typealias Value = Set<Element>
     public typealias Base = Set<Element>
@@ -109,6 +98,7 @@ public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
     public func isSubset(of other: Set<Element>) -> Bool { return box.isSubset(of: other) }
     public func isSuperset(of other: Set<Element>) -> Bool { return box.isSuperset(of: other) }
 
+    public func withTransaction<Result>(_ body: () -> Result) -> Result { return box.withTransaction(body) }
     public func apply(_ change: SetChange<Element>) { box.apply(change) }
     public func remove(_ member: Element) { box.remove(member) }
     public func insert(_ member: Element) { box.insert(member) }
@@ -118,7 +108,7 @@ public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
     public func formSymmetricDifference(_ other: Set<Element>) { box.formSymmetricDifference(other) }
     public func subtract(_ other: Set<Element>) { box.subtract(other) }
 
-    public var changes: Source<SetChange<Element>> { return box.changes }
+    public var updates: SetUpdateSource<Element> { return box.updates }
     public var observable: Observable<Set<Element>> { return box.observable }
     public var observableCount: Observable<Int> { return box.observableCount }
 
@@ -130,6 +120,7 @@ class UpdatableSetBase<Element: Hashable>: ObservableSetBase<Element>, Updatable
         get { abstract() }
         set { abstract() }
     }
+    func withTransaction<Result>(_ body: () -> Result) -> Result { abstract() }
     func apply(_ change: SetChange<Element>) { abstract() }
 
     func remove(_ member: Element) {
@@ -201,6 +192,7 @@ class UpdatableSetBox<Contents: UpdatableSetType>: UpdatableSetBase<Contents.Ele
         set { contents.value = newValue }
     }
 
+    override func withTransaction<Result>(_ body: () -> Result) -> Result { return contents.withTransaction(body) }
     override func apply(_ change: SetChange<Element>) { contents.apply(change) }
 
     override func remove(_ member: Element) { contents.remove(member) }
@@ -215,7 +207,7 @@ class UpdatableSetBox<Contents: UpdatableSetType>: UpdatableSetBase<Contents.Ele
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
 
-    override var changes: Source<SetChange<Element>> { return contents.changes }
+    override var updates: SetUpdateSource<Element> { return contents.updates }
     override var observable: Observable<Set<Element>> { return contents.observable }
     override var observableCount: Observable<Int> { return contents.observableCount }
 }

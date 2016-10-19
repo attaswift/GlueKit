@@ -21,7 +21,7 @@ extension ObservableSetType {
     ///
     /// - SeeAlso: `sum()` which returns a reduction using addition.
     public func reduce<Result>(_ initial: Result, add: @escaping (Result, Element) -> Result, remove: @escaping (Result, Element) -> Result) -> Observable<Result> {
-        return SetFoldingByTwoWayFunction<Self, Result>(base: self, initial: initial, add: add, remove: remove).observable
+        return SetFoldingByTwoWayFunction<Self, Result>(parent: self, initial: initial, add: add, remove: remove).observable
     }
 }
 
@@ -32,34 +32,41 @@ extension ObservableSetType where Element: IntegerArithmetic & ExpressibleByInte
     }
 }
 
-private class SetFoldingByTwoWayFunction<Base: ObservableSetType, Value>: ObservableBoxBase<Value> {
+private class SetFoldingByTwoWayFunction<Parent: ObservableSetType, Value>: AbstractObservableBase<Value> {
     private var _value: Value
-    private var _signal = OwningSignal<SimpleChange<Value>>()
+    private var _state = TransactionState<Change>()
 
-    let add: (Value, Base.Element) -> Value
-    let remove: (Value, Base.Element) -> Value
+    let add: (Value, Parent.Element) -> Value
+    let remove: (Value, Parent.Element) -> Value
     var connection: Connection? = nil
 
-    init(base: Base, initial: Value, add: @escaping (Value, Base.Element) -> Value, remove: @escaping (Value, Base.Element) -> Value) {
-        self._value = base.value.reduce(initial, add)
+    init(parent: Parent, initial: Value, add: @escaping (Value, Parent.Element) -> Value, remove: @escaping (Value, Parent.Element) -> Value) {
+        self._value = parent.value.reduce(initial, add)
         self.add = add
         self.remove = remove
         super.init()
 
-        connection = base.changes.connect { [unowned self] change in self.apply(change) }
+        connection = parent.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {
         connection!.disconnect()
     }
 
-    private func apply(_ change: SetChange<Base.Element>) {
-        let old = _value
-        for old in change.removed { _value = remove(_value, old) }
-        for new in change.inserted { _value = add(_value, new) }
-        _signal.send(SimpleChange(from: old, to: _value))
+    private func apply(_ update: SetUpdate<Parent.Element>) {
+        switch update {
+        case .beginTransaction:
+            _state.begin()
+        case .change(let change):
+            let old = _value
+            for old in change.removed { _value = remove(_value, old) }
+            for new in change.inserted { _value = add(_value, new) }
+            _state.send(ValueChange(from: old, to: _value))
+        case .endTransaction:
+            _state.end()
+        }
     }
 
     override var value: Value { return _value }
-    override var changes: Source<SimpleChange<Value>> { return _signal.with(retained: self).source }
+    override var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }

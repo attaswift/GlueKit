@@ -22,7 +22,7 @@ private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: Obse
     private let test: (Element) -> Bool
 
     private var indexMapping: ArrayFilteringIndexmap<Element>
-    private var changeSignal = OwningSignal<Change>()
+    private var state = TransactionState<Change>()
     private var connection: Connection? = nil
 
     init(parent: Parent, test: @escaping (Element) -> Bool) {
@@ -30,17 +30,24 @@ private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: Obse
         self.test = test
         self.indexMapping = ArrayFilteringIndexmap(initialValues: parent.value, test: test)
         super.init()
-        connection = parent.changes.connect { [unowned self] change in self.apply(change) }
+        connection = parent.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {
         connection!.disconnect()
     }
 
-    private func apply(_ change: ArrayChange<Element>) {
-        let filteredChange = self.indexMapping.apply(change)
-        if !filteredChange.isEmpty {
-            self.changeSignal.send(filteredChange)
+    private func apply(_ update: ArrayUpdate<Element>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            let filteredChange = self.indexMapping.apply(change)
+            if !filteredChange.isEmpty {
+                self.state.send(filteredChange)
+            }
+        case .endTransaction:
+            state.end()
         }
     }
 
@@ -70,7 +77,7 @@ private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: Obse
         return indexMapping.matchingIndices.count
     }
 
-    override var changes: Source<ArrayChange<Base.Element>> {
-        return changeSignal.with(retained: self).source
+    override var updates: ArrayUpdateSource<Base.Element> {
+        return state.source(retaining: self)
     }
 }

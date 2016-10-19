@@ -18,14 +18,14 @@ extension ObservableValueType {
     }
 }
 
-private final class ChangeSourceForObservableSetField<Parent: ObservableValueType, Field: ObservableSetType>: SignalDelegate, SourceType {
+private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: ObservableSetType>: SignalDelegate, SourceType {
     typealias Element = Field.Element
     typealias Change = SetChange<Element>
 
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var signal = OwningSignal<Change>()
+    private var state = TransactionState<Change>()
     private var parentConnection: Connection? = nil
     private var fieldConnection: Connection? = nil
     private var _field: Field? = nil
@@ -35,8 +35,8 @@ private final class ChangeSourceForObservableSetField<Parent: ObservableValueTyp
         self.key = key
     }
 
-    func connect(_ sink: Sink<Change>) -> Connection {
-        return signal.with(self).connect(sink)
+    func connect(_ sink: Sink<Update<Change>>) -> Connection {
+        return state.source(retainingDelegate: self).connect(sink)
     }
 
     fileprivate var field: Field {
@@ -44,14 +44,14 @@ private final class ChangeSourceForObservableSetField<Parent: ObservableValueTyp
         return key(parent.value)
     }
 
-    func start(_ signal: Signal<Change>) {
+    func start(_ signal: Signal<Update<Change>>) {
         precondition(parentConnection == nil)
         let field = key(parent.value)
         self.connect(to: field)
-        parentConnection = parent.changes.connect { [unowned self] change in self.apply(change) }
+        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
     }
 
-    func stop(_ signal: Signal<Change>) {
+    func stop(_ signal: Signal<Update<Change>>) {
         fieldConnection!.disconnect()
         parentConnection!.disconnect()
         fieldConnection = nil
@@ -62,27 +62,38 @@ private final class ChangeSourceForObservableSetField<Parent: ObservableValueTyp
     private func connect(to field: Field) {
         _field = field
         fieldConnection?.disconnect()
-        fieldConnection = field.changes.connect { [unowned self] change in self.signal.send(change) }
+        fieldConnection = field.updates.connect { [unowned self] in self.apply($0) }
     }
 
-    private func apply(_ change: SimpleChange<Parent.Value>) {
-        let oldValue = self._field!.value
-        let field = self.key(change.new)
-        self.connect(to: field)
-        signal.send(SetChange(removed: oldValue, inserted: field.value))
+    private func apply(_ update: ValueUpdate<Parent.Value>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            let oldValue = self._field!.value
+            let field = self.key(change.new)
+            self.connect(to: field)
+            state.send(SetChange(removed: oldValue, inserted: field.value))
+        case .endTransaction:
+            state.end()
+        }
+    }
+
+    private func apply(_ update: SetUpdate<Field.Element>) {
+        state.send(update)
     }
 }
 
 private final class ValueMappingForSetField<Parent: ObservableValueType, Field: ObservableSetType>: ObservableSetBase<Field.Element> {
     typealias Element = Field.Element
 
-    private let changeSource: ChangeSourceForObservableSetField<Parent, Field>
+    private let updateSource: UpdateSourceForSetField<Parent, Field>
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
-        self.changeSource = .init(parent: parent, key: key)
+        self.updateSource = .init(parent: parent, key: key)
     }
 
-    var field: Field { return changeSource.field }
+    var field: Field { return updateSource.field }
 
     override var isBuffered: Bool { return field.isBuffered }
     override var count: Int { return field.count }
@@ -91,19 +102,19 @@ private final class ValueMappingForSetField<Parent: ObservableValueType, Field: 
     override func isSubset(of other: Set<Element>) -> Bool { return field.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return field.isSuperset(of: other) }
 
-    override var changes: Source<SetChange<Element>> { return changeSource.source }
+    override var updates: SetUpdateSource<Element> { return updateSource.source }
 }
 
 private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType, Field: UpdatableSetType>: UpdatableSetBase<Field.Element> {
     typealias Element = Field.Element
 
-    private let changeSource: ChangeSourceForObservableSetField<Parent, Field>
+    private let updateSource: UpdateSourceForSetField<Parent, Field>
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
-        self.changeSource = .init(parent: parent, key: key)
+        self.updateSource = .init(parent: parent, key: key)
     }
 
-    var field: Field { return changeSource.field }
+    var field: Field { return updateSource.field }
 
     override var isBuffered: Bool { return field.isBuffered }
     override var count: Int { return field.count }
@@ -115,6 +126,9 @@ private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType
     override func isSubset(of other: Set<Element>) -> Bool { return field.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return field.isSuperset(of: other) }
 
+    override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        return field.withTransaction(body)
+    }
     override func apply(_ change: SetChange<Element>) { field.apply(change) }
 
     override func remove(_ member: Element) { field.remove(member) }
@@ -125,5 +139,5 @@ private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType
     override func formSymmetricDifference(_ other: Set<Field.Element>) { field.formSymmetricDifference(other) }
     override func subtract(_ other: Set<Field.Element>) { field.subtract(other) }
 
-    override var changes: Source<SetChange<Element>> { return changeSource.source }
+    override var updates: SetUpdateSource<Element> { return updateSource.source }
 }

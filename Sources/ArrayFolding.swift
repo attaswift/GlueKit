@@ -32,9 +32,9 @@ extension ObservableArrayType where Element: IntegerArithmetic & ExpressibleByIn
     }
 }
 
-private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: ObservableBoxBase<Value> {
+private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: AbstractObservableBase<Value> {
     private var _value: Value
-    private var _signal = OwningSignal<SimpleChange<Value>>()
+    private var _state = TransactionState<ValueChange<Value>>()
 
     let add: (Value, Base.Element) -> Value
     let remove: (Value, Base.Element) -> Value
@@ -46,20 +46,27 @@ private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: Ob
         self.remove = remove
         super.init()
 
-        connection = base.changes.connect { [unowned self] change in self.apply(change) }
+        connection = base.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {
         connection!.disconnect()
     }
 
-    private func apply(_ change: ArrayChange<Base.Element>) {
-        let old = _value
-        change.forEachOld { _value = remove(_value, $0) }
-        change.forEachNew { _value = add(_value, $0) }
-        _signal.send(SimpleChange(from: old, to: _value))
+    private func apply(_ update: ArrayUpdate<Base.Element>) {
+        switch update {
+        case .beginTransaction:
+            _state.begin()
+        case .change(let change):
+            let old = _value
+            change.forEachOld { _value = remove(_value, $0) }
+            change.forEachNew { _value = add(_value, $0) }
+            _state.send(ValueChange(from: old, to: _value))
+        case .endTransaction:
+            _state.end()
+        }
     }
 
     override var value: Value { return _value }
-    override var changes: Source<SimpleChange<Value>> { return _signal.with(retained: self).source }
+    override var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }

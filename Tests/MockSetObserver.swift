@@ -15,7 +15,7 @@ class MockSetObserver<Element: Hashable & Comparable> {
     private var expectedChanges: [String] = []
     private var connection: Connection? = nil
 
-    init<Target: ObservableSetType>(_ target: Target) where Target.Element == Element {
+    init<Target: ObservableSetType>(_ target: Target) where Target.Element == Element, Target.Change == SetChange<Element> {
         self.connection = target.changes.connect { [unowned self] change in
             self.apply(change)
         }

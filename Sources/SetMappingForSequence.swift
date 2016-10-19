@@ -10,52 +10,58 @@ import Foundation
 
 extension ObservableSetType {
     public func flatMap<Result: Sequence>(_ key: @escaping (Element) -> Result) -> ObservableSet<Result.Iterator.Element> where Result.Iterator.Element: Hashable {
-        return SetMappingForSequence<Self, Result>(base: self, key: key).observableSet
+        return SetMappingForSequence<Self, Result>(parent: self, key: key).observableSet
     }
 }
 
-class SetMappingForSequence<S: ObservableSetType, Result: Sequence>: SetMappingBase<Result.Iterator.Element> where Result.Iterator.Element: Hashable {
+class SetMappingForSequence<Parent: ObservableSetType, Result: Sequence>: SetMappingBase<Result.Iterator.Element> where Result.Iterator.Element: Hashable {
     typealias Element = Result.Iterator.Element
-    let base: S
-    let key: (S.Element) -> Result
+    let parent: Parent
+    let key: (Parent.Element) -> Result
 
     var baseConnection: Connection? = nil
 
-    init(base: S, key: @escaping (S.Element) -> Result) {
-        self.base = base
+    init(parent: Parent, key: @escaping (Parent.Element) -> Result) {
+        self.parent = parent
         self.key = key
         super.init()
-        baseConnection = base.changes.connect { [unowned self] change in self.apply(change) }
-
-        for e in base.value {
+        for e in parent.value {
             for new in key(e) {
                 _ = self.insert(new)
             }
         }
+        baseConnection = parent.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {
         baseConnection?.disconnect()
     }
 
-    private func apply(_ change: SetChange<S.Element>) {
-        var transformedChange = SetChange<Element>()
-        for e in change.removed {
-            for old in key(e) {
-                if self.remove(old) {
-                    transformedChange.remove(old)
+    private func apply(_ update: SetUpdate<Parent.Element>) {
+        switch update {
+        case .beginTransaction:
+            begin()
+        case .change(let change):
+            var transformedChange = SetChange<Element>()
+            for e in change.removed {
+                for old in key(e) {
+                    if self.remove(old) {
+                        transformedChange.remove(old)
+                    }
                 }
             }
-        }
-        for e in change.inserted {
-            for new in key(e) {
-                if self.insert(new) {
-                    transformedChange.insert(new)
+            for e in change.inserted {
+                for new in key(e) {
+                    if self.insert(new) {
+                        transformedChange.insert(new)
+                    }
                 }
             }
-        }
-        if !transformedChange.isEmpty {
-            signal.send(transformedChange)
+            if !transformedChange.isEmpty {
+                state.send(transformedChange)
+            }
+        case .endTransaction:
+            end()
         }
     }
 }

@@ -110,8 +110,8 @@ class ConnectorTests: XCTestCase {
         let variable = Variable<Int>(0)
         let connector = Connector()
 
-        var expected: [SimpleChange<Int>] = []
-        var actual: [SimpleChange<Int>] = []
+        var expected: [ValueChange<Int>] = []
+        var actual: [ValueChange<Int>] = []
 
         connector.connect(variable) { change in actual.append(change) }
 
@@ -134,8 +134,8 @@ class ConnectorTests: XCTestCase {
         let variable = Variable<Int>(0)
         let connector = Connector()
 
-        var expected: [SimpleChange<Int>] = []
-        var actual: [SimpleChange<Int>] = []
+        var expected: [ValueChange<Int>] = []
+        var actual: [ValueChange<Int>] = []
 
         connector.connect(variable, to: Sink({ change in actual.append(change) }))
 

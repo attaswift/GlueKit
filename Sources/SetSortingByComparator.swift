@@ -16,7 +16,7 @@ extension ObservableSetType {
             .map { [comparator] in _ = comparator; return $0.element }
     }
 
-    public func sorted<Comparator: ObservableValueType>(by comparator: Comparator) -> ObservableArray<Element> where Comparator.Value == (Element, Element) -> Bool {
+    public func sorted<Comparator: ObservableValueType>(by comparator: Comparator) -> ObservableArray<Element> where Comparator.Value == (Element, Element) -> Bool, Comparator.Change == ValueChange<Comparator.Value> {
         let reference = ObservableArrayReference<Element>()
         let connection = comparator.values.connect { comparatorValue in
             reference.retarget(to: self.sorted(by: comparatorValue))

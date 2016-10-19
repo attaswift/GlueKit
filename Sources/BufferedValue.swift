@@ -8,38 +8,53 @@
 
 import Foundation
 
-extension ObservableValueType {
+extension ObservableValueType where Change == ValueChange<Value> {
     public func buffered() -> Observable<Value> {
         return BufferedObservableValue(self).observable
     }
 }
 
-internal class BufferedObservableValue<Base: ObservableValueType>: ObservableBoxBase<Base.Value> {
+internal class BufferedObservableValue<Base: ObservableValueType>: AbstractObservableBase<Base.Value>
+where Base.Change == ValueChange<Base.Value> {
     typealias Value = Base.Value
 
-    private var base: Base
+    private var _base: Base
 
-    var _value: Base.Value
-    var signal = OwningSignal<SimpleChange<Value>>()
-    var connection: Connection? = nil
+    private var _value: Value
+    private var _state = TransactionState<Change>()
+    private var _pending: Value? = nil
+    private var _connection: Connection? = nil
 
     init(_ base: Base) {
-        self.base = base
+        self._base = base
         self._value = base.value
         super.init()
 
-        connection = base.changes.connect { [unowned self] change in
-            let old = self._value
-            self._value = change.new
-            self.signal.send(.init(from: old, to: change.new))
-        }
+        self._connection = base.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {
-        connection!.disconnect()
+        _connection!.disconnect()
     }
 
-    override var value: Base.Value { return _value }
-    override var changes: Source<SimpleChange<Base.Value>> { return signal.with(retained: self).source }
+    private func apply(_ update: ValueUpdate<Value>) {
+        switch update {
+        case .beginTransaction:
+            _state.begin()
+        case .change(let change):
+            _pending = change.new
+        case .endTransaction:
+            if let pending = _pending {
+                let old = _value
+                _value = pending
+                _pending = nil
+                _state.send(.init(from: old, to: _value))
+            }
+            _state.end()
+        }
+    }
+
+    override var value: Value { return _value }
+    override var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }
 

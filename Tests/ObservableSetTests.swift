@@ -10,7 +10,7 @@ import XCTest
 @testable import GlueKit
 
 private class TestObservableSet<Element: Hashable>: ObservableSetBase<Element> {
-    var signal = Signal<SetChange<Element>>()
+    var _state = TransactionState<SetChange<Element>>()
     var _value: Set<Element>
 
     init(_ value: Set<Element>) {
@@ -18,18 +18,20 @@ private class TestObservableSet<Element: Hashable>: ObservableSetBase<Element> {
     }
 
     override var value: Set<Element> { return _value }
-    override var changes: Source<SetChange<Element>> { return signal.source }
+    override var updates: SetUpdateSource<Element> { return _state.source(retaining: self) }
 
     func apply(_ change: SetChange<Element>) {
         if change.isEmpty { return }
+        _state.begin()
         _value.subtract(change.removed)
         _value.formUnion(change.inserted)
-        signal.send(change)
+        _state.send(change)
+        _state.end()
     }
 }
 
 private class TestObservableSet2<Element: Hashable>: ObservableSetType {
-    var signal = Signal<SetChange<Element>>()
+    var _state = TransactionState<SetChange<Element>>()
     var _value: Set<Element>
 
     init(_ value: Set<Element>) {
@@ -37,19 +39,21 @@ private class TestObservableSet2<Element: Hashable>: ObservableSetType {
     }
 
     var value: Set<Element> { return _value }
-    var changes: Source<SetChange<Element>> { return signal.source }
+    var updates: SetUpdateSource<Element> { return _state.source(retaining: self) }
 
     func apply(_ change: SetChange<Element>) {
         if change.isEmpty { return }
+        _state.begin()
         _value.subtract(change.removed)
         _value.formUnion(change.inserted)
-        signal.send(change)
+        _state.send(change)
+        _state.end()
     }
 }
 
 
 private class TestUpdatableSet<Element: Hashable>: UpdatableSetBase<Element> {
-    var signal = Signal<SetChange<Element>>()
+    var _state = TransactionState<SetChange<Element>>()
     var _value: Set<Element>
 
     init(_ value: Set<Element>) {
@@ -60,18 +64,20 @@ private class TestUpdatableSet<Element: Hashable>: UpdatableSetBase<Element> {
         get { return _value }
         set { self.apply(SetChange(removed: _value, inserted: newValue)) }
     }
-    override var changes: Source<SetChange<Element>> { return signal.source }
+    override var updates: SetUpdateSource<Element> { return _state.source(retaining: self) }
 
     override func apply(_ change: SetChange<Element>) {
         if change.isEmpty { return }
+        _state.begin()
         _value.subtract(change.removed)
         _value.formUnion(change.inserted)
-        signal.send(change)
+        _state.send(change)
+        _state.end()
     }
 }
 
 private class TestUpdatableSet2<Element: Hashable>: UpdatableSetType {
-    var signal = Signal<SetChange<Element>>()
+    var _state = TransactionState<SetChange<Element>>()
     var _value: Set<Element>
 
     init(_ value: Set<Element>) {
@@ -82,20 +88,28 @@ private class TestUpdatableSet2<Element: Hashable>: UpdatableSetType {
         get { return _value }
         set { self.apply(SetChange(removed: _value, inserted: newValue)) }
     }
-    var changes: Source<SetChange<Element>> { return signal.source }
+    var updates: SetUpdateSource<Element> { return _state.source(retaining: self) }
 
+    func withTransaction<Result>(_ body: () -> Result) -> Result {
+        _state.begin()
+        defer { _state.end() }
+        return body()
+    }
+    
     func apply(_ change: SetChange<Element>) {
         if change.isEmpty { return }
+        _state.begin()
         _value.subtract(change.removed)
         _value.formUnion(change.inserted)
-        signal.send(change)
+        _state.send(change)
+        _state.end()
     }
 }
 
 
 class ObservableSetTypeTests: XCTestCase {
     func testDefaultImplementations() {
-        func check<T, S: ObservableSetType>(isBuffered: Bool = false, make: (Set<S.Element>) -> T, convert: (T) -> S, apply: @escaping (T, SetChange<S.Element>) -> Void) where S.Element == Int {
+        func check<T, S: ObservableSetType>(isBuffered: Bool = false, make: (Set<S.Element>) -> T, convert: (T) -> S, apply: @escaping (T, SetChange<S.Element>) -> Void) where S.Element == Int, S.Change == SetChange<Int> {
             let t = make([1, 2, 3])
             let test = convert(t)
             XCTAssertEqual(test.value, [1, 2, 3])
@@ -191,7 +205,7 @@ class ObservableSetTypeTests: XCTestCase {
     }
 
     func testUpdatableDefaultImplementations() {
-        func check<U: UpdatableSetType>(_ make: (Set<Int>) -> U) where U.Element == Int {
+        func check<U: UpdatableSetType>(_ make: (Set<Int>) -> U) where U.Element == Int, U.Change == SetChange<Int> {
             let test = make([1, 2, 3])
 
             XCTAssertEqual(test.value, [1, 2, 3])
