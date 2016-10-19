@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol UpdatableSetType: ObservableSetType {
+public protocol UpdatableSetType: ObservableSetType, UpdatableType {
     var value: Base { get nonmutating set }
     func apply(_ change: SetChange<Element>)
 
@@ -98,6 +98,7 @@ public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
     public func isSubset(of other: Set<Element>) -> Bool { return box.isSubset(of: other) }
     public func isSuperset(of other: Set<Element>) -> Bool { return box.isSuperset(of: other) }
 
+    public func withTransaction<Result>(_ body: () -> Result) -> Result { return box.withTransaction(body) }
     public func apply(_ change: SetChange<Element>) { box.apply(change) }
     public func remove(_ member: Element) { box.remove(member) }
     public func insert(_ member: Element) { box.insert(member) }
@@ -119,6 +120,7 @@ class UpdatableSetBase<Element: Hashable>: ObservableSetBase<Element>, Updatable
         get { abstract() }
         set { abstract() }
     }
+    func withTransaction<Result>(_ body: () -> Result) -> Result { abstract() }
     func apply(_ change: SetChange<Element>) { abstract() }
 
     func remove(_ member: Element) {
@@ -190,6 +192,7 @@ class UpdatableSetBox<Contents: UpdatableSetType>: UpdatableSetBase<Contents.Ele
         set { contents.value = newValue }
     }
 
+    override func withTransaction<Result>(_ body: () -> Result) -> Result { return contents.withTransaction(body) }
     override func apply(_ change: SetChange<Element>) { contents.apply(change) }
 
     override func remove(_ member: Element) { contents.remove(member) }

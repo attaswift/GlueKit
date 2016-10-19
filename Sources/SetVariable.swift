@@ -77,6 +77,12 @@ public final class SetVariable<Element: Hashable>: UpdatableSetBase<Element> {
         return _state.source(retaining: self)
     }
 
+    public override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        _state.begin()
+        defer { _state.end() }
+        return body()
+    }
+    
     public override func apply(_ change: SetChange<Element>) {
         guard !change.isEmpty else { return }
         _state.begin()

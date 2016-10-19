@@ -90,6 +90,12 @@ private class TestUpdatableSet2<Element: Hashable>: UpdatableSetType {
     }
     var updates: SetUpdateSource<Element> { return _state.source(retaining: self) }
 
+    func withTransaction<Result>(_ body: () -> Result) -> Result {
+        _state.begin()
+        defer { _state.end() }
+        return body()
+    }
+    
     func apply(_ change: SetChange<Element>) {
         if change.isEmpty { return }
         _state.begin()

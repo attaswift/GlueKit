@@ -126,6 +126,9 @@ private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType
     override func isSubset(of other: Set<Element>) -> Bool { return field.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return field.isSuperset(of: other) }
 
+    override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        return field.withTransaction(body)
+    }
     override func apply(_ change: SetChange<Element>) { field.apply(change) }
 
     override func remove(_ member: Element) { field.remove(member) }
