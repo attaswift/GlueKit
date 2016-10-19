@@ -6,14 +6,15 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
+import Foundation
 import XCTest
-@testable import GlueKit
+import GlueKit
 
 class SignalPerformanceTests: XCTestCase {
 
     func testSendPerformance() {
-        let iterations = 60 * 1000
-        self.measureMetrics(self.dynamicType.defaultPerformanceMetrics(), automaticallyStartMeasuring: false) {
+        let iterations = 120 * 1000
+        self.measureMetrics(SignalPerformanceTests.defaultPerformanceMetrics(), automaticallyStartMeasuring: false) {
             var count = 0
             let signal = Signal<Int>()
             let c = signal.connect { i in count += 1 }
@@ -31,25 +32,25 @@ class SignalPerformanceTests: XCTestCase {
 
     func testConcurrentSendPerformance() {
         let queueCount = 4
-        let iterations = 15000
+        let iterations = 30000
 
-        self.measureMetrics(self.dynamicType.defaultPerformanceMetrics(), automaticallyStartMeasuring: false) {
+        self.measureMetrics(SignalPerformanceTests.defaultPerformanceMetrics(), automaticallyStartMeasuring: false) {
             var count = 0
             let signal = Signal<Int>()
             let c = signal.connect { i in count += 1 }
 
-            let queues = (1...queueCount).map { i in dispatch_queue_create("com.github.lorentey.GlueKit.testQueue \(i)", nil) }
+            let queues = (1...queueCount).map { i in DispatchQueue(label: "com.github.lorentey.GlueKit.testQueue \(i)") }
 
-            let group = dispatch_group_create()
+            let group = DispatchGroup()
             self.startMeasuring()
             for q in queues {
-                dispatch_group_async(group, q) {
+                q.async(group: group) {
                     for i in 1...iterations {
                         signal.send(i)
                     }
                 }
             }
-            dispatch_group_wait(group, DISPATCH_TIME_FOREVER)
+            group.wait()
             self.stopMeasuring()
 
             c.disconnect()
@@ -68,8 +69,8 @@ class SignalPerformanceTests: XCTestCase {
             end = new
         }
 
-        let count = 50
-        self.measureMetrics(self.dynamicType.defaultPerformanceMetrics(), automaticallyStartMeasuring: false) {
+        let count = 100
+        self.measureMetrics(SignalPerformanceTests.defaultPerformanceMetrics(), automaticallyStartMeasuring: false) {
             var r = [Int]()
             r.reserveCapacity(1000)
             let c = end.connect { i in r.append(i) }
@@ -77,7 +78,7 @@ class SignalPerformanceTests: XCTestCase {
             for i in 1...10 {
                 start.send(i)
             }
-            r.removeAll(keepCapacity: true)
+            r.removeAll(keepingCapacity: true)
 
             self.startMeasuring()
             for i in 1...count {
