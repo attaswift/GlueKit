@@ -98,6 +98,7 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
             }
         case .endTransaction:
             if let change = pendingChange {
+                pendingChange = nil
                 if state.isConnected {
                     var mappedChange = Change(initialCount: value.count)
                     for modification in change.modifications {

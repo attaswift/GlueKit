@@ -37,8 +37,10 @@ extension ObservableType {
                     }
                 case .endTransaction:
                     if let change = merged {
-                        sink.receive(change)
                         merged = nil
+                        if !change.isEmpty {
+                            sink.receive(change)
+                        }
                     }
                 }
             }

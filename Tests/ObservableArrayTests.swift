@@ -7,11 +7,10 @@
 //
 
 import XCTest
-import GlueKit
+@testable import GlueKit
 
 private class TestObservableArray<Element>: ObservableArrayType {
-
-    var signal = Signal<ArrayChange<Element>>()
+    var _state = TransactionState<ArrayChange<Element>>()
     var _value: [Element]
 
     init(_ value: [Element]) {
@@ -26,14 +25,24 @@ private class TestObservableArray<Element>: ObservableArrayType {
         return _value[bounds]
     }
 
-    var changes: Source<ArrayChange<Element>> {
-        return signal.source
+    var updates: Source<ArrayUpdate<Element>> {
+        return _state.source(retaining: self)
+    }
+
+    func begin() {
+        _state.begin()
+    }
+
+    func end() {
+        _state.end()
     }
 
     func apply(_ change: ArrayChange<Element>) {
         if change.isEmpty { return }
+        _state.begin()
         _value.apply(change)
-        signal.send(change)
+        _state.send(change)
+        _state.end()
     }
 }
 
@@ -52,11 +61,17 @@ private class TestUpdatableArray<Element>: TestObservableArray<Element>, Updatab
         get { return _value[index] }
         set { self.apply(ArrayChange(initialCount: count, modification: .replace(self[index], at: index, with: newValue))) }
     }
+
+    func batchUpdate(_ body: () -> Void) {
+        _state.begin()
+        body()
+        _state.end()
+    }
 }
 
 class ObservableArrayTests: XCTestCase {
     func testDefaultImplementations() {
-        func check<T, A: ObservableArrayType>(isBuffered: Bool = false, make: ([Int]) -> T, convert: (T) -> A, apply: @escaping (T, ArrayChange<Int>) -> Void) where A.Element == Int {
+        func check<T, A: ObservableArrayType>(isBuffered: Bool = false, make: ([Int]) -> T, convert: (T) -> A, apply: @escaping (T, ArrayChange<Int>) -> Void) where A.Element == Int, A.Change == ArrayChange<Int> {
             let t = make([1, 2, 3])
             let test = convert(t)
 
@@ -141,7 +156,7 @@ class ObservableArrayTests: XCTestCase {
     }
 
     func testUpdatable() {
-        func check<A: UpdatableArrayType>(make: ([Int]) -> A) where A.Element == Int {
+        func check<A: UpdatableArrayType>(make: ([Int]) -> A) where A.Element == Int, A.Change == ArrayChange<Int> {
             let test = make([1, 2, 3])
 
             let mock = MockArrayObserver(test)
@@ -185,9 +200,9 @@ class ObservableArrayTests: XCTestCase {
             XCTAssertEqual(test.value, [0, 1, 2, 3])
 
             mock.expecting(4, [.insert(10, at: 1), .remove(2, at: 3)]) {
-                test.modify { v in
-                    v.remove(at: 2)
-                    v.insert(10, at: 1)
+                test.batchUpdate {
+                    test.remove(at: 2)
+                    test.insert(10, at: 1)
                 }
             }
             XCTAssertEqual(test.value, [0, 10, 1, 3])

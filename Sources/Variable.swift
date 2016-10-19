@@ -19,7 +19,7 @@ public class Variable<Value>: AbstractUpdatableBase<Value> {
     private var _state = TransactionState<Change>()
 
     /// Create a new variable with an initial value.
-    internal init(_ value: Value) {
+    public init(_ value: Value) {
         _value = value
     }
 
@@ -49,7 +49,7 @@ public class UnownedVariable<Value: AnyObject>: AbstractUpdatableBase<Value> {
     private var _state = TransactionState<Change>()
 
     /// Create a new variable with an initial value.
-    internal init(_ value: Value) {
+    public init(_ value: Value) {
         _value = value
     }
 
@@ -80,7 +80,7 @@ public class WeakVariable<Object: AnyObject>: AbstractUpdatableBase<Object?> {
     private var _state = TransactionState<Change>()
 
     /// Create a new variable with an initial value.
-    internal init(_ value: Value) {
+    public init(_ value: Value) {
         _value = value
     }
 

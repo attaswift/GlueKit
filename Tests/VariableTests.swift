@@ -10,28 +10,6 @@ import XCTest
 @testable import GlueKit
 
 class VariableTests: XCTestCase {
-    #if false
-    func testDefaultSource() {
-        let v = Variable<Int>(0)
-
-        var r = [Int]()
-        let c = v.connect { value in r.append(value) }
-
-        XCTAssertEqual(r, [0], "The default source should trigger immediately with the current value of the variable")
-
-        v.value = 1
-        XCTAssertEqual(r, [0, 1])
-
-        v.setValue(2)
-        XCTAssertEqual(r, [0, 1, 2])
-
-        v.sink(3)
-        XCTAssertEqual(r, [0, 1, 2, 3])
-
-        c.disconnect()
-    }
-    #endif
-
     func testValuesSource() {
         let v = Variable<Int>(0)
 

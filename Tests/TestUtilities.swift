@@ -23,34 +23,46 @@ func XCTAssertEqual<E: Equatable>(_ a: @autoclosure () -> [[E]], _ b: @autoclosu
 }
 
 class TestObservable<Value>: ObservableValueType {
-    var _signal = Signal<ValueChange<Value>>()
+    var _signal = Signal<ValueUpdate<Value>>()
+    var _value: Value
+
+    init(_ value: Value) {
+        self._value = value
+    }
 
     var value: Value {
-        didSet {
-            _signal.send(.init(from: oldValue, to: value))
+        get { return _value }
+        set {
+            let old = _value
+            _signal.send(.beginTransaction)
+            _value = newValue
+            _signal.send(.change(.init(from: old, to: _value)))
+            _signal.send(.endTransaction)
         }
     }
 
-    init(_ value: Value) {
-        self.value = value
-    }
-
-    var changes: Source<ValueChange<Value>> { return _signal.source }
+    var updates: Source<ValueUpdate<Value>> { return _signal.source }
 }
 
 class TestUpdatable<Value>: UpdatableValueType {
-    var _signal = Signal<ValueChange<Value>>()
-
-    var value: Value {
-        didSet {
-            _signal.send(.init(from: oldValue, to: value))
-        }
-    }
+    var _signal = Signal<ValueUpdate<Value>>()
+    var _value: Value
 
     init(_ value: Value) {
-        self.value = value
+        self._value = value
     }
 
-    var changes: Source<ValueChange<Value>> { return _signal.source }
-}
+    func get() -> Value {
+        return _value
+    }
 
+    func update(_ body: (Value) -> Value) {
+        let old = _value
+        _signal.send(.beginTransaction)
+        _value = body(_value)
+        _signal.send(.change(.init(from: old, to: _value)))
+        _signal.send(.endTransaction)
+    }
+
+    var updates: Source<ValueUpdate<Value>> { return _signal.source }
+}

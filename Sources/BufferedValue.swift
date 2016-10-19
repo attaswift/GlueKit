@@ -20,7 +20,7 @@ where Base.Change == ValueChange<Base.Value> {
 
     private var _base: Base
 
-    private var _value: Base.Value
+    private var _value: Value
     private var _state = TransactionState<Change>()
     private var _pending: Value? = nil
     private var _connection: Connection? = nil
@@ -45,13 +45,16 @@ where Base.Change == ValueChange<Base.Value> {
             _pending = change.new
         case .endTransaction:
             if let pending = _pending {
+                let old = _value
                 _value = pending
                 _pending = nil
+                _state.send(.init(from: old, to: _value))
             }
+            _state.end()
         }
     }
 
-    override var value: Base.Value { return _value }
+    override var value: Value { return _value }
     override var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }
 

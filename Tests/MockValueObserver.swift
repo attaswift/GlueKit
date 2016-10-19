@@ -14,7 +14,7 @@ class MockValueObserver<Value: Equatable> {
     var actualChanges: [ValueChange<Value>] = []
     var connection: Connection? = nil
 
-    init<O: ObservableValueType>(_ target: O) where O.Value == Value {
+    init<O: ObservableValueType>(_ target: O) where O.Value == Value, O.Change == ValueChange<Value> {
         self.connection = target.changes.connect { [unowned self] change in self.apply(change) }
     }
 

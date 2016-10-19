@@ -93,9 +93,9 @@ internal class AbstractUpdatableBase<Value>: AbstractObservableBase<Value>, Upda
         get { return get() }
         set { update { _ in newValue } }
     }
-    func receive(_ value: Value) { abstract() }
     func get() -> Value { abstract() }
     func update(_ body: (Value) -> Value) { abstract() }
+    func receive(_ value: Value) { update { _ in value } }
     final var updatable: Updatable<Value> { return Updatable(box: self) }
 }
 
@@ -129,8 +129,12 @@ private class UpdatableClosureBox<Value>: AbstractUpdatableBase<Value> {
         self._updates = updates
     }
 
-    override func receive(_ value: Value) {
-        _updater { _ in value }
+    override func get() -> Value {
+        return _getter()
+    }
+
+    override func update(_ body: (Value) -> Value) {
+        _updater(body)
     }
 
     override var updates: ValueUpdateSource<Value> {
