@@ -252,7 +252,14 @@ class ObservableArrayTests: XCTestCase {
             }
             XCTAssertEqual(test.value, [11, 12, 13])
 
-            mock.expecting(3, .replaceSlice([11, 12, 13], at: 0, with: [])) {
+            mock.expecting(3, .replaceSlice([12, 13], at: 1, with: [20])) {
+                test.withTransaction {
+                    test.remove(at: 2)
+                    test[1] = 20
+                }
+            }
+
+            mock.expecting(2, .replaceSlice([11, 20], at: 0, with: [])) {
                 test.removeAll()
             }
             XCTAssertEqual(test.value, [])
