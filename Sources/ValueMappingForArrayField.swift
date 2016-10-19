@@ -166,6 +166,6 @@ private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Fi
     override var count: Int { return field.count }
     override var observableCount: Observable<Int> { return parent.map { self.key($0).observableCount } }
     override var updates: ArrayUpdateSource<Element> { return _updateSource.source }
-    override func batchUpdate(_ body: () -> Void) { field.batchUpdate(body) }
+    override func withTransaction<Result>(_ body: () -> Result) -> Result { return field.withTransaction(body) }
     override func apply(_ change: ArrayChange<Field.Element>) { field.apply(change) }
 }

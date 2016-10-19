@@ -20,10 +20,9 @@ import Foundation
 /// Also, it is not a good idea to do complex in-place manipulations (such as `sortInPlace`) on an array that has observers.
 /// Instead of `updatableArray.sortInPlace()`, which is not available, consider using
 /// `updatableArray.value = updatableArray.value.sort()`. The latter will probably be much more efficient.
-public protocol UpdatableArrayType: ObservableArrayType {
+public protocol UpdatableArrayType: ObservableArrayType, UpdatableType {
 
     // Required members
-    func batchUpdate(_ body: () -> Void)
     func apply(_ change: ArrayChange<Element>)
     var value: [Element] { get nonmutating set }
     subscript(index: Int) -> Element { get nonmutating set }
@@ -39,7 +38,8 @@ extension UpdatableArrayType {
     public var updatable: Updatable<[Element]> {
         return Updatable(
             getter: { self.value },
-            updater: { self.value = $0(self.value) },
+            setter: { self.value = $0 },
+            transaction: { self.withTransaction($0) },
             updates: { self.valueUpdates }
         )
     }
@@ -141,8 +141,14 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
     public var count: Int { return box.count }
     public var updates: ArrayUpdateSource<Element> { return box.updates }
 
-    public func batchUpdate(_ body: () -> Void) { box.batchUpdate(body) }
-    public func apply(_ change: ArrayChange<Element>) { box.apply(change) }
+    public func withTransaction<Result>(_ body: () -> Result) -> Result {
+        return self.box.withTransaction(body)
+    }
+
+    public func apply(_ change: ArrayChange<Element>) {
+        box.apply(change)
+    }
+
     public var value: [Element] {
         get { return box.value }
         nonmutating set { box.value = newValue }
@@ -165,9 +171,11 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
 
 internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, UpdatableArrayType {
 
-    func batchUpdate(_ body: () -> Void) { abstract() }
-
     func apply(_ change: ArrayChange<Element>) { abstract() }
+
+    func withTransaction<Result>(_ body: () -> Result) -> Result {
+        abstract()
+    }
 
     override var value: [Element] {
         get { abstract() }
@@ -184,7 +192,8 @@ internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, Updata
 
     var updatable: Updatable<[Element]> {
         return Updatable(getter: { self.value },
-                         updater: { body in self.value = body(self.value) },
+                         setter: { self.value = $0 },
+                         transaction: { self.withTransaction($0) },
                          updates: { self.valueUpdates })
     }
 
@@ -200,8 +209,8 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: UpdatableArrayBa
         self.contents = contents
     }
 
-    override func batchUpdate(_ body: () -> Void) {
-        contents.batchUpdate(body)
+    override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        return contents.withTransaction(body)
     }
 
     override func apply(_ change: ArrayChange<Element>) {

@@ -35,13 +35,13 @@ private final class ValueMappingForValue<Parent: ObservableValueType, Value>: Ab
     }
 }
 
-extension UpdatableValueType {
+extension UpdatableValueType where Change == ValueChange<Value> {
     public func map<Output>(_ transform: @escaping (Value) -> Output, inverse: @escaping (Output) -> Value) -> Updatable<Output> {
         return ValueMappingForUpdatableValue<Self, Output>(parent: self, transform: transform, inverse: inverse).updatable
     }
 }
 
-private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: AbstractUpdatableBase<Value> {
+private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: AbstractUpdatableBase<Value> where Parent.Change == ValueChange<Parent.Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
     let inverse: (Value) -> Parent.Value
@@ -52,17 +52,17 @@ private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Va
         self.inverse = inverse
     }
 
-    override func get() -> Value {
-        return transform(parent.value)
-    }
-
-    override func update(_ body: (Value) -> Value) {
-        parent.update { old in inverse(body(transform(old))) }
-    }
-
     override var value: Value {
-        get { return transform(parent.value) }
-        set { parent.value = inverse(newValue) }
+        get {
+            return transform(parent.value)
+        }
+        set {
+            parent.value = inverse(newValue)
+        }
+    }
+
+    override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        return parent.withTransaction(body)
     }
 
     override var updates: Source<Update<Change>> {

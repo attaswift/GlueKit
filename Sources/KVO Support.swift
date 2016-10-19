@@ -53,12 +53,19 @@ private class KVOUpdatable: NSObject, UpdatableValueType, SignalDelegate {
         super.init()
     }
 
-    func get() -> Any? {
-        return object.value(forKeyPath: keyPath)
+    var value: Any? {
+        get {
+            return object.value(forKeyPath: keyPath)
+        }
+        set {
+            object.setValue(newValue, forKeyPath: keyPath)
+        }
     }
 
-    func update(_ body: (Any?) -> Any?) {
-        object.setValue(body(get()), forKeyPath: keyPath)
+    func withTransaction<Result>(_ body: () -> Result) -> Result {
+        state.begin()
+        defer { state.end() }
+        return body()
     }
 
     var updates: ValueUpdateSource<Any?> { return state.source(retainingDelegate: self) }

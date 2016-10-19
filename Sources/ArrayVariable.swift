@@ -31,10 +31,10 @@ public final class ArrayVariable<Element>: UpdatableArrayBase<Element> {
         _value = elements
     }
 
-    public override func batchUpdate(_ body: () -> Void) {
+    public override func withTransaction<Result>(_ body: () -> Result) -> Result {
         _state.begin()
-        body()
-        _state.end()
+        defer { _state.end() }
+        return body()
     }
 
     public override func apply(_ change: ArrayChange<Element>) {

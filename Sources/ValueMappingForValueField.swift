@@ -125,7 +125,7 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
     }
 }
 
-extension ObservableValueType {
+extension ObservableValueType where Change == ValueChange<Value> {
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
     /// `map` returns a new observable that can be used to look up and modify the field and observe its changes
@@ -161,12 +161,12 @@ extension ObservableValueType {
     /// author changes their avatar. The updatable can also be used to simply retrieve the avatar at any time,
     /// or to update it.
     ///
-    public func map<U: UpdatableValueType>(_ key: @escaping (Value) -> U) -> Updatable<U.Value> {
+    public func map<U: UpdatableValueType>(_ key: @escaping (Value) -> U) -> Updatable<U.Value> where U.Change == ValueChange<U.Value> {
         return ValueMappingForUpdatableField<Self, U>(parent: self, key: key).updatable
     }
 }
 
-private final class ValueMappingForUpdatableField<Parent: ObservableValueType, Field: UpdatableValueType>: AbstractUpdatableBase<Field.Value> {
+private final class ValueMappingForUpdatableField<Parent: ObservableValueType, Field: UpdatableValueType>: AbstractUpdatableBase<Field.Value> where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
     typealias Value = Field.Value
 
     private let _observable: ValueMappingForValueField<Parent, Field>
@@ -184,12 +184,8 @@ private final class ValueMappingForUpdatableField<Parent: ObservableValueType, F
         }
     }
 
-    override func get() -> Value {
-        return _observable.value
-    }
-
-    override func update(_ body: (Value) -> Value) {
-        _observable.key(_observable.parent.value).update(body)
+    override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        return _observable.key(_observable.parent.value).withTransaction(body)
     }
 
     override var updates: Source<Update<Change>> {

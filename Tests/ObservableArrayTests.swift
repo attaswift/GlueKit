@@ -62,10 +62,10 @@ private class TestUpdatableArray<Element>: TestObservableArray<Element>, Updatab
         set { self.apply(ArrayChange(initialCount: count, modification: .replace(self[index], at: index, with: newValue))) }
     }
 
-    func batchUpdate(_ body: () -> Void) {
+    func withTransaction<Result>(_ body: () -> Result) -> Result {
         _state.begin()
-        body()
-        _state.end()
+        defer { _state.end() }
+        return body()
     }
 }
 
@@ -200,7 +200,7 @@ class ObservableArrayTests: XCTestCase {
             XCTAssertEqual(test.value, [0, 1, 2, 3])
 
             mock.expecting(4, [.insert(10, at: 1), .remove(2, at: 3)]) {
-                test.batchUpdate {
+                test.withTransaction {
                     test.remove(at: 2)
                     test.insert(10, at: 1)
                 }

@@ -24,16 +24,21 @@ public class Variable<Value>: AbstractUpdatableBase<Value> {
     }
 
     /// The current value of the variable.
-    public final override func get() -> Value {
-        return _value
+    public final override var value: Value {
+        get { return _value }
+        set {
+            let old = _value
+            _state.begin()
+            _value = newValue
+            _state.send(Change(from: old, to: _value))
+            _state.end()
+        }
     }
 
-    public final override func update(_ body: (Value) -> Value) {
-        let old = _value
+    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
         _state.begin()
-        _value = body(old)
-        _state.send(Change(from: old, to: value))
-        _state.end()
+        defer { _state.end() }
+        return body()
     }
 
     public final override var updates: ValueUpdateSource<Value> {
@@ -54,16 +59,21 @@ public class UnownedVariable<Value: AnyObject>: AbstractUpdatableBase<Value> {
     }
 
     /// The current value of the variable.
-    public final override func get() -> Value {
-        return _value
+    public final override var value: Value {
+        get { return _value }
+        set {
+            let old = _value
+            _state.begin()
+            _value = newValue
+            _state.send(Change(from: old, to: _value))
+            _state.end()
+        }
     }
 
-    public final override func update(_ body: (Value) -> Value) {
-        let old = _value
+    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
         _state.begin()
-        _value = body(old)
-        _state.send(Change(from: old, to: value))
-        _state.end()
+        defer { _state.end() }
+        return body()
     }
 
     public final override var updates: ValueUpdateSource<Value> {
@@ -85,16 +95,21 @@ public class WeakVariable<Object: AnyObject>: AbstractUpdatableBase<Object?> {
     }
 
     /// The current value of the variable.
-    public final override func get() -> Value {
-        return _value
+    public final override var value: Value {
+        get { return _value }
+        set {
+            let old = _value
+            _state.begin()
+            _value = newValue
+            _state.send(Change(from: old, to: _value))
+            _state.end()
+        }
     }
 
-    public final override func update(_ body: (Value) -> Value) {
-        let old = _value
+    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
         _state.begin()
-        _value = body(old)
-        _state.send(Change(from: old, to: value))
-        _state.end()
+        defer { _state.end() }
+        return body()
     }
 
     public final override var updates: ValueUpdateSource<Value> {

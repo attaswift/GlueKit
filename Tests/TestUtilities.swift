@@ -8,7 +8,7 @@
 
 import XCTest
 import Foundation
-import GlueKit
+@testable import GlueKit
 
 @inline(never)
 func noop<Value>(_ value: Value) {
@@ -23,7 +23,7 @@ func XCTAssertEqual<E: Equatable>(_ a: @autoclosure () -> [[E]], _ b: @autoclosu
 }
 
 class TestObservable<Value>: ObservableValueType {
-    var _signal = Signal<ValueUpdate<Value>>()
+    var _state = TransactionState<ValueChange<Value>>()
     var _value: Value
 
     init(_ value: Value) {
@@ -34,35 +34,40 @@ class TestObservable<Value>: ObservableValueType {
         get { return _value }
         set {
             let old = _value
-            _signal.send(.beginTransaction)
+            _state.begin()
             _value = newValue
-            _signal.send(.change(.init(from: old, to: _value)))
-            _signal.send(.endTransaction)
+            _state.send(.init(from: old, to: _value))
+            _state.end()
         }
     }
 
-    var updates: Source<ValueUpdate<Value>> { return _signal.source }
+    var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }
 
 class TestUpdatable<Value>: UpdatableValueType {
-    var _signal = Signal<ValueUpdate<Value>>()
+    var _state = TransactionState<ValueChange<Value>>()
     var _value: Value
 
     init(_ value: Value) {
         self._value = value
     }
 
-    func get() -> Value {
-        return _value
+    var value: Value {
+        get { return _value }
+        set {
+            let old = _value
+            _state.begin()
+            _value = newValue
+            _state.send(.init(from: old, to: _value))
+            _state.end()
+        }
     }
 
-    func update(_ body: (Value) -> Value) {
-        let old = _value
-        _signal.send(.beginTransaction)
-        _value = body(_value)
-        _signal.send(.change(.init(from: old, to: _value)))
-        _signal.send(.endTransaction)
+    func withTransaction<Result>(_ body: () -> Result) -> Result {
+        _state.begin()
+        defer { _state.end() }
+        return body()
     }
 
-    var updates: Source<ValueUpdate<Value>> { return _signal.source }
+    var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }

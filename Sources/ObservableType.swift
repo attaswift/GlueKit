@@ -51,6 +51,8 @@ extension ObservableType {
 public protocol UpdatableType: ObservableType, SinkType {
     /// The current value of this observable.
     var value: Change.Value { get nonmutating set } // Nonmutating because UpdatableType needs to be a class if it holds the value directly.
+
+    func withTransaction<Result>(_ body: () -> Result) -> Result
 }
 
 extension UpdatableType {

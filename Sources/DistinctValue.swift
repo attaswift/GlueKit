@@ -28,7 +28,8 @@ public extension UpdatableValueType where Change == ValueChange<Value> {
         let buffered = self.buffered()
         return Updatable(
             getter: { buffered.value },
-            updater: self.update,
+            setter: { self.value = $0 },
+            transaction: { self.withTransaction($0) },
             updates: { buffered.updates.flatMap { update in update.filter { !equalityTest($0.old, $0.new) } } })
     }
 }
