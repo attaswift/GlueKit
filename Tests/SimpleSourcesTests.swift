@@ -22,8 +22,8 @@ class SimpleSourcesTests: XCTestCase {
         connection.disconnect()
     }
 
-    func testConstantSource() {
-        let source = Source<Int>.constant(42)
+    func testJustSource() {
+        let source = Source<Int>.just(42)
 
         var r = [Int]()
         let connection = source.connect { i in r.append(i) }
