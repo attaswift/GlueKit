@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 public struct SetChange<Element: Hashable>: ChangeType {
     public typealias Value = Set<Element>
 

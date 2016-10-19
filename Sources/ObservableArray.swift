@@ -59,7 +59,7 @@ extension ObservableArrayType {
         return self[index ..< index + 1].first!
     }
 
-    internal var valueChanges: Source<Update<ValueChange<Base>>> {
+    internal var valueUpdates: ValueUpdateSource<[Element]> {
         var value = self.value
         return self.updates.map { event in
             event.map { change in
@@ -67,11 +67,11 @@ extension ObservableArrayType {
                 value.apply(change)
                 return ValueChange(from: old, to: value)
             }
-        }
+        }.buffered()
     }
 
     public var observable: Observable<Base> {
-        return Observable(getter: { self.value }, updates: { self.valueChanges })
+        return Observable(getter: { self.value }, updates: { self.valueUpdates })
     }
 
     public var observableCount: Observable<Int> {
@@ -161,7 +161,7 @@ internal class ObservableArrayBase<Element>: ObservableArrayType {
     }
 
     var observable: Observable<[Element]> {
-        return Observable(getter: { self.value }, updates: { self.valueChanges })
+        return Observable(getter: { self.value }, updates: { self.valueUpdates })
     }
 
     final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }

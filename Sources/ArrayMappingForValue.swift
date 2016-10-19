@@ -78,7 +78,7 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
         self.transform = transform
         self._value = content.value.map(transform)
         super.init()
-        self.connection = content.updates.connect { [unowned self] update in self.apply(update) }
+        self.connection = content.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {

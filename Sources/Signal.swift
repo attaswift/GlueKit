@@ -252,7 +252,7 @@ public class Signal<Value>: SourceType, SinkType {
         // c is holding us, and we now hold a strong reference to the sink, so c holds both us and the sink.
 
         if first {
-            self.startCallback(self)
+            start()
         }
         return c
     }
@@ -264,8 +264,16 @@ public class Signal<Value>: SourceType, SinkType {
             return self.sinks.removeValue(forKey: id) != nil && self.sinks.isEmpty
         }
         if last {
-            self.stopCallback(self)
+            stop()
         }
+    }
+
+    func start() {
+        self.startCallback(self)
+    }
+
+    func stop() {
+        self.stopCallback(self)
     }
 }
 

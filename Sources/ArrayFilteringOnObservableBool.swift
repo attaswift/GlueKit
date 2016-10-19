@@ -32,7 +32,7 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
         let elements = parent.value
         self.indexMapping = ArrayFilteringIndexmap(initialValues: elements, test: { test($0).value })
         super.init()
-        self.baseConnection = parent.updates.connect { [unowned self] update in self.apply(update) }
+        self.baseConnection = parent.updates.connect { [unowned self] in self.apply($0) }
         self.elementConnections = RefList(elements.lazy.map { [unowned self] element in self.connect(to: element) })
     }
 

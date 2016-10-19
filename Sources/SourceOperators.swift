@@ -91,6 +91,33 @@ extension SourceType {
 }
 
 extension SourceType {
+    public func buffered() -> Source<SourceValue> {
+        return BufferedSource(self).source
+    }
+}
+
+class BufferedSource<Input: SourceType>: Signal<Input.SourceValue> {
+    private let source: Input
+    private var connection: Connection? = nil
+
+    init(_ source: Input) {
+        self.source = source
+        super.init(start: { _ in }, stop: { _ in })
+    }
+
+    override func start() {
+        precondition(connection == nil)
+        connection = source.connect(self)
+    }
+
+    override func stop() {
+        connection!.disconnect()
+        connection = nil
+    }
+}
+
+
+extension SourceType {
     public static func latestOf<B: SourceType>(_ a: Self, _ b: B) -> MergedSource<(SourceValue, B.SourceValue)> {
         typealias A = Self
         typealias Result = (A.SourceValue, B.SourceValue)

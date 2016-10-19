@@ -77,17 +77,6 @@ extension UpdatableSetType {
     }
 }
 
-extension UpdatableSetType {
-    public func modify(_ block: (SetVariable<Element>)->Void) {
-        let set = SetVariable<Self.Element>(self.value)
-        var change = SetChange<Self.Element>()
-        let connection = set.changes.connect { c in change.merge(with: c) }
-        block(set)
-        connection.disconnect()
-        self.apply(change)
-    }
-}
-
 public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
     public typealias Value = Set<Element>
     public typealias Base = Set<Element>
@@ -118,7 +107,7 @@ public struct UpdatableSet<Element: Hashable>: UpdatableSetType {
     public func formSymmetricDifference(_ other: Set<Element>) { box.formSymmetricDifference(other) }
     public func subtract(_ other: Set<Element>) { box.subtract(other) }
 
-    public var changes: Source<SetChange<Element>> { return box.changes }
+    public var updates: SetUpdateSource<Element> { return box.updates }
     public var observable: Observable<Set<Element>> { return box.observable }
     public var observableCount: Observable<Int> { return box.observableCount }
 
@@ -215,7 +204,7 @@ class UpdatableSetBox<Contents: UpdatableSetType>: UpdatableSetBase<Contents.Ele
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
 
-    override var changes: Source<SetChange<Element>> { return contents.changes }
+    override var updates: SetUpdateSource<Element> { return contents.updates }
     override var observable: Observable<Set<Element>> { return contents.observable }
     override var observableCount: Observable<Int> { return contents.observableCount }
 }

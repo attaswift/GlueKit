@@ -54,7 +54,7 @@ private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field
         assert(parentConnection == nil && fieldConnections.isEmpty)
         let fields = parent.value.map(key)
         fieldConnections = RefList(fields.lazy.map { field in self.connectField(field) })
-        parentConnection = parent.updates.connect { [unowned self] update in self.apply(update) }
+        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
     }
 
     func stop(_ signal: Signal<Update<Change>>) {

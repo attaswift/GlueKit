@@ -193,6 +193,13 @@ struct TransactionState<Change: ChangeType> {
         signal?.send(change)
     }
 
+    func sendIfConnected(_ change: @autoclosure () -> Change) {
+        precondition(transactionCount > 0)
+        if let signal = signal, signal.isConnected {
+            signal.send(change())
+        }
+    }
+
     func sendLater(_ change: Change) {
         precondition(transactionCount > 0)
         signal?.sendLater(.change(change))

@@ -14,26 +14,26 @@ extension ObservableSetType {
     ///
     /// - Parameter key: A mapping closure, extracting an observable value from an element of this set.
     public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> ObservableSet<Field.Value> where Field.Value: Hashable {
-        return SetMappingForValueField<Self, Field>(base: self, key: key).observableSet
+        return SetMappingForValueField<Self, Field>(parent: self, key: key).observableSet
     }
 }
 
-class SetMappingForValueField<S: ObservableSetType, Field: ObservableValueType>: SetMappingBase<Field.Value> where Field.Value: Hashable {
-    let base: S
-    let key: (S.Element) -> Field
+class SetMappingForValueField<Parent: ObservableSetType, Field: ObservableValueType>: SetMappingBase<Field.Value> where Field.Value: Hashable {
+    let parent: Parent
+    let key: (Parent.Element) -> Field
 
     var baseConnection: Connection? = nil
-    var connections: [S.Element: Connection] = [:]
+    var connections: [Parent.Element: Connection] = [:]
 
-    init(base: S, key: @escaping (S.Element) -> Field) {
-        self.base = base
+    init(parent: Parent, key: @escaping (Parent.Element) -> Field) {
+        self.parent = parent
         self.key = key
         super.init()
-        baseConnection = base.changes.connect { [unowned self] change in self.apply(change) }
+        baseConnection = parent.updates.connect { [unowned self] in self.apply($0) }
 
-        for e in base.value {
+        for e in parent.value {
             let field = key(e)
-            connections[e] = field.changes.connect { [unowned self] change in self.apply(change) }
+            connections[e] = field.updates.connect { [unowned self] in self.apply($0) }
             _ = self.insert(field.value)
         }
     }
@@ -43,41 +43,55 @@ class SetMappingForValueField<S: ObservableSetType, Field: ObservableValueType>:
         connections.forEach { (_, c) in c.disconnect() }
     }
 
-    private func apply(_ change: SetChange<S.Element>) {
-        var transformedChange = SetChange<Element>()
-        for e in change.removed {
-            let field = key(e)
-            let value = field.value
-            connections.removeValue(forKey: e)!.disconnect()
-            if self.remove(value) {
-                transformedChange.remove(value)
+    private func apply(_ update: SetUpdate<Parent.Element>) {
+        switch update {
+        case .beginTransaction:
+            begin()
+        case .change(let change):
+            var transformedChange = SetChange<Element>()
+            for e in change.removed {
+                let field = key(e)
+                let value = field.value
+                connections.removeValue(forKey: e)!.disconnect()
+                if self.remove(value) {
+                    transformedChange.remove(value)
+                }
             }
-        }
-        for e in change.inserted {
-            let field = key(e)
-            let value = field.value
-            let c = field.changes.connect { [unowned self] change in self.apply(change) }
-            guard connections.updateValue(c, forKey: e) == nil else { fatalError("Invalid change: inserted element already in set") }
-            if self.insert(value) {
-                transformedChange.insert(value)
+            for e in change.inserted {
+                let field = key(e)
+                let value = field.value
+                let c = field.updates.connect { [unowned self] in self.apply($0) }
+                guard connections.updateValue(c, forKey: e) == nil else { fatalError("Invalid change: inserted element already in set") }
+                if self.insert(value) {
+                    transformedChange.insert(value)
+                }
             }
-        }
-        if !transformedChange.isEmpty {
-            signal.send(transformedChange)
+            if !transformedChange.isEmpty {
+                state.send(transformedChange)
+            }
+        case .endTransaction:
+            end()
         }
     }
 
-    private func apply(_ change: ValueChange<Field.Value>) {
-        if change.old == change.new { return }
-        var transformedChange = SetChange<Element>()
-        if self.remove(change.old) {
-            transformedChange.remove(change.old)
-        }
-        if self.insert(change.new) {
-            transformedChange.insert(change.new)
-        }
-        if !transformedChange.isEmpty {
-            signal.send(transformedChange)
+    private func apply(_ update: ValueUpdate<Field.Value>) {
+        switch update {
+        case .beginTransaction:
+            begin()
+        case .change(let change):
+            if change.old == change.new { return }
+            var transformedChange = SetChange<Element>()
+            if self.remove(change.old) {
+                transformedChange.remove(change.old)
+            }
+            if self.insert(change.new) {
+                transformedChange.insert(change.new)
+            }
+            if !transformedChange.isEmpty {
+                state.send(transformedChange)
+            }
+        case .endTransaction:
+            end()
         }
     }
 }

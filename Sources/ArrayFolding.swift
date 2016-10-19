@@ -46,7 +46,7 @@ private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: Ab
         self.remove = remove
         super.init()
 
-        connection = base.updates.connect { [unowned self] update in self.apply(update) }
+        connection = base.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {

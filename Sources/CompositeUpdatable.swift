@@ -46,8 +46,7 @@ private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueT
     private let first: A
     private let second: B
     private var latest: Value? = nil
-    private var signal = ChangeSignal<Change>()
-    private var state: ObservableStateForTwoDependencies<Value> = .normal
+    private var state = TransactionState<Change>()
     private var connections: (Connection, Connection)? = nil
 
     init(first: A, second: B) {
@@ -61,6 +60,7 @@ private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueT
     }
 
     func update(_ body: (Value) -> Value) {
+        state.begin()
         first.update { a in
             var result: Value? = nil
             second.update { b in
@@ -69,43 +69,52 @@ private final class CompositeUpdatable<A: UpdatableValueType, B: UpdatableValueT
             }
             return result!.0
         }
+        state.end()
     }
 
-    final var updates: Source<Update<Change>> { return signal.source(retainingDelegate: self) }
+    final var updates: ValueUpdateSource<Value> { return state.source(retainingDelegate: self) }
 
     final var value: Value {
         get {
             return get()
         }
         set {
+            state.begin()
             first.update { _ in
                 second.update { _ in
                     return newValue.1
                 }
                 return newValue.0
             }
+            state.end()
         }
     }
 
     final func start(_ signal: Signal<Update<Change>>) {
         precondition(connections == nil)
         latest = (first.get(), second.get())
-        let c1 = first.updates.connect { [unowned self] event in
-            let followup = self.state.applyEventFromFirst(self.latest!, event)
-            if let change = event.change {
+        let c1 = first.updates.connect { [unowned self] update in
+            switch update {
+            case .beginTransaction:
+                self.state.begin()
+            case .change(let change):
+                let old = self.latest!
                 self.latest!.0 = change.new
-            }
-            if let event = followup.with(new: self.latest!) {
-                signal.send(event)
+                self.state.send(Change(from: old, to: self.latest!))
+            case .endTransaction:
+                self.state.end()
             }
         }
-        let c2 = second.updates.connect { [unowned self] event in
-            let followup = self.state.applyEventFromFirst(self.latest!, event)
-            if let change = event.change {
+        let c2 = second.updates.connect { [unowned self] update in
+            switch update {
+            case .beginTransaction:
+                self.state.begin()
+            case .change(let change):
+                let old = self.latest!
                 self.latest!.1 = change.new
-            }
-            if let event = followup.with(new: self.latest!) {
-                signal.send(event)
+                self.state.send(Change(from: old, to: self.latest!))
+            case .endTransaction:
+                self.state.end()
             }
         }
         connections = (c1, c2)

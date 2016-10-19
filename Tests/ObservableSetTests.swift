@@ -18,7 +18,7 @@ private class TestObservableSet<Element: Hashable>: ObservableSetBase<Element> {
     }
 
     override var value: Set<Element> { return _value }
-    override var changes: Source<SetChange<Element>> { return signal.source }
+    override var changes: SetUpdateSource<Element> { return signal.source }
 
     func apply(_ change: SetChange<Element>) {
         if change.isEmpty { return }
@@ -37,7 +37,7 @@ private class TestObservableSet2<Element: Hashable>: ObservableSetType {
     }
 
     var value: Set<Element> { return _value }
-    var changes: Source<SetChange<Element>> { return signal.source }
+    var changes: SetUpdateSource<Element> { return signal.source }
 
     func apply(_ change: SetChange<Element>) {
         if change.isEmpty { return }
@@ -60,7 +60,7 @@ private class TestUpdatableSet<Element: Hashable>: UpdatableSetBase<Element> {
         get { return _value }
         set { self.apply(SetChange(removed: _value, inserted: newValue)) }
     }
-    override var changes: Source<SetChange<Element>> { return signal.source }
+    override var changes: SetUpdateSource<Element> { return signal.source }
 
     override func apply(_ change: SetChange<Element>) {
         if change.isEmpty { return }
@@ -82,7 +82,7 @@ private class TestUpdatableSet2<Element: Hashable>: UpdatableSetType {
         get { return _value }
         set { self.apply(SetChange(removed: _value, inserted: newValue)) }
     }
-    var changes: Source<SetChange<Element>> { return signal.source }
+    var changes: SetUpdateSource<Element> { return signal.source }
 
     func apply(_ change: SetChange<Element>) {
         if change.isEmpty { return }

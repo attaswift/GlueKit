@@ -387,6 +387,30 @@
 		BBEBFF4C1DB56E74008AC632 /* ArrayFolding.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9DF81DAA885E00E85FB9 /* ArrayFolding.swift */; };
 		BBEBFF4D1DB56F04008AC632 /* ArrayReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D929A1D64862D003BEDBF /* ArrayReference.swift */; };
 		BBEBFF4E1DB57025008AC632 /* ArrayConcatenation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83A1D6B90F5001D2821 /* ArrayConcatenation.swift */; };
+		BBEBFF4F1DB7577C008AC632 /* ObservableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990091D5DF88C0097F350 /* ObservableSet.swift */; };
+		BBEBFF501DB7578E008AC632 /* SetChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990021D5DF2D20097F350 /* SetChange.swift */; };
+		BBEBFF511DB75F44008AC632 /* UpdatableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB89901A1D5F6AAE0097F350 /* UpdatableSet.swift */; };
+		BBEBFF521DB75F82008AC632 /* SetVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB89901F1D5F6F980097F350 /* SetVariable.swift */; };
+		BBEBFF531DB76179008AC632 /* ValueMappingForSetField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E1D1DAAC7E600E85FB9 /* ValueMappingForSetField.swift */; };
+		BBEBFF541DB7631F008AC632 /* DistinctUnion.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF491DA409EE005EC162 /* DistinctUnion.swift */; };
+		BBEBFF551DB764D2008AC632 /* ObservableContains.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF400631DA108E900DA0B2C /* ObservableContains.swift */; };
+		BBEBFF561DB765B3008AC632 /* SetMappingBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF5B1DA55DA3005EC162 /* SetMappingBase.swift */; };
+		BBEBFF571DB76601008AC632 /* SetMappingForValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF561DA55384005EC162 /* SetMappingForValue.swift */; };
+		BBEBFF581DB76769008AC632 /* SetMappingForSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7E04D11DA7240C00BE3051 /* SetMappingForSequence.swift */; };
+		BBEBFF591DB76835008AC632 /* SetMappingForValueField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7E04CC1DA723F300BE3051 /* SetMappingForValueField.swift */; };
+		BBEBFF5A1DB768DB008AC632 /* SetMappingForSetField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7E04D61DA7242F00BE3051 /* SetMappingForSetField.swift */; };
+		BBEBFF5B1DB7696C008AC632 /* SetMappingForArrayField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7E04DB1DA7244A00BE3051 /* SetMappingForArrayField.swift */; };
+		BBEBFF5D1DB76AE5008AC632 /* SetReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D92951D647E83003BEDBF /* SetReference.swift */; };
+		BBEBFF5E1DB76BAE008AC632 /* SetFilteringOnPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B231C8FCC810050DDA9 /* SetFilteringOnPredicate.swift */; };
+		BBEBFF5F1DB76D06008AC632 /* SetFilteringOnObservableBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA033561DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift */; };
+		BBEBFF611DB76E11008AC632 /* SetSortingByMappingToComparable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1E4D691D61EA5200F1831F /* SetSortingByMappingToComparable.swift */; };
+		BBEBFF621DB77019008AC632 /* SetSortingByComparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA0335B1DA7276200E83AC1 /* SetSortingByComparator.swift */; };
+		BBEBFF631DB7704E008AC632 /* SetSortingByMappingToObservableComparable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA033601DA7278C00E83AC1 /* SetSortingByMappingToObservableComparable.swift */; };
+		BBEBFF641DB771CC008AC632 /* SetFolding.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E011DAA910500E85FB9 /* SetFolding.swift */; };
+		BBEBFF651DB77271008AC632 /* Type Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAA827C1C91D43700586903 /* Type Helpers.swift */; };
+		BBEBFF661DB77287008AC632 /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
+		BBEBFF671DB77292008AC632 /* KVO Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B241C8FCC810050DDA9 /* KVO Support.swift */; };
+		BBEBFF681DB77AFA008AC632 /* CompositeUpdatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E2C1DAAD4BC00E85FB9 /* CompositeUpdatable.swift */; };
 		BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
@@ -1403,18 +1427,34 @@
 			files = (
 				BBEBFF431DB559BE008AC632 /* ArrayVariable.swift in Sources */,
 				BBEBFF421DB55812008AC632 /* UpdatableArray.swift in Sources */,
+				BBEBFF621DB77019008AC632 /* SetSortingByComparator.swift in Sources */,
+				BBEBFF551DB764D2008AC632 /* ObservableContains.swift in Sources */,
 				BBEBFF4B1DB56D0C008AC632 /* ArrayFilteringOnObservableBool.swift in Sources */,
+				BBEBFF591DB76835008AC632 /* SetMappingForValueField.swift in Sources */,
+				BBEBFF581DB76769008AC632 /* SetMappingForSequence.swift in Sources */,
+				BBEBFF541DB7631F008AC632 /* DistinctUnion.swift in Sources */,
 				BBEBFF491DB56A39008AC632 /* ArrayMappingForArrayField.swift in Sources */,
+				BBEBFF501DB7578E008AC632 /* SetChange.swift in Sources */,
 				BBB55B771C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
 				BBB55B7F1C8FCC820050DDA9 /* SourceOperators.swift in Sources */,
+				BBEBFF681DB77AFA008AC632 /* CompositeUpdatable.swift in Sources */,
+				BBEBFF661DB77287008AC632 /* NSUserDefaults Support.swift in Sources */,
+				BBEBFF5E1DB76BAE008AC632 /* SetFilteringOnPredicate.swift in Sources */,
 				BBEBFF471DB56609008AC632 /* ArrayMappingForValueField.swift in Sources */,
 				BBE4DF411DA3A88C005EC162 /* ObservableType.swift in Sources */,
 				BBEBFF441DB55C8B008AC632 /* ValueMappingForArrayField.swift in Sources */,
 				BBEBFF3B1DB53931008AC632 /* CompositeObservable.swift in Sources */,
+				BBEBFF571DB76601008AC632 /* SetMappingForValue.swift in Sources */,
+				BBEBFF511DB75F44008AC632 /* UpdatableSet.swift in Sources */,
+				BBEBFF631DB7704E008AC632 /* SetSortingByMappingToObservableComparable.swift in Sources */,
+				BBEBFF671DB77292008AC632 /* KVO Support.swift in Sources */,
 				BBC2A82A1CBC14C600394D24 /* NSObject extensions.swift in Sources */,
 				BBEBFF401DB555B8008AC632 /* ArrayChangeSeparation.swift in Sources */,
 				BBEBFF371DB5331D008AC632 /* UpdatableValue.swift in Sources */,
+				BBEBFF531DB76179008AC632 /* ValueMappingForSetField.swift in Sources */,
+				BBEBFF561DB765B3008AC632 /* SetMappingBase.swift in Sources */,
 				BBEBFF411DB55604008AC632 /* ObservableArray.swift in Sources */,
+				BBEBFF641DB771CC008AC632 /* SetFolding.swift in Sources */,
 				BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BBEBFF3E1DB53B3D008AC632 /* ValueMappingForValueField.swift in Sources */,
 				BBEBFF191DB0E4B2008AC632 /* ObservableValue.swift in Sources */,
@@ -1426,24 +1466,32 @@
 				BBB55B671C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BBEBFF4C1DB56E74008AC632 /* ArrayFolding.swift in Sources */,
 				BBEBFF3D1DB53B14008AC632 /* ValueMappingForSourceField.swift in Sources */,
+				BBEBFF5D1DB76AE5008AC632 /* SetReference.swift in Sources */,
 				BBEBFF181DB0E30E008AC632 /* ValueChange.swift in Sources */,
 				BBB55B731C8FCC820050DDA9 /* Signal.swift in Sources */,
 				BBB55B531C8FCC820050DDA9 /* MergedSource.swift in Sources */,
 				BBEBFF381DB533F8008AC632 /* Variable.swift in Sources */,
+				BBEBFF651DB77271008AC632 /* Type Helpers.swift in Sources */,
 				BB69A7F41D6B1D7B001D2821 /* ChangeType.swift in Sources */,
 				BBB55B4F1C8FCC820050DDA9 /* Locks.swift in Sources */,
 				BBB55B3F1C8FCC820050DDA9 /* Connection.swift in Sources */,
 				BBEBFF4E1DB57025008AC632 /* ArrayConcatenation.swift in Sources */,
+				BBEBFF5B1DB7696C008AC632 /* SetMappingForArrayField.swift in Sources */,
 				BBEBFF3F1DB555B8008AC632 /* ArrayChange.swift in Sources */,
 				BBB55B7B1C8FCC820050DDA9 /* Source.swift in Sources */,
+				BBEBFF5F1DB76D06008AC632 /* SetFilteringOnObservableBool.swift in Sources */,
 				BBAA82781C91D24200586903 /* TimerSource.swift in Sources */,
+				BBEBFF5A1DB768DB008AC632 /* SetMappingForSetField.swift in Sources */,
+				BBEBFF4F1DB7577C008AC632 /* ObservableSet.swift in Sources */,
 				BBEBFF481DB569EA008AC632 /* ArrayFilteringIndexmap.swift in Sources */,
 				BBEBFF3A1DB536CC008AC632 /* DistinctValue.swift in Sources */,
 				BBEBFF4A1DB56C40008AC632 /* ArrayFilteringOnPredicate.swift in Sources */,
 				BBEBFF4D1DB56F04008AC632 /* ArrayReference.swift in Sources */,
+				BBEBFF611DB76E11008AC632 /* SetSortingByMappingToComparable.swift in Sources */,
 				BBEBFF461DB56340008AC632 /* ArrayMappingForValue.swift in Sources */,
 				BBEBFF391DB53531008AC632 /* BufferedValue.swift in Sources */,
 				BBEBFF3C1DB53AD8008AC632 /* ValueMappingForValue.swift in Sources */,
+				BBEBFF521DB75F82008AC632 /* SetVariable.swift in Sources */,
 				BBAA82791C91D24F00586903 /* NSNotificationCenter Support.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -34,7 +34,7 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: Observable
         _content = content
         _value = content.value
         super.init()
-        _connection = content.updates.connect { [unowned self] update in self.apply(update) }
+        _connection = content.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {

@@ -87,7 +87,7 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
         self.key = key
         super.init()
 
-        parentConnection = parent.updates.connect { [unowned self] update in self.apply(update) }
+        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
         for pe in parent.value {
             let field = key(pe)
             fieldConnections.append(connectField(field))

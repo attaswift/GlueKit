@@ -6,7 +6,8 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
+public typealias SetUpdate<Element: Hashable> = Update<SetChange<Element>>
+public typealias SetUpdateSource<Element: Hashable> = Source<SetUpdate<Element>>
 
 public protocol ObservableSetType: ObservableType {
     associatedtype Element: Hashable
@@ -19,7 +20,7 @@ public protocol ObservableSetType: ObservableType {
     func isSubset(of other: Set<Element>) -> Bool
     func isSuperset(of other: Set<Element>) -> Bool
 
-    var changes: Source<SetChange<Element>> { get }
+    var updates: SetUpdateSource<Element> { get }
     var observable: Observable<Base> { get }
     var observableCount: Observable<Int> { get }
     var observableSet: ObservableSet<Element> { get }
@@ -33,31 +34,35 @@ extension ObservableSetType {
     public func isSuperset(of other: Set<Element>) -> Bool { return value.isSuperset(of: other) }
 
     public var isEmpty: Bool { return count == 0 }
-    
-    internal var valueChanges: Source<ValueChange<Base>> {
+
+    internal var valueUpdates: ValueUpdateSource<Set<Element>> {
         var value = self.value
-        return self.changes.map { (c: SetChange<Element>) -> ValueChange<Base> in
-            let old = value
-            value.apply(c)
-            return ValueChange(from: old, to: value)
-        }
+        return self.updates.map { event in
+            event.map { change in
+                let old = value
+                value.apply(change)
+                return ValueChange(from: old, to: value)
+            }
+        }.buffered()
     }
 
     public var observable: Observable<Base> {
-        return Observable(getter: { self.value }, changes: { self.valueChanges })
+        return Observable(getter: { self.value }, updates: { self.valueUpdates })
     }
 
-    internal var countChanges: Source<ValueChange<Int>> {
+    internal var countUpdates: ValueUpdateSource<Int> {
         var count = self.count
-        return self.changes.map { change in
-            let old = count
-            count += numericCast(change.inserted.count - change.removed.count)
-            return .init(from: old, to: count)
-        }
+        return self.updates.map { update in
+            update.map { change in
+                let old = count
+                count += numericCast(change.inserted.count - change.removed.count)
+                return .init(from: old, to: count)
+            }
+        }.buffered()
     }
 
     public var observableCount: Observable<Int> {
-        return Observable(getter: { self.count }, changes: { self.countChanges })
+        return Observable(getter: { self.count }, updates: { self.countUpdates })
     }
 
     public var observableSet: ObservableSet<Element> {
@@ -82,7 +87,7 @@ public struct ObservableSet<Element: Hashable>: ObservableSetType {
     public func isSubset(of other: Set<Element>) -> Bool { return box.isSubset(of: other) }
     public func isSuperset(of other: Set<Element>) -> Bool { return box.isSuperset(of: other) }
 
-    public var changes: Source<SetChange<Element>> { return box.changes }
+    public var updates: SetUpdateSource<Element> { return box.updates }
     public var observable: Observable<Set<Element>> { return box.observable }
     public var observableCount: Observable<Int> { return box.observableCount }
 
@@ -99,7 +104,7 @@ class ObservableSetBase<Element: Hashable>: ObservableSetType {
     }
 
     var value: Set<Element> { abstract() }
-    var changes: Source<SetChange<Element>> { abstract() }
+    var updates: SetUpdateSource<Element> { abstract() }
 
     var isBuffered: Bool { return false }
     var count: Int { return value.count }
@@ -107,8 +112,8 @@ class ObservableSetBase<Element: Hashable>: ObservableSetType {
     func isSubset(of other: Set<Element>) -> Bool { return value.isSubset(of: other) }
     func isSuperset(of other: Set<Element>) -> Bool { return value.isSuperset(of: other) }
 
-    var observable: Observable<Set<Element>> { return Observable(getter: { self.value }, changes: { self.valueChanges }) }
-    var observableCount: Observable<Int> { return Observable(getter: { self.count }, changes: { self.countChanges }) }
+    var observable: Observable<Set<Element>> { return Observable(getter: { self.value }, updates: { self.valueUpdates }) }
+    var observableCount: Observable<Int> { return Observable(getter: { self.count }, updates: { self.countUpdates }) }
 
     final var observableSet: ObservableSet<Element> { return ObservableSet(box: self) }
 
@@ -133,7 +138,7 @@ class ObservableSetBox<Contents: ObservableSetType>: ObservableSetBase<Contents.
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
 
-    override var changes: Source<SetChange<Element>> { return contents.changes }
+    override var updates: SetUpdateSource<Element> { return contents.updates }
     override var observable: Observable<Set<Element>> { return contents.observable }
     override var observableCount: Observable<Int> { return contents.observableCount }
 }
@@ -152,7 +157,7 @@ class ObservableConstantSet<Element: Hashable>: ObservableSetBase<Element> {
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
 
-    override var changes: Source<SetChange<Element>> { return Source.empty() }
+    override var updates: SetUpdateSource<Element> { return Source.empty() }
     override var observable: Observable<Set<Element>> { return Observable.constant(contents) }
     override var observableCount: Observable<Int> { return Observable.constant(contents.count) }
 }

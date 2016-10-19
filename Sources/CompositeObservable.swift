@@ -89,8 +89,8 @@ private final class CompositeObservable<Input1: ObservableValueType, Input2: Obs
         _secondValue = v2
         _value = combinator(v1, v2)
 
-        let c1 = first.updates.connect { [unowned self] update in self.apply(update) }
-        let c2 = second.updates.connect { [unowned self] update in self.apply(update) }
+        let c1 = first.updates.connect { [unowned self] in self.apply($0) }
+        let c2 = second.updates.connect { [unowned self] in self.apply($0) }
         _connections = (c1, c2)
     }
 

@@ -39,11 +39,13 @@ extension UIDevice {
 
     public var observableOrientation: Observable<UIDeviceOrientation> {
         return Observable(getter: { self.orientation },
-                          changes: {
+                          updates: {
                             var orientation = self.orientation
-                            return self.orientationSource.map { value in
-                                defer { orientation = value }
-                                return ValueChange<UIDeviceOrientation>(from: orientation, to: value) }
+                            return self.orientationSource.flatMap { (value) -> [ValueUpdate<UIDeviceOrientation>] in
+                                let change = ValueChange<UIDeviceOrientation>(from: orientation, to: value)
+                                orientation = value
+                                return [.beginTransaction, .change(change), .endTransaction]
+                            }
         })
     }
 

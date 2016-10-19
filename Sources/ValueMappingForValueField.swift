@@ -78,7 +78,7 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
         let field = key(parent.value)
         currentValue = field.value
         connect(to: field)
-        parentConnection = parent.updates.connect { [unowned self] update in self.apply(update) }
+        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
     }
 
     func stop(_ signal: Signal<Update<Change>>) {
@@ -92,7 +92,7 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
 
     private func connect(to field: Field) {
         self.fieldConnection?.disconnect()
-        fieldConnection = field.updates.connect { [unowned self] update in self.apply(update) }
+        fieldConnection = field.updates.connect { [unowned self] in self.apply($0) }
     }
 
     private func apply(_ update: ValueUpdate<Parent.Value>) {

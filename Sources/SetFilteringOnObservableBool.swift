@@ -17,12 +17,11 @@ extension ObservableSetType {
 private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult: ObservableValueType>: ObservableSetBase<Parent.Element>, SignalDelegate where TestResult.Value == Bool {
     typealias Element = Parent.Element
     typealias Change = SetChange<Element>
-    typealias SignalValue = Change
 
     private let parent: Parent
     private let test: (Element) -> TestResult
 
-    private var signal = OwningSignal<Change>()
+    private var state = TransactionState<Change>()
 
     private var active = false
     private var parentConnection: Connection? = nil
@@ -75,22 +74,22 @@ private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult
         return true
     }
 
-    override var changes: Source<SetChange<Parent.Element>> { return signal.with(self).source }
+    override var updates: SetUpdateSource<Element> { return state.source(retainingDelegate: self) }
 
-    internal func start(_ signal: Signal<Change>) {
+    internal func start(_ signal: Signal<SetUpdate<Element>>) {
         active = true
         for e in parent.value {
             let test = self.test(e)
             if test.value {
                 matchingElements.insert(e)
             }
-            let c = test.changes.connect { [unowned self] change in self.apply(change, from: e) }
+            let c = test.updates.connect { [unowned self] update in self.apply(update, from: e) }
             elementConnections[e] = c
         }
-        parentConnection = parent.changes.connect { [unowned self] change in self.apply(change) }
+        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
     }
 
-    internal func stop(_ signal: Signal<Change>) {
+    internal func stop(_ signal: Signal<SetUpdate<Element>>) {
         active = false
         parentConnection?.disconnect()
         parentConnection = nil
@@ -99,35 +98,49 @@ private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult
         matchingElements = []
     }
 
-    private func apply(_ change: SetChange<Parent.Element>) {
-        var c = SetChange<Element>()
-        for e in change.removed {
-            self.elementConnections.removeValue(forKey: e)!.disconnect()
-            if let old = self.matchingElements.remove(e) {
-                c.remove(old)
+    private func apply(_ update: SetUpdate<Parent.Element>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            var c = SetChange<Element>()
+            for e in change.removed {
+                elementConnections.removeValue(forKey: e)!.disconnect()
+                if let old = self.matchingElements.remove(e) {
+                    c.remove(old)
+                }
             }
-        }
-        for e in change.inserted {
-            let test = self.test(e)
-            self.elementConnections[e] = test.changes.connect { [unowned self] change in self.apply(change, from: e) }
-            if test.value {
-                self.matchingElements.insert(e)
-                c.insert(e)
+            for e in change.inserted {
+                let test = self.test(e)
+                elementConnections[e] = test.updates.connect { [unowned self] update in self.apply(update, from: e) }
+                if test.value {
+                    matchingElements.insert(e)
+                    c.insert(e)
+                }
             }
-        }
-        if !c.isEmpty {
-            self.signal.send(c)
+            if !c.isEmpty {
+                state.send(c)
+            }
+        case .endTransaction:
+            state.end()
         }
     }
 
-    private func apply(_ change: ValueChange<Bool>, from element: Parent.Element) {
-        if !change.old && change.new {
-            matchingElements.insert(element)
-            signal.send(SetChange(inserted: [element]))
-        }
-        else if change.old && !change.new {
-            matchingElements.remove(element)
-            signal.send(SetChange(removed: [element]))
+    private func apply(_ update: ValueUpdate<Bool>, from element: Parent.Element) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            if !change.old && change.new {
+                matchingElements.insert(element)
+                state.send(SetChange(inserted: [element]))
+            }
+            else if change.old && !change.new {
+                matchingElements.remove(element)
+                state.send(SetChange(removed: [element]))
+            }
+        case .endTransaction:
+            state.end()
         }
     }
 }

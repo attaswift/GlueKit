@@ -30,7 +30,7 @@ where Base.Change == ValueChange<Base.Value> {
         self._value = base.value
         super.init()
 
-        self._connection = base.updates.connect { [unowned self] update in self.apply(update) }
+        self._connection = base.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {

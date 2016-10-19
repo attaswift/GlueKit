@@ -40,7 +40,7 @@ extension UpdatableArrayType {
         return Updatable(
             getter: { self.value },
             updater: { self.value = $0(self.value) },
-            updates: { self.valueChanges }
+            updates: { self.valueUpdates }
         )
     }
 
@@ -185,7 +185,7 @@ internal class UpdatableArrayBase<Element>: ObservableArrayBase<Element>, Updata
     var updatable: Updatable<[Element]> {
         return Updatable(getter: { self.value },
                          updater: { body in self.value = body(self.value) },
-                         updates: { self.valueChanges })
+                         updates: { self.valueUpdates })
     }
 
     final var updatableArray: UpdatableArray<Element> { return UpdatableArray(box: self) }

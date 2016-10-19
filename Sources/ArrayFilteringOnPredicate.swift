@@ -30,7 +30,7 @@ private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: Obse
         self.test = test
         self.indexMapping = ArrayFilteringIndexmap(initialValues: parent.value, test: test)
         super.init()
-        connection = parent.updates.connect { [unowned self] update in self.apply(update) }
+        connection = parent.updates.connect { [unowned self] in self.apply($0) }
     }
 
     deinit {
