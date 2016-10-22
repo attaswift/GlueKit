@@ -183,7 +183,7 @@ public class Signal<Value>: _AbstractSourceBase<Value> {
 
     @discardableResult
     public override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        let sink = sink.sink
+        let sink = sink.concealed
         return lock.withLock {
             let first = self.sinks.isEmpty
             if self.pendingItems.isEmpty {
@@ -200,7 +200,7 @@ public class Signal<Value>: _AbstractSourceBase<Value> {
 
     @discardableResult
     public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        let sink = sink.sink
+        let sink = sink.concealed
         return lock.withLock {
             var old = self.sinks.remove(sink)
             if old == nil {
@@ -223,7 +223,7 @@ public class Signal<Value>: _AbstractSourceBase<Value> {
 }
 
 extension Signal {
-    public var asSink: AnySink<Value> { return SignalSink(self).sink }
+    public var asSink: AnySink<Value> { return SignalSink(self).concealed }
 }
 
 private struct SignalSink<Value>: SinkType {

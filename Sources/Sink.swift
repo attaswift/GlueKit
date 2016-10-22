@@ -10,11 +10,11 @@ public protocol SinkType: Hashable {
     associatedtype Value
     func receive(_ value: Value)
 
-    var sink: AnySink<Value> { get }
+    var concealed: AnySink<Value> { get }
 }
 
 extension SinkType {
-    public var sink: AnySink<Value> {
+    public var concealed: AnySink<Value> {
         return AnySink(SinkBox(self))
     }
 }
@@ -37,6 +37,10 @@ public struct AnySink<Value>: SinkType {
 
     public func receive(_ value: Value) {
         box.receive(value)
+    }
+
+    public var concealed: AnySink<Value> {
+        return self
     }
 
     public var hashValue: Int {
@@ -67,7 +71,7 @@ fileprivate class _AbstractSinkBase<Value>: SinkType {
         return left.isEqual(to: right)
     }
 
-    public final var sink: AnySink<Value> {
+    public final var concealed: AnySink<Value> {
         return AnySink(self)
     }
 }
