@@ -37,7 +37,7 @@ public protocol SourceType {
     func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value
 
     /// Remove `sink`'s subscription to this source, i.e., stop calling the sink's `receive` function and release it.
-    /// produces a value. The subscription remains active until `remove` is called with an identical sink.
+    /// The subscription remains active until `remove` is called with an identical sink.
     ///
     /// - Returns: True iff this was the last subscriber of this source.
     /// - SeeAlso: `connect`, `add`
