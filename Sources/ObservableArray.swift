@@ -19,7 +19,7 @@ public typealias ArrayUpdateSource<Element> = Source<ArrayUpdate<Element>>
 /// Changes to an observable array are broadcast as a sequence of `ArrayChange` values, which describe insertions,
 /// removals, and replacements.
 ///
-/// Any `ObservableArrayType` can be converted into a type-lifted representation using `ObservableArray`.
+/// Any `ObservableArrayType` can be converted into a type-erased representation using `ObservableArray`.
 /// For a concrete observable array, see `ArrayVariable`.
 ///
 /// - SeeAlso: ObservableValueType, ObservableArray, UpdatableArrayType, ArrayVariable
@@ -105,7 +105,7 @@ extension ObservableArrayType {
 /// removals, and replacements.
 /// The count of elements in an `ObservableArrayType` is itself observable via its `observableCount` property.
 ///
-/// Any `ObservableArrayType` can be converted into a type-lifted representation using `ObservableArray`.
+/// Any `ObservableArrayType` can be converted into a type-erased representation using `ObservableArray`.
 /// For a concrete observable array, see `ArrayVariable`.
 ///
 /// - SeeAlso: ObservableValueType, ObservableArrayType, UpdatableArrayType, ArrayVariable

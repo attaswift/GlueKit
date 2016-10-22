@@ -10,18 +10,18 @@ import Foundation
 
 /// An observable thing that also includes support for updating its value.
 public protocol UpdatableValueType: ObservableValueType, UpdatableType {
-    /// Returns the type-lifted version of this UpdatableValueType.
+    /// Returns the type-erased version of this UpdatableValueType.
     var updatable: Updatable<Value> { get }
 }
 
 extension UpdatableValueType where Change == ValueChange<Value> {
-    /// Returns the type-lifted version of this UpdatableValueType.
+    /// Returns the type-erased version of this UpdatableValueType.
     public var updatable: Updatable<Value> {
         return Updatable(self)
     }
 }
 
-/// The type lifted representation of an UpdatableValueType.
+/// The type erased representation of an UpdatableValueType.
 public struct Updatable<Value>: UpdatableValueType {
     public typealias SinkValue = Value
     public typealias Change = ValueChange<Value>

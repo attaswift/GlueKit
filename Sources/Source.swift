@@ -15,7 +15,7 @@
 /// new sinks to values produced by this source.
 ///
 /// `SourceType` is a protocol with an associated value, which can be sometimes inconvenient to work with. 
-/// GlueKit provides the struct `Source<Value>` to represent a type-lifted source.
+/// GlueKit provides the struct `Source<Value>` to represent a type-erased source.
 ///
 /// A source is intended to be equivalent to a read-only propery. Therefore, while a source typically has a mechanism
 /// for sending values, this is intentionally outside the scope of `SourceType`. (But see `Signal<Value>`).
@@ -64,7 +64,7 @@ extension SourceType {
 /// new sinks to values produced by this source.
 ///
 /// `SourceType` is a protocol with an associated value, which is sometimes inconvenient to work with. GlueKit
-/// provides the struct `Source<Value>` to represent a type-lifted source.
+/// provides the struct `Source<Value>` to represent a type-erased source.
 ///
 /// A source is intended to be equivalent to a read-only propery. Therefore, while a source typically has a mechanism
 /// for sending values, this is intentionally outside the scope of `SourceType`. (But see `Signal<Value>`).

@@ -41,7 +41,7 @@ public protocol ObservableValueType: ObservableType, CustomPlaygroundQuickLookab
     /// A source that delivers new values whenever this observable changes.
     var futureValues: Source<Value> { get }
 
-    /// Returns the type-lifted version of this ObservableValueType.
+    /// Returns the type-erased version of this ObservableValueType.
     var observable: Observable<Value> { get }
 }
 
@@ -50,7 +50,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
         return PlaygroundQuickLook.text("\(value)")
     }
 
-    /// Returns the type-lifted version of this ObservableValueType.
+    /// Returns the type-erased version of this ObservableValueType.
     public var observable: Observable<Value> {
         return Observable(self)
     }
@@ -81,7 +81,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
     }
 }
 
-/// The type lifted representation of an ObservableValueType that contains a single value with simple changes.
+/// The type erased representation of an ObservableValueType that contains a single value with simple changes.
 public struct Observable<Value>: ObservableValueType {
     private let box: _ObservableValueBase<Value>
 
