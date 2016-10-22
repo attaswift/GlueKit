@@ -45,12 +45,12 @@ public protocol SourceType {
     func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value
 
     /// A type-erased representation of this source.
-    var source: AnySource<Value> { get }
+    var concealed: AnySource<Value> { get }
 }
 
 
 extension SourceType {
-    public var source: AnySource<Value> {
+    public var concealed: AnySource<Value> {
         return AnySource(box: SourceBox(self))
     }
 }
@@ -89,7 +89,7 @@ public struct AnySource<Value>: SourceType {
         return box.remove(sink)
     }
 
-    public var source: AnySource<Value> { return self }
+    public var concealed: AnySource<Value> { return self }
 }
 
 open class _AbstractSourceBase<Value>: SourceType {
@@ -103,7 +103,7 @@ open class _AbstractSourceBase<Value>: SourceType {
         abstract()
     }
 
-    public final var source: AnySource<Value> {
+    public final var concealed: AnySource<Value> {
         return AnySource(box: self)
     }
 }

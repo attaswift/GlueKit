@@ -55,7 +55,7 @@ class TransformedSource<Input: SourceType, Value>: _AbstractSourceBase<Value> {
 
 extension SourceType {
     public func map<Output>(_ transform: @escaping (Value) -> Output) -> AnySource<Output> {
-        return MappedSource(input: self, transform: transform).source
+        return MappedSource(input: self, transform: transform).concealed
     }
 }
 
@@ -75,7 +75,7 @@ private class MappedSource<Input: SourceType, Value>: TransformedSource<Input, V
 
 extension SourceType {
     public func filter(_ predicate: @escaping (Value) -> Bool) -> AnySource<Value> {
-        return FilteredSource(input: self, filter: predicate).source
+        return FilteredSource(input: self, filter: predicate).concealed
     }
 }
 
@@ -97,7 +97,7 @@ private class FilteredSource<Input: SourceType>: TransformedSource<Input, Input.
 
 extension SourceType {
     public func flatMap<Output>(_ transform: @escaping (Value) -> Output?) -> AnySource<Output> {
-        return OptionalMappedSource(input: self, transform: transform).source
+        return OptionalMappedSource(input: self, transform: transform).concealed
     }
 }
 
@@ -118,7 +118,7 @@ private class OptionalMappedSource<Input: SourceType, Value>: TransformedSource<
 
 extension SourceType {
     public func flatMap<Output>(_ transform: @escaping (Value) -> [Output]) -> AnySource<Output> {
-        return FlattenedSource(input: self, transform: transform).source
+        return FlattenedSource(input: self, transform: transform).concealed
     }
 }
 
@@ -140,7 +140,7 @@ private class FlattenedSource<Input: SourceType, Value>: TransformedSource<Input
 
 extension SourceType {
     public func dispatch(_ queue: DispatchQueue) -> AnySource<Value> {
-        return DispatchOnQueueSource(input: self, queue: queue).source
+        return DispatchOnQueueSource(input: self, queue: queue).concealed
     }
 }
 
@@ -162,7 +162,7 @@ private final class DispatchOnQueueSource<Input: SourceType>: TransformedSource<
 
 extension SourceType {
     public func dispatch(_ queue: OperationQueue) -> AnySource<Value> {
-        return DispatchOnOperationQueueSource(input: self, queue: queue).source
+        return DispatchOnOperationQueueSource(input: self, queue: queue).concealed
     }
 }
 
@@ -189,7 +189,7 @@ private final class DispatchOnOperationQueueSource<Input: SourceType>: Transform
 
 extension SourceType {
     public func buffered() -> AnySource<Value> {
-        return BufferedSource(self).source
+        return BufferedSource(self).concealed
     }
 }
 

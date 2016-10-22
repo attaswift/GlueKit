@@ -11,12 +11,12 @@ import Foundation
 extension SourceType {
     /// Returns a source that never fires.
     public static func empty() -> AnySource<Value> {
-        return NeverSource<Value>().source
+        return NeverSource<Value>().concealed
     }
 
     /// Returns a source that never fires.
     public static func never() -> AnySource<Value> {
-        return NeverSource<Value>().source
+        return NeverSource<Value>().concealed
     }
 }
 
@@ -35,7 +35,7 @@ class NeverSource<Value>: _AbstractSourceBase<Value> {
 extension SourceType {
     /// Returns a source that fires exactly once with the given value, then never again.
     public static func just(_ value: Value) -> AnySource<Value> {
-        return JustSource(value).source
+        return JustSource(value).concealed
     }
 }
 

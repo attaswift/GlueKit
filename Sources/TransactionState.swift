@@ -60,11 +60,11 @@ struct TransactionState<Change: ChangeType> {
     mutating func source(retaining owner: AnyObject) -> AnySource<Update<Change>> {
         if let signal = self.signal {
             assert(signal.owner === owner)
-            return signal.source
+            return signal.concealed
         }
         let signal = TransactionSignal<Change>(owner: owner, isInTransaction: self.isChanging)
         self.signal = signal
-        return signal.source
+        return signal.concealed
     }
 
     var isChanging: Bool { return transactionCount > 0 }

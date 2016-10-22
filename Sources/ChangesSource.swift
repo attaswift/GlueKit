@@ -10,7 +10,7 @@ extension ObservableType {
     /// A source that reports changes to the value of this observable.
     /// Changes reported correspond to complete transactions in `self.updates`.
     public var changes: AnySource<Change> {
-        return ChangesSource(self.updates).source
+        return ChangesSource(self.updates).concealed
     }
 }
 
