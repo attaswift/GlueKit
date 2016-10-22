@@ -14,15 +14,15 @@ extension SourceType {
     ///
     /// It is fine to chain multiple merges together: `MergedSource` has its own, specialized `merge` method to 
     /// collapse multiple merges into a single source.
-    public func merged<S: SourceType>(with source: S) -> MergedSource<SourceValue> where S.SourceValue == SourceValue {
+    public func merged<S: SourceType>(with source: S) -> MergedSource<Value> where S.Value == Value {
         return MergedSource(sources: [self.source, source.source])
     }
 
-    public static func merge(_ sources: Self...) -> MergedSource<SourceValue> {
+    public static func merge(_ sources: Self...) -> MergedSource<Value> {
         return MergedSource(sources: sources.map { s in s.source })
     }
 
-    public static func merge<S: Sequence>(_ sources: S) -> MergedSource<SourceValue> where S.Iterator.Element == Self {
+    public static func merge<S: Sequence>(_ sources: S) -> MergedSource<Value> where S.Iterator.Element == Self {
         return MergedSource(sources: sources.map { s in s.source })
     }
 }
@@ -30,44 +30,61 @@ extension SourceType {
 /// A Source that receives all values from a set of input sources and forwards all to its own connected sinks.
 ///
 /// Note that MergedSource only connects to its input sources while it has at least one connection of its own.
-public final class MergedSource<Value>: SourceType, SignalDelegate {
+public final class MergedSource<Value>: _AbstractSourceBase<Value> {
     public typealias SourceValue = Value
 
-    private let inputs: [Source<Value>]
-
-    private var signal = OwningSignal<Value>()
-
-    private let lock = Lock()
-    private var connections: [Connection] = []
+    private var signal = Signal<Value>()
+    private let inputs: [AnySource<Value>]
 
     /// Initializes a new merged source with `sources` as its input sources.
-    public init<S: Sequence>(sources: S) where S.Iterator.Element: SourceType, S.Iterator.Element.SourceValue == Value {
+    public init<S: Sequence>(sources: S) where S.Iterator.Element: SourceType, S.Iterator.Element.Value == Value {
         self.inputs = sources.map { $0.source }
     }
 
-    public func connect(_ sink: Sink<SourceValue>) -> Connection {
-        return signal.with(self).connect(sink)
+    public override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        let first = signal.add(sink)
+        if first {
+            for i in 0 ..< inputs.count {
+                inputs[i].add(MergedSink(source: self, index: i))
+            }
+        }
+        return first
+    }
+
+    public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        let last = signal.remove(sink)
+        if last {
+            for i in 0 ..< inputs.count {
+                inputs[i].remove(MergedSink(source: self, index: i))
+            }
+        }
+        return last
+    }
+
+    fileprivate func receive(_ value: Value, from index: Int) {
+        signal.send(value)
     }
 
     /// Returns a new MergedSource that merges the same sources as self but also listens to `source`.
     /// The returned source will forward all values sent by either of its input sources to its own connected sinks.
-    public func merge<S: SourceType>(_ source: S) -> MergedSource<Value> where S.SourceValue == Value {
+    public func merge<Source: SourceType>(_ source: Source) -> MergedSource<Value> where Source.Value == Value {
         return MergedSource(sources: self.inputs + [source.source])
     }
+}
 
-    internal func start(_ signal: Signal<Value>) {
-        lock.withLock {
-            assert(connections.isEmpty)
-            connections = inputs.map { $0.connect(signal) }
-        }
+private struct MergedSink<Value>: SinkType {
+    let source: MergedSource<Value>
+    let index: Int
+
+    func receive(_ value: Value) {
+        source.receive(value, from: index)
     }
 
-    internal func stop(_ signal: Signal<Value>) {
-        lock.withLock {
-            for c in connections {
-                c.disconnect()
-            }
-            connections.removeAll()
-        }
+    var hashValue: Int {
+        return Int.baseHash.mixed(with: ObjectIdentifier(source)).mixed(withHash: index)
+    }
+
+    static func ==(left: MergedSink, right: MergedSink) -> Bool {
+        return left.source === right.source && left.index == right.index
     }
 }

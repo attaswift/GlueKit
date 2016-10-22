@@ -55,7 +55,7 @@ extension ObservableValueType {
 
 /// A source of changes for an ObservableArray field.
 private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>
-: SignalDelegate {
+: _AbstractSourceBase<Update<ArrayChange<Field.Element>>>, SignalDelegate {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
@@ -72,8 +72,8 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
         self.key = key
     }
 
-    var source: Source<Update<Change>> {
-        return state.source(retainingDelegate: self)
+    override func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == Update<Change> {
+        return state.source(retainingDelegate: self).connect(sink)
     }
 
     func start(_ signal: Signal<Update<Change>>) {

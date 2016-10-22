@@ -8,36 +8,9 @@
 
 import Foundation
 
-internal protocol SignalDelegate: class {
-    associatedtype SignalValue
-    func start(_ signal: Signal<SignalValue>)
-    func stop(_ signal: Signal<SignalValue>)
-}
-
-/// Holds a strong reference to a value that may not be ready for consumption yet.
-private enum Ripening<Value> {
-    case ripe(Value)
-    case unripe(Value)
-
-    var ripeValue: Value? {
-        if case .ripe(let value) = self  {
-            return value
-        }
-        else {
-            return nil
-        }
-    }
-
-    mutating func ripen() {
-        if case .unripe(let value) = self {
-            self = .ripe(value)
-        }
-    }
-}
-
 private enum PendingItem<Value> {
     case sendValue(Value)
-    case ripenSinkWithID(ConnectionID)
+    case addSink(AnySink<Value>)
 }
 
 /// A Signal is both a source and a sink. Sending a value to a signal's sink forwards it to all sinks that are 
@@ -69,74 +42,32 @@ private enum PendingItem<Value> {
 /// inside another sink invocation.
 ///
 /// For reference, KVO's analogue to Signal in Foundation supports reentrancy, but its send() is synchronous. There 
-/// is no way to satisy the above rules in a system like that. KVO's designers chose to resolve this by always calling 
+/// is no way to satisfy the above rules in a system like that. KVO's designers chose to resolve this by always calling 
 /// observers with the latest value of the observed key path. That's a nice pragmatic solution in the face of 
 /// reentrancy, but it only makes sense when you have the concept of a current value, which Signal doesn't. 
 /// (Although Variable does.)
 ///
-public class Signal<Value>: SourceType, SinkType {
-    public typealias SourceValue = Value
-    public typealias SinkValue = Value
-
+public class Signal<Value>: _AbstractSourceBase<Value> {
     private let lock = Lock()
     private var sending = false
-    private var sinks: Dictionary<ConnectionID, Ripening<Sink<Value>>> = [:]
+    private var sinks: Set<AnySink<Value>> = []
     private var pendingItems: [PendingItem<Value>] = []
 
-    /// A closure that is run whenever this signal transitions from an empty signal to one having a single connection.
-    /// (Executed on the thread that connects the first sink.)
-    internal let startCallback: (Signal<Value>) -> Void
-
-    /// A closure that is run whenever this signal transitions from having at least one connection to having no 
-    /// connections. (Executed on the thread that disconnects the last sink.)
-    internal let stopCallback: (Signal<Value>) -> Void
-
-    /// @param start: A closure that is run whenever this signal transitions from an empty signal to one having a 
-    ///     single connection. (Executed on the thread that connects the first sink.)
-    /// @param stop: A closure that is run whenever this signal transitions from having at least one connection to
-    ///     having no connections. (Executed on the thread that disconnects the last sink.)
-    internal init(start: @escaping (Signal<Value>) -> Void, stop: @escaping (Signal<Value>) -> Void) {
-        self.startCallback = start
-        self.stopCallback = stop
+    public override init() {
+        super.init()
     }
 
-    internal convenience init(delegateCallback: @escaping (_ signal: Signal<Value>, _ started: Bool) -> Void) {
-        self.init(
-            start: { s in delegateCallback(s, true) },
-            stop: { s in delegateCallback(s, false) })
-    }
-
-    internal convenience init<Delegate: SignalDelegate>(delegate: Delegate) where Delegate.SignalValue == Value {
-        self.init(
-            start: { [weak delegate] s in delegate?.start(s) },
-            stop: { [weak delegate] s in delegate?.stop(s) })
-    }
-
-    internal convenience init<Delegate: SignalDelegate>(stronglyHeldDelegate delegate: Delegate) where Delegate.SignalValue == Value {
-        self.init(
-            start: { s in delegate.start(s) },
-            stop: { s in delegate.stop(s) })
-    }
-
-    public convenience init() {
-        self.init(start: { s in }, stop: { s in })
-    }
-
-    /// Atomically enter sending state if the signal wasn't already in it.
-    /// @returns true if the signal entered sending state due to this call.
-    private func _enterSendingState() -> Bool {
-        return lock.withLock {
-            if sending { return false }
-            sending = true
-            return true
-        }
-    }
-
-    /// Atomically return the pending value that needs to be sent next, or nil. 
+    /// Atomically return the pending value that needs to be sent next, or nil.
     /// If there are no more values, exit the sending state.
-    private func _nextValueToSendOrElseLeaveSendingState() -> Value? {
+    private func _nextValueToSend(enterSending: Bool) -> Value? {
         return lock.withLock {
-            assert(self.sending)
+            if enterSending {
+                if self.sending { return nil }
+                self.sending = true
+            }
+            else {
+                assert(self.sending)
+            }
             while case .some(let item) = self.pendingItems.first {
                 self.pendingItems.removeFirst()
                 switch item {
@@ -145,8 +76,9 @@ public class Signal<Value>: SourceType, SinkType {
                         // Send the next value to all ripe sinks.
                         return value
                     }
-                case .ripenSinkWithID(let id):
-                    self.sinks[id]?.ripen()
+                case .addSink(let sink):
+                    let (inserted, _) = self.sinks.insert(sink)
+                    precondition(inserted, "Sink is already subscribed to this signal")
                 }
             }
             // There are no more items to process.
@@ -163,8 +95,8 @@ public class Signal<Value>: SourceType, SinkType {
         // This loop is constructed to support this correctly:
         // - New sinks added while we are sending a value will not fire.
         // - Sinks removed during the iteration will not fire.
-        for (id, _) in lock.withLock({ return self.sinks }) {
-            if let sink = lock.withLock({ return self.sinks[id]?.ripeValue }) {
+        for sink in lock.withLock({ self.sinks }) {
+            if lock.withLock({ self.sinks.contains(sink) }) {
                 sink.receive(value)
             }
         }
@@ -179,13 +111,28 @@ public class Signal<Value>: SourceType, SinkType {
     ///
     /// You may safely call this method from any thread, provided that the sinks are OK with running there.
     public func send(_ value: Value) {
-        sendLater(value)
-        sendNow()
-    }
-
-    /// When used as a sink, a Signal forwards all received values to its connected sinks in turn.
-    public func receive(_ value: Value) {
-        send(value)
+        let path: Bool? = lock.withLock {
+            if sending {
+                self.pendingItems.append(.sendValue(value))
+                return nil // Value has been scheduled; somebody else will send it.
+            }
+            sending = true
+            if self.pendingItems.isEmpty {
+                return true
+            }
+            self.pendingItems.append(.sendValue(value))
+            return false
+        }
+        if let fast = path {
+            if fast {
+                // Fast track: We can send the value immediately.
+                _sendValueNow(value)
+            }
+            // Send remaining pending items in order.
+            while let v = _nextValueToSend(enterSending: false) {
+                _sendValueNow(v)
+            }
+        }
     }
 
     /// Append value to the queue of pending values. The value will be sent by a send() or sendNow() invocation.
@@ -226,54 +173,75 @@ public class Signal<Value>: SourceType, SinkType {
     /// Send all pending values immediately, or do nothing if the signal is already sending values elsewhere.
     /// (On another thread, or if this is a recursive call of sendNow on the current thread.)
     internal func sendNow() {
-        if _enterSendingState() {
-            while let value = _nextValueToSendOrElseLeaveSendingState() {
+        if let value = _nextValueToSend(enterSending: true) {
+            _sendValueNow(value)
+            while let value = _nextValueToSend(enterSending: false) {
                 _sendValueNow(value)
             }
         }
     }
 
-    public func connect(_ sink: Sink<Value>) -> Connection {
-        let c = Connection(callback: self.disconnect) // c now holds a strong reference to self.
-        let id = c.connectionID
-        let first: Bool = lock.withLock {
+    @discardableResult
+    public override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        let sink = sink.sink
+        return lock.withLock {
             let first = self.sinks.isEmpty
             if self.pendingItems.isEmpty {
-                self.sinks[id] = .ripe(sink)
+                let (inserted, _) = self.sinks.insert(sink)
+                precondition(inserted, "Sink is already subscribed to this signal")
             }
             else {
                 // Values that are currently pending should not be sent to this sink, but any future values should be.
-                self.sinks[id] = .unripe(sink)
-                self.pendingItems.append(.ripenSinkWithID(id))
+                self.pendingItems.append(.addSink(sink))
             }
             return first
         }
-
-        // c is holding us, and we now hold a strong reference to the sink, so c holds both us and the sink.
-
-        if first {
-            start()
-        }
-        return c
     }
 
-    public var isConnected: Bool { return lock.withLock { !self.sinks.isEmpty } }
-
-    private func disconnect(_ id: ConnectionID) {
-        let last = lock.withLock { () -> Bool in
-            return self.sinks.removeValue(forKey: id) != nil && self.sinks.isEmpty
-        }
-        if last {
-            stop()
+    @discardableResult
+    public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        let sink = sink.sink
+        return lock.withLock {
+            var old = self.sinks.remove(sink)
+            if old == nil {
+                for i in 0 ..< pendingItems.count {
+                    if case .addSink(let s) = pendingItems[i], s == sink {
+                        old = s
+                        pendingItems.remove(at: i)
+                        break
+                    }
+                }
+            }
+            precondition(old != nil, "Sink is not subscribed to this signal")
+            return old != nil && self.sinks.isEmpty
         }
     }
 
-    func start() {
-        self.startCallback(self)
-    }
-
-    func stop() {
-        self.stopCallback(self)
+    public var isConnected: Bool {
+        return lock.withLock { !self.sinks.isEmpty }
     }
 }
 
+extension Signal {
+    public var asSink: AnySink<Value> { return SignalSink(self).sink }
+}
+
+private struct SignalSink<Value>: SinkType {
+    private let signal: Signal<Value>
+
+    init(_ signal: Signal<Value>) {
+        self.signal = signal
+    }
+
+    func receive(_ value: Value) {
+        signal.send(value)
+    }
+
+    var hashValue: Int {
+        return ObjectIdentifier(signal).hashValue
+    }
+
+    static func ==(left: SignalSink, right: SignalSink) -> Bool {
+        return left.signal === right.signal
+    }
+}

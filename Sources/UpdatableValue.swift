@@ -179,3 +179,15 @@ extension UpdatableValueType where Value: Equatable, Change == ValueChange<Value
         return self.bind(target, equalityTest: ==)
     }
 }
+
+extension Connector {
+    public func bind<Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target, withEqualityTest equalityTest: @escaping (Source.Value, Source.Value) -> Bool)
+        where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
+            source.bind(target, equalityTest: equalityTest).putInto(self)
+    }
+
+    public func bind<Value: Equatable, Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target)
+        where Source.Value == Value, Target.Value == Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
+            source.bind(target).putInto(self)
+    }
+}

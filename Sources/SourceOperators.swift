@@ -8,142 +8,219 @@
 
 import Foundation
 
+struct TransformedSink<Input: SourceType, Sink: SinkType>: SinkType {
+    typealias Value = Input.Value
+
+    let _source: TransformedSource<Input, Sink.Value>
+    let _sink: Sink
+
+    init(source: TransformedSource<Input, Sink.Value>, sink: Sink) {
+        _source = source
+        _sink = sink
+    }
+
+    func receive(_ value: Input.Value) {
+        _source.receive(value, for: _sink)
+    }
+
+    var hashValue: Int {
+        return Int.baseHash.mixed(with: ObjectIdentifier(_source)).mixed(with: _sink)
+    }
+
+    static func ==(left: TransformedSink, right: TransformedSink) -> Bool {
+        return left._source === right._source && left._sink == right._sink
+    }
+}
+
+
+class TransformedSource<Input: SourceType, Value>: _AbstractSourceBase<Value> {
+    let input: Input
+
+    init(input: Input) {
+        self.input = input
+    }
+
+    final override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        return self.input.add(TransformedSink(source: self, sink: sink))
+    }
+
+    final override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        return self.input.remove(TransformedSink(source: self, sink: sink))
+    }
+
+    func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
+        abstract()
+    }
+}
+
 extension SourceType {
-    public func sourceOperator<Output>(_ operation: @escaping (SourceValue, Sink<Output>) -> Void) -> Source<Output> {
-        return Source<Output> { sink in self.connect { value in operation(value, sink) } }
+    public func map<Output>(_ transform: @escaping (Value) -> Output) -> AnySource<Output> {
+        return MappedSource(input: self, transform: transform).source
+    }
+}
+
+private class MappedSource<Input: SourceType, Value>: TransformedSource<Input, Value> {
+    let transform: (Input.Value) -> Value
+
+    init(input: Input, transform: @escaping (Input.Value) -> Value) {
+        self.transform = transform
+        super.init(input: input)
     }
 
-    public func map<Output>(_ transform: @escaping (SourceValue) -> Output) -> Source<Output> {
-        return sourceOperator { input, sink in
-            sink.receive(transform(input))
+    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
+        sink.receive(transform(value))
+    }
+}
+
+
+extension SourceType {
+    public func filter(_ predicate: @escaping (Value) -> Bool) -> AnySource<Value> {
+        return FilteredSource(input: self, filter: predicate).source
+    }
+}
+
+private class FilteredSource<Input: SourceType>: TransformedSource<Input, Input.Value> {
+    let filter: (Input.Value) -> Bool
+
+    init(input: Input, filter: @escaping (Input.Value) -> Bool) {
+        self.filter = filter
+        super.init(input: input)
+    }
+
+    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Input.Value {
+        if filter(value) {
+            sink.receive(value)
         }
     }
+}
 
-    public func filter(_ predicate: @escaping (SourceValue) -> Bool) -> Source<SourceValue> {
-        return sourceOperator { input, sink in
-            if predicate(input) {
-                sink.receive(input)
-            }
-        }
+
+extension SourceType {
+    public func flatMap<Output>(_ transform: @escaping (Value) -> Output?) -> AnySource<Output> {
+        return OptionalMappedSource(input: self, transform: transform).source
+    }
+}
+
+private class OptionalMappedSource<Input: SourceType, Value>: TransformedSource<Input, Value> {
+    let transform: (Input.Value) -> Value?
+
+    init(input: Input, transform: @escaping (Input.Value) -> Value?) {
+        self.transform = transform
+        super.init(input: input)
     }
 
-    public func flatMap<Output>(_ transform: @escaping (SourceValue) -> Output?) -> Source<Output> {
-        return sourceOperator { input, sink in
-            if let output = transform(input) {
-                sink.receive(output)
-            }
+    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
+        if let output = transform(value) {
+            sink.receive(output)
         }
     }
+}
 
-    public func flatMap<Output>(_ transform: @escaping (SourceValue) -> [Output]) -> Source<Output> {
-        return sourceOperator { input, sink in
-            for output in transform(input) {
-                sink.receive(output)
-            }
-        }
+extension SourceType {
+    public func flatMap<Output>(_ transform: @escaping (Value) -> [Output]) -> AnySource<Output> {
+        return FlattenedSource(input: self, transform: transform).source
+    }
+}
+
+private class FlattenedSource<Input: SourceType, Value>: TransformedSource<Input, Value> {
+    let transform: (Input.Value) -> [Value]
+
+    init(input: Input, transform: @escaping (Input.Value) -> [Value]) {
+        self.transform = transform
+        super.init(input: input)
     }
 
-    public func dispatch(_ queue: DispatchQueue) -> Source<SourceValue> {
-        return sourceOperator { input, sink in
-            queue.async(execute: { sink.receive(input) })
+    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
+        for v in transform(value) {
+            sink.receive(v)
         }
     }
+}
 
-    public func dispatch(_ queue: OperationQueue) -> Source<SourceValue> {
-        return sourceOperator { input, sink in
-            if OperationQueue.current == queue {
-                sink.receive(input)
-            }
-            else {
-                queue.addOperation { sink.receive(input) }
-            }
-        }
+
+extension SourceType {
+    public func dispatch(_ queue: DispatchQueue) -> AnySource<Value> {
+        return DispatchOnQueueSource(input: self, queue: queue).source
+    }
+}
+
+private final class DispatchOnQueueSource<Input: SourceType>: TransformedSource<Input, Input.Value> {
+    typealias Value = Input.Value
+    let queue: DispatchQueue
+
+    init(input: Input, queue: DispatchQueue) {
+        self.queue = queue
+        super.init(input: input)
     }
 
-    public func everyNth(_ n: Int) -> Source<SourceValue> {
-        assert(n > 0)
-        return Source { sink in
-            var count = 0
-            return self.connect { value in
-                count += 1
-                if count == n {
-                    count = 0
-                    sink.receive(value)
-                }
-            }
+    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
+        queue.async {
+            sink.receive(value)
         }
     }
+}
 
-    public func mapNext(_ transform: @escaping (SourceValue) -> SourceValue) -> Source<SourceValue> {
-        return Source { sink in
-            var transform: Optional<(SourceValue) -> SourceValue> = transform
-            return self.connect { value in
-                if let t = transform {
-                    sink.receive(t(value))
-                    transform = nil
-                }
-                else {
-                    sink.receive(value)
-                }
+extension SourceType {
+    public func dispatch(_ queue: OperationQueue) -> AnySource<Value> {
+        return DispatchOnOperationQueueSource(input: self, queue: queue).source
+    }
+}
+
+private final class DispatchOnOperationQueueSource<Input: SourceType>: TransformedSource<Input, Input.Value> {
+    typealias Value = Input.Value
+    let queue: OperationQueue
+
+    init(input: Input, queue: OperationQueue) {
+        self.queue = queue
+        super.init(input: input)
+    }
+
+    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
+        if OperationQueue.current == queue {
+            sink.receive(value)
+        }
+        else {
+            queue.addOperation {
+                sink.receive(value)
             }
         }
     }
 }
 
 extension SourceType {
-    public func buffered() -> Source<SourceValue> {
+    public func buffered() -> AnySource<Value> {
         return BufferedSource(self).source
     }
 }
 
-class BufferedSource<Input: SourceType>: Signal<Input.SourceValue> {
-    private let source: Input
-    private var connection: Connection? = nil
+private final class BufferedSource<Input: SourceType>: _AbstractSourceBase<Input.Value>, SinkType {
+    typealias Value = Input.Value
+
+    private let _source: Input
+    private let _signal = Signal<Value>()
 
     init(_ source: Input) {
-        self.source = source
-        super.init(start: { _ in }, stop: { _ in })
+        self._source = source
+        super.init()
     }
 
-    override func start() {
-        precondition(connection == nil)
-        connection = source.connect(self)
+    final override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        let first = _signal.add(sink)
+        if first {
+            _source.add(self)
+        }
+        return first
     }
 
-    override func stop() {
-        connection!.disconnect()
-        connection = nil
+    final override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        let last = _signal.remove(sink)
+        if last {
+            _source.remove(self)
+        }
+        return last
+    }
+
+    func receive(_ value: Input.Value) {
+        _signal.send(value)
     }
 }
-
-
-extension SourceType {
-    public static func latestOf<B: SourceType>(_ a: Self, _ b: B) -> MergedSource<(SourceValue, B.SourceValue)> {
-        typealias A = Self
-        typealias Result = (A.SourceValue, B.SourceValue)
-        let lock = Lock()
-        var av: A.SourceValue? = nil
-        var bv: B.SourceValue? = nil
-
-        let sa: Source<(A.SourceValue, B.SourceValue)> = a.flatMap { (value: A.SourceValue) -> (A.SourceValue, B.SourceValue)? in
-            return lock.withLock {
-                av = value
-                if let bv = bv {
-                    return (value, bv)
-                }
-                return nil
-            }
-        }
-        let sb: Source<(A.SourceValue, B.SourceValue)> = b.flatMap { (value: B.SourceValue) -> (A.SourceValue, B.SourceValue)? in
-            return lock.withLock {
-                bv = value
-                if let av = av {
-                    return (av, value)
-                }
-                return nil
-            }
-        }
-        return MergedSource(sources: [sa, sb])
-    }
-}
-

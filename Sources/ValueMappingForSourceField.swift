@@ -22,7 +22,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
 }
 
 /// A source of values for a Source field.
-private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: SignalDelegate, SourceType
+private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: _AbstractSourceBase<Field.SourceValue>, SignalDelegate
 where Parent.Change == ValueChange<Parent.Value> {
 
     typealias Value = Field.SourceValue
@@ -34,7 +34,9 @@ where Parent.Change == ValueChange<Parent.Value> {
     var fieldConnection: Connection? = nil
     var parentConnection: Connection? = nil
 
-    func connect(_ sink: Sink<Value>) -> Connection { return signal.with(self).connect(sink) }
+    override func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == Value {
+        return signal.with(self).connect(sink)
+    }
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent

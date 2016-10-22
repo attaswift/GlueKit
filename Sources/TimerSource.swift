@@ -56,13 +56,16 @@ private class AtomicToken {
 /// The timer interval should be relatively large (at least multiple seconds); this is not supposed to be a realtime timer.
 ///
 /// Note that this source will only schedule an actual timer while there are sinks connected to it.
-public final class TimerSource: SourceType, SignalDelegate {
-    public typealias SourceValue = Void
+public final class TimerSource<V>: _AbstractSourceBase<Void>, SignalDelegate {
 
     private let queue: DispatchQueue
     private let next: (Void) -> Date?
     private var token = AtomicToken()
     private var signal = OwningSignal<Void>()
+
+    public override func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == Void {
+        return self.signal.with(self).connect(sink)
+    }
 
     /// Set up a new TimerSource that is scheduled on a given queue at the times determined by the supplied block.
     /// @param queue The queue on which to schedule the timer. 
@@ -77,9 +80,6 @@ public final class TimerSource: SourceType, SignalDelegate {
         self.next = next
     }
 
-    public func connect(_ sink: Sink<Void>) -> Connection {
-        return self.signal.with(self).connect(sink)
-    }
 
     /// Stop the timer. The timer will not fire again until start() is called.
     public func stop() {

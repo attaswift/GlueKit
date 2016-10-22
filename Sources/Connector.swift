@@ -8,10 +8,19 @@
 
 import Foundation
 
+extension Connection {
+    /// Put this connection into `connector`. The connector will disconnect the connection when it is deallocated.
+    @discardableResult
+    public func putInto(_ connector: Connector) -> Connection {
+        connector.add(self)
+        return self
+    }
+}
+
 /// A class for controlling the lifecycle of connections.
 /// The connector owns a set of connections and forces them to disconnect when it is deallocated.
 public class Connector {
-    private var connections = [ConnectionID: Connection]()
+    private var connections: [Connection] = []
 
     public init() {}
 
@@ -20,31 +29,23 @@ public class Connector {
     }
 
     fileprivate func add(_ connection: Connection) {
-        let id = connection.connectionID
-        assert(connections[id] == nil)
-        connections[id] = connection
-        connection.addCallback { [weak self] id in _ = self?.connections.removeValue(forKey: id) }
+        connections.append(connection)
     }
 
     public func disconnect() {
         let cs = connections
         connections.removeAll()
-        for (_, c) in cs {
+        for c in cs {
             c.disconnect()
         }
     }
 
     @discardableResult
-    public func connect<Source: SourceType>(_ source: Source, to sink: @escaping (Source.SourceValue) -> Void) -> Connection {
+    public func connect<Source: SourceType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
         return source.connect(sink).putInto(self)
     }
 
-    @discardableResult
-    public func connect<Source: SourceType, Target: SinkType>(_ source: Source, to sink: Target) -> Connection
-    where Source.SourceValue == Target.SinkValue {
-        return source.connect(sink).putInto(self)
-    }
-
+    #if false
     @discardableResult
     public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Observable.Change) -> Void) -> Connection {
         return observable.changes.connect(sink).putInto(self)
@@ -55,23 +56,5 @@ public class Connector {
     where Observable.Change == Target.SinkValue {
         return observable.changes.connect(sink).putInto(self)
     }
-
-    public func bind<Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target, withEqualityTest equalityTest: @escaping (Source.Value, Source.Value) -> Bool)
-    where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
-        source.bind(target, equalityTest: equalityTest).putInto(self)
-    }
-
-    public func bind<Value: Equatable, Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target)
-    where Source.Value == Value, Target.Value == Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
-        source.bind(target).putInto(self)
-    }
-}
-
-extension Connection {
-    /// Put this connection into `connector`. The connector will disconnect the connection when it is deallocated.
-    @discardableResult
-    public func putInto(_ connector: Connector) -> Connection {
-        connector.add(self)
-        return self
-    }
+    #endif
 }
