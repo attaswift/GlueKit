@@ -12,11 +12,10 @@ import Foundation
 ///
 /// - SeeAlso: UnownedVariable<Value>, WeakVariable<Value>
 ///
-public class Variable<Value>: _AbstractUpdatableValue<Value> {
+public class Variable<Value>: _BaseUpdatableValue<Value> {
     public typealias Change = ValueChange<Value>
 
     private var _value: Value
-    private var _state = TransactionState<Variable>()
 
     /// Create a new variable with an initial value.
     public init(_ value: Value) {
@@ -28,30 +27,19 @@ public class Variable<Value>: _AbstractUpdatableValue<Value> {
         get { return _value }
         set {
             let old = _value
-            _state.begin()
+            beginTransaction()
             _value = newValue
-            _state.send(Change(from: old, to: _value))
-            _state.end()
+            sendChange(Change(from: old, to: _value))
+            endTransaction()
         }
-    }
-
-    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
-        return body()
-    }
-
-    public final override var updates: ValueUpdateSource<Value> {
-        return _state.source(retaining: self)
     }
 }
 
 /// An unowned variable contains an unowned reference to an object that can be read and updated. Updates are observable.
-public class UnownedVariable<Value: AnyObject>: _AbstractUpdatableValue<Value> {
+public class UnownedVariable<Value: AnyObject>: _BaseUpdatableValue<Value> {
     public typealias Change = ValueChange<Value>
 
     private unowned var _value: Value
-    private var _state = TransactionState<UnownedVariable>()
 
     /// Create a new variable with an initial value.
     public init(_ value: Value) {
@@ -63,35 +51,31 @@ public class UnownedVariable<Value: AnyObject>: _AbstractUpdatableValue<Value> {
         get { return _value }
         set {
             let old = _value
-            _state.begin()
+            beginTransaction()
             _value = newValue
-            _state.send(Change(from: old, to: _value))
-            _state.end()
+            sendChange(Change(from: old, to: _value))
+            endTransaction()
         }
-    }
-
-    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
-        return body()
-    }
-
-    public final override var updates: ValueUpdateSource<Value> {
-        return _state.source(retaining: self)
     }
 }
 
 /// A weak variable contains a weak reference to an object that can be read and updated. Updates are observable.
-public class WeakVariable<Object: AnyObject>: _AbstractUpdatableValue<Object?> {
+public class WeakVariable<Object: AnyObject>: _BaseUpdatableValue<Object?> {
     public typealias Value = Object?
     public typealias Change = ValueChange<Value>
 
     private weak var _value: Object?
-    private var _state = TransactionState<WeakVariable>()
+
+    /// Create a new variable with a `nil` initial value.
+    public override init() {
+        _value = nil
+        super.init()
+    }
 
     /// Create a new variable with an initial value.
     public init(_ value: Value) {
         _value = value
+        super.init()
     }
 
     /// The current value of the variable.
@@ -99,21 +83,11 @@ public class WeakVariable<Object: AnyObject>: _AbstractUpdatableValue<Object?> {
         get { return _value }
         set {
             let old = _value
-            _state.begin()
+            beginTransaction()
             _value = newValue
-            _state.send(Change(from: old, to: _value))
-            _state.end()
+            sendChange(Change(from: old, to: _value))
+            endTransaction()
         }
-    }
-
-    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
-        return body()
-    }
-
-    public final override var updates: ValueUpdateSource<Value> {
-        return _state.source(retaining: self)
     }
 }
 

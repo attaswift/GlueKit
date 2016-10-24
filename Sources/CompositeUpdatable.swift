@@ -43,7 +43,7 @@ extension UpdatableValueType where Change == ValueChange<Value> {
 }
 
 /// An AnyUpdatableValue that is a composite of two other updatables.
-private final class CompositeUpdatable<Left: UpdatableValueType, Right: UpdatableValueType>: _AbstractUpdatableValue<(Left.Value, Right.Value)>
+private final class CompositeUpdatable<Left: UpdatableValueType, Right: UpdatableValueType>: _BaseUpdatableValue<(Left.Value, Right.Value)>
 where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.Value> {
     typealias Value = (Left.Value, Right.Value)
     typealias Change = ValueChange<Value>
@@ -51,7 +51,6 @@ where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.
     private let left: Left
     private let right: Right
     private var latest: Value? = nil
-    private var state = TransactionState<CompositeUpdatable>()
 
     init(left: Left, right: Right) {
         self.left = left
@@ -64,24 +63,16 @@ where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.
             return (left.value, right.value)
         }
         set {
-            state.begin()
+            beginTransaction()
             left.withTransaction {
                 left.value = newValue.0
                 right.withTransaction {
                     right.value = newValue.1
                 }
             }
-            state.end()
+            endTransaction()
         }
     }
-
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        state.begin()
-        defer { state.end() }
-        return body()
-    }
-
-    override var updates: ValueUpdateSource<Value> { return state.source(retaining: self) }
 
     override func startUpdates() {
         precondition(latest == nil)
@@ -100,27 +91,26 @@ where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.
     private func applyLeft(_ update: ValueUpdate<Left.Value>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             let old = latest!
             latest!.0 = change.new
-            state.send(Change(from: old, to: latest!))
+            sendChange(Change(from: old, to: latest!))
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
     private func applyRight(_ update: ValueUpdate<Right.Value>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             let old = latest!
             latest!.1 = change.new
-            state.send(Change(from: old, to: latest!))
+            sendChange(Change(from: old, to: latest!))
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
-
 }

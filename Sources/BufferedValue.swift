@@ -14,14 +14,13 @@ extension ObservableValueType where Change == ValueChange<Value> {
     }
 }
 
-internal class BufferedObservableValue<Base: ObservableValueType>: _AbstractObservableValue<Base.Value>
+internal class BufferedObservableValue<Base: ObservableValueType>: _BaseObservableValue<Base.Value>
 where Base.Change == ValueChange<Base.Value> {
     typealias Value = Base.Value
 
     private var _base: Base
 
     private var _value: Value
-    private var _state = TransactionState<BufferedObservableValue>()
     private var _pending: Value? = nil
 
     init(_ base: Base) {
@@ -29,17 +28,21 @@ where Base.Change == ValueChange<Base.Value> {
         self._value = base.value
         super.init()
 
-        _base.updates.add(MethodSink(owner: self, identifier: 0, method: BufferedObservableValue.apply))
+        _base.updates.add(applySink)
     }
 
     deinit {
-        _base.updates.remove(MethodSink(owner: self, identifier: 0, method: BufferedObservableValue.apply))
+        _base.updates.remove(applySink)
+    }
+
+    private var applySink: AnySink<ValueUpdate<Value>> {
+        return MethodSink(owner: self, identifier: 0, method: BufferedObservableValue.apply).anySink
     }
 
     private func apply(_ update: ValueUpdate<Value>) {
         switch update {
         case .beginTransaction:
-            _state.begin()
+            beginTransaction()
         case .change(let change):
             _pending = change.new
         case .endTransaction:
@@ -47,12 +50,11 @@ where Base.Change == ValueChange<Base.Value> {
                 let old = _value
                 _value = pending
                 _pending = nil
-                _state.send(.init(from: old, to: _value))
+                sendChange(.init(from: old, to: _value))
             }
-            _state.end()
+            endTransaction()
         }
     }
 
     override var value: Value { return _value }
-    override var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }

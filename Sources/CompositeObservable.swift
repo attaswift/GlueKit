@@ -52,14 +52,13 @@ extension ObservableValueType {
 }
 
 /// An AnyObservableValue that is calculated from two other observables.
-private final class CompositeObservable<Left: ObservableValueType, Right: ObservableValueType, Value>: _AbstractObservableValue<Value> {
+private final class CompositeObservable<Left: ObservableValueType, Right: ObservableValueType, Value>: _BaseObservableValue<Value> {
     typealias Change = ValueChange<Value>
 
     private let left: Left
     private let right: Right
     private let combinator: (Left.Value, Right.Value) -> Value
 
-    private var _state = TransactionState<CompositeObservable>()
     private var _leftValue: Left.Value? = nil
     private var _rightValue: Right.Value? = nil
     private var _value: Value? = nil
@@ -78,7 +77,6 @@ private final class CompositeObservable<Left: ObservableValueType, Right: Observ
         if let value = _value { return value }
         return combinator(left.value, right.value)
     }
-    public override var updates: AnySource<Update<Change>> { return _state.source(retaining: self) }
 
     internal override func startUpdates() {
         assert(_value == nil)
@@ -103,30 +101,30 @@ private final class CompositeObservable<Left: ObservableValueType, Right: Observ
     private func applyLeft(_ update: ValueUpdate<Left.Value>) {
         switch update {
         case .beginTransaction:
-            _state.begin()
+            beginTransaction()
         case .change(let change):
             _leftValue = change.new
             let old = _value!
             let new = combinator(_leftValue!, _rightValue!)
             _value = new
-            _state.send(ValueChange(from: old, to: new))
+            sendChange(ValueChange(from: old, to: new))
         case .endTransaction:
-            _state.end()
+            endTransaction()
         }
     }
 
     private func applyRight(_ update: ValueUpdate<Right.Value>) {
         switch update {
         case .beginTransaction:
-            _state.begin()
+            beginTransaction()
         case .change(let change):
             _rightValue = change.new
             let old = _value!
             let new = combinator(_leftValue!, _rightValue!)
             _value = new
-            _state.send(ValueChange(from: old, to: new))
+            sendChange(ValueChange(from: old, to: new))
         case .endTransaction:
-            self._state.end()
+            endTransaction()
         }
     }
 }

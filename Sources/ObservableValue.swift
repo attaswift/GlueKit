@@ -80,7 +80,7 @@ public struct AnyObservableValue<Value>: ObservableValueType {
         self.box = ObservableClosureBox(getter: getter, updates: updates)
     }
 
-    public init<Base: ObservableValueType>(_ base: Base) where Base.Value == Value {
+    public init<Base: ObservableValueType>(_ base: Base) where Base.Value == Value, Base.Change == ValueChange<Value> {
         self.box = ObservableValueBox(base)
     }
 
@@ -90,7 +90,7 @@ public struct AnyObservableValue<Value>: ObservableValueType {
     public var anyObservable: AnyObservableValue<Value> { return self }
 }
 
-open class _AbstractObservableValue<Value>: ObservableValueType, LazyObservable {
+open class _AbstractObservableValue<Value>: ObservableValueType {
     public typealias Change = ValueChange<Value>
 
     open var value: Value { abstract() }
@@ -100,16 +100,34 @@ open class _AbstractObservableValue<Value>: ObservableValueType, LazyObservable 
         return changes.map { $0.new }
     }
 
-    func startUpdates() {
-        // Do nothing
-    }
-
-    func stopUpdates() {
-        // Do nothing
-    }
-
     public final var anyObservable: AnyObservableValue<Value> {
         return AnyObservableValue(box: self)
+    }
+}
+
+open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, LazyObservable {
+    private var state = TransactionState<_BaseObservableValue>()
+
+    public final override var updates: ValueUpdateSource<Value> { return state.source(retaining: self) }
+
+    final func beginTransaction() {
+        state.begin()
+    }
+
+    final func endTransaction() {
+        state.end()
+    }
+
+    final func sendChange(_ change: Change) {
+        state.send(change)
+    }
+
+    open func startUpdates() {
+        // Do nothing
+    }
+
+    open func stopUpdates() {
+        // Do nothing
     }
 }
 

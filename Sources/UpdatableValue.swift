@@ -71,16 +71,48 @@ public struct AnyUpdatableValue<Value>: UpdatableValueType {
     }
 }
 
-internal class _AbstractUpdatableValue<Value>: _AbstractObservableValue<Value>, UpdatableValueType {
-    typealias Change = ValueChange<Value>
+open class _AbstractUpdatableValue<Value>: _AbstractObservableValue<Value>, UpdatableValueType {
+    public typealias Change = ValueChange<Value>
 
-    override var value: Value {
+    open override var value: Value {
         get { abstract() }
         set { abstract() }
     }
-    func withTransaction<Result>(_ body: () -> Result) -> Result { abstract() }
+    open func withTransaction<Result>(_ body: () -> Result) -> Result { abstract() }
 
-    final var anyUpdatable: AnyUpdatableValue<Value> { return AnyUpdatableValue(box: self) }
+    public final var anyUpdatable: AnyUpdatableValue<Value> { return AnyUpdatableValue(box: self) }
+}
+
+open class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, LazyObservable {
+    private var state = TransactionState<_BaseUpdatableValue>()
+
+    public final override var updates: ValueUpdateSource<Value> { return state.source(retaining: self) }
+
+    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
+        state.begin()
+        defer { state.end() }
+        return body()
+    }
+
+    final func beginTransaction() {
+        state.begin()
+    }
+
+    final func endTransaction() {
+        state.end()
+    }
+
+    final func sendChange(_ change: Change) {
+        state.send(change)
+    }
+
+    open func startUpdates() {
+        // Do nothing
+    }
+
+    open func stopUpdates() {
+        // Do nothing
+    }
 }
 
 internal class UpdatableBox<Base: UpdatableValueType>: _AbstractUpdatableValue<Base.Value> where Base.Change == ValueChange<Base.Value> {

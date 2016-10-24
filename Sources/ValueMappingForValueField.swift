@@ -49,14 +49,13 @@ extension ObservableValueType {
 }
 
 /// A source of changes for an Observable field.
-private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: _AbstractObservableValue<Field.Value> {
+private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: _BaseObservableValue<Field.Value> {
     typealias Value = Field.Value
     typealias Change = ValueChange<Value>
 
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var state = TransactionState<ValueMappingForValueField>()
     private var currentValue: Field.Value? = nil
     private var field: Field? = nil
 
@@ -64,8 +63,6 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
         if let v = currentValue { return v }
         return key(parent.value).value
     }
-
-    override var updates: ValueUpdateSource<Value> { return state.source(retaining: self) }
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
@@ -105,29 +102,29 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
     private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             let field = key(change.new)
             let old = currentValue!
             let new = field.value
             currentValue = new
-            state.send(ValueChange(from: old, to: new))
+            sendChange(ValueChange(from: old, to: new))
             connect(to: field)
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
     private func applyFieldUpdate(_ update: ValueUpdate<Field.Value>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             let old = currentValue!
             currentValue = change.new
-            state.send(ValueChange(from: old, to: change.new))
+            sendChange(ValueChange(from: old, to: change.new))
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 }
