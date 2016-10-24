@@ -9,11 +9,7 @@
 import UIKit
 
 extension UIControl {
-    public var sourceForPrimaryAction: Source<UIEvent> {
-        return self.sourceForControlEvents(.primaryActionTriggered)
-    }
-
-    public func sourceForControlEvents(_ events: UIControlEvents) -> Source<UIEvent> {
+    public func source(for events: UIControlEvents = .primaryActionTriggered) -> AnySource<UIEvent> {
         let registry = ControlEventsObserverRegistry.registry(for: self)
         let observer = registry.observer(for: events)
         return observer.source
@@ -70,8 +66,8 @@ internal final class ControlEventsObserverRegistry {
         registry.removeObserver(for: events)
     }
 
-    var source: Source<UIEvent> {
-        return signal.source
+    var source: AnySource<UIEvent> {
+        return signal.anySource
     }
 
     @objc func eventDidTrigger(_ sender: AnyObject, forEvent event: UIEvent) {

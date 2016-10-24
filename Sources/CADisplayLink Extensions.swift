@@ -10,48 +10,43 @@ import QuartzCore
 
 private var associatedTargetKey: UInt8 = 0
 
-extension CADisplayLink: SourceType {
-    public static func create() -> CADisplayLink {
-        let target = DisplayLinkTarget()
-        let displayLink = CADisplayLink(target: target, selector: #selector(DisplayLinkTarget.tick(_:)))
-        target.displayLink = UnownedReference(displayLink)
-        objc_setAssociatedObject(displayLink, &associatedTargetKey, target, .OBJC_ASSOCIATION_RETAIN)
-        return displayLink
+public class CADisplayLinkSource: NSObject, SourceType {
+    public typealias Value = CADisplayLink
+
+    private var runLoop: RunLoop? = nil
+    public var displayLink: CADisplayLink? = nil
+    private let signal = Signal<CADisplayLink>()
+
+    public override init() {
+        super.init()
     }
 
-    private var target: DisplayLinkTarget {
-        guard let target = objc_getAssociatedObject(self, &associatedTargetKey) as? DisplayLinkTarget else {
-            preconditionFailure("Use CADisplayLink.create() to create the display link")
+    @discardableResult
+    public func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == CADisplayLink {
+        let first = signal.add(sink)
+        if first {
+            displayLink = CADisplayLink(target: self, selector: #selector(CADisplayLinkSource.tick(_:)))
+            precondition(self.runLoop == nil)
+            let runLoop = RunLoop.current
+            self.runLoop = runLoop
+            displayLink!.add(to: runLoop, forMode: RunLoopMode.commonModes)
         }
-        return target
+        return first
     }
 
-    public func connect(_ sink: Sink<CADisplayLink>) -> Connection {
-        return target.signal.connect(sink)
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == CADisplayLink {
+        let last = signal.remove(sink)
+        if last {
+            precondition(runLoop != nil)
+            displayLink!.remove(from: runLoop!, forMode: RunLoopMode.commonModes)
+            displayLink = nil
+            runLoop = nil
+        }
+        return last
     }
-}
 
-private class DisplayLinkTarget: NSObject, SignalDelegate {
-    var displayLink: UnownedReference<CADisplayLink>! = nil
-    var runLoop: RunLoop? = nil
-
-    lazy var signal: Signal<CADisplayLink> = { Signal<CADisplayLink>(delegate: self) }()
-
-    @objc fileprivate func tick(_ displayLink: CADisplayLink) {
-        precondition(displayLink == self.displayLink.value)
+    @objc private func tick(_ displayLink: CADisplayLink) {
         signal.send(displayLink)
-    }
-
-    fileprivate func start(_ signal: Signal<CADisplayLink>) {
-        precondition(self.runLoop == nil)
-        let runLoop = RunLoop.current
-        self.runLoop = runLoop
-        displayLink.value.add(to: runLoop, forMode: RunLoopMode.commonModes)
-    }
-
-    fileprivate func stop(_ signal: Signal<CADisplayLink>) {
-        precondition(runLoop != nil)
-        displayLink.value.remove(from: runLoop!, forMode: RunLoopMode.commonModes)
-        runLoop = nil
     }
 }

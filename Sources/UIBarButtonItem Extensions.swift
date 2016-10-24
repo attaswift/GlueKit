@@ -11,16 +11,17 @@ import UIKit
 private var associatedObjectKey: UInt8 = 0
 private let listenerAction = #selector(TargetActionListener.actionDidFire)
 
-extension UIBarButtonItem: SourceType {
-    public func connect(_ sink: Sink<Void>) -> Connection {
+extension UIBarButtonItem {
+
+    public var actionSource: AnySource<Void> {
         if let target = objc_getAssociatedObject(self, &associatedObjectKey) as? TargetActionListener {
-            return target.signal.source.connect(sink)
+            return target.signal.anySource
         }
         let target = TargetActionListener()
         self.target = target
         self.action = listenerAction
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
-        return target.signal.connect(sink)
+        return target.signal.anySource
     }
 
     public convenience init(barButtonSystemItem systemItem: UIBarButtonSystemItem, actionBlock: (() -> ())? = nil) {
@@ -29,7 +30,7 @@ extension UIBarButtonItem: SourceType {
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
 
         if let actionBlock = actionBlock {
-            self.connector.connect(target.signal.source, to: actionBlock)
+            self.connector.connect(target.signal, to: actionBlock)
         }
     }
 
@@ -39,7 +40,7 @@ extension UIBarButtonItem: SourceType {
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
 
         if let actionBlock = actionBlock {
-            self.connector.connect(target.signal.source, to: actionBlock)
+            self.connector.connect(target.signal, to: actionBlock)
         }
     }
 
@@ -49,7 +50,7 @@ extension UIBarButtonItem: SourceType {
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
 
         if let actionBlock = actionBlock {
-            self.connector.connect(target.signal.source, to: actionBlock)
+            self.connector.connect(target.signal, to: actionBlock)
         }
     }
 
@@ -59,13 +60,13 @@ extension UIBarButtonItem: SourceType {
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
 
         if let actionBlock = actionBlock {
-            self.connector.connect(target.signal.source, to: actionBlock)
+            self.connector.connect(target.signal, to: actionBlock)
         }
     }
 }
 
 private class TargetActionListener: NSObject {
-    var signal = LazySignal<Void>()
+    let signal = Signal<Void>()
 
     @objc func actionDidFire() {
         signal.send()
