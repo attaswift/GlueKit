@@ -83,8 +83,8 @@ open class _AbstractUpdatableValue<Value>: _AbstractObservableValue<Value>, Upda
     public final var anyUpdatable: AnyUpdatableValue<Value> { return AnyUpdatableValue(box: self) }
 }
 
-open class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, LazyObservable {
-    private var state = TransactionState<_BaseUpdatableValue>()
+open class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, LazyObserver {
+    private var state = TransactionState<_BaseUpdatableValue, ValueChange<Value>>()
 
     public final override var updates: ValueUpdateSource<Value> { return state.source(retaining: self) }
 
@@ -106,11 +106,11 @@ open class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, LazyObser
         state.send(change)
     }
 
-    open func startUpdates() {
+    open func startObserving() {
         // Do nothing
     }
 
-    open func stopUpdates() {
+    open func stopObserving() {
         // Do nothing
     }
 }

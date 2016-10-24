@@ -9,22 +9,44 @@
 import Foundation
 
 extension ObservableArrayType {
-    public func filter<Test: ObservableValueType>(test: @escaping (Element) -> Test) -> ObservableArray<Element> where Test.Value == Bool {
-        return ArrayFilteringOnObservableBool<Self, Test>(parent: self, test: test).observableArray
+    public func filter<Test: ObservableValueType>(test: @escaping (Element) -> Test) -> AnyObservableArray<Element> where Test.Value == Bool {
+        return ArrayFilteringOnObservableBool<Self, Test>(parent: self, test: test).anyObservableArray
     }
 }
 
-private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: _AbstractObservableArray<Parent.Element> where Test.Value == Bool {
-    public typealias Element = Parent.Element
-    public typealias Change = ArrayChange<Element>
+private final class SinkForTest<Parent: ObservableArrayType, Test: ObservableValueType>: SinkType, RefListElement where Test.Value == Bool {
+    typealias Owner = ArrayFilteringOnObservableBool<Parent, Test>
+
+    unowned let owner: Owner
+    let field: Test
+    var refListLink = RefListLink<SinkForTest<Parent, Test>>()
+
+    init(owner: Owner, field: Test) {
+        self.owner = owner
+        self.field = field
+
+        field.updates.add(self)
+    }
+
+    func disconnect() {
+        field.updates.remove(self)
+    }
+
+    func receive(_ update: ValueUpdate<Bool>) {
+        owner.applyFieldUpdate(update, from: self)
+    }
+}
+
+private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: _BaseObservableArray<Parent.Element> where Test.Value == Bool {
+    typealias Element = Parent.Element
+    typealias Change = ArrayChange<Element>
+    typealias FieldSink = SinkForTest<Parent, Test>
 
     private let parent: Parent
     private let test: (Element) -> Test
 
     private var indexMapping: ArrayFilteringIndexmap<Element>
-    private var state = TransactionState<Change>()
-    private var baseConnection: Connection? = nil
-    private var elementConnections = RefList<Connection>()
+    private var elementConnections = RefList<FieldSink>()
 
     init(parent: Parent, test: @escaping (Element) -> Test) {
         self.parent = parent
@@ -32,56 +54,54 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
         let elements = parent.value
         self.indexMapping = ArrayFilteringIndexmap(initialValues: elements, test: { test($0).value })
         super.init()
-        self.baseConnection = parent.updates.connect { [unowned self] in self.apply($0) }
-        self.elementConnections = RefList(elements.lazy.map { [unowned self] element in self.connect(to: element) })
+        parent.updates.add(parentSink)
+        self.elementConnections = RefList(elements.lazy.map { FieldSink(owner: self, field: test($0)) })
     }
 
     deinit {
-        self.baseConnection!.disconnect()
+        parent.updates.remove(parentSink)
         self.elementConnections.forEach { $0.disconnect() }
     }
 
-    private func apply(_ update: ArrayUpdate<Element>) {
+    private var parentSink: AnySink<ArrayUpdate<Element>> {
+        return MethodSink(owner: self, identifier: 0, method: ArrayFilteringOnObservableBool.applyParentUpdate).anySink
+    }
+
+    private func applyParentUpdate(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             for mod in change.modifications {
                 let inputRange = mod.inputRange
                 inputRange.forEach { elementConnections[$0].disconnect() }
-                elementConnections.replaceSubrange(inputRange, with: mod.newElements.map { self.connect(to: $0) })
+                elementConnections.replaceSubrange(inputRange, with: mod.newElements.map { FieldSink(owner: self, field: test($0)) })
             }
             let filteredChange = self.indexMapping.apply(change)
             if !filteredChange.isEmpty {
-                state.send(filteredChange)
+                sendChange(filteredChange)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
-    private func connect(to element: Element) -> Connection {
-        var connection: Connection? = nil
-        connection = test(element).updates.connect { [unowned self] update in self.apply(update, from: connection) }
-        return connection!
-    }
-
-    private func apply(_ update: ValueUpdate<Bool>, from connection: Connection?) {
+    fileprivate func applyFieldUpdate(_ update: ValueUpdate<Bool>, from sink: FieldSink) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             if change.old == change.new { return }
-            let index = elementConnections.index(of: connection!)!
+            let index = elementConnections.index(of: sink)!
             let c = indexMapping.matchingIndices.count
             if change.new, let filteredIndex = indexMapping.insert(index) {
-                state.send(ArrayChange(initialCount: c, modification: .insert(parent[index], at: filteredIndex)))
+                sendChange(ArrayChange(initialCount: c, modification: .insert(parent[index], at: filteredIndex)))
             }
             else if !change.new, let filteredIndex = indexMapping.remove(index) {
-                state.send(ArrayChange(initialCount: c, modification: .remove(parent[index], at: filteredIndex)))
+                sendChange(ArrayChange(initialCount: c, modification: .remove(parent[index], at: filteredIndex)))
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
@@ -107,9 +127,5 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
 
     override var count: Int {
         return indexMapping.matchingIndices.count
-    }
-
-    override var updates: ArrayUpdateSource<Base.Element> {
-        return state.source(retaining: self)
     }
 }

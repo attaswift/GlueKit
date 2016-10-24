@@ -9,8 +9,8 @@
 import Foundation
 
 extension ObservableArrayType {
-    public func map<Output>(_ transform: @escaping (Element) -> Output) -> ObservableArray<Output> {
-        return ArrayMappingForValue(input: self, transform: transform).observableArray
+    public func map<Output>(_ transform: @escaping (Element) -> Output) -> AnyObservableArray<Output> {
+        return ArrayMappingForValue(input: self, transform: transform).anyObservableArray
     }
 }
 
@@ -50,27 +50,25 @@ private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: _
         return input.updates.map { $0.map { $0.map(self.transform) } }
     }
 
-    override var observableCount: Observable<Int> {
+    override var observableCount: AnyObservableValue<Int> {
         return input.observableCount
     }
 }
 
 
 extension ObservableArrayType {
-    public func bufferedMap<Output>(_ transform: @escaping (Element) -> Output) -> ObservableArray<Output> {
-        return BufferedArrayMappingForValue(self, transform: transform).observableArray
+    public func bufferedMap<Output>(_ transform: @escaping (Element) -> Output) -> AnyObservableArray<Output> {
+        return BufferedArrayMappingForValue(self, transform: transform).anyObservableArray
     }
 }
 
-private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArrayType>: _AbstractObservableArray<Output> where Content.Element == Input {
+private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArrayType>: _BaseObservableArray<Output> where Content.Element == Input {
     typealias Element = Output
     typealias Change = ArrayChange<Output>
 
     let content: Content
     let transform: (Input) -> Output
     private var _value: [Output]
-    private var connection: Connection? = nil
-    private var state = TransactionState<Change>()
     private var pendingChange: ArrayChange<Input>? = nil
 
     init(_ content: Content, transform: @escaping (Input) -> Output) {
@@ -78,17 +76,22 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
         self.transform = transform
         self._value = content.value.map(transform)
         super.init()
-        self.connection = content.updates.connect { [unowned self] in self.apply($0) }
+
+        content.updates.add(sink)
     }
 
     deinit {
-        connection!.disconnect()
+        content.updates.remove(sink)
+    }
+
+    private var sink: AnySink<ArrayUpdate<Input>> {
+        return MethodSink(owner: self, identifier: 0, method: BufferedArrayMappingForValue.apply).anySink
     }
 
     private func apply(_ update: Update<ArrayChange<Input>>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             if pendingChange != nil {
                 pendingChange!.merge(with: change)
@@ -99,7 +102,7 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
         case .endTransaction:
             if let change = pendingChange {
                 pendingChange = nil
-                if state.isConnected {
+                if isConnected {
                     var mappedChange = Change(initialCount: value.count)
                     for modification in change.modifications {
                         switch modification {
@@ -123,7 +126,7 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
                             _value.replaceSubrange(range, with: tnew)
                         }
                     }
-                    state.send(mappedChange)
+                    sendChange(mappedChange)
                 }
                 else {
                     for modification in change.modifications {
@@ -140,7 +143,7 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
                     }
                 }
             }
-            state.end()
+            endTransaction()
         }
     }
 
@@ -160,9 +163,5 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
 
     override var count: Int {
         return value.count
-    }
-
-    override var updates: ArrayUpdateSource<Element> {
-        return state.source(retaining: self)
     }
 }

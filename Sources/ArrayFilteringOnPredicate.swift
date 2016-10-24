@@ -9,12 +9,12 @@
 import Foundation
 
 extension ObservableArrayType {
-    public func filter(test: @escaping (Element) -> Bool) -> ObservableArray<Element> {
-        return ArrayFilteringOnPredicate<Self>(parent: self, test: test).observableArray
+    public func filter(test: @escaping (Element) -> Bool) -> AnyObservableArray<Element> {
+        return ArrayFilteringOnPredicate<Self>(parent: self, test: test).anyObservableArray
     }
 }
 
-private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _AbstractObservableArray<Parent.Element> {
+private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _BaseObservableArray<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = ArrayChange<Element>
 
@@ -22,32 +22,34 @@ private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _Abs
     private let test: (Element) -> Bool
 
     private var indexMapping: ArrayFilteringIndexmap<Element>
-    private var state = TransactionState<Change>()
-    private var connection: Connection? = nil
 
     init(parent: Parent, test: @escaping (Element) -> Bool) {
         self.parent = parent
         self.test = test
         self.indexMapping = ArrayFilteringIndexmap(initialValues: parent.value, test: test)
         super.init()
-        connection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(parentSink)
     }
 
     deinit {
-        connection!.disconnect()
+        parent.updates.remove(parentSink)
+    }
+
+    private var parentSink: AnySink<ArrayUpdate<Element>> {
+        return MethodSink(owner: self, identifier: 0, method: ArrayFilteringOnPredicate.apply).anySink
     }
 
     private func apply(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             let filteredChange = self.indexMapping.apply(change)
             if !filteredChange.isEmpty {
-                self.state.send(filteredChange)
+                sendChange(filteredChange)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
@@ -75,9 +77,5 @@ private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _Abs
 
     override var count: Int {
         return indexMapping.matchingIndices.count
-    }
-
-    override var updates: ArrayUpdateSource<Base.Element> {
-        return state.source(retaining: self)
     }
 }

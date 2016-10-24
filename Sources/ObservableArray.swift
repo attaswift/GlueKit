@@ -1,5 +1,5 @@
 //
-//  ObservableArray.swift
+//  AnyObservableArray.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2015-12-11.
@@ -9,7 +9,7 @@
 import Foundation
 
 public typealias ArrayUpdate<Element> = Update<ArrayChange<Element>>
-public typealias ArrayUpdateSource<Element> = Source<ArrayUpdate<Element>>
+public typealias ArrayUpdateSource<Element> = AnySource<ArrayUpdate<Element>>
 
 //MARK: ObservableArrayType
 
@@ -19,10 +19,10 @@ public typealias ArrayUpdateSource<Element> = Source<ArrayUpdate<Element>>
 /// Changes to an observable array are broadcast as a sequence of `ArrayChange` values, which describe insertions,
 /// removals, and replacements.
 ///
-/// Any `ObservableArrayType` can be converted into a type-erased representation using `ObservableArray`.
+/// Any `ObservableArrayType` can be converted into a type-erased representation using `AnyObservableArray`.
 /// For a concrete observable array, see `ArrayVariable`.
 ///
-/// - SeeAlso: ObservableValueType, ObservableArray, UpdatableArrayType, ArrayVariable
+/// - SeeAlso: ObservableValueType, AnyObservableArray, UpdatableArrayType, ArrayVariable
 public protocol ObservableArrayType: ObservableType, CustomReflectable {
     associatedtype Element
     typealias Base = Array<Element>
@@ -36,17 +36,13 @@ public protocol ObservableArrayType: ObservableType, CustomReflectable {
     var isBuffered: Bool { get }
     var value: Base { get }
     subscript(index: Int) -> Element { get }
-    var observableCount: Observable<Int> { get }
-    var observable: Observable<Base> { get }
-    var observableArray: ObservableArray<Element> { get }
+    var observableCount: AnyObservableValue<Int> { get }
+
+    var anyObservable: AnyObservableValue<Base> { get }
+    var anyObservableArray: AnyObservableArray<Element> { get }
 }
 
 extension ObservableArrayType {
-
-    public var customMirror: Mirror {
-        return Mirror(self, unlabeledChildren: self.value, displayStyle: .collection)
-    }
-
     public var isBuffered: Bool {
         return false
     }
@@ -58,7 +54,9 @@ extension ObservableArrayType {
     public subscript(_ index: Int) -> Element {
         return self[index ..< index + 1].first!
     }
+}
 
+extension ObservableArrayType {
     internal var valueUpdates: ValueUpdateSource<[Element]> {
         var value = self.value
         return self.updates.map { event in
@@ -70,19 +68,21 @@ extension ObservableArrayType {
         }.buffered()
     }
 
-    public var observable: Observable<Base> {
-        return Observable(getter: { self.value }, updates: { self.valueUpdates })
+    public var anyObservable: AnyObservableValue<Base> {
+        return AnyObservableValue(getter: { self.value }, updates: { self.valueUpdates })
     }
 
-    public var observableCount: Observable<Int> {
-        return Observable(getter: { self.count },
-                          updates: { self.updates.map { $0.map { $0.countChange } } })
+    public var observableCount: AnyObservableValue<Int> {
+        return AnyObservableValue(getter: { self.count },
+                                  updates: { self.updates.map { $0.map { $0.countChange } } })
     }
 
-    public var observableArray: ObservableArray<Element> {
-        return ObservableArray(box: ObservableArrayBox(self))
+    public var anyObservableArray: AnyObservableArray<Element> {
+        return AnyObservableArray(box: ObservableArrayBox(self))
     }
+}
 
+extension ObservableArrayType {
     public var isEmpty: Bool {
         return count == 0
     }
@@ -98,6 +98,12 @@ extension ObservableArrayType {
     }
 }
 
+extension ObservableArrayType {
+    public var customMirror: Mirror {
+        return Mirror(self, unlabeledChildren: self.value, displayStyle: .collection)
+    }
+}
+
 /// An observable array type; i.e., a read-only, array-like `CollectionType` that also provides efficient change
 /// notifications.
 ///
@@ -105,11 +111,11 @@ extension ObservableArrayType {
 /// removals, and replacements.
 /// The count of elements in an `ObservableArrayType` is itself observable via its `observableCount` property.
 ///
-/// Any `ObservableArrayType` can be converted into a type-erased representation using `ObservableArray`.
+/// Any `ObservableArrayType` can be converted into a type-erased representation using `AnyObservableArray`.
 /// For a concrete observable array, see `ArrayVariable`.
 ///
 /// - SeeAlso: ObservableValueType, ObservableArrayType, UpdatableArrayType, ArrayVariable
-public struct ObservableArray<Element>: ObservableArrayType {
+public struct AnyObservableArray<Element>: ObservableArrayType {
     public typealias Base = Array<Element>
     public typealias Change = ArrayChange<Element>
 
@@ -120,7 +126,7 @@ public struct ObservableArray<Element>: ObservableArrayType {
     }
 
     public init<A: ObservableArrayType>(_ array: A) where A.Element == Element {
-        self = array.observableArray
+        self = array.anyObservableArray
     }
 
     public var isBuffered: Bool { return box.isBuffered }
@@ -129,24 +135,14 @@ public struct ObservableArray<Element>: ObservableArrayType {
     public var value: Array<Element> { return box.value }
     public var count: Int { return box.count }
     public var updates: ArrayUpdateSource<Element> { return box.updates }
-    public var observable: Observable<[Element]> { return box.observable }
-    public var observableCount: Observable<Int> { return box.observableCount }
-    public var observableArray: ObservableArray<Element> { return self }
-
-    func holding(_ connection: Connection) -> ObservableArray<Element> { box.hold(connection); return self }
+    public var observableCount: AnyObservableValue<Int> { return box.observableCount }
+    public var anyObservable: AnyObservableValue<[Element]> { return box.anyObservable }
+    public var anyObservableArray: AnyObservableArray<Element> { return self }
 }
 
 open class _AbstractObservableArray<Element>: ObservableArrayType {
     public typealias Base = Array<Element>
     public typealias Change = ArrayChange<Element>
-
-    private var connections: [Connection] = []
-
-    deinit {
-        for connection in connections {
-            connection.disconnect()
-        }
-    }
 
     open var isBuffered: Bool { abstract() }
     open subscript(_ index: Int) -> Element { abstract() }
@@ -155,17 +151,48 @@ open class _AbstractObservableArray<Element>: ObservableArrayType {
     open var count: Int { abstract() }
     open var updates: ArrayUpdateSource<Element> { abstract() }
 
-    open var observableCount: Observable<Int> {
-        return Observable(getter: { self.count },
-                          updates: { self.updates.map { $0.map { $0.countChange } } })
+    open var observableCount: AnyObservableValue<Int> {
+        return AnyObservableValue(getter: { self.count },
+                                  updates: { self.updates.map { $0.map { $0.countChange } } })
     }
 
-    open var observable: Observable<[Element]> {
-        return Observable(getter: { self.value }, updates: { self.valueUpdates })
+    open var anyObservable: AnyObservableValue<[Element]> {
+        return AnyObservableValue(getter: { self.value }, updates: { self.valueUpdates })
     }
 
-    public final var observableArray: ObservableArray<Element> { return ObservableArray(box: self) }
-    public final func hold(_ connection: Connection) { connections.append(connection) }
+    public final var anyObservableArray: AnyObservableArray<Element> { return AnyObservableArray(box: self) }
+}
+
+open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, LazyObserver {
+    private var state = TransactionState<_BaseObservableArray, ArrayChange<Element>>()
+
+    public final override var updates: ArrayUpdateSource<Element> {
+        return state.source(retaining: self)
+    }
+
+    final var isConnected: Bool {
+        return state.isConnected
+    }
+
+    final func beginTransaction() {
+        state.begin()
+    }
+
+    final func endTransaction() {
+        state.end()
+    }
+
+    final func sendChange(_ change: Change) {
+        state.send(change)
+    }
+
+    open func startObserving() {
+        // Do nothing
+    }
+
+    open func stopObserving() {
+        // Do nothing
+    }
 }
 
 internal class ObservableArrayBox<Contents: ObservableArrayType>: _AbstractObservableArray<Contents.Element> {
@@ -183,8 +210,8 @@ internal class ObservableArrayBox<Contents: ObservableArrayType>: _AbstractObser
     override var value: Array<Element> { return contents.value }
     override var count: Int { return contents.count }
     override var updates: ArrayUpdateSource<Element> { return contents.updates }
-    override var observableCount: Observable<Int> { return contents.observableCount }
-    override var observable: Observable<[Element]> { return contents.observable }
+    override var observableCount: AnyObservableValue<Int> { return contents.observableCount }
+    override var anyObservable: AnyObservableValue<[Element]> { return contents.anyObservable }
 }
 
 internal class ObservableArrayConstant<Element>: _AbstractObservableArray<Element> {
@@ -199,17 +226,17 @@ internal class ObservableArrayConstant<Element>: _AbstractObservableArray<Elemen
     override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _value[range] }
     override var value: Array<Element> { return _value }
     override var count: Int { return _value.count }
-    override var updates: ArrayUpdateSource<Element> { return Source.empty() }
-    override var observableCount: Observable<Int> { return Observable.constant(_value.count) }
-    override var observable: Observable<[Element]> { return Observable.constant(_value) }
+    override var updates: ArrayUpdateSource<Element> { return AnySource.empty() }
+    override var observableCount: AnyObservableValue<Int> { return AnyObservableValue.constant(_value.count) }
+    override var anyObservable: AnyObservableValue<[Element]> { return AnyObservableValue.constant(_value) }
 }
 
 extension ObservableArrayType {
-    public static func constant(_ value: [Element]) -> ObservableArray<Element> {
-        return ObservableArrayConstant(value).observableArray
+    public static func constant(_ value: [Element]) -> AnyObservableArray<Element> {
+        return ObservableArrayConstant(value).anyObservableArray
     }
 
-    public static func emptyConstant() -> ObservableArray<Element> {
+    public static func emptyConstant() -> AnyObservableArray<Element> {
         return constant([])
     }
 }

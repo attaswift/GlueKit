@@ -20,21 +20,20 @@ extension ObservableArrayType {
     ///    (I.e., the underlying binary operation over `Result` must form an abelian group.)
     ///
     /// - SeeAlso: `sum()` which returns a reduction using addition.
-    public func reduce<Result>(_ initial: Result, add: @escaping (Result, Element) -> Result, remove: @escaping (Result, Element) -> Result) -> Observable<Result> {
-        return ArrayFoldingByTwoWayFunction<Self, Result>(base: self, initial: initial, add: add, remove: remove).observable
+    public func reduce<Result>(_ initial: Result, add: @escaping (Result, Element) -> Result, remove: @escaping (Result, Element) -> Result) -> AnyObservableValue<Result> {
+        return ArrayFoldingByTwoWayFunction<Self, Result>(base: self, initial: initial, add: add, remove: remove).anyObservable
     }
 }
 
 extension ObservableArrayType where Element: IntegerArithmetic & ExpressibleByIntegerLiteral {
     /// Return the (observable) sum of the elements contained in this array.
-    public func sum() -> Observable<Element> {
+    public func sum() -> AnyObservableValue<Element> {
         return reduce(0, add: +, remove: -)
     }
 }
 
-private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: _AbstractObservableValue<Value> {
+private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: _BaseObservableValue<Value> {
     private var _value: Value
-    private var _state = TransactionState<ValueChange<Value>>()
 
     let add: (Value, Base.Element) -> Value
     let remove: (Value, Base.Element) -> Value
@@ -56,17 +55,16 @@ private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: _A
     private func apply(_ update: ArrayUpdate<Base.Element>) {
         switch update {
         case .beginTransaction:
-            _state.begin()
+            beginTransaction()
         case .change(let change):
             let old = _value
             change.forEachOld { _value = remove(_value, $0) }
             change.forEachNew { _value = add(_value, $0) }
-            _state.send(ValueChange(from: old, to: _value))
+            sendChange(ValueChange(from: old, to: _value))
         case .endTransaction:
-            _state.end()
+            endTransaction()
         }
     }
 
     override var value: Value { return _value }
-    override var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }

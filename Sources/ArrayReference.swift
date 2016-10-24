@@ -8,38 +8,36 @@
 
 import Foundation
 
-/// A mutable reference to an `ObservableArray` that's also an observable array.
+/// A mutable reference to an `AnyObservableArray` that's also an observable array.
 /// You can switch to another target array without having to re-register subscribers.
-public final class ObservableArrayReference<Element>: _AbstractObservableArray<Element>, SignalDelegate {
+public final class ObservableArrayReference<Element>: _BaseObservableArray<Element> {
     public typealias Base = [Element]
     public typealias Change = ArrayChange<Element>
 
-    private var _target: ObservableArray<Element>
-    private var _state = TransactionState<Change>()
-    private var _connection: Connection?
+    private var _target: AnyObservableArray<Element>
 
     public override init() {
-        _target = ObservableArray.emptyConstant()
+        _target = AnyObservableArray.emptyConstant()
         super.init()
     }
     
     public init<Target: ObservableArrayType>(target: Target) where Target.Element == Element {
-        _target = target.observableArray
+        _target = target.anyObservableArray
         super.init()
     }
 
     public func retarget<Target: ObservableArrayType>(to target: Target) where Target.Element == Element {
-        if let c = _connection {
-            _state.begin()
-            c.disconnect()
+        if isConnected {
+            beginTransaction()
+            _target.updates.remove(sink)
             let change = ArrayChange(from: _target.value, to: target.value)
-            _target = target.observableArray
-            _connection = target.updates.connect { [unowned self] update in self._state.send(update) }
-            _state.send(change)
-            _state.end()
+            _target = target.anyObservableArray
+            _target.updates.add(sink)
+            sendChange(change)
+            endTransaction()
         }
         else {
-            _target = target.observableArray
+            _target = target.anyObservableArray
         }
     }
 
@@ -48,16 +46,26 @@ public final class ObservableArrayReference<Element>: _AbstractObservableArray<E
     public override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _target[range] }
     public override var value: [Element] { return _target.value }
     public override var count: Int { return self._target.count }
-    public override var updates: ArrayUpdateSource<Element> { return _state.source(retainingDelegate: self) }
 
-    internal func start(_ signal: Signal<ArrayUpdate<Element>>) {
-        precondition(_connection == nil)
-        _connection = _target.updates.connect { [unowned self] update in self._state.send(update) }
+    private var sink: AnySink<ArrayUpdate<Element>> {
+        return MethodSink(owner: self, identifier: 0, method: ObservableArrayReference.apply).anySink
+    }
+    private func apply(_ update: ArrayUpdate<Element>) {
+        switch update {
+        case .beginTransaction:
+            beginTransaction()
+        case .change(let change):
+            sendChange(change)
+        case .endTransaction:
+            endTransaction()
+        }
     }
 
-    internal func stop(_ signal: Signal<ArrayUpdate<Element>>) {
-        precondition(_connection != nil)
-        _connection!.disconnect()
-        _connection = nil
+    public override func startObserving() {
+        _target.updates.add(sink)
+    }
+
+    public override func stopObserving() {
+        _target.updates.remove(sink)
     }
 }

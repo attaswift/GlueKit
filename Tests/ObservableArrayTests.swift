@@ -140,7 +140,7 @@ class ObservableArrayTests: XCTestCase {
     }
 
     func testConstant() {
-        let test = ObservableArray.constant([1, 2, 3])
+        let test = AnyObservableArray.constant([1, 2, 3])
         XCTAssertTrue(test.isBuffered)
         XCTAssertEqual(test.count, 3)
         XCTAssertEqual(test.value, [1, 2, 3])

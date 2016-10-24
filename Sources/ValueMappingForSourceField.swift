@@ -45,7 +45,7 @@ where Parent.Change == ValueChange<Parent.Value> {
     override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
         let first = signal.add(sink)
         if first {
-            self.startUpdates()
+            self.startObserving()
         }
         return first
     }
@@ -53,7 +53,7 @@ where Parent.Change == ValueChange<Parent.Value> {
     override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
         let last = _signal!.remove(sink)
         if last {
-            self.stopUpdates()
+            self.stopObserving()
         }
         return last
     }
@@ -63,7 +63,7 @@ where Parent.Change == ValueChange<Parent.Value> {
         self.key = key
     }
 
-    private func startUpdates() {
+    private func startObserving() {
         precondition(_field == nil)
         let field = key(parent.value)
         _field = field
@@ -71,7 +71,7 @@ where Parent.Change == ValueChange<Parent.Value> {
         field.add(self.signal.asSink)
     }
 
-    private func stopUpdates() {
+    private func stopObserving() {
         _field!.remove(_signal!.asSink)
         _field = nil
         parent.updates.remove(MethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))

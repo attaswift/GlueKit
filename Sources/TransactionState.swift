@@ -7,13 +7,12 @@
 //
 
 
-internal protocol LazyObservable: class, ObservableType {
-    func startUpdates()
-    func stopUpdates()
+internal protocol LazyObserver: class {
+    func startObserving()
+    func stopObserving()
 }
 
-private class TransactionSignal<Owner: LazyObservable>: Signal<Update<Owner.Change>> {
-    typealias Change = Owner.Change
+private class TransactionSignal<Owner: LazyObserver, Change: ChangeType>: Signal<Update<Change>> {
     typealias Value = Update<Change>
 
     let owner: Owner
@@ -49,7 +48,7 @@ private class TransactionSignal<Owner: LazyObservable>: Signal<Update<Owner.Chan
         }
         let first = super.add(sink)
         if first {
-            owner.startUpdates()
+            owner.startObserving()
         }
         return first
     }
@@ -58,7 +57,7 @@ private class TransactionSignal<Owner: LazyObservable>: Signal<Update<Owner.Chan
     public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
         let last = super.remove(sink)
         if last {
-            owner.stopUpdates()
+            owner.stopObserving()
         }
         if self.isInTransaction {
             // Wave goodbye by sending a virtual endTransaction that makes state management easier.
@@ -68,10 +67,8 @@ private class TransactionSignal<Owner: LazyObservable>: Signal<Update<Owner.Chan
     }
 }
 
-internal struct TransactionState<Owner: LazyObservable> {
-    typealias Change = Owner.Change
-
-    private weak var signal: TransactionSignal<Owner>? = nil
+internal struct TransactionState<Owner: LazyObserver, Change: ChangeType> {
+    private weak var signal: TransactionSignal<Owner, Change>? = nil
     private var transactionCount = 0
 
     mutating func source(retaining owner: Owner) -> AnySource<Update<Change>> {
@@ -79,7 +76,7 @@ internal struct TransactionState<Owner: LazyObservable> {
             assert(signal.owner === owner)
             return signal.anySource
         }
-        let signal = TransactionSignal(owner: owner, isInTransaction: self.isChanging)
+        let signal = TransactionSignal<Owner, Change>(owner: owner, isInTransaction: self.isChanging)
         self.signal = signal
         return signal.anySource
     }

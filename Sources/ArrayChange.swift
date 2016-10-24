@@ -383,7 +383,7 @@ public func !=<Element: Equatable>(a: ArrayModification<Element>, b: ArrayModifi
 ///
 /// Array changes may only be applied on arrays that have the same number of elements as the original array.
 ///
-/// - SeeAlso: ArrayModification, ObservableArray, ArrayVariable
+/// - SeeAlso: ArrayModification, AnyObservableArray, ArrayVariable
 public struct ArrayChange<Element>: ChangeType {
     public typealias Value = [Element]
 

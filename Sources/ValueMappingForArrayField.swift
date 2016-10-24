@@ -44,18 +44,18 @@ extension ObservableValueType {
     /// messages is updated in the current room.  The observable can also be used to simply retrieve the list of messages
     /// at any time.
     ///
-    public func map<Field: ObservableArrayType>(_ key: @escaping (Value) -> Field) -> ObservableArray<Field.Element> {
-        return ValueMappingForArrayField(parent: self, key: key).observableArray
+    public func map<Field: ObservableArrayType>(_ key: @escaping (Value) -> Field) -> AnyObservableArray<Field.Element> {
+        return ValueMappingForArrayField(parent: self, key: key).anyObservableArray
     }
 
-    public func map<Field: UpdatableArrayType>(_ key: @escaping (Value) -> Field) -> UpdatableArray<Field.Element> {
-        return ValueMappingForUpdatableArrayField(parent: self, key: key).updatableArray
+    public func map<Field: UpdatableArrayType>(_ key: @escaping (Value) -> Field) -> AnyUpdatableArray<Field.Element> {
+        return ValueMappingForUpdatableArrayField(parent: self, key: key).anyUpdatableArray
     }
 }
 
-/// A source of changes for an ObservableArray field.
+/// A source of changes for an AnyObservableArray field.
 private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>
-: _AbstractSource<Update<ArrayChange<Field.Element>>>, SignalDelegate {
+: _AbstractSource<Update<ArrayChange<Field.Element>>>, LazyObserver {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
@@ -63,53 +63,60 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var state = TransactionState<Change>()
-    private var parentConnection: Connection? = nil
-    private var fieldConnection: Connection? = nil
+    private var state = TransactionState<UpdateSourceForArrayField, Change>()
+    private var field: Field? = nil
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    override func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == Update<Change> {
-        return state.source(retainingDelegate: self).connect(sink)
+    override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Update<Change> {
+        return state.source(retaining: self).add(sink)
     }
 
-    func start(_ signal: Signal<Update<Change>>) {
-        precondition(parentConnection == nil)
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Update<Change> {
+        return state.source(retaining: self).remove(sink)
+    }
+
+    func startObserving() {
         let field = key(parent.value)
-        self.connect(to: field)
-        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(parentSink)
+        field.updates.add(fieldSink)
+        self.field = field
     }
 
-    func stop(_ signal: Signal<Update<Change>>) {
-        fieldConnection!.disconnect()
-        parentConnection!.disconnect()
-        fieldConnection = nil
-        parentConnection = nil
+    func stopObserving() {
+        parent.updates.remove(parentSink)
+        field!.updates.remove(fieldSink)
+        field = nil
     }
 
-    private func connect(to field: Field) {
-        fieldConnection?.disconnect()
-        fieldConnection = field.updates.connect { [unowned self] in self.apply($0) }
+    var parentSink: AnySink<ValueUpdate<Parent.Value>> {
+        return MethodSink(owner: self, identifier: 1, method: UpdateSourceForArrayField.applyParentUpdate).anySink
     }
 
-    private func apply(_ update: ValueUpdate<Parent.Value>) {
+    var fieldSink: AnySink<ArrayUpdate<Field.Element>> {
+        return MethodSink(owner: self, identifier: 1, method: UpdateSourceForArrayField.applyFieldUpdate).anySink
+    }
+
+    private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
         switch update {
         case .beginTransaction:
             state.begin()
         case .change(let change):
             let old = key(change.old).value
             let field = self.key(change.new)
+            self.field!.updates.remove(fieldSink)
+            self.field = field
+            field.updates.add(fieldSink)
             state.send(.init(from: old, to: field.value))
-            self.connect(to: field)
         case .endTransaction:
             state.end()
         }
     }
 
-    private func apply(_ update: ArrayUpdate<Field.Element>) {
+    private func applyFieldUpdate(_ update: ArrayUpdate<Field.Element>) {
         state.send(update)
     }
 }
@@ -133,8 +140,8 @@ private class ValueMappingForArrayField<Parent: ObservableValueType, Field: Obse
     override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return field[range] }
     override var value: Array<Element> { return field.value }
     override var count: Int { return field.count }
-    override var observableCount: Observable<Int> { return parent.map { self.key($0).observableCount } }
-    override var updates: ArrayUpdateSource<Element> { return _updateSource.source }
+    override var observableCount: AnyObservableValue<Int> { return parent.map { self.key($0).observableCount } }
+    override var updates: ArrayUpdateSource<Element> { return _updateSource.anySource }
 }
 
 private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Field: UpdatableArrayType>: _AbstractUpdatableArray<Field.Element> {
@@ -165,8 +172,8 @@ private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Fi
         set { field.value = newValue }
     }
     override var count: Int { return field.count }
-    override var observableCount: Observable<Int> { return parent.map { self.key($0).observableCount } }
-    override var updates: ArrayUpdateSource<Element> { return _updateSource.source }
+    override var observableCount: AnyObservableValue<Int> { return parent.map { self.key($0).observableCount } }
+    override var updates: ArrayUpdateSource<Element> { return _updateSource.anySource }
     override func withTransaction<Result>(_ body: () -> Result) -> Result { return field.withTransaction(body) }
     override func apply(_ change: ArrayChange<Field.Element>) { field.apply(change) }
 }

@@ -10,9 +10,8 @@ import Foundation
 import BTree
 
 extension ObservableArrayType {
-    public func flatMap<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> ObservableArray<Field.Element> {
-        let selector = ArrayMappingForArrayField<Self, Field>(parent: self, key: key)
-        return selector.observableArray
+    public func flatMap<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> AnyObservableArray<Field.Element> {
+        return ArrayMappingForArrayField<Self, Field>(parent: self, key: key).anyObservableArray
     }
 }
 
@@ -70,16 +69,34 @@ private struct Indexmap {
     }
 }
 
-private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: _AbstractObservableArray<Field.Element> {
+private final class SinkForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: SinkType, RefListElement {
+    unowned let owner: ArrayMappingForArrayField<Parent, Field>
+    let field: Field
+    var refListLink = RefListLink<SinkForArrayField>()
+
+    init(owner: ArrayMappingForArrayField<Parent, Field>, field: Field) {
+        self.owner = owner
+        self.field = field
+        field.updates.add(self)
+    }
+
+    func disconnect() {
+        field.updates.remove(self)
+    }
+
+    func receive(_ update: ArrayUpdate<Field.Element>) {
+        owner.applyFieldUpdate(update, from: self)
+    }
+}
+
+private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: _BaseObservableArray<Field.Element> {
     typealias Element = Field.Element
+    typealias FieldSink = SinkForArrayField<Parent, Field>
 
     private let parent: Parent
     private let key: (Parent.Element) -> Field
 
-    private var state = TransactionState<Change>()
-
-    private var parentConnection: Connection? = nil
-    private var fieldConnections = RefList<Connection>([])
+    private var fieldSinks = RefList<FieldSink>()
     private var indexMapping = Indexmap()
 
     init(parent: Parent, key: @escaping (Parent.Element) -> Field) {
@@ -87,25 +104,29 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
         self.key = key
         super.init()
 
-        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(parentSink)
         for pe in parent.value {
             let field = key(pe)
-            fieldConnections.append(connectField(field))
+            fieldSinks.append(FieldSink(owner: self, field: field))
             indexMapping.appendArray(withCount: field.count)
         }
     }
 
     deinit {
-        parentConnection!.disconnect()
-        fieldConnections.forEach { $0.disconnect() }
+        parent.updates.remove(parentSink)
+        fieldSinks.forEach { $0.disconnect() }
     }
 
-    func apply(_ update: ArrayUpdate<Parent.Element>) {
+    var parentSink: AnySink<ArrayUpdate<Parent.Element>> {
+        return MethodSink(owner: self, identifier: 0, method: ArrayMappingForArrayField.applyParentUpdate).anySink
+    }
+
+    func applyParentUpdate(_ update: ArrayUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
-            precondition(change.initialCount == fieldConnections.count)
+            precondition(change.initialCount == fieldSinks.count)
             var transformedChange = ArrayChange<Element>(initialCount: indexMapping.postcount)
             for mod in change.modifications {
                 let preindex = mod.startIndex
@@ -115,8 +136,8 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
 
                 // Replace field connections.
                 let prerange: Range<Int> = preindex ..< preindex + oldFields.count
-                self.fieldConnections.forEach(in: prerange) { $0.disconnect() }
-                self.fieldConnections.replaceSubrange(prerange, with: newFields.map { self.connectField($0) })
+                self.fieldSinks.forEach(in: prerange) { $0.disconnect() }
+                self.fieldSinks.replaceSubrange(prerange, with: newFields.map { FieldSink(owner: self, field: $0) })
 
                 // Update index mapping.
                 indexMapping.replaceArrays(in: prerange, withCounts: newFields.map { $0.count })
@@ -128,33 +149,27 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
                     transformedChange.add(mod)
                 }
             }
-            precondition(change.finalCount == fieldConnections.count)
+            precondition(change.finalCount == fieldSinks.count)
             if !transformedChange.isEmpty {
-                state.send(transformedChange)
+                sendChange(transformedChange)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
-    private func connectField(_ field: Field) -> Connection {
-        var connection: Connection? = nil
-        connection = field.updates.connect { [unowned self] update in self.apply(update, from: connection) }
-        return connection!
-    }
-
-    private func apply(_ update: ArrayUpdate<Field.Element>, from connection: Connection?) {
+    fileprivate func applyFieldUpdate(_ update: ArrayUpdate<Field.Element>, from sink: FieldSink) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
-            let preindex = fieldConnections.index(of: connection!)!
+            let preindex = fieldSinks.index(of: sink)!
             let postindex = indexMapping.postindex(for: preindex)
             let transformedChange = change.widen(startIndex: postindex, initialCount: indexMapping.postcount)
             indexMapping.setCount(forArrayAt: preindex, from: change.initialCount, to: change.finalCount)
-            state.send(transformedChange)
+            sendChange(transformedChange)
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
@@ -198,6 +213,4 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
     override var count: Int {
         return indexMapping.postcount
     }
-    
-    override var updates: ArrayUpdateSource<Element> { return state.source(retaining: self) }
 }

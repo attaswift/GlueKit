@@ -10,13 +10,12 @@ import Foundation
 
 //MARK: ArrayVariable
 
-public final class ArrayVariable<Element>: _AbstractUpdatableArray<Element> {
+public final class ArrayVariable<Element>: _BaseUpdatableArray<Element> {
     public typealias Value = Array<Element>
     public typealias Change = ArrayChange<Element>
 
     fileprivate var _value: [Element]
     fileprivate var _apply: ((Change) -> Void)? = nil
-    fileprivate var _state = TransactionState<Change>()
 
     public override init() {
         _value = []
@@ -31,19 +30,13 @@ public final class ArrayVariable<Element>: _AbstractUpdatableArray<Element> {
         _value = elements
     }
 
-    public override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
-        return body()
-    }
-
     public override func apply(_ change: ArrayChange<Element>) {
         if change.isEmpty { return }
-        if _state.isConnected {
-            _state.begin()
+        if isConnected {
+            beginTransaction()
             _value.apply(change)
-            _state.send(change)
-            _state.end()
+            sendChange(change)
+            endTransaction()
         }
         else {
             _value.apply(change)
@@ -55,12 +48,12 @@ public final class ArrayVariable<Element>: _AbstractUpdatableArray<Element> {
             return _value
         }
         set {
-            if _state.isConnected {
+            if isConnected {
                 let old = _value
-                _state.begin()
+                beginTransaction()
                 _value = newValue
-                _state.send(ArrayChange(initialCount: old.count, modification: .replaceSlice(old, at: 0, with: newValue)))
-                _state.end()
+                sendChange(ArrayChange(initialCount: old.count, modification: .replaceSlice(old, at: 0, with: newValue)))
+                endTransaction()
             }
             else {
                 _value = newValue
@@ -72,11 +65,6 @@ public final class ArrayVariable<Element>: _AbstractUpdatableArray<Element> {
         return _value.count
     }
 
-    /// A source that reports all future changes of this variable.
-    public override var updates: Source<Update<Change>> {
-        return _state.source(retaining: self)
-    }
-
     public override var isBuffered: Bool {
         return true
     }
@@ -86,12 +74,12 @@ public final class ArrayVariable<Element>: _AbstractUpdatableArray<Element> {
             return _value[index]
         }
         set {
-            if _state.isConnected {
+            if isConnected {
                 let old = _value[index]
-                _state.begin()
+                beginTransaction()
                 _value[index] = newValue
-                _state.send(ArrayChange(initialCount: _value.count, modification: .replace(old, at: index, with: newValue)))
-                _state.end()
+                sendChange(ArrayChange(initialCount: _value.count, modification: .replace(old, at: index, with: newValue)))
+                endTransaction()
             }
             else {
                 _value[index] = newValue
@@ -104,14 +92,14 @@ public final class ArrayVariable<Element>: _AbstractUpdatableArray<Element> {
             return value[bounds]
         }
         set {
-            if _state.isConnected {
+            if isConnected {
                 let oldCount = _value.count
                 let old = Array(_value[bounds])
-                _state.begin()
+                beginTransaction()
                 _value[bounds] = newValue
-                _state.send(ArrayChange(initialCount: oldCount,
+                sendChange(ArrayChange(initialCount: oldCount,
                                         modification: .replaceSlice(old, at: bounds.lowerBound, with: Array(newValue))))
-                _state.end()
+                endTransaction()
             }
             else {
                 _value[bounds] = newValue
