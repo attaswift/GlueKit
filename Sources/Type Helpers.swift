@@ -75,108 +75,106 @@ private func toCGAffineTransform(_ value: Any?) -> CGAffineTransform {
     #endif
 }
 
-public extension SourceType where SourceValue == Any? {
+public extension SourceType where Value == Any? {
     /// Casts all values to Type using an unsafe cast. Signals a fatal error if a value isn't a Type.
-    func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> Source<T> {
-        return sourceOperator { value, sink in
-            sink.receive(value as! T)
-        }
-    }
-
-    /// Casts all values to String via NSString. Signals a fatal error if a value isn't an NSString.
-    var asString: Source<String> { return map(toString) }
-
-    /// Converts all values to Bool using NSNumber.boolValue. Signals a fatal error if a value isn't an NSNumber.
-    var asBool: Source<Bool> { return map(toBool) }
-
-    /// Converts all values to Int using NSNumber.integerValue. Signals a fatal error if a value isn't an NSNumber.
-    var asInt: Source<Int> { return map(toInt) }
-
-    /// Converts all values to Float using NSNumber.floatValue. Signals a fatal error if a value isn't an NSNumber.
-    var asFloat: Source<Float> { return map(toFloat) }
-
-    /// Converts all values to Double using NSNumber.doubleValue. Signals a fatal error if a value isn't an NSNumber.
-    var asDouble: Source<Double> { return map(toDouble) }
-
-    /// Converts all values to CGFloat using NSNumber.doubleValue. Signals a fatal error if a value isn't an NSNumber.
-    var asCGFloat: Source<CGFloat> { return map(toCGFloat) }
-
-    /// Converts all values to CGPoint using NSValue.CGPointValue. Signals a fatal error if a value isn't an NSValue.
-    var asCGPoint: Source<CGPoint> { return map(toCGPoint) }
-
-    /// Converts all values to CGSize using NSValue.CGSizeValue. Signals a fatal error if a value isn't an NSValue.
-    var asCGSize: Source<CGSize> { return map(toCGSize) }
-
-    /// Converts all values to CGRect using NSValue.CGRectValue. Signals a fatal error if a value isn't an NSValue.
-    var asCGRect: Source<CGRect> { return map(toCGRect) }
-
-    /// Converts all values to CGAffineTransformValue using NSValue.CGAffineTransformValue.  Signals a fatal error if a value isn't an NSValue.
-    var asCGAffineTransform: Source<CGAffineTransform> { return map(toCGAffineTransform) }
-}
-
-public extension ObservableValueType where Value == Any? {
-    /// Casts all values to Type using a forced cast. Traps if a value can't be casted to the specified type.
-    func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> Observable<T> {
+    func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> AnySource<T> {
         return self.map { $0 as! T }
     }
 
     /// Casts all values to String via NSString. Signals a fatal error if a value isn't an NSString.
-    var asString: Observable<String> { return self.map(toString) }
+    var asString: AnySource<String> { return map(toString) }
 
-    /// Converts all values to Bool using NSNumber.integerValue. Signals a fatal error if a value isn't an NSNumber.
-    var asBool: Observable<Bool> { return self.map(toBool) }
+    /// Converts all values to Bool using NSNumber.boolValue. Signals a fatal error if a value isn't an NSNumber.
+    var asBool: AnySource<Bool> { return map(toBool) }
 
     /// Converts all values to Int using NSNumber.integerValue. Signals a fatal error if a value isn't an NSNumber.
-    var asInt: Observable<Int> { return self.map(toInt) }
+    var asInt: AnySource<Int> { return map(toInt) }
 
     /// Converts all values to Float using NSNumber.floatValue. Signals a fatal error if a value isn't an NSNumber.
-    var asFloat: Observable<Float> { return self.map(toFloat) }
+    var asFloat: AnySource<Float> { return map(toFloat) }
 
     /// Converts all values to Double using NSNumber.doubleValue. Signals a fatal error if a value isn't an NSNumber.
-    var asDouble: Observable<Double> { return self.map(toDouble) }
+    var asDouble: AnySource<Double> { return map(toDouble) }
 
     /// Converts all values to CGFloat using NSNumber.doubleValue. Signals a fatal error if a value isn't an NSNumber.
-    var asCGFloat: Observable<CGFloat> { return self.map(toCGFloat) }
+    var asCGFloat: AnySource<CGFloat> { return map(toCGFloat) }
 
     /// Converts all values to CGPoint using NSValue.CGPointValue. Signals a fatal error if a value isn't an NSValue.
-    var asCGPoint: Observable<CGPoint> { return self.map(toCGPoint) }
+    var asCGPoint: AnySource<CGPoint> { return map(toCGPoint) }
 
     /// Converts all values to CGSize using NSValue.CGSizeValue. Signals a fatal error if a value isn't an NSValue.
-    var asCGSize: Observable<CGSize> { return self.map(toCGSize) }
+    var asCGSize: AnySource<CGSize> { return map(toCGSize) }
 
     /// Converts all values to CGRect using NSValue.CGRectValue. Signals a fatal error if a value isn't an NSValue.
-    var asCGRect: Observable<CGRect> { return self.map(toCGRect) }
+    var asCGRect: AnySource<CGRect> { return map(toCGRect) }
 
     /// Converts all values to CGAffineTransformValue using NSValue.CGAffineTransformValue.  Signals a fatal error if a value isn't an NSValue.
-    var asCGAffineTransform: Observable<CGAffineTransform> { return self.map(toCGAffineTransform) }
+    var asCGAffineTransform: AnySource<CGAffineTransform> { return map(toCGAffineTransform) }
+}
+
+public extension ObservableValueType where Value == Any? {
+    /// Casts all values to Type using a forced cast. Traps if a value can't be casted to the specified type.
+    func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> AnyObservableValue<T> {
+        return self.map { $0 as! T }
+    }
+
+    /// Casts all values to String via NSString. Signals a fatal error if a value isn't an NSString.
+    var asString: AnyObservableValue<String> { return self.map(toString) }
+
+    /// Converts all values to Bool using NSNumber.integerValue. Signals a fatal error if a value isn't an NSNumber.
+    var asBool: AnyObservableValue<Bool> { return self.map(toBool) }
+
+    /// Converts all values to Int using NSNumber.integerValue. Signals a fatal error if a value isn't an NSNumber.
+    var asInt: AnyObservableValue<Int> { return self.map(toInt) }
+
+    /// Converts all values to Float using NSNumber.floatValue. Signals a fatal error if a value isn't an NSNumber.
+    var asFloat: AnyObservableValue<Float> { return self.map(toFloat) }
+
+    /// Converts all values to Double using NSNumber.doubleValue. Signals a fatal error if a value isn't an NSNumber.
+    var asDouble: AnyObservableValue<Double> { return self.map(toDouble) }
+
+    /// Converts all values to CGFloat using NSNumber.doubleValue. Signals a fatal error if a value isn't an NSNumber.
+    var asCGFloat: AnyObservableValue<CGFloat> { return self.map(toCGFloat) }
+
+    /// Converts all values to CGPoint using NSValue.CGPointValue. Signals a fatal error if a value isn't an NSValue.
+    var asCGPoint: AnyObservableValue<CGPoint> { return self.map(toCGPoint) }
+
+    /// Converts all values to CGSize using NSValue.CGSizeValue. Signals a fatal error if a value isn't an NSValue.
+    var asCGSize: AnyObservableValue<CGSize> { return self.map(toCGSize) }
+
+    /// Converts all values to CGRect using NSValue.CGRectValue. Signals a fatal error if a value isn't an NSValue.
+    var asCGRect: AnyObservableValue<CGRect> { return self.map(toCGRect) }
+
+    /// Converts all values to CGAffineTransformValue using NSValue.CGAffineTransformValue.  Signals a fatal error if a value isn't an NSValue.
+    var asCGAffineTransform: AnyObservableValue<CGAffineTransform> { return self.map(toCGAffineTransform) }
 }
 
 public extension UpdatableValueType where Value == Any?, Change == ValueChange<Value> {
     /// Casts all values to Type using a forced cast. Traps if a value can't be casted to the specified type.
-    func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> Updatable<T> {
+    func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> AnyUpdatableValue<T> {
         return self.map({ $0 as! T }, inverse: { $0 as Any? })
     }
 
     /// Casts all values to String via NSString. Signals a fatal error if a value isn't an NSString.
-    var asString: Updatable<String> { return self.map(toString, inverse: { $0 }) }
+    var asString: AnyUpdatableValue<String> { return self.map(toString, inverse: { $0 }) }
 
     /// Converts all values to Bool using NSNumber.integerValue. Signals a fatal error if a value isn't an NSNumber.
-    var asBool: Updatable<Bool> { return self.map(toBool, inverse: { NSNumber(value: $0) }) }
+    var asBool: AnyUpdatableValue<Bool> { return self.map(toBool, inverse: { NSNumber(value: $0) }) }
 
     /// Converts all values to Int using NSNumber.integerValue. Signals a fatal error if a value isn't an NSNumber.
-    var asInt: Updatable<Int> { return self.map(toInt, inverse: { NSNumber(value: $0) }) }
+    var asInt: AnyUpdatableValue<Int> { return self.map(toInt, inverse: { NSNumber(value: $0) }) }
 
     /// Converts all values to Float using NSNumber.floatValue. Signals a fatal error if a value isn't an NSNumber.
-    var asFloat: Updatable<Float> { return self.map(toFloat, inverse: { NSNumber(value: $0) }) }
+    var asFloat: AnyUpdatableValue<Float> { return self.map(toFloat, inverse: { NSNumber(value: $0) }) }
 
     /// Converts all values to Double using NSNumber.doubleValue. Signals a fatal error if a value isn't an NSNumber.
-    var asDouble: Updatable<Double> { return self.map(toDouble, inverse: { NSNumber(value: $0) }) }
+    var asDouble: AnyUpdatableValue<Double> { return self.map(toDouble, inverse: { NSNumber(value: $0) }) }
 
     /// Converts all values to CGFloat using NSNumber.doubleValue. Signals a fatal error if a value isn't an NSNumber.
-    var asCGFloat: Updatable<CGFloat> { return self.map(toCGFloat, inverse: { NSNumber(value: Double($0)) }) }
+    var asCGFloat: AnyUpdatableValue<CGFloat> { return self.map(toCGFloat, inverse: { NSNumber(value: Double($0)) }) }
 
     /// Converts all values to CGPoint using NSValue.CGPointValue. Signals a fatal error if a value isn't an NSValue.
-    var asCGPoint: Updatable<CGPoint> {
+    var asCGPoint: AnyUpdatableValue<CGPoint> {
         return self.map(toCGPoint, inverse: {
             #if os(macOS)
                 return NSValue(point: $0)
@@ -187,7 +185,7 @@ public extension UpdatableValueType where Value == Any?, Change == ValueChange<V
     }
 
     /// Converts all values to CGSize using NSValue.CGSizeValue. Signals a fatal error if a value isn't an NSValue.
-    var asCGSize: Updatable<CGSize> {
+    var asCGSize: AnyUpdatableValue<CGSize> {
         return self.map(toCGSize, inverse: {
             #if os(macOS)
                 return NSValue(size: $0)
@@ -198,7 +196,7 @@ public extension UpdatableValueType where Value == Any?, Change == ValueChange<V
     }
 
     /// Converts all values to CGRect using NSValue.CGRectValue. Signals a fatal error if a value isn't an NSValue.
-    var asCGRect: Updatable<CGRect> {
+    var asCGRect: AnyUpdatableValue<CGRect> {
         return self.map(toCGRect, inverse: {
             #if os(macOS)
                 return NSValue(rect: $0)
@@ -209,7 +207,7 @@ public extension UpdatableValueType where Value == Any?, Change == ValueChange<V
     }
 
     /// Converts all values to CGAffineTransformValue using NSValue.CGAffineTransformValue.  Signals a fatal error if a value isn't an NSValue.
-    var asCGAffineTransform: Updatable<CGAffineTransform> {
+    var asCGAffineTransform: AnyUpdatableValue<CGAffineTransform> {
         return self.map(toCGAffineTransform, inverse: {
             #if os(macOS)
                 var transform = $0

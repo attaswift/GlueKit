@@ -26,7 +26,7 @@ public extension NSObject {
     /// Returns an updatable for the value of a KVO-compatible key path.
     /// The object is retained by the returned source.
     public func updatable(forKeyPath keyPath: String) -> AnyUpdatableValue<Any?> {
-        return KVOUpdatable(object: self, keyPath: keyPath).updatable
+        return KVOUpdatable(object: self, keyPath: keyPath).anyUpdatable
     }
 
     public func updatable<T>(forKeyPath keyPath: String, as type: T.Type = T.self) -> AnyUpdatableValue<T> {
@@ -38,13 +38,13 @@ public extension NSObject {
 
 }
 
-private class KVOUpdatable: NSObject, UpdatableValueType, SignalDelegate {
+private class KVOUpdatable: NSObject, UpdatableValueType, LazyObserver {
     typealias Value = Any?
     typealias Change = ValueChange<Any?>
 
     private let object: NSObject
     private let keyPath: String
-    private var state = TransactionState<Change>()
+    private var state = TransactionState<KVOUpdatable, Change>()
     private var context: UInt8 = 0
 
     init(object: NSObject, keyPath: String) {
@@ -68,13 +68,13 @@ private class KVOUpdatable: NSObject, UpdatableValueType, SignalDelegate {
         return body()
     }
 
-    var updates: ValueUpdateSource<Any?> { return state.source(retainingDelegate: self) }
+    var updates: ValueUpdateSource<Any?> { return state.source(retaining: self) }
 
-    func start(_ signal: Signal<ValueUpdate<Any?>>) {
+    func startObserving() {
         object.addObserver(self, forKeyPath: keyPath, options: [.old, .new, .prior], context: &context)
     }
 
-    func stop(_ signal: Signal<ValueUpdate<Any?>>) {
+    func stopObserving() {
         object.removeObserver(self, forKeyPath: keyPath, context: &context)
     }
 

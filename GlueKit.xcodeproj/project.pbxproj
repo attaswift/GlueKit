@@ -186,6 +186,11 @@
 		BB9D74171DBE5BC800E20D67 /* ArrayReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D929A1D64862D003BEDBF /* ArrayReference.swift */; };
 		BB9D74181DBE5D1300E20D67 /* ArrayConcatenation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83A1D6B90F5001D2821 /* ArrayConcatenation.swift */; };
 		BB9D741A1DBE5E5400E20D67 /* ValueMappingForArrayField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E131DAAC4DC00E85FB9 /* ValueMappingForArrayField.swift */; };
+		BB9D741C1DBE630700E20D67 /* KVO Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B241C8FCC810050DDA9 /* KVO Support.swift */; };
+		BB9D741D1DBE638400E20D67 /* Type Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAA827C1C91D43700586903 /* Type Helpers.swift */; };
+		BB9D741E1DBE644200E20D67 /* NSNotificationCenter Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B271C8FCC810050DDA9 /* NSNotificationCenter Support.swift */; };
+		BB9D741F1DBE651200E20D67 /* NSUserDefaults Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFA2C431CBBB9630076AFBB /* NSUserDefaults Support.swift */; };
+		BB9D74201DBE654600E20D67 /* NSObject extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */; };
 		BBA033571DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA033561DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift */; };
 		BBA033591DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA033561DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift */; };
 		BBA0335A1DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA033561DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift */; };
@@ -1452,6 +1457,7 @@
 				BB9D74031DBE144400E20D67 /* CompositeUpdatable.swift in Sources */,
 				BB9D74111DBE535400E20D67 /* ArrayMappingForArrayField.swift in Sources */,
 				BB9D73D91DBB53EA00E20D67 /* Hashing.swift in Sources */,
+				BB9D741E1DBE644200E20D67 /* NSNotificationCenter Support.swift in Sources */,
 				BB9D74171DBE5BC800E20D67 /* ArrayReference.swift in Sources */,
 				BB9D74121DBE55E900E20D67 /* ArrayFilteringIndexmap.swift in Sources */,
 				BB69A7F01D6AFF1A001D2821 /* Abstract.swift in Sources */,
@@ -1476,13 +1482,17 @@
 				BB9D74101DBE4F2400E20D67 /* ArrayMappingForValueField.swift in Sources */,
 				BB9D73F81DBE041A00E20D67 /* TimerSource.swift in Sources */,
 				BB9D74141DBE574600E20D67 /* ArrayFilteringOnObservableBool.swift in Sources */,
+				BB9D741C1DBE630700E20D67 /* KVO Support.swift in Sources */,
 				BB9D73D61DBB519500E20D67 /* SourceOperators.swift in Sources */,
+				BB9D74201DBE654600E20D67 /* NSObject extensions.swift in Sources */,
 				BB9D73D31DBB3DEA00E20D67 /* Signal.swift in Sources */,
 				BB9D74151DBE5A4500E20D67 /* ArrayFolding.swift in Sources */,
 				BB9D740B1DBE49A100E20D67 /* UpdatableArray.swift in Sources */,
 				BB9D74131DBE55F100E20D67 /* ArrayFilteringOnPredicate.swift in Sources */,
 				BB9D74071DBE1CEB00E20D67 /* ArrayChange.swift in Sources */,
+				BB9D741D1DBE638400E20D67 /* Type Helpers.swift in Sources */,
 				BB9D740D1DBE4C7100E20D67 /* BufferedArray.swift in Sources */,
+				BB9D741F1DBE651200E20D67 /* NSUserDefaults Support.swift in Sources */,
 				BB9D73F01DBDFEE400E20D67 /* TwoWayBinding.swift in Sources */,
 				BB9D74081DBE1CEE00E20D67 /* ArrayChangeSeparation.swift in Sources */,
 				BBB55B4F1C8FCC820050DDA9 /* Locks.swift in Sources */,
