@@ -7,39 +7,36 @@
 //
 
 extension ObservableSetType {
-    public func filter(_ isIncluded: @escaping (Element) -> Bool) -> ObservableSet<Element> {
-        return SetFilteringOnPredicate<Self>(parent: self, test: isIncluded).observableSet
+    public func filter(_ isIncluded: @escaping (Element) -> Bool) -> AnyObservableSet<Element> {
+        return SetFilteringOnPredicate<Self>(parent: self, test: isIncluded).anyObservableSet
     }
 
-    public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> ObservableSet<Element> where Predicate.Value == (Element) -> Bool {
+    public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> AnyObservableSet<Element>
+    where Predicate.Value == (Element) -> Bool, Predicate.Change == ValueChange<Predicate.Value> {
         return self.filter(isIncluded.map { predicate -> Optional<(Element) -> Bool> in predicate })
     }
 
-    public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> ObservableSet<Element> where Predicate.Value == Optional<(Element) -> Bool>, Predicate.Change == ValueChange<Predicate.Value> {
-        let reference = ObservableSetReference<Element>()
-        let connection = isIncluded.values.connect { predicate in
-            if let predicate = predicate {
-                reference.retarget(to: self.filter(predicate))
+    public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> AnyObservableSet<Element>
+    where Predicate.Value == Optional<(Element) -> Bool>, Predicate.Change == ValueChange<Predicate.Value> {
+        let reference: AnyObservableValue<AnyObservableSet<Element>> = isIncluded.map { predicate in
+            if let predicate: (Element) -> Bool = predicate {
+                return self.filter(predicate).anyObservableSet
             }
             else {
-                reference.retarget(to: self)
+                return self.anyObservableSet
             }
         }
-        return reference.observableSet.holding(connection)
+        return reference.unpacked()
     }
 }
 
-private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _AbstractObservableSet<Parent.Element>, SignalDelegate {
+private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _BaseObservableSet<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = SetChange<Element>
 
     private let parent: Parent
     private let test: (Element) -> Bool
 
-    private var state = TransactionState<Change>()
-
-    private var active = false
-    private var parentConnection: Connection? = nil
     private var matchingElements: Set<Element> = []
 
     init(parent: Parent, test: @escaping (Element) -> Bool) {
@@ -47,60 +44,59 @@ private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _Abstrac
         self.test = test
     }
 
-    override var isBuffered: Bool { return false }
+    override var isBuffered: Bool {
+        return false
+    }
     override var count: Int {
-        if active { return matchingElements.count }
+        if isConnected { return matchingElements.count }
         return parent.value.reduce(0) { test($1) ? $0 + 1 : $0 }
     }
     override var value: Set<Element> {
-        if active { return matchingElements }
+        if isConnected { return matchingElements }
         return Set(self.parent.value.filter(test))
     }
     override func contains(_ member: Element) -> Bool {
-        if active { return matchingElements.contains(member) }
+        if isConnected { return matchingElements.contains(member) }
         return self.parent.contains(member) && test(member)
     }
-
     override func isSubset(of other: Set<Element>) -> Bool {
-        if active { return matchingElements.isSubset(of: other) }
+        if isConnected { return matchingElements.isSubset(of: other) }
         for member in self.parent.value {
             guard test(member) else { continue }
             guard other.contains(member) else { return false }
         }
         return true
     }
-
     override func isSuperset(of other: Set<Element>) -> Bool {
-        if active { return matchingElements.isSuperset(of: other) }
+        if isConnected { return matchingElements.isSuperset(of: other) }
         for member in other {
             guard test(member) && parent.contains(member) else { return false }
         }
         return true
     }
 
-    override var updates: SetUpdateSource<Element> { return state.source(retainingDelegate: self) }
-
-    internal func start(_ signal: Signal<Update<Change>>) {
-        active = true
+    override func startObserving() {
         for e in parent.value {
             if test(e) {
                 matchingElements.insert(e)
             }
         }
-        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(sink)
     }
 
-    internal func stop(_ signal: Signal<Update<Change>>) {
-        active = false
-        parentConnection?.disconnect()
-        parentConnection = nil
+    override func stopObserving() {
+        parent.updates.remove(sink)
         matchingElements = []
+    }
+
+    private var sink: AnySink<SetUpdate<Parent.Element>> {
+        return MethodSink(owner: self, identifier: 0, method: SetFilteringOnPredicate.apply).anySink
     }
 
     private func apply(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             var c = SetChange<Element>()
             for e in change.removed {
@@ -115,10 +111,10 @@ private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _Abstrac
                 }
             }
             if !c.isEmpty {
-                state.send(c)
+                sendChange(c)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 }

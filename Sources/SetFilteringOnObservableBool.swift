@@ -7,38 +7,33 @@
 //
 
 extension ObservableSetType {
-    public func filter<TestResult: ObservableValueType>(_ isIncluded: @escaping (Element) -> TestResult) -> ObservableSet<Element> where TestResult.Value == Bool {
-        return SetFilteringOnObservableBool<Self, TestResult>(parent: self, test: isIncluded).observableSet
+    public func filter<TestResult: ObservableValueType>(_ isIncluded: @escaping (Element) -> TestResult) -> AnyObservableSet<Element> where TestResult.Value == Bool {
+        return SetFilteringOnObservableBool<Self, TestResult>(parent: self, isIncluded: isIncluded).anyObservableSet
     }
 }
 
-private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult: ObservableValueType>: _AbstractObservableSet<Parent.Element>, SignalDelegate where TestResult.Value == Bool {
+private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult: ObservableValueType>: _BaseObservableSet<Parent.Element> where TestResult.Value == Bool {
     typealias Element = Parent.Element
     typealias Change = SetChange<Element>
 
     private let parent: Parent
-    private let test: (Element) -> TestResult
+    private let isIncluded: (Element) -> TestResult
 
-    private var state = TransactionState<Change>()
-
-    private var active = false
-    private var parentConnection: Connection? = nil
-    private var elementConnections: [Element: Connection] = [:]
     private var matchingElements: Set<Element> = []
+    private var elementSinks: Dictionary<AnySink<ValueUpdate<Bool>>, TestResult> = [:]
 
-    init(parent: Parent, test: @escaping (Element) -> TestResult) {
+    init(parent: Parent, isIncluded: @escaping (Element) -> TestResult) {
         self.parent = parent
-        self.test = test
+        self.isIncluded = isIncluded
     }
 
     override var isBuffered: Bool { return false }
 
     override var count: Int {
-        if active { return matchingElements.count }
-
+        if isConnected { return matchingElements.count }
         var count = 0
         for element in parent.value {
-            if test(element).value {
+            if isIncluded(element).value {
                 count += 1
             }
         }
@@ -46,99 +41,111 @@ private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult
     }
 
     override var value: Set<Element> {
-        if active { return matchingElements }
-        return Set(self.parent.value.filter { test($0).value })
+        if isConnected { return matchingElements }
+        return Set(self.parent.value.filter { isIncluded($0).value })
     }
 
     override func contains(_ member: Element) -> Bool {
-        if active { return matchingElements.contains(member) }
-        return self.parent.contains(member) && test(member).value
+        if isConnected { return matchingElements.contains(member) }
+        return self.parent.contains(member) && isIncluded(member).value
     }
 
     override func isSubset(of other: Set<Element>) -> Bool {
-        if active { return matchingElements.isSubset(of: other) }
+        if isConnected { return matchingElements.isSubset(of: other) }
         for member in self.parent.value {
-            guard test(member).value else { continue }
+            guard isIncluded(member).value else { continue }
             guard other.contains(member) else { return false }
         }
         return true
     }
 
     override func isSuperset(of other: Set<Element>) -> Bool {
-        if active { return matchingElements.isSuperset(of: other) }
+        if isConnected { return matchingElements.isSuperset(of: other) }
         for member in other {
-            guard test(member).value && parent.contains(member) else { return false }
+            guard isIncluded(member).value && parent.contains(member) else { return false }
         }
         return true
     }
 
-    override var updates: SetUpdateSource<Element> { return state.source(retainingDelegate: self) }
-
-    internal func start(_ signal: Signal<SetUpdate<Element>>) {
-        active = true
+    override func startObserving() {
         for e in parent.value {
-            let test = self.test(e)
+            let test = self.isIncluded(e)
             if test.value {
                 matchingElements.insert(e)
             }
-            let c = test.updates.connect { [unowned self] update in self.apply(update, from: e) }
-            elementConnections[e] = c
+            let sink = elementSink(for: e)
+            test.updates.add(sink)
+            elementSinks[sink] = test
         }
-        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(parentSink)
     }
 
-    internal func stop(_ signal: Signal<SetUpdate<Element>>) {
-        active = false
-        parentConnection?.disconnect()
-        parentConnection = nil
-        elementConnections.forEach { $0.1.disconnect() }
-        elementConnections = [:]
+    override func stopObserving() {
+        parent.updates.remove(parentSink)
+        for (sink, test) in elementSinks {
+            test.updates.remove(sink)
+        }
+        elementSinks = [:]
         matchingElements = []
     }
 
-    private func apply(_ update: SetUpdate<Parent.Element>) {
+    private var parentSink: AnySink<SetUpdate<Parent.Element>> {
+        return MethodSink(owner: self, identifier: 0, method: SetFilteringOnObservableBool.applyParentUpdate).anySink
+    }
+
+    private func elementSink(for element: Parent.Element) -> AnySink<ValueUpdate<Bool>> {
+        return MethodSinkWithContext(owner: self, method: SetFilteringOnObservableBool.applyElementUpdate, context: element).anySink
+    }
+
+
+    private func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             var c = SetChange<Element>()
             for e in change.removed {
-                elementConnections.removeValue(forKey: e)!.disconnect()
+                let sink = elementSink(for: e)
+                let test = elementSinks.removeValue(forKey: sink)!
+                test.updates.remove(sink)
                 if let old = self.matchingElements.remove(e) {
                     c.remove(old)
                 }
             }
             for e in change.inserted {
-                let test = self.test(e)
-                elementConnections[e] = test.updates.connect { [unowned self] update in self.apply(update, from: e) }
+                let test = self.isIncluded(e)
+                let sink = elementSink(for: e)
+                test.updates.add(sink)
+                let old = elementSinks.updateValue(test, forKey: sink)
+                precondition(old != nil)
                 if test.value {
                     matchingElements.insert(e)
                     c.insert(e)
                 }
             }
             if !c.isEmpty {
-                state.send(c)
+                sendChange(c)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
-    private func apply(_ update: ValueUpdate<Bool>, from element: Parent.Element) {
+    private func applyElementUpdate(_ update: ValueUpdate<Bool>, from element: Parent.Element) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             if !change.old && change.new {
                 matchingElements.insert(element)
-                state.send(SetChange(inserted: [element]))
+                sendChange(SetChange(inserted: [element]))
             }
             else if change.old && !change.new {
                 matchingElements.remove(element)
-                state.send(SetChange(removed: [element]))
+                sendChange(SetChange(removed: [element]))
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 }

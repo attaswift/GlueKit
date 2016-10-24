@@ -54,7 +54,7 @@ class ObservableTests: XCTestCase {
     }
 
     func testObservableValueType_constant() {
-        let constant = Observable.constant(1)
+        let constant = AnyObservableValue.constant(1)
 
         XCTAssertEqual(constant.value, 1)
     }

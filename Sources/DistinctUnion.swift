@@ -8,35 +8,39 @@
 
 extension ObservableArrayType where Element: Hashable {
     /// Returns an observable set that contains the same elements as this array.
-    public func distinctUnion() -> ObservableSet<Element> {
-        return DistinctUnion<Self>(self).observableSet
+    public func distinctUnion() -> AnyObservableSet<Element> {
+        return DistinctUnion<Self>(self).anyObservableSet
     }
 }
 
-private class DistinctUnion<Input: ObservableArrayType>: _AbstractObservableSet<Input.Element> where Input.Element: Hashable {
+private class DistinctUnion<Input: ObservableArrayType>: _BaseObservableSet<Input.Element> where Input.Element: Hashable {
     typealias Element = Input.Element
     typealias Change = SetChange<Element>
 
+    private let input: Input
     private var members = Dictionary<Element, Int>()
-    private var state = TransactionState<Change>()
-    private var connection: Connection? = nil
 
     init(_ input: Input) {
+        self.input = input
         super.init()
         for element in input.value {
             _ = self.add(element)
         }
-        self.connection = input.updates.connect { [unowned self] in self.apply($0) }
+        input.updates.add(sink)
     }
 
     deinit {
-        connection!.disconnect()
+        input.updates.remove(sink)
+    }
+
+    private var sink: AnySink<ArrayUpdate<Element>> {
+        return MethodSink(owner: self, identifier: 0, method: DistinctUnion.apply).anySink
     }
 
     private func apply(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             var setChange = SetChange<Element>()
             for mod in change.modifications {
@@ -52,10 +56,10 @@ private class DistinctUnion<Input: ObservableArrayType>: _AbstractObservableSet<
                 }
             }
             if !change.isEmpty {
-                state.send(setChange)
+                sendChange(setChange)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
@@ -96,6 +100,4 @@ private class DistinctUnion<Input: ObservableArrayType>: _AbstractObservableSet<
         }
         return true
     }
-
-    override var updates: SetUpdateSource<Element> { return state.source(retaining: self) }
 }

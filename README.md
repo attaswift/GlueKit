@@ -204,7 +204,7 @@ it uses a specially constructed Swift closure to represent the key path:
 ```Swift
 let cocoaKeyPath: String = "projects.issues.owner.email"
 
-let swiftKeyPath: Document -> Observable<[String]> = { document in 
+let swiftKeyPath: Document -> AnyObservableValue<[String]> = { document in 
     document.projects.flatMap{$0.issues}.flatMap{$0.owner}.map{$0.email} 
 }
 ```
@@ -218,7 +218,7 @@ combinations of observables. `map` is a combinator that is used to build one-to-
 interesting combinators available.)
 
 In Cocoa, you would get the current list of emails using KVC's accessor method. In GlueKit, if you give the key path a
-document instance, it returns an `Observable` that has a `value` property that you can get. 
+document instance, it returns an `AnyObservableValue` that has a `value` property that you can get. 
 
 ```Swift
 let document: Document = ...
@@ -309,30 +309,30 @@ class ProjectSummaryViewModel {
 	}
 	
     /// The number of issues (open and closed) in the current project.
-	var isssueCount: Observable<Int> { 
+	var isssueCount: AnyObservableValue<Int> { 
 	    return project.selectCount { $0.issues }
 	}
 	
     /// The number of open issues in the current project.
-	var openIssueCount: Observable<Int> { 
+	var openIssueCount: AnyObservableValue<Int> { 
 	    return project.selectCount({ $0.issues }, filteredBy: { $0.isOpen })
 	}
 	
     /// The ratio of open issues to all issues, in percentage points.
-    var percentageOfOpenIssues: Observable<Int> {
+    var percentageOfOpenIssues: AnyObservableValue<Int> {
         // You can use the standard arithmetic operators to combine observables.
-    	return Observable.constant(100) * openIssueCount / issueCount
+    	return AnyObservableValue.constant(100) * openIssueCount / issueCount
     }
     
     /// The number of open issues assigned to the current account.
-    var yourOpenIssues: Observable<Int> {
+    var yourOpenIssues: AnyObservableValue<Int> {
         return project
             .selectCount({ $0.issues }, 
                 filteredBy: { $0.isOpen && $0.owner == self.currentAccount })
     }
     
     /// The five most recently created issues assigned to the current account.
-    var yourFiveMostRecentIssues: Observable<[Issue]> {
+    var yourFiveMostRecentIssues: AnyObservableValue<[Issue]> {
         return project
             .selectFirstN(5, { $0.issues }, 
                 filteredBy: { $0.isOpen && $0.owner == currentAccount }),
@@ -340,16 +340,16 @@ class ProjectSummaryViewModel {
     }
 
     /// An observable version of NSLocale.currentLocale().
-    var currentLocale: Observable<NSLocale> {
+    var currentLocale: AnyObservableValue<NSLocale> {
         let center = NSNotificationCenter.defaultCenter()
 		let localeSource = center
 		    .source(forName: NSCurrentLocaleDidChangeNotification)
 		    .map { _ in NSLocale.currentLocale() }
-        return Observable(getter: { NSLocale.currentLocale() }, futureValues: localeSource)
+        return AnyObservableValue(getter: { NSLocale.currentLocale() }, futureValues: localeSource)
     }
     
     /// An observable localized string.
-    var localizedIssueCountFormat: Observable<String> {
+    var localizedIssueCountFormat: AnyObservableValue<String> {
         return currentLocale.map { _ in 
             return NSLocalizedString("%1$d of %2$d issues open (%3$d%%)",
                 comment: "Summary of open issues in a project")
@@ -357,8 +357,8 @@ class ProjectSummaryViewModel {
     }
     
     /// An observable text for a label.
-    var localizedIssueCountString: Observable<String> {
-        return Observable
+    var localizedIssueCountString: AnyObservableValue<String> {
+        return AnyObservableValue
             // Create an observable of tuples containing values of four observables
             .combine(localizedIssueCountFormat, issueCount, openIssueCount, percentageOfOpenIssues)
             // Then convert each tuple into a single localized string

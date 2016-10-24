@@ -29,7 +29,7 @@ class TypeHelperTests: XCTestCase {
         type: V.Type = V.self,
         key: String,
         sourceTx: (Source<Any?>) -> Source<V>,
-        observableTx: (Observable<Any?>) -> Observable<V>,
+        observableTx: (AnyObservableValue<Any?>) -> AnyObservableValue<V>,
         updatableTx: (Updatable<Any?>) -> Updatable<V>,
         getter: (KVOTest) -> V,
         setter: (KVOTest, V) -> (),

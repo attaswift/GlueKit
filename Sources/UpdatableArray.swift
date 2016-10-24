@@ -165,8 +165,10 @@ public struct AnyUpdatableArray<Element>: UpdatableArrayType {
         nonmutating set { box[bounds] = newValue }
     }
 
-    public var observable: AnyObservableValue<Array<Element>> { return box.anyObservable }
     public var observableCount: AnyObservableValue<Int> { return box.observableCount }
+
+    public var anyObservable: AnyObservableValue<Array<Element>> { return box.anyObservable }
+    public var anyObservableArray: AnyObservableArray<Element> { return box.anyObservableArray }
     public var anyUpdatable: AnyUpdatableValue<[Element]> { return box.anyUpdatable }
     public var anyUpdatableArray: AnyUpdatableArray<Element> { return self }
 }
@@ -272,13 +274,10 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: _AbstractUpdatab
         set { contents[bounds] = newValue }
     }
 
-    override var anyUpdatable: AnyUpdatableValue<Array<Contents.Element>> {
-        return contents.anyUpdatable
-    }
-
     override var isBuffered: Bool { return contents.isBuffered }
     override var count: Int { return contents.count }
     override var updates: ArrayUpdateSource<Element> { return contents.updates }
-    override var anyObservable: AnyObservableValue<[Element]> { return contents.anyObservable }
     override var observableCount: AnyObservableValue<Int> { return contents.observableCount }
+    override var anyObservable: AnyObservableValue<[Element]> { return contents.anyObservable }
+    override var anyUpdatable: AnyUpdatableValue<Array<Contents.Element>> { return contents.anyUpdatable }
 }

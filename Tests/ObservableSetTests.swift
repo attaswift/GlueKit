@@ -52,7 +52,7 @@ private class TestObservableSet2<Element: Hashable>: ObservableSetType {
 }
 
 
-private class TestUpdatableSet<Element: Hashable>: _AsbtractUpdatableSet<Element> {
+private class TestUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element> {
     var _state = TransactionState<SetChange<Element>>()
     var _value: Set<Element>
 
@@ -180,7 +180,7 @@ class ObservableSetTypeTests: XCTestCase {
     }
 
     func testObservableSetConstant() {
-        let constant = ObservableSet.constant([1, 2, 3])
+        let constant = AnyObservableSet.constant([1, 2, 3])
 
         XCTAssertTrue(constant.isBuffered)
         XCTAssertEqual(constant.count, 3)

@@ -13,20 +13,18 @@ extension ObservableSetType {
     ///     the same result, the transformation may trap or it may return invalid results.
     ///
     /// - SeeAlso: `map(_:)` for a slightly slower variant for use when the mapping is not injective.
-    public func injectiveMap<R: Hashable>(_ transform: @escaping (Element) -> R) -> ObservableSet<R> {
-        return InjectiveSetMappingForValue(parent: self, transform: transform).observableSet
+    public func injectiveMap<R: Hashable>(_ transform: @escaping (Element) -> R) -> AnyObservableSet<R> {
+        return InjectiveSetMappingForValue(parent: self, transform: transform).anyObservableSet
     }
 }
 
-private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Element: Hashable>: _AbstractObservableSet<Element> {
+private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Element: Hashable>: _BaseObservableSet<Element> {
     typealias Change = SetChange<Element>
 
     let parent: Parent
     let transform: (Parent.Element) -> Element
 
     private var _value: Set<Element> = []
-    private var _connection: Connection? = nil
-    private var _state = TransactionState<Change>()
 
     init(parent: Parent, transform: @escaping (Parent.Element) -> Element) {
         self.parent = parent
@@ -34,17 +32,21 @@ private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Eleme
         super.init()
 
         _value = Set(parent.value.map(transform))
-        _connection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(sink)
     }
 
     deinit {
-        _connection?.disconnect()
+        parent.updates.remove(sink)
     }
 
-    func apply(_ update: SetUpdate<Parent.Element>) {
+    private var sink: AnySink<SetUpdate<Parent.Element>> {
+        return MethodSink(owner: self, identifier: 0, method: InjectiveSetMappingForValue.apply).anySink
+    }
+
+    private func apply(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
-            _state.begin()
+            beginTransaction()
         case .change(let change):
             let mappedChange = SetChange(removed: Set(change.removed.lazy.map(transform)),
                                          inserted: Set(change.inserted.lazy.map(transform)))
@@ -52,10 +54,10 @@ private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Eleme
             precondition(mappedChange.inserted.count == change.inserted.count, "injectiveMap: transformation is not injective; use map() instead")
             _value.apply(mappedChange)
             if !mappedChange.isEmpty {
-                _state.send(mappedChange)
+                sendChange(mappedChange)
             }
         case .endTransaction:
-            _state.end()
+            endTransaction()
         }
     }
 
@@ -65,10 +67,6 @@ private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Eleme
     override func contains(_ member: Element) -> Bool { return _value.contains(member) }
     override func isSubset(of other: Set<Element>) -> Bool { return _value.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return _value.isSuperset(of: other) }
-
-    final override var updates: SetUpdateSource<Element> {
-        return _state.source(retaining: self)
-    }
 }
 
 extension ObservableSetType {
@@ -78,8 +76,8 @@ extension ObservableSetType {
     ///     `transform` returns the same result will be collapsed into a single entry in the result set.
     ///
     /// - SeeAlso: `injectivelyMap(_:)` for a slightly faster variant for when the mapping is injective.
-    public func map<R: Hashable>(_ transform: @escaping (Element) -> R) -> ObservableSet<R> {
-        return SetMappingForValue(parent: self, transform: transform).observableSet
+    public func map<R: Hashable>(_ transform: @escaping (Element) -> R) -> AnyObservableSet<R> {
+        return SetMappingForValue(parent: self, transform: transform).anyObservableSet
     }
 }
 
@@ -98,17 +96,21 @@ private final class SetMappingForValue<Parent: ObservableSetType, Element: Hasha
         for element in parent.value {
             _ = self.insert(transform(element))
         }
-        connection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(sink)
     }
 
     deinit {
-        connection?.disconnect()
+        parent.updates.remove(sink)
+    }
+
+    private var sink: AnySink<SetUpdate<Parent.Element>> {
+        return MethodSink(owner: self, identifier: 0, method: SetMappingForValue.apply).anySink
     }
 
     private func apply(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
-            begin()
+            beginTransaction()
         case .change(let change):
             var mappedChange = SetChange<Element>()
             for element in change.removed {
@@ -124,10 +126,10 @@ private final class SetMappingForValue<Parent: ObservableSetType, Element: Hasha
                 }
             }
             if !mappedChange.isEmpty {
-                state.send(mappedChange)
+                sendChange(mappedChange)
             }
         case .endTransaction:
-            end()
+            endTransaction()
         }
     }
 }

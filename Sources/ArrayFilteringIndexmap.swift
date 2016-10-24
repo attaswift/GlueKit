@@ -9,13 +9,13 @@
 import BTree
 
 internal struct ArrayFilteringIndexmap<Element> {
-    let test: (Element) -> Bool
+    let isIncluded: (Element) -> Bool
     var matchingIndices = SortedSet<Int>()
 
-    init(initialValues values: [Element], test: @escaping (Element) -> Bool) {
-        self.test = test
+    init(initialValues values: [Element], isIncluded: @escaping (Element) -> Bool) {
+        self.isIncluded = isIncluded
         for index in values.indices {
-            if test(values[index]) {
+            if isIncluded(values[index]) {
                 matchingIndices.insert(index)
             }
         }
@@ -27,7 +27,7 @@ internal struct ArrayFilteringIndexmap<Element> {
             switch mod {
             case .insert(let element, at: let index):
                 matchingIndices.shift(startingAt: index, by: 1)
-                if test(element) {
+                if isIncluded(element) {
                     matchingIndices.insert(index)
                     filteredChange.add(.insert(element, at: matchingIndices.offset(of: index)!))
                 }
@@ -37,7 +37,7 @@ internal struct ArrayFilteringIndexmap<Element> {
                 }
                 matchingIndices.shift(startingAt: index + 1, by: -1)
             case .replace(let old, at: let index, with: let new):
-                switch (matchingIndices.offset(of: index), test(new)) {
+                switch (matchingIndices.offset(of: index), isIncluded(new)) {
                 case (.some(let offset), true):
                     filteredChange.add(.replace(old, at: offset, with: new))
                 case (.none, true):
@@ -58,7 +58,7 @@ internal struct ArrayFilteringIndexmap<Element> {
                 matchingIndices.subtract(elementsIn: index ..< index + old.count)
                 matchingIndices.shift(startingAt: index + old.count, by: new.count - old.count)
                 for i in 0 ..< new.count {
-                    if test(new[i]) {
+                    if isIncluded(new[i]) {
                         matchingIndices.insert(index + i)
                         filteredNew.append(new[i])
                     }

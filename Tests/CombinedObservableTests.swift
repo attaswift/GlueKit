@@ -199,8 +199,8 @@ class CombinedObservableTests: XCTestCase {
         let b = TestUpdatable(0)
         let c = TestUpdatable(0)
 
-        let e1 = a % Observable.constant(10)
-        let e2 = b * c / (a + Observable.constant(1))
+        let e1 = a % AnyObservableValue.constant(10)
+        let e2 = b * c / (a + AnyObservableValue.constant(1))
         let expression = e1 + e2 - c
 
         var r = [Int]()
@@ -241,7 +241,7 @@ class CombinedObservableTests: XCTestCase {
         let b = TestUpdatable(0.0)
         let c = TestUpdatable(0.0)
 
-        let expression = a + b * c / (a + Observable.constant(1)) - c
+        let expression = a + b * c / (a + AnyObservableValue.constant(1)) - c
 
         XCTAssertEqual(expression.value, 0)
 

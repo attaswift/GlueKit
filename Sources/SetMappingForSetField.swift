@@ -7,8 +7,8 @@
 //
 
 extension ObservableSetType {
-    public func flatMap<Field: ObservableSetType>(_ key: @escaping (Element) -> Field) -> ObservableSet<Field.Element> {
-        return SetMappingForSetField<Self, Field>(parent: self, key: key).observableSet
+    public func flatMap<Field: ObservableSetType>(_ key: @escaping (Element) -> Field) -> AnyObservableSet<Field.Element> {
+        return SetMappingForSetField<Self, Field>(parent: self, key: key).anyObservableSet
     }
 }
 
@@ -16,18 +16,15 @@ class SetMappingForSetField<Parent: ObservableSetType, Field: ObservableSetType>
     let parent: Parent
     let key: (Parent.Element) -> Field
 
-    var baseConnection: Connection? = nil
-    var connections: [Parent.Element: Connection] = [:]
-
     init(parent: Parent, key: @escaping (Parent.Element) -> Field) {
         self.parent = parent
         self.key = key
         super.init()
-        baseConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(parentSink)
 
         for e in parent.value {
             let field = key(e)
-            connections[e] = field.updates.connect { [unowned self] in self.apply($0) }
+            field.updates.add(fieldSink)
             for new in field.value {
                 _ = self.insert(new)
             }
@@ -35,19 +32,30 @@ class SetMappingForSetField<Parent: ObservableSetType, Field: ObservableSetType>
     }
 
     deinit {
-        baseConnection?.disconnect()
-        connections.forEach { (_, c) in c.disconnect() }
+        parent.updates.remove(parentSink)
+        parent.value.forEach { e in
+            let field = key(e)
+            field.updates.remove(fieldSink)
+        }
     }
 
-    private func apply(_ update: SetUpdate<Parent.Element>) {
+    private var parentSink: AnySink<SetUpdate<Parent.Element>> {
+        return MethodSink(owner: self, identifier: 1, method: SetMappingForSetField.applyParentUpdate).anySink
+    }
+
+    private var fieldSink: AnySink<SetUpdate<Field.Element>> {
+        return MethodSink(owner: self, identifier: 2, method: SetMappingForSetField.applyFieldUpdate).anySink
+    }
+
+    private func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
-            begin()
+            beginTransaction()
         case .change(let change):
             var transformedChange = SetChange<Element>()
             for e in change.removed {
                 let field = key(e)
-                connections.removeValue(forKey: e)!.disconnect()
+                field.updates.remove(fieldSink)
                 for r in field.value {
                     if self.remove(r) {
                         transformedChange.remove(r)
@@ -56,8 +64,7 @@ class SetMappingForSetField<Parent: ObservableSetType, Field: ObservableSetType>
             }
             for e in change.inserted {
                 let field = key(e)
-                let c = field.updates.connect { [unowned self] change in self.apply(change) }
-                guard connections.updateValue(c, forKey: e) == nil else { fatalError("Invalid change: inserted element already in set") }
+                field.updates.add(fieldSink)
                 for i in field.value {
                     if self.insert(i) {
                         transformedChange.insert(i)
@@ -65,17 +72,17 @@ class SetMappingForSetField<Parent: ObservableSetType, Field: ObservableSetType>
                 }
             }
             if !transformedChange.isEmpty {
-                state.send(transformedChange)
+                sendChange(transformedChange)
             }
         case .endTransaction:
-            end()
+            endTransaction()
         }
     }
 
-    private func apply(_ update: SetUpdate<Field.Element>) {
+    private func applyFieldUpdate(_ update: SetUpdate<Field.Element>) {
         switch update {
         case .beginTransaction:
-            begin()
+            beginTransaction()
         case .change(let change):
             var transformedChange = SetChange<Element>()
             for old in change.removed {
@@ -89,10 +96,10 @@ class SetMappingForSetField<Parent: ObservableSetType, Field: ObservableSetType>
                 }
             }
             if !transformedChange.isEmpty {
-                state.send(transformedChange)
+                sendChange(transformedChange)
             }
         case .endTransaction:
-            end()
+            endTransaction()
         }
     }
 }

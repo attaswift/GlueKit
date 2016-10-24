@@ -7,8 +7,26 @@
 //
 
 extension ObservableArrayType {
-    public func filter<Test: ObservableValueType>(test: @escaping (Element) -> Test) -> AnyObservableArray<Element> where Test.Value == Bool {
-        return ArrayFilteringOnObservableBool<Self, Test>(parent: self, test: test).anyObservableArray
+    public func filter<Test: ObservableValueType>(_ isIncluded: @escaping (Element) -> Test) -> AnyObservableArray<Element> where Test.Value == Bool {
+        return ArrayFilteringOnObservableBool<Self, Test>(parent: self, isIncluded: isIncluded).anyObservableArray
+    }
+
+    public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> AnyObservableArray<Element>
+    where Predicate.Value == (Element) -> Bool, Predicate.Change == ValueChange<Predicate.Value> {
+        return self.filter(isIncluded.map { predicate -> Optional<(Element) -> Bool> in predicate })
+    }
+
+    public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> AnyObservableArray<Element>
+    where Predicate.Value == Optional<(Element) -> Bool>, Predicate.Change == ValueChange<Predicate.Value> {
+        let reference: AnyObservableValue<AnyObservableArray<Element>> = isIncluded.map { predicate in
+            if let predicate: (Element) -> Bool = predicate {
+                return self.filter(predicate).anyObservableArray
+            }
+            else {
+                return self.anyObservableArray
+            }
+        }
+        return reference.unpacked()
     }
 }
 
@@ -41,19 +59,19 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
     typealias FieldSink = SinkForTest<Parent, Test>
 
     private let parent: Parent
-    private let test: (Element) -> Test
+    private let isIncluded: (Element) -> Test
 
     private var indexMapping: ArrayFilteringIndexmap<Element>
     private var elementConnections = RefList<FieldSink>()
 
-    init(parent: Parent, test: @escaping (Element) -> Test) {
+    init(parent: Parent, isIncluded: @escaping (Element) -> Test) {
         self.parent = parent
-        self.test = test
+        self.isIncluded = isIncluded
         let elements = parent.value
-        self.indexMapping = ArrayFilteringIndexmap(initialValues: elements, test: { test($0).value })
+        self.indexMapping = ArrayFilteringIndexmap(initialValues: elements, isIncluded: { isIncluded($0).value })
         super.init()
         parent.updates.add(parentSink)
-        self.elementConnections = RefList(elements.lazy.map { FieldSink(owner: self, field: test($0)) })
+        self.elementConnections = RefList(elements.lazy.map { FieldSink(owner: self, field: isIncluded($0)) })
     }
 
     deinit {
@@ -73,7 +91,7 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
             for mod in change.modifications {
                 let inputRange = mod.inputRange
                 inputRange.forEach { elementConnections[$0].disconnect() }
-                elementConnections.replaceSubrange(inputRange, with: mod.newElements.map { FieldSink(owner: self, field: test($0)) })
+                elementConnections.replaceSubrange(inputRange, with: mod.newElements.map { FieldSink(owner: self, field: isIncluded($0)) })
             }
             let filteredChange = self.indexMapping.apply(change)
             if !filteredChange.isEmpty {

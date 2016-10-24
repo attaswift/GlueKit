@@ -7,8 +7,8 @@
 //
 
 extension ObservableSetType {
-    public func flatMap<Result: Sequence>(_ key: @escaping (Element) -> Result) -> ObservableSet<Result.Iterator.Element> where Result.Iterator.Element: Hashable {
-        return SetMappingForSequence<Self, Result>(parent: self, key: key).observableSet
+    public func flatMap<Result: Sequence>(_ key: @escaping (Element) -> Result) -> AnyObservableSet<Result.Iterator.Element> where Result.Iterator.Element: Hashable {
+        return SetMappingForSequence<Self, Result>(parent: self, key: key).anyObservableSet
     }
 }
 
@@ -16,8 +16,6 @@ class SetMappingForSequence<Parent: ObservableSetType, Result: Sequence>: SetMap
     typealias Element = Result.Iterator.Element
     let parent: Parent
     let key: (Parent.Element) -> Result
-
-    var baseConnection: Connection? = nil
 
     init(parent: Parent, key: @escaping (Parent.Element) -> Result) {
         self.parent = parent
@@ -28,17 +26,21 @@ class SetMappingForSequence<Parent: ObservableSetType, Result: Sequence>: SetMap
                 _ = self.insert(new)
             }
         }
-        baseConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(sink)
     }
 
     deinit {
-        baseConnection?.disconnect()
+        parent.updates.remove(sink)
+    }
+
+    private var sink: AnySink<SetUpdate<Parent.Element>> {
+        return MethodSink(owner: self, identifier: 0, method: SetMappingForSequence.apply).anySink
     }
 
     private func apply(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
-            begin()
+            beginTransaction()
         case .change(let change):
             var transformedChange = SetChange<Element>()
             for e in change.removed {
@@ -56,10 +58,10 @@ class SetMappingForSequence<Parent: ObservableSetType, Result: Sequence>: SetMap
                 }
             }
             if !transformedChange.isEmpty {
-                state.send(transformedChange)
+                sendChange(transformedChange)
             }
         case .endTransaction:
-            end()
+            endTransaction()
         }
     }
 }

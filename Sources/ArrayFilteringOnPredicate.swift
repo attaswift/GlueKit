@@ -7,8 +7,8 @@
 //
 
 extension ObservableArrayType {
-    public func filter(test: @escaping (Element) -> Bool) -> AnyObservableArray<Element> {
-        return ArrayFilteringOnPredicate<Self>(parent: self, test: test).anyObservableArray
+    public func filter(_ isIncluded: @escaping (Element) -> Bool) -> AnyObservableArray<Element> {
+        return ArrayFilteringOnPredicate<Self>(parent: self, isIncluded: isIncluded).anyObservableArray
     }
 }
 
@@ -17,14 +17,14 @@ private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _Bas
     public typealias Change = ArrayChange<Element>
 
     private let parent: Parent
-    private let test: (Element) -> Bool
+    private let isIncluded: (Element) -> Bool
 
     private var indexMapping: ArrayFilteringIndexmap<Element>
 
-    init(parent: Parent, test: @escaping (Element) -> Bool) {
+    init(parent: Parent, isIncluded: @escaping (Element) -> Bool) {
         self.parent = parent
-        self.test = test
-        self.indexMapping = ArrayFilteringIndexmap(initialValues: parent.value, test: test)
+        self.isIncluded = isIncluded
+        self.indexMapping = ArrayFilteringIndexmap(initialValues: parent.value, isIncluded: isIncluded)
         super.init()
         parent.updates.add(parentSink)
     }

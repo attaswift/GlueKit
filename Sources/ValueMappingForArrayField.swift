@@ -27,7 +27,7 @@ extension ObservableValueType {
     ///     let text: Variable<String>
     /// }
     /// class Room {
-    ///     let latestMessage: Observable<Message>
+    ///     let latestMessage: AnyObservableValue<Message>
     ///     let messages: ArrayVariable<Message>
     ///     let newMessages: Source<Message>
     /// }

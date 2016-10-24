@@ -11,23 +11,22 @@ import BTree
 extension ObservableSetType where Element: AnyObject {
     /// Given a transformation into an observable of a comparable type, return an observable array
     /// containing transformed versions of elements in this set, in increasing order.
-    public func sorted<O: ObservableValueType>(by transform: @escaping (Element) -> O) -> AnyObservableArray<O.Value> where O.Value: Comparable {
-        return SetSortingByMappingToObservableComparable(parent: self, transform: transform).observableArray
+    public func sorted<Field: ObservableValueType>(by transform: @escaping (Element) -> Field) -> AnyObservableArray<Field.Value> where Field.Value: Comparable {
+        return SetSortingByMappingToObservableComparable(parent: self, transform: transform).anyObservableArray
     }
 }
 
-private class SetSortingByMappingToObservableComparable<Parent: ObservableSetType, Field: ObservableValueType>: _AbstractObservableArray<Field.Value>
+private class SetSortingByMappingToObservableComparable<Parent: ObservableSetType, Field: ObservableValueType>: _BaseObservableArray<Field.Value>
 where Parent.Element: AnyObject, Field.Value: Comparable {
     typealias Element = Field.Value
     typealias Change = ArrayChange<Element>
+    typealias FieldSink = AnySink<ValueUpdate<Element>>
 
     private let parent: Parent
     private let transform: (Parent.Element) -> Field
 
     private var contents: Map<Element, Int> = [:]
-    private var state = TransactionState<Change>()
-    private var baseConnection: Connection? = nil
-    private var connections: Dictionary<Parent.Element, Connection> = [:]
+    private var fields: Dictionary<FieldSink, Field> = [:]
 
     init(parent: Parent, transform: @escaping (Parent.Element) -> Field) {
         self.parent = parent
@@ -37,23 +36,28 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
         for element in parent.value {
             _ = self._insert(newElement(element))
         }
-        baseConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(parentSink)
     }
 
     deinit {
-        baseConnection?.disconnect()
-        connections.forEach { (_, connection) in connection.disconnect() }
+        parent.updates.remove(parentSink)
+        for (sink, field) in fields {
+            field.updates.remove(sink)
+        }
     }
 
     private func newElement(_ element: Parent.Element) -> Element {
-        let transformed = transform(element)
-        connections[element] = transformed.updates.connect { [unowned self] in self.apply($0) }
-        return transformed.value
+        let field = transform(element)
+        let sink = fieldSink(for: element)
+        let old = fields.updateValue(field, forKey: sink)
+        precondition(old == nil)
+        return field.value
     }
 
     private func removeElement(_ element: Parent.Element) {
-        let connection = connections.removeValue(forKey: element)
-        connection!.disconnect()
+        let sink = fieldSink(for: element)
+        let field = fields.removeValue(forKey: sink)!
+        field.updates.remove(sink)
     }
 
     private func _insert(_ key: Element) -> Bool {
@@ -82,10 +86,20 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
         return .remove(key, at: oldOffset)
     }
 
-    private func apply(_ update: SetUpdate<Parent.Element>) {
+    private var parentSink: AnySink<SetUpdate<Parent.Element>> {
+        return MethodSink(owner: self, identifier: 0, method: SetSortingByMappingToObservableComparable.applyParentUpdate).anySink
+    }
+
+    private func fieldSink(for element: Parent.Element) -> FieldSink {
+        return MethodSinkWithContext(owner: self,
+                                     method: SetSortingByMappingToObservableComparable.applyFieldUpdate,
+                                     context: element).anySink
+    }
+
+    private func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             var arrayChange = ArrayChange<Element>(initialCount: contents.count)
             for element in change.removed {
@@ -102,17 +116,17 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
                 }
             }
             if !arrayChange.isEmpty {
-                state.send(arrayChange)
+                sendChange(arrayChange)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
-    private func apply(_ update: ValueUpdate<Element>) {
+    private func applyFieldUpdate(_ update: ValueUpdate<Element>, for element: Parent.Element) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             var arrayChange = ArrayChange<Element>(initialCount: self.contents.count)
             if change.old == change.new { return }
@@ -123,10 +137,10 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
                 arrayChange.add(mod)
             }
             if !arrayChange.isEmpty {
-                state.send(arrayChange)
+                sendChange(arrayChange)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
@@ -135,6 +149,4 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
     override subscript(bounds: Range<Int>) -> ArraySlice<Element> { return ArraySlice(contents.submap(withOffsets: bounds).lazy.map { $0.0 }) }
     override var value: Array<Element> { return Array(contents.lazy.map { $0.0 }) }
     override var count: Int { return contents.count }
-    override var updates: ArrayUpdateSource<Element> { return state.source(retaining: self) }
 }
-

@@ -176,7 +176,7 @@ private final class Foo: Hashable, Comparable, ExpressibleByIntegerLiteral, Cust
     let id: Int
     let number: IntVariable
 
-    var isEven: Observable<Bool> { return number.map { $0 & 1 == 0 } }
+    var isEven: AnyObservableValue<Bool> { return number.map { $0 & 1 == 0 } }
 
     init(_ number: Int) {
         self.id = number

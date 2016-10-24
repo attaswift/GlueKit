@@ -7,25 +7,24 @@
 //
 
 extension ObservableValueType {
-    public func map<Field: ObservableSetType>(_ key: @escaping (Value) -> Field) -> ObservableSet<Field.Element> {
-        return ValueMappingForSetField<Self, Field>(parent: self, key: key).observableSet
+    public func map<Field: ObservableSetType>(_ key: @escaping (Value) -> Field) -> AnyObservableSet<Field.Element> {
+        return ValueMappingForSetField<Self, Field>(parent: self, key: key).anyObservableSet
     }
 
-    public func map<Field: UpdatableSetType>(_ key: @escaping (Value) -> Field) -> UpdatableSet<Field.Element> {
-        return ValueMappingForUpdatableSetField<Self, Field>(parent: self, key: key).updatableSet
+    public func map<Field: UpdatableSetType>(_ key: @escaping (Value) -> Field) -> AnyUpdatableSet<Field.Element> {
+        return ValueMappingForUpdatableSetField<Self, Field>(parent: self, key: key).anyUpdatableSet
     }
 }
 
-private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: ObservableSetType>: SignalDelegate {
+private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: ObservableSetType>: _AbstractSource<Update<SetChange<Field.Element>>>, LazyObserver {
     typealias Element = Field.Element
     typealias Change = SetChange<Element>
+    typealias Value = Update<Change>
 
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var state = TransactionState<Change>()
-    private var parentConnection: Connection? = nil
-    private var fieldConnection: Connection? = nil
+    private var state = TransactionState<UpdateSourceForSetField, Change>()
     private var _field: Field? = nil
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
@@ -33,8 +32,14 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
         self.key = key
     }
 
-    var source: Source<Update<Change>> {
-        return state.source(retainingDelegate: self).source
+    @discardableResult
+    override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        return state.source(retaining: self).add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        return state.source(retaining: self).remove(sink)
     }
 
     fileprivate var field: Field {
@@ -42,28 +47,34 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
         return key(parent.value)
     }
 
-    func start(_ signal: Signal<Update<Change>>) {
-        precondition(parentConnection == nil)
+    func startObserving() {
         let field = key(parent.value)
-        self.connect(to: field)
-        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        field.updates.add(fieldSink)
+        parent.updates.add(parentSink)
+        _field = field
     }
 
-    func stop(_ signal: Signal<Update<Change>>) {
-        fieldConnection!.disconnect()
-        parentConnection!.disconnect()
-        fieldConnection = nil
-        parentConnection = nil
+    func stopObserving() {
+        parent.updates.remove(parentSink)
+        _field!.updates.remove(fieldSink)
         _field = nil
     }
 
     private func connect(to field: Field) {
+        _field!.updates.remove(fieldSink)
         _field = field
-        fieldConnection?.disconnect()
-        fieldConnection = field.updates.connect { [unowned self] in self.apply($0) }
+        field.updates.add(fieldSink)
     }
 
-    private func apply(_ update: ValueUpdate<Parent.Value>) {
+    private var parentSink: AnySink<ValueUpdate<Parent.Value>> {
+        return MethodSink(owner: self, identifier: 0, method: UpdateSourceForSetField.applyParentUpdate).anySink
+    }
+
+    private var fieldSink: AnySink<SetUpdate<Field.Element>> {
+        return MethodSink(owner: self, identifier: 0, method: UpdateSourceForSetField.applyFieldUpdate).anySink
+    }
+
+    private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
         switch update {
         case .beginTransaction:
             state.begin()
@@ -77,7 +88,7 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
         }
     }
 
-    private func apply(_ update: SetUpdate<Field.Element>) {
+    private func applyFieldUpdate(_ update: SetUpdate<Field.Element>) {
         state.send(update)
     }
 }
@@ -100,10 +111,10 @@ private final class ValueMappingForSetField<Parent: ObservableValueType, Field: 
     override func isSubset(of other: Set<Element>) -> Bool { return field.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return field.isSuperset(of: other) }
 
-    override var updates: SetUpdateSource<Element> { return updateSource.source }
+    override var updates: SetUpdateSource<Element> { return updateSource.anySource }
 }
 
-private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType, Field: UpdatableSetType>: _AsbtractUpdatableSet<Field.Element> {
+private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType, Field: UpdatableSetType>: _AbstractUpdatableSet<Field.Element> {
     typealias Element = Field.Element
 
     private let updateSource: UpdateSourceForSetField<Parent, Field>
@@ -137,5 +148,5 @@ private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType
     override func formSymmetricDifference(_ other: Set<Field.Element>) { field.formSymmetricDifference(other) }
     override func subtract(_ other: Set<Field.Element>) { field.subtract(other) }
 
-    override var updates: SetUpdateSource<Element> { return updateSource.source }
+    override var updates: SetUpdateSource<Element> { return updateSource.anySource }
 }
