@@ -6,9 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-
 extension ObservableSetType {
     public func flatMap<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> ObservableSet<Field.Element> where Field.Element: Hashable {
         return SetMappingForArrayField<Self, Field>(parent: self, key: key).observableSet

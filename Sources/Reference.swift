@@ -6,8 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 internal struct UnownedReference<Target: AnyObject>: Hashable, Equatable {
     unowned var value: Target
 

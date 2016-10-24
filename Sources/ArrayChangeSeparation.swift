@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
+import Foundation // For IndexSet
 
 private func separationError() -> Never {
     fatalError("Changes in arrays with duplicate elements cannot be separated")

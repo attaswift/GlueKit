@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableSetType {
     /// Given an observable set and a closure that extracts an observable value from each element,
     /// return an observable set that contains the extracted field values contained in this set.

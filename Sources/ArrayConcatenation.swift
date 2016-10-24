@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableArrayType {
     public func concatenate<A: ObservableArrayType>(with other: A) -> AnyObservableArray<Element> where A.Element == Element {
         return ArrayConcatenation(first: self, second: other).anyObservableArray

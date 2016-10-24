@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableSetType {
     /// Return an observable set that contains the results of injectively mapping the given closure over the elements of this set.
     ///

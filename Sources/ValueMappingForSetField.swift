@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableValueType {
     public func map<Field: ObservableSetType>(_ key: @escaping (Value) -> Field) -> ObservableSet<Field.Element> {
         return ValueMappingForSetField<Self, Field>(parent: self, key: key).observableSet

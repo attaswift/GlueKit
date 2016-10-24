@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 public struct MethodSink<Owner: AnyObject, Identifier: Hashable, Value>: SinkType {
     public let owner: Owner
     public let identifier: Identifier

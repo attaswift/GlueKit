@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableArrayType where Element: Hashable {
     /// Returns an observable set that contains the same elements as this array.
     public func distinctUnion() -> ObservableSet<Element> {

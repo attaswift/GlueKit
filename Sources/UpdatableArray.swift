@@ -6,8 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 //MARK: UpdatableArrayType
 
 /// An observable array that you can modify.

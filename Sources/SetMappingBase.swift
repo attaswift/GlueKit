@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 /// An observable set where the value is internally represented as a dictionary of element multiplicities.
 /// This class implements the full `ObservableSetType` protocol, and serves as the base class for several transformations
 /// on observable sets.

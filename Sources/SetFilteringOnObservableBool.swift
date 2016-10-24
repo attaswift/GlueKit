@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableSetType {
     public func filter<TestResult: ObservableValueType>(_ isIncluded: @escaping (Element) -> TestResult) -> ObservableSet<Element> where TestResult.Value == Bool {
         return SetFilteringOnObservableBool<Self, TestResult>(parent: self, test: isIncluded).observableSet

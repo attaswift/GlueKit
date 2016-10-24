@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableSetType {
     public func sorted(by areInIncreasingOrder: @escaping (Element, Element) -> Bool) -> AnyObservableArray<Element> {
         let comparator = Comparator(areInIncreasingOrder)

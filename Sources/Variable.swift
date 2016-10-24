@@ -6,8 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 /// A variable implements `UpdatableValueType` by having internal storage to a value.
 ///
 /// - SeeAlso: UnownedVariable<Value>, WeakVariable<Value>

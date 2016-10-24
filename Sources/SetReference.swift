@@ -6,7 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
 
 /// A mutable reference to an `ObservableSet` that's also an observable set.
 /// You can switch to another target set without having to re-register subscribers.

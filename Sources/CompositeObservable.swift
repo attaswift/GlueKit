@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableValueType {
     public func combined<Other: ObservableValueType>(_ other: Other) -> AnyObservableValue<(Value, Other.Value)> {
         return CompositeObservable(left: self, right: other, combinator: { ($0, $1) }).anyObservable

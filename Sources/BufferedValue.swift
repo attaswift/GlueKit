@@ -6,8 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableValueType where Change == ValueChange<Value> {
     public func buffered() -> AnyObservableValue<Value> {
         return BufferedObservableValue(self).anyObservable

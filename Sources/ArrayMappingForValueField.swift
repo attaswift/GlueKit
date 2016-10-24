@@ -6,8 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableArrayType {
     /// Return an observable array that consists of the values for the field specified by `key` for each element of this array.
     public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> AnyObservableArray<Field.Value> {

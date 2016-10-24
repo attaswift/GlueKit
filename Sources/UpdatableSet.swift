@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 public protocol UpdatableSetType: ObservableSetType, UpdatableType {
     var value: Base { get nonmutating set }
     func apply(_ change: SetChange<Element>)

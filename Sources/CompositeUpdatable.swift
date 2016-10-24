@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension UpdatableValueType where Change == ValueChange<Value> {
     public func combined<Other: UpdatableValueType>(_ other: Other) -> AnyUpdatableValue<(Value, Other.Value)> where Other.Change == ValueChange<Other.Value> {
         return CompositeUpdatable(left: self, right: other).anyUpdatable

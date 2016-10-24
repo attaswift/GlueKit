@@ -6,10 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-// MARK: Map
-
 public extension ObservableValueType {
     /// Returns an observable that calculates `transform` on all current and future values of this observable.
     public func map<Output>(_ transform: @escaping (Value) -> Output) -> AnyObservableValue<Output> {

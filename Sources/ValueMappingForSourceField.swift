@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableValueType where Change == ValueChange<Value> {
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects a child component (a.k.a "field") of its value that is a source,

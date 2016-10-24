@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 public final class SetVariable<Element: Hashable>: _AsbtractUpdatableSet<Element> {
     public typealias Value = Set<Element>
     public typealias Base = Set<Element>

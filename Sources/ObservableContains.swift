@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableSetType {
     public func observableContains(_ member: Element) -> Observable<Bool> {
         return Observable(

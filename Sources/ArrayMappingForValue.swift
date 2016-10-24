@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableArrayType {
     public func map<Output>(_ transform: @escaping (Element) -> Output) -> AnyObservableArray<Output> {
         return ArrayMappingForValue(input: self, transform: transform).anyObservableArray

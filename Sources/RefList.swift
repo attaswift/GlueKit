@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 /// An element in a reflist, with an opaque link to its parent node.
 protocol RefListElement: class {
     /// An opaque link to the element's parent node in the ref list.

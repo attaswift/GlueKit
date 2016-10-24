@@ -6,10 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-//MARK: ArrayModification
-
 /// Describes a single modification of an array. The modification can be an insertion, a removal, a replacement or
 /// a generic range replacement. All indices are understood to be based in the original array, before this modification
 /// has taken place.

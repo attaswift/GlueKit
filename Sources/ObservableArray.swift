@@ -6,8 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 public typealias ArrayUpdate<Element> = Update<ArrayChange<Element>>
 public typealias ArrayUpdateSource<Element> = AnySource<ArrayUpdate<Element>>
 

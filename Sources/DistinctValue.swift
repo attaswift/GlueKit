@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 public extension ObservableValueType where Change == ValueChange<Value> {
     public func distinct(_ areEquivalent: @escaping (Value, Value) -> Bool) -> AnyObservableValue<Value> {
         return DistinctObservableValue(self, by: areEquivalent).anyObservable

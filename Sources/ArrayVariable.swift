@@ -6,10 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-//MARK: ArrayVariable
-
 public final class ArrayVariable<Element>: _BaseUpdatableArray<Element> {
     public typealias Value = Array<Element>
     public typealias Change = ArrayChange<Element>

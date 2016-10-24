@@ -6,8 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableValueType {
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,

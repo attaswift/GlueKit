@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableArrayType {
     public func filter(test: @escaping (Element) -> Bool) -> AnyObservableArray<Element> {
         return ArrayFilteringOnPredicate<Self>(parent: self, test: test).anyObservableArray

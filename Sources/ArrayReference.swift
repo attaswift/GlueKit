@@ -6,7 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
 
 /// A mutable reference to an `AnyObservableArray` that's also an observable array.
 /// You can switch to another target array without having to re-register subscribers.

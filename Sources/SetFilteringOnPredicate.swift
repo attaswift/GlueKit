@@ -6,8 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableSetType {
     public func filter(_ isIncluded: @escaping (Element) -> Bool) -> ObservableSet<Element> {
         return SetFilteringOnPredicate<Self>(parent: self, test: isIncluded).observableSet

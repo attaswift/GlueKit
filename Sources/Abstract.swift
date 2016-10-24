@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 internal func abstract() -> Never {
     fatalError("Unimplemented abstract method")
 }

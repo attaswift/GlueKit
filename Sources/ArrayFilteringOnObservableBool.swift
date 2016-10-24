@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableArrayType {
     public func filter<Test: ObservableValueType>(test: @escaping (Element) -> Test) -> AnyObservableArray<Element> where Test.Value == Bool {
         return ArrayFilteringOnObservableBool<Self, Test>(parent: self, test: test).anyObservableArray

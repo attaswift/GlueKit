@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableArrayType {
     /// Returns an observable whose value is always equal to `self.value.reduce(initial, add)`.
     ///
