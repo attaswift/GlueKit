@@ -162,7 +162,7 @@ open class _AbstractObservableArray<Element>: ObservableArrayType {
 }
 
 open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, LazyObserver {
-    private var state = TransactionState<_BaseObservableArray, ArrayChange<Element>>()
+    private var state = TransactionState<ArrayChange<Element>>()
 
     public final override var updates: ArrayUpdateSource<Element> {
         return state.source(retaining: self)

@@ -24,7 +24,7 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var state = TransactionState<UpdateSourceForSetField, Change>()
+    private var state = TransactionState<Change>()
     private var _field: Field? = nil
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {

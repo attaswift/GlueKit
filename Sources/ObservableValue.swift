@@ -106,7 +106,7 @@ open class _AbstractObservableValue<Value>: ObservableValueType {
 }
 
 open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, LazyObserver {
-    private var state = TransactionState<_BaseObservableValue, ValueChange<Value>>()
+    private var state = TransactionState<ValueChange<Value>>()
 
     public final override var updates: ValueUpdateSource<Value> { return state.source(retaining: self) }
 

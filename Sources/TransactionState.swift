@@ -12,13 +12,13 @@ internal protocol LazyObserver: class {
     func stopObserving()
 }
 
-private class TransactionSignal<Owner: LazyObserver, Change: ChangeType>: Signal<Update<Change>> {
+private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
     typealias Value = Update<Change>
 
-    let owner: Owner
+    let owner: LazyObserver
     var isInTransaction: Bool
 
-    init(owner: Owner, isInTransaction: Bool) {
+    init(owner: LazyObserver, isInTransaction: Bool) {
         self.owner = owner
         self.isInTransaction = isInTransaction
     }
@@ -67,16 +67,16 @@ private class TransactionSignal<Owner: LazyObserver, Change: ChangeType>: Signal
     }
 }
 
-internal struct TransactionState<Owner: LazyObserver, Change: ChangeType> {
-    private weak var signal: TransactionSignal<Owner, Change>? = nil
+internal struct TransactionState<Change: ChangeType> {
+    private weak var signal: TransactionSignal<Change>? = nil
     private var transactionCount = 0
 
-    mutating func source(retaining owner: Owner) -> AnySource<Update<Change>> {
+    mutating func source(retaining owner: LazyObserver) -> AnySource<Update<Change>> {
         if let signal = self.signal {
             assert(signal.owner === owner)
             return signal.anySource
         }
-        let signal = TransactionSignal<Owner, Change>(owner: owner, isInTransaction: self.isChanging)
+        let signal = TransactionSignal<Change>(owner: owner, isInTransaction: self.isChanging)
         self.signal = signal
         return signal.anySource
     }

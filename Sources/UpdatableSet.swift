@@ -193,7 +193,7 @@ open class _AbstractUpdatableSet<Element: Hashable>: _AbstractObservableSet<Elem
 }
 
 open class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, LazyObserver {
-    private var state = TransactionState<_BaseUpdatableSet, SetChange<Element>>()
+    private var state = TransactionState<SetChange<Element>>()
 
     public final override var updates: SetUpdateSource<Element> {
         return state.source(retaining: self)

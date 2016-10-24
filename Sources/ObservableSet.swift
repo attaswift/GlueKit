@@ -117,7 +117,7 @@ open class _AbstractObservableSet<Element: Hashable>: ObservableSetType {
 }
 
 open class _BaseObservableSet<Element: Hashable>: _AbstractObservableSet<Element>, LazyObserver {
-    private var state = TransactionState<_BaseObservableSet, SetChange<Element>>()
+    private var state = TransactionState<SetChange<Element>>()
 
     public final override var updates: SetUpdateSource<Element> {
         return state.source(retaining: self)

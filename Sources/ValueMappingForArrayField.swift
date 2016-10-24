@@ -61,7 +61,7 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var state = TransactionState<UpdateSourceForArrayField, Change>()
+    private var state = TransactionState<Change>()
     private var field: Field? = nil
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {

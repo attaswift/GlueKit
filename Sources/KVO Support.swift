@@ -44,7 +44,7 @@ private class KVOUpdatable: NSObject, UpdatableValueType, LazyObserver {
 
     private let object: NSObject
     private let keyPath: String
-    private var state = TransactionState<KVOUpdatable, Change>()
+    private var state = TransactionState<Change>()
     private var context: UInt8 = 0
 
     init(object: NSObject, keyPath: String) {

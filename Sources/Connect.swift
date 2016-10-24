@@ -22,7 +22,7 @@ extension SourceType {
 /// The closure's subscription to the source remains active until this object is deallocated
 /// or `disconnect` is called on it.
 public class Connection {
-    func disconnect() {
+    public func disconnect() {
         // Do nothing
     }
 }
@@ -49,7 +49,7 @@ internal class ConcreteConnection<Source: SourceType>: Connection {
         disconnect()
     }
 
-    override func disconnect() {
+    public override func disconnect() {
         guard !isDisconnected else { return }
         // Construct a dummy `ClosureSink` that is identical to the original one and remove it from the source.
         // At first glance, we could use a dummy closure here, because the closure isn't involved in the sink's identity.
