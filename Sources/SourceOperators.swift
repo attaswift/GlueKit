@@ -6,8 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 struct TransformedSink<Input: SourceType, Sink: SinkType>: SinkType {
     typealias Value = Input.Value
 
@@ -33,7 +31,7 @@ struct TransformedSink<Input: SourceType, Sink: SinkType>: SinkType {
 }
 
 
-class TransformedSource<Input: SourceType, Value>: _AbstractSourceBase<Value> {
+class TransformedSource<Input: SourceType, Value>: _AbstractSource<Value> {
     let input: Input
 
     init(input: Input) {
@@ -55,7 +53,7 @@ class TransformedSource<Input: SourceType, Value>: _AbstractSourceBase<Value> {
 
 extension SourceType {
     public func map<Output>(_ transform: @escaping (Value) -> Output) -> AnySource<Output> {
-        return MappedSource(input: self, transform: transform).concealed
+        return MappedSource(input: self, transform: transform).anySource
     }
 }
 
@@ -75,7 +73,7 @@ private class MappedSource<Input: SourceType, Value>: TransformedSource<Input, V
 
 extension SourceType {
     public func filter(_ predicate: @escaping (Value) -> Bool) -> AnySource<Value> {
-        return FilteredSource(input: self, filter: predicate).concealed
+        return FilteredSource(input: self, filter: predicate).anySource
     }
 }
 
@@ -97,7 +95,7 @@ private class FilteredSource<Input: SourceType>: TransformedSource<Input, Input.
 
 extension SourceType {
     public func flatMap<Output>(_ transform: @escaping (Value) -> Output?) -> AnySource<Output> {
-        return OptionalMappedSource(input: self, transform: transform).concealed
+        return OptionalMappedSource(input: self, transform: transform).anySource
     }
 }
 
@@ -118,7 +116,7 @@ private class OptionalMappedSource<Input: SourceType, Value>: TransformedSource<
 
 extension SourceType {
     public func flatMap<Output>(_ transform: @escaping (Value) -> [Output]) -> AnySource<Output> {
-        return FlattenedSource(input: self, transform: transform).concealed
+        return FlattenedSource(input: self, transform: transform).anySource
     }
 }
 
@@ -137,63 +135,13 @@ private class FlattenedSource<Input: SourceType, Value>: TransformedSource<Input
     }
 }
 
-
-extension SourceType {
-    public func dispatch(_ queue: DispatchQueue) -> AnySource<Value> {
-        return DispatchOnQueueSource(input: self, queue: queue).concealed
-    }
-}
-
-private final class DispatchOnQueueSource<Input: SourceType>: TransformedSource<Input, Input.Value> {
-    typealias Value = Input.Value
-    let queue: DispatchQueue
-
-    init(input: Input, queue: DispatchQueue) {
-        self.queue = queue
-        super.init(input: input)
-    }
-
-    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
-        queue.async {
-            sink.receive(value)
-        }
-    }
-}
-
-extension SourceType {
-    public func dispatch(_ queue: OperationQueue) -> AnySource<Value> {
-        return DispatchOnOperationQueueSource(input: self, queue: queue).concealed
-    }
-}
-
-private final class DispatchOnOperationQueueSource<Input: SourceType>: TransformedSource<Input, Input.Value> {
-    typealias Value = Input.Value
-    let queue: OperationQueue
-
-    init(input: Input, queue: OperationQueue) {
-        self.queue = queue
-        super.init(input: input)
-    }
-
-    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
-        if OperationQueue.current == queue {
-            sink.receive(value)
-        }
-        else {
-            queue.addOperation {
-                sink.receive(value)
-            }
-        }
-    }
-}
-
 extension SourceType {
     public func buffered() -> AnySource<Value> {
-        return BufferedSource(self).concealed
+        return BufferedSource(self).anySource
     }
 }
 
-private final class BufferedSource<Input: SourceType>: _AbstractSourceBase<Input.Value>, SinkType {
+private final class BufferedSource<Input: SourceType>: _AbstractSource<Input.Value>, SinkType {
     typealias Value = Input.Value
 
     private let _source: Input
@@ -222,5 +170,50 @@ private final class BufferedSource<Input: SourceType>: _AbstractSourceBase<Input
 
     func receive(_ value: Input.Value) {
         _signal.send(value)
+    }
+}
+
+extension SourceType {
+    /// Returns a version of this source that optionally prefixes or suffixes all observers' received values 
+    /// with computed start/end values.
+    ///
+    /// For each new subscriber, the returned source evaluates `hello`; if it returns a non-nil value,
+    /// the value is sent to the sink; then the sink is added to `self`.
+    ///
+    /// For each subscriber that is to be removed, the returned source first removes it from `self`, then 
+    /// evaluates `goodbye`; if it returns a non-nil value, the bracketing source sends it to the sink.
+    func bracketed(hello: @escaping () -> Value?, goodbye: @escaping () -> Value?) -> AnySource<Value> {
+        return BracketingSource(self, hello: hello, goodbye: goodbye).anySource
+    }
+}
+
+private final class BracketingSource<Input: SourceType>: _AbstractSource<Input.Value> {
+    typealias Value = Input.Value
+    let input: Input
+    let hello: () -> Value?
+    let goodbye: () -> Value?
+
+    init(_ input: Input, hello: @escaping () -> Value?, goodbye: @escaping () -> Value?) {
+        self.input = input
+        self.hello = hello
+        self.goodbye = goodbye
+    }
+
+    final override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        // Note that this assumes issue #5 ("Disallow reentrant updates") is implemented.
+        // Otherwise `sink.receive` could send values itself, which it also needs to receive,
+        // requiring complicated scheduling.
+        if let greeting = hello() {
+            sink.receive(greeting)
+        }
+        return input.add(sink)
+    }
+
+    final override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        let last = input.remove(sink)
+        if let farewell = goodbye() {
+            sink.receive(farewell)
+        }
+        return last
     }
 }

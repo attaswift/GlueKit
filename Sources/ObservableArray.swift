@@ -113,9 +113,9 @@ public struct ObservableArray<Element>: ObservableArrayType {
     public typealias Base = Array<Element>
     public typealias Change = ArrayChange<Element>
 
-    let box: _ObservableArrayBase<Element>
+    let box: _AbstractObservableArray<Element>
 
-    init(box: _ObservableArrayBase<Element>) {
+    init(box: _AbstractObservableArray<Element>) {
         self.box = box
     }
 
@@ -136,7 +136,7 @@ public struct ObservableArray<Element>: ObservableArrayType {
     func holding(_ connection: Connection) -> ObservableArray<Element> { box.hold(connection); return self }
 }
 
-open class _ObservableArrayBase<Element>: ObservableArrayType {
+open class _AbstractObservableArray<Element>: ObservableArrayType {
     public typealias Base = Array<Element>
     public typealias Change = ArrayChange<Element>
 
@@ -168,7 +168,7 @@ open class _ObservableArrayBase<Element>: ObservableArrayType {
     public final func hold(_ connection: Connection) { connections.append(connection) }
 }
 
-internal class ObservableArrayBox<Contents: ObservableArrayType>: _ObservableArrayBase<Contents.Element> {
+internal class ObservableArrayBox<Contents: ObservableArrayType>: _AbstractObservableArray<Contents.Element> {
     typealias Element = Contents.Element
 
     let contents: Contents
@@ -187,7 +187,7 @@ internal class ObservableArrayBox<Contents: ObservableArrayType>: _ObservableArr
     override var observable: Observable<[Element]> { return contents.observable }
 }
 
-internal class ObservableArrayConstant<Element>: _ObservableArrayBase<Element> {
+internal class ObservableArrayConstant<Element>: _AbstractObservableArray<Element> {
     let _value: Array<Element>
 
     init(_ value: [Element]) {

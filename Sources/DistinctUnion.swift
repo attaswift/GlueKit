@@ -15,7 +15,7 @@ extension ObservableArrayType where Element: Hashable {
     }
 }
 
-private class DistinctUnion<Input: ObservableArrayType>: _ObservableSetBase<Input.Element> where Input.Element: Hashable {
+private class DistinctUnion<Input: ObservableArrayType>: _AbstractObservableSet<Input.Element> where Input.Element: Hashable {
     typealias Element = Input.Element
     typealias Change = SetChange<Element>
 

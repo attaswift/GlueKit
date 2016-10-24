@@ -14,7 +14,7 @@ extension ObservableArrayType {
     }
 }
 
-private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: _ObservableArrayBase<Parent.Element> where Test.Value == Bool {
+private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: _AbstractObservableArray<Parent.Element> where Test.Value == Bool {
     public typealias Element = Parent.Element
     public typealias Change = ArrayChange<Element>
 

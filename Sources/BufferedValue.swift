@@ -9,32 +9,31 @@
 import Foundation
 
 extension ObservableValueType where Change == ValueChange<Value> {
-    public func buffered() -> Observable<Value> {
-        return BufferedObservableValue(self).observable
+    public func buffered() -> AnyObservableValue<Value> {
+        return BufferedObservableValue(self).anyObservable
     }
 }
 
-internal class BufferedObservableValue<Base: ObservableValueType>: _ObservableValueBase<Base.Value>
+internal class BufferedObservableValue<Base: ObservableValueType>: _AbstractObservableValue<Base.Value>
 where Base.Change == ValueChange<Base.Value> {
     typealias Value = Base.Value
 
     private var _base: Base
 
     private var _value: Value
-    private var _state = TransactionState<Change>()
+    private var _state = TransactionState<BufferedObservableValue>()
     private var _pending: Value? = nil
-    private var _connection: Connection? = nil
 
     init(_ base: Base) {
         self._base = base
         self._value = base.value
         super.init()
 
-        self._connection = base.updates.connect { [unowned self] in self.apply($0) }
+        _base.updates.add(MethodSink(owner: self, identifier: 0, method: BufferedObservableValue.apply))
     }
 
     deinit {
-        _connection!.disconnect()
+        _base.updates.remove(MethodSink(owner: self, identifier: 0, method: BufferedObservableValue.apply))
     }
 
     private func apply(_ update: ValueUpdate<Value>) {
@@ -57,4 +56,3 @@ where Base.Change == ValueChange<Base.Value> {
     override var value: Value { return _value }
     override var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }
-

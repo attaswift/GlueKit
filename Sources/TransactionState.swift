@@ -6,12 +6,20 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
+
+internal protocol LazyObservable: class, ObservableType {
+    func startUpdates()
+    func stopUpdates()
+}
+
+private class TransactionSignal<Owner: LazyObservable>: Signal<Update<Owner.Change>> {
+    typealias Change = Owner.Change
     typealias Value = Update<Change>
-    let owner: AnyObject
+
+    let owner: Owner
     var isInTransaction: Bool
 
-    init(owner: AnyObject, isInTransaction: Bool) {
+    init(owner: Owner, isInTransaction: Bool) {
         self.owner = owner
         self.isInTransaction = isInTransaction
     }
@@ -39,12 +47,19 @@ private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
             // Make sure the new subscriber knows we're in the middle of a transaction.
             sink.receive(.beginTransaction)
         }
-        return super.add(sink)
+        let first = super.add(sink)
+        if first {
+            owner.startUpdates()
+        }
+        return first
     }
 
     @discardableResult
     public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
         let last = super.remove(sink)
+        if last {
+            owner.stopUpdates()
+        }
         if self.isInTransaction {
             // Wave goodbye by sending a virtual endTransaction that makes state management easier.
             sink.receive(.endTransaction)
@@ -53,18 +68,20 @@ private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
     }
 }
 
-struct TransactionState<Change: ChangeType> {
-    private weak var signal: TransactionSignal<Change>? = nil
+internal struct TransactionState<Owner: LazyObservable> {
+    typealias Change = Owner.Change
+
+    private weak var signal: TransactionSignal<Owner>? = nil
     private var transactionCount = 0
 
-    mutating func source(retaining owner: AnyObject) -> AnySource<Update<Change>> {
+    mutating func source(retaining owner: Owner) -> AnySource<Update<Change>> {
         if let signal = self.signal {
             assert(signal.owner === owner)
-            return signal.concealed
+            return signal.anySource
         }
-        let signal = TransactionSignal<Change>(owner: owner, isInTransaction: self.isChanging)
+        let signal = TransactionSignal(owner: owner, isInTransaction: self.isChanging)
         self.signal = signal
-        return signal.concealed
+        return signal.anySource
     }
 
     var isChanging: Bool { return transactionCount > 0 }

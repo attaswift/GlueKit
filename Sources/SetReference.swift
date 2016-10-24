@@ -10,7 +10,7 @@ import Foundation
 
 /// A mutable reference to an `ObservableSet` that's also an observable set.
 /// You can switch to another target set without having to re-register subscribers.
-public final class ObservableSetReference<Element: Hashable>: _ObservableSetBase<Element>, SignalDelegate {
+public final class ObservableSetReference<Element: Hashable>: _AbstractObservableSet<Element>, SignalDelegate {
     public typealias Base = Set<Element>
     public typealias Change = SetChange<Element>
 

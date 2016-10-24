@@ -14,7 +14,7 @@ extension ObservableArrayType {
     }
 }
 
-private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: _ObservableArrayBase<Element> {
+private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: _AbstractObservableArray<Element> {
     typealias Change = ArrayChange<Element>
 
     let input: Input
@@ -62,7 +62,7 @@ extension ObservableArrayType {
     }
 }
 
-private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArrayType>: _ObservableArrayBase<Output> where Content.Element == Input {
+private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArrayType>: _AbstractObservableArray<Output> where Content.Element == Input {
     typealias Element = Output
     typealias Change = ArrayChange<Output>
 

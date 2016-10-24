@@ -32,7 +32,7 @@ extension ObservableSetType where Element: IntegerArithmetic & ExpressibleByInte
     }
 }
 
-private class SetFoldingByTwoWayFunction<Parent: ObservableSetType, Value>: _ObservableValueBase<Value> {
+private class SetFoldingByTwoWayFunction<Parent: ObservableSetType, Value>: _AbstractObservableValue<Value> {
     private var _value: Value
     private var _state = TransactionState<Change>()
 

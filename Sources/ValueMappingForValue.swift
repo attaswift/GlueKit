@@ -12,12 +12,12 @@ import Foundation
 
 public extension ObservableValueType {
     /// Returns an observable that calculates `transform` on all current and future values of this observable.
-    public func map<Output>(_ transform: @escaping (Value) -> Output) -> Observable<Output> {
-        return ValueMappingForValue<Self, Output>(parent: self, transform: transform).observable
+    public func map<Output>(_ transform: @escaping (Value) -> Output) -> AnyObservableValue<Output> {
+        return ValueMappingForValue<Self, Output>(parent: self, transform: transform).anyObservable
     }
 }
 
-private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _ObservableValueBase<Value> {
+private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _AbstractObservableValue<Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
 
@@ -30,18 +30,18 @@ private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _O
         return transform(parent.value)
     }
 
-    override var updates: Source<Update<Change>> {
+    override var updates: ValueUpdateSource<Value> {
         return parent.updates.map { update in update.map { $0.map(self.transform) } }
     }
 }
 
 extension UpdatableValueType where Change == ValueChange<Value> {
-    public func map<Output>(_ transform: @escaping (Value) -> Output, inverse: @escaping (Output) -> Value) -> Updatable<Output> {
-        return ValueMappingForUpdatableValue<Self, Output>(parent: self, transform: transform, inverse: inverse).updatable
+    public func map<Output>(_ transform: @escaping (Value) -> Output, inverse: @escaping (Output) -> Value) -> AnyUpdatableValue<Output> {
+        return ValueMappingForUpdatableValue<Self, Output>(parent: self, transform: transform, inverse: inverse).anyUpdatable
     }
 }
 
-private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: AbstractUpdatableBase<Value> where Parent.Change == ValueChange<Parent.Value> {
+private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: _AbstractUpdatableValue<Value> where Parent.Change == ValueChange<Parent.Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
     let inverse: (Value) -> Parent.Value
@@ -65,7 +65,7 @@ private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Va
         return parent.withTransaction(body)
     }
 
-    override var updates: Source<Update<Change>> {
+    override var updates: ValueUpdateSource<Value> {
         return parent.updates.map { update in update.map { $0.map(self.transform) } }
     }
 }

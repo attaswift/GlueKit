@@ -24,7 +24,7 @@ extension ObservableSetType where Element: Comparable {
     }
 }
 
-private final class SetSortingByMappingToComparable<Parent: ObservableSetType, Element: Comparable>: _ObservableArrayBase<Element> {
+private final class SetSortingByMappingToComparable<Parent: ObservableSetType, Element: Comparable>: _AbstractObservableArray<Element> {
     typealias Change = ArrayChange<Element>
 
     private let parent: Parent

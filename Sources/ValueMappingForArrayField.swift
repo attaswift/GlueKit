@@ -55,7 +55,7 @@ extension ObservableValueType {
 
 /// A source of changes for an ObservableArray field.
 private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>
-: _AbstractSourceBase<Update<ArrayChange<Field.Element>>>, SignalDelegate {
+: _AbstractSource<Update<ArrayChange<Field.Element>>>, SignalDelegate {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
@@ -114,7 +114,7 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
     }
 }
 
-private class ValueMappingForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>: _ObservableArrayBase<Field.Element> {
+private class ValueMappingForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>: _AbstractObservableArray<Field.Element> {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
@@ -137,7 +137,7 @@ private class ValueMappingForArrayField<Parent: ObservableValueType, Field: Obse
     override var updates: ArrayUpdateSource<Element> { return _updateSource.source }
 }
 
-private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Field: UpdatableArrayType>: _UpdatableArrayBase<Field.Element> {
+private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Field: UpdatableArrayType>: _AbstractUpdatableArray<Field.Element> {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>

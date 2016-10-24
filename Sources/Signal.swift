@@ -6,8 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 private enum PendingItem<Value> {
     case sendValue(Value)
     case addSink(AnySink<Value>)
@@ -47,7 +45,7 @@ private enum PendingItem<Value> {
 /// reentrancy, but it only makes sense when you have the concept of a current value, which Signal doesn't. 
 /// (Although Variable does.)
 ///
-public class Signal<Value>: _AbstractSourceBase<Value> {
+public class Signal<Value>: _AbstractSource<Value> {
     private let lock = Lock()
     private var sending = false
     private var sinks: Set<AnySink<Value>> = []
@@ -183,7 +181,7 @@ public class Signal<Value>: _AbstractSourceBase<Value> {
 
     @discardableResult
     public override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        let sink = sink.concealed
+        let sink = sink.anySink
         return lock.withLock {
             let first = self.sinks.isEmpty
             if self.pendingItems.isEmpty {
@@ -200,7 +198,7 @@ public class Signal<Value>: _AbstractSourceBase<Value> {
 
     @discardableResult
     public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        let sink = sink.concealed
+        let sink = sink.anySink
         return lock.withLock {
             var old = self.sinks.remove(sink)
             if old == nil {
@@ -223,7 +221,7 @@ public class Signal<Value>: _AbstractSourceBase<Value> {
 }
 
 extension Signal {
-    public var asSink: AnySink<Value> { return SignalSink(self).concealed }
+    public var asSink: AnySink<Value> { return SignalSink(self).anySink }
 }
 
 private struct SignalSink<Value>: SinkType {

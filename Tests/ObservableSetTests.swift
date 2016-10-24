@@ -9,7 +9,7 @@
 import XCTest
 @testable import GlueKit
 
-private class TestObservableSet<Element: Hashable>: _ObservableSetBase<Element> {
+private class TestObservableSet<Element: Hashable>: _AbstractObservableSet<Element> {
     var _state = TransactionState<SetChange<Element>>()
     var _value: Set<Element>
 
@@ -52,7 +52,7 @@ private class TestObservableSet2<Element: Hashable>: ObservableSetType {
 }
 
 
-private class TestUpdatableSet<Element: Hashable>: _UpdatableSetBase<Element> {
+private class TestUpdatableSet<Element: Hashable>: _AsbtractUpdatableSet<Element> {
     var _state = TransactionState<SetChange<Element>>()
     var _value: Set<Element>
 

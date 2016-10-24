@@ -6,10 +6,8 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 public typealias ValueUpdate<Value> = Update<ValueChange<Value>>
-public typealias ValueUpdateSource<Value> = Source<ValueUpdate<Value>>
+public typealias ValueUpdateSource<Value> = AnySource<ValueUpdate<Value>>
 
 /// An observable has a value that is readable at any time, and may change in response to certain events.
 /// Interested parties can sign up to receive notifications when the observable's value changes.
@@ -39,53 +37,39 @@ public protocol ObservableValueType: ObservableType, CustomPlaygroundQuickLookab
     var updates: ValueUpdateSource<Value> { get }
 
     /// A source that delivers new values whenever this observable changes.
-    var futureValues: Source<Value> { get }
+    var futureValues: AnySource<Value> { get }
 
     /// Returns the type-erased version of this ObservableValueType.
-    var observable: Observable<Value> { get }
+    var anyObservable: AnyObservableValue<Value> { get }
+}
+
+extension ObservableValueType where Change == ValueChange<Value> {
+    /// Returns the type-erased version of this ObservableValueType.
+    public var anyObservable: AnyObservableValue<Value> {
+        return AnyObservableValue(self)
+    }
+
+    public var futureValues: AnySource<Value> { return changes.map { $0.new } }
+
+    /// A source that, for each new sink, immediately sends it the current value, and thereafter delivers updated values,
+    /// like `futureValues`. Implemented in terms of `futureValues` and `value`.
+    public var values: AnySource<Value> {
+        return futureValues.bracketed(hello: { self.value }, goodbye: { nil })
+    }
 }
 
 extension ObservableValueType where Change == ValueChange<Value> {
     public var customPlaygroundQuickLook: PlaygroundQuickLook {
         return PlaygroundQuickLook.text("\(value)")
     }
-
-    /// Returns the type-erased version of this ObservableValueType.
-    public var observable: Observable<Value> {
-        return Observable(self)
-    }
-
-    public var futureValues: Source<Value> { return changes.map { $0.new } }
-
-    /// A source that, for each new sink, immediately sends it the current value, and thereafter delivers updated values,
-    /// like `futureValues`. Implemented in terms of `futureValues` and `value`.
-    public var values: Source<Value> {
-        return Source<Value> { sink in
-            // We assume connections are not concurrent with updates.
-            // However, reentrant updates from a sink are fully supported -- they are serialized below.
-            var pendingValues: [Value]? = [self.value]
-            let c = self.futureValues.connect { value in
-                if pendingValues != nil {
-                    pendingValues!.append(value)
-                }
-                else {
-                    sink.receive(value)
-                }
-            }
-            while !(pendingValues!.isEmpty) {
-                sink.receive(pendingValues!.removeFirst())
-            }
-            pendingValues = nil
-            return c
-        }
-    }
 }
 
-/// The type erased representation of an ObservableValueType that contains a single value with simple changes.
-public struct Observable<Value>: ObservableValueType {
-    private let box: _ObservableValueBase<Value>
 
-    init(box: _ObservableValueBase<Value>) {
+/// The type erased representation of an ObservableValueType that contains a single value with simple changes.
+public struct AnyObservableValue<Value>: ObservableValueType {
+    private let box: _AbstractObservableValue<Value>
+
+    init(box: _AbstractObservableValue<Value>) {
         self.box = box
     }
     
@@ -102,23 +86,34 @@ public struct Observable<Value>: ObservableValueType {
 
     public var value: Value { return box.value }
     public var updates: ValueUpdateSource<Value> { return box.updates }
-    public var futureValues: Source<Value> { return box.futureValues }
-    public var observable: Observable<Value> { return self }
+    public var futureValues: AnySource<Value> { return box.futureValues }
+    public var anyObservable: AnyObservableValue<Value> { return self }
 }
 
-open class _ObservableValueBase<Value>: ObservableValueType {
+open class _AbstractObservableValue<Value>: ObservableValueType, LazyObservable {
     public typealias Change = ValueChange<Value>
 
     open var value: Value { abstract() }
     open var updates: ValueUpdateSource<Value> { abstract() }
-    open var futureValues: Source<Value> { return changes.map { $0.new } }
 
-    public final var observable: Observable<Value> {
-        return Observable(box: self)
+    open var futureValues: AnySource<Value> {
+        return changes.map { $0.new }
+    }
+
+    func startUpdates() {
+        // Do nothing
+    }
+
+    func stopUpdates() {
+        // Do nothing
+    }
+
+    public final var anyObservable: AnyObservableValue<Value> {
+        return AnyObservableValue(box: self)
     }
 }
 
-internal class ObservableValueBox<Base: ObservableValueType>: _ObservableValueBase<Base.Value> {
+internal class ObservableValueBox<Base: ObservableValueType>: _AbstractObservableValue<Base.Value> {
     typealias Value = Base.Value
 
     private let base: Base
@@ -128,10 +123,10 @@ internal class ObservableValueBox<Base: ObservableValueType>: _ObservableValueBa
     }
     override var value: Value { return base.value }
     override var updates: ValueUpdateSource<Value> { return base.updates }
-    override var futureValues: Source<Value> { return base.futureValues }
+    override var futureValues: AnySource<Value> { return base.futureValues }
 }
 
-private class ObservableClosureBox<Value>: _ObservableValueBase<Value> {
+private class ObservableClosureBox<Value>: _AbstractObservableValue<Value> {
     private let _value: () -> Value
     private let _updates: () -> ValueUpdateSource<Value>
 
@@ -146,7 +141,32 @@ private class ObservableClosureBox<Value>: _ObservableValueBase<Value> {
 
 public extension ObservableValueType {
     /// Creates a constant observable wrapping the given value. The returned observable is not modifiable and it will not ever send updates.
-    public static func constant(_ value: Value) -> Observable<Value> {
-        return Observable(getter: { value }, updates: { Source.empty() })
+    public static func constant(_ value: Value) -> AnyObservableValue<Value> {
+        return ConstantObservable(value).anyObservable
     }
 }
+
+private class ConstantObservable<Value>: _AbstractObservableValue<Value> {
+    private let _value: Value
+
+    init(_ value: Value) { _value = value }
+
+    override var value: Value { return _value }
+
+    override var updates: AnySource<Update<ValueChange<Value>>> {
+        return .empty()
+    }
+}
+
+extension Connector {
+    @discardableResult
+    public func connect<Source: SourceType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
+        return source.connect(sink).putInto(self)
+    }
+
+    @discardableResult
+    public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Observable.Change) -> Void) -> Connection {
+        return observable.changes.connect(sink).putInto(self)
+    }
+}
+

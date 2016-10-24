@@ -10,7 +10,7 @@ extension ObservableType {
     /// A source that reports changes to the value of this observable.
     /// Changes reported correspond to complete transactions in `self.updates`.
     public var changes: AnySource<Change> {
-        return ChangesSource(self.updates).concealed
+        return ChangesSource(self.updates).anySource
     }
 }
 
@@ -54,7 +54,7 @@ internal class ChangesSink<Change: ChangeType, Wrapped: SinkType>: SinkType wher
     }
 }
 
-internal class ChangesSource<Change: ChangeType, Updates: SourceType>: _AbstractSourceBase<Change> where Updates.Value == Update<Change> {
+internal class ChangesSource<Change: ChangeType, Updates: SourceType>: _AbstractSource<Change> where Updates.Value == Update<Change> {
     let updates: Updates
     init(_ updates: Updates) {
         self.updates = updates

@@ -43,59 +43,66 @@ extension ObservableValueType {
     /// message is posted in the current room. The observable can also be used to simply retrieve the latest
     /// message at any time.
     ///
-    public func map<O: ObservableValueType>(_ key: @escaping (Value) -> O) -> Observable<O.Value> {
-        return ValueMappingForValueField(parent: self, key: key).observable
+    public func map<O: ObservableValueType>(_ key: @escaping (Value) -> O) -> AnyObservableValue<O.Value> {
+        return ValueMappingForValueField(parent: self, key: key).anyObservable
     }
 }
 
 /// A source of changes for an Observable field.
-private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: _ObservableValueBase<Field.Value>, SignalDelegate {
+private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: _AbstractObservableValue<Field.Value> {
     typealias Value = Field.Value
     typealias Change = ValueChange<Value>
 
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var state = TransactionState<Change>()
+    private var state = TransactionState<ValueMappingForValueField>()
     private var currentValue: Field.Value? = nil
-    private var parentConnection: Connection? = nil
-    private var fieldConnection: Connection? = nil
+    private var field: Field? = nil
 
     override var value: Field.Value {
         if let v = currentValue { return v }
         return key(parent.value).value
     }
 
-    override var updates: ValueUpdateSource<Value> { return state.source(retainingDelegate: self) }
+    override var updates: ValueUpdateSource<Value> { return state.source(retaining: self) }
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    func start(_ signal: Signal<Update<Change>>) {
-        precondition(parentConnection == nil)
+    override func startUpdates() {
+        precondition(currentValue == nil)
         let field = key(parent.value)
-        currentValue = field.value
+        self.field = field
+        self.currentValue = field.value
         connect(to: field)
-        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.updates.add(parentSink)
     }
 
-    func stop(_ signal: Signal<Update<Change>>) {
-        precondition(parentConnection != nil)
-        fieldConnection?.disconnect()
-        parentConnection?.disconnect()
-        currentValue = nil
-        fieldConnection = nil
-        parentConnection = nil
+    override func stopUpdates() {
+        precondition(currentValue != nil)
+        self.field!.updates.remove(fieldSink)
+        parent.updates.remove(parentSink)
+        self.field = nil
+        self.currentValue = nil
     }
 
     private func connect(to field: Field) {
-        self.fieldConnection?.disconnect()
-        fieldConnection = field.updates.connect { [unowned self] in self.apply($0) }
+        self.field!.updates.remove(fieldSink)
+        self.field = field
+        field.updates.add(fieldSink)
     }
 
-    private func apply(_ update: ValueUpdate<Parent.Value>) {
+    private var parentSink: AnySink<ValueUpdate<Parent.Value>> {
+        return MethodSink(owner: self, identifier: 0, method: ValueMappingForValueField.applyParentUpdate).anySink
+    }
+    private var fieldSink: AnySink<ValueUpdate<Field.Value>> {
+        return MethodSink(owner: self, identifier: 1, method: ValueMappingForValueField.applyFieldUpdate).anySink
+    }
+
+    private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
         switch update {
         case .beginTransaction:
             state.begin()
@@ -111,7 +118,7 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
         }
     }
 
-    private func apply(_ update: ValueUpdate<Field.Value>) {
+    private func applyFieldUpdate(_ update: ValueUpdate<Field.Value>) {
         switch update {
         case .beginTransaction:
             state.begin()
@@ -161,12 +168,12 @@ extension ObservableValueType where Change == ValueChange<Value> {
     /// author changes their avatar. The updatable can also be used to simply retrieve the avatar at any time,
     /// or to update it.
     ///
-    public func map<U: UpdatableValueType>(_ key: @escaping (Value) -> U) -> Updatable<U.Value> where U.Change == ValueChange<U.Value> {
-        return ValueMappingForUpdatableField<Self, U>(parent: self, key: key).updatable
+    public func map<U: UpdatableValueType>(_ key: @escaping (Value) -> U) -> AnyUpdatableValue<U.Value> where U.Change == ValueChange<U.Value> {
+        return ValueMappingForUpdatableField<Self, U>(parent: self, key: key).anyUpdatable
     }
 }
 
-private final class ValueMappingForUpdatableField<Parent: ObservableValueType, Field: UpdatableValueType>: AbstractUpdatableBase<Field.Value> where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
+private final class ValueMappingForUpdatableField<Parent: ObservableValueType, Field: UpdatableValueType>: _AbstractUpdatableValue<Field.Value> where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
     typealias Value = Field.Value
 
     private let _observable: ValueMappingForValueField<Parent, Field>
@@ -188,7 +195,7 @@ private final class ValueMappingForUpdatableField<Parent: ObservableValueType, F
         return _observable.key(_observable.parent.value).withTransaction(body)
     }
 
-    override var updates: Source<Update<Change>> {
+    override var updates: ValueUpdateSource<Value> {
         return _observable.updates
     }
 }

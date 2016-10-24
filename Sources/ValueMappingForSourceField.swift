@@ -16,26 +16,46 @@ extension ObservableValueType where Change == ValueChange<Value> {
     /// - Parameter key: An accessor function that returns a component of self (a field) that is a SourceType.
     ///
     /// - Returns: A new source that sends the same values as the current source returned by key in the parent.
-    public func map<S: SourceType>(_ key: @escaping (Value) -> S) -> Source<S.SourceValue> {
-        return ValueMappingForSourceField(parent: self, key: key).source
+    public func map<Source: SourceType>(_ key: @escaping (Value) -> Source) -> AnySource<Source.Value> {
+        return ValueMappingForSourceField(parent: self, key: key).anySource
     }
 }
 
 /// A source of values for a Source field.
-private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: _AbstractSourceBase<Field.SourceValue>, SignalDelegate
+private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: _AbstractSource<Field.Value>
 where Parent.Change == ValueChange<Parent.Value> {
 
-    typealias Value = Field.SourceValue
+    typealias Value = Field.Value
 
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    var signal = OwningSignal<Value>()
-    var fieldConnection: Connection? = nil
-    var parentConnection: Connection? = nil
+    private var _field: Field? = nil
+    private weak var _signal: Signal<Value>? = nil
 
-    override func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == Value {
-        return signal.with(self).connect(sink)
+    private var signal: Signal<Value> {
+        if let signal = _signal {
+            return signal
+        }
+        let signal = Signal<Value>()
+        _signal = signal
+        return signal
+    }
+
+    override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        let first = signal.add(sink)
+        if first {
+            self.startUpdates()
+        }
+        return first
+    }
+
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+        let last = _signal!.remove(sink)
+        if last {
+            self.stopUpdates()
+        }
+        return last
     }
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
@@ -43,23 +63,32 @@ where Parent.Change == ValueChange<Parent.Value> {
         self.key = key
     }
 
-    func start(_ signal: Signal<Value>) {
-        assert(parentConnection == nil)
+    private func startUpdates() {
+        precondition(_field == nil)
         let field = key(parent.value)
-        parentConnection = parent.changes.connect { [unowned self] change in self.apply(change) }
-        fieldConnection = field.connect(signal)
+        _field = field
+        parent.updates.add(MethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))
+        field.add(self.signal.asSink)
     }
 
-    func stop(_ signal: Signal<Value>) {
-        fieldConnection!.disconnect()
-        parentConnection!.disconnect()
-        fieldConnection = nil
-        parentConnection = nil
+    private func stopUpdates() {
+        _field!.remove(_signal!.asSink)
+        _field = nil
+        parent.updates.remove(MethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))
     }
 
-    private func apply(_ change: ValueChange<Parent.Value>) {
-        let field = key(change.new)
-        self.fieldConnection!.disconnect()
-        self.fieldConnection = field.connect(signal.with(self))
+    private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
+        switch update {
+        case .beginTransaction:
+            break
+        case .change(let change):
+            let field = key(change.new)
+            let signal = _signal!
+            _field!.remove(signal.asSink)
+            _field = field
+            field.add(signal.asSink)
+        case .endTransaction:
+            break
+        }
     }
 }

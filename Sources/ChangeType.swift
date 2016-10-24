@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 /// Describes a change to an observable value.
 /// An instance of a type implementing this protocol contains just enough information to describe the difference
 /// between the old value and the new value of the observable.

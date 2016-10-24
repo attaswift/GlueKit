@@ -10,11 +10,11 @@ public protocol SinkType: Hashable {
     associatedtype Value
     func receive(_ value: Value)
 
-    var concealed: AnySink<Value> { get }
+    var anySink: AnySink<Value> { get }
 }
 
 extension SinkType {
-    public var concealed: AnySink<Value> {
+    public var anySink: AnySink<Value> {
         return AnySink(SinkBox(self))
     }
 }
@@ -29,9 +29,9 @@ public struct AnySink<Value>: SinkType {
     // (We always need to allocate a box for the sink, while an existential may have magical inline storage for 
     // tiny sinks -- say, less than three words.)
 
-    private let box: _AbstractSinkBase<Value>
+    private let box: _AbstractSink<Value>
 
-    fileprivate init(_ box: _AbstractSinkBase<Value>) {
+    fileprivate init(_ box: _AbstractSink<Value>) {
         self.box = box
     }
 
@@ -39,7 +39,7 @@ public struct AnySink<Value>: SinkType {
         box.receive(value)
     }
 
-    public var concealed: AnySink<Value> {
+    public var anySink: AnySink<Value> {
         return self
     }
 
@@ -52,7 +52,7 @@ public struct AnySink<Value>: SinkType {
     }
 }
 
-fileprivate class _AbstractSinkBase<Value>: SinkType {
+fileprivate class _AbstractSink<Value>: SinkType {
     // TODO: Eliminate this when Swift starts supporting generalized protocol existentials.
 
     func receive(_ value: Value) {
@@ -63,20 +63,20 @@ fileprivate class _AbstractSinkBase<Value>: SinkType {
         abstract()
     }
 
-    func isEqual(to other: _AbstractSinkBase<Value>) -> Bool {
+    func isEqual(to other: _AbstractSink<Value>) -> Bool {
         abstract()
     }
 
-    public static func ==(left: _AbstractSinkBase<Value>, right: _AbstractSinkBase<Value>) -> Bool {
+    public static func ==(left: _AbstractSink<Value>, right: _AbstractSink<Value>) -> Bool {
         return left.isEqual(to: right)
     }
 
-    public final var concealed: AnySink<Value> {
+    public final var anySink: AnySink<Value> {
         return AnySink(self)
     }
 }
 
-fileprivate class SinkBox<Wrapped: SinkType>: _AbstractSinkBase<Wrapped.Value> {
+fileprivate class SinkBox<Wrapped: SinkType>: _AbstractSink<Wrapped.Value> {
     // TODO: Eliminate this when Swift starts supporting generalized protocol existentials.
 
     typealias Value = Wrapped.Value
@@ -95,7 +95,7 @@ fileprivate class SinkBox<Wrapped: SinkType>: _AbstractSinkBase<Wrapped.Value> {
         return contents.hashValue
     }
 
-    override func isEqual(to other: _AbstractSinkBase<Wrapped.Value>) -> Bool {
+    override func isEqual(to other: _AbstractSink<Wrapped.Value>) -> Bool {
         guard let other = other as? SinkBox<Wrapped> else { return false }
         return self.contents == other.contents
     }

@@ -84,7 +84,7 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
     }
 }
 
-private final class ValueMappingForSetField<Parent: ObservableValueType, Field: ObservableSetType>: _ObservableSetBase<Field.Element> {
+private final class ValueMappingForSetField<Parent: ObservableValueType, Field: ObservableSetType>: _AbstractObservableSet<Field.Element> {
     typealias Element = Field.Element
 
     private let updateSource: UpdateSourceForSetField<Parent, Field>
@@ -105,7 +105,7 @@ private final class ValueMappingForSetField<Parent: ObservableValueType, Field: 
     override var updates: SetUpdateSource<Element> { return updateSource.source }
 }
 
-private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType, Field: UpdatableSetType>: _UpdatableSetBase<Field.Element> {
+private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType, Field: UpdatableSetType>: _AsbtractUpdatableSet<Field.Element> {
     typealias Element = Field.Element
 
     private let updateSource: UpdateSourceForSetField<Parent, Field>

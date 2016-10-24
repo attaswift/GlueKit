@@ -11,28 +11,28 @@ import Foundation
 public extension NSObject {
     /// Returns an observable for the value of a KVO-compatible key path.
     /// Note that the object is retained by the returned source.
-    public func observable(forKeyPath keyPath: String) -> Observable<Any?> {
-        return KVOUpdatable(object: self, keyPath: keyPath).observable
+    public func observable(forKeyPath keyPath: String) -> AnyObservableValue<Any?> {
+        return KVOUpdatable(object: self, keyPath: keyPath).anyObservable
     }
 
-    public func observable<T>(forKeyPath keyPath: String, as type: T.Type = T.self) -> Observable<T> {
+    public func observable<T>(forKeyPath keyPath: String, as type: T.Type = T.self) -> AnyObservableValue<T> {
         return KVOUpdatable(object: self, keyPath: keyPath).map { $0 as! T }
     }
 
-    public func observable<T>(forKeyPath keyPath: String, as type: T?.Type = Optional<T>.self) -> Observable<T?> {
+    public func observable<T>(forKeyPath keyPath: String, as type: T?.Type = Optional<T>.self) -> AnyObservableValue<T?> {
         return KVOUpdatable(object: self, keyPath: keyPath).map { $0 as? T }
     }
 
     /// Returns an updatable for the value of a KVO-compatible key path.
     /// The object is retained by the returned source.
-    public func updatable(forKeyPath keyPath: String) -> Updatable<Any?> {
+    public func updatable(forKeyPath keyPath: String) -> AnyUpdatableValue<Any?> {
         return KVOUpdatable(object: self, keyPath: keyPath).updatable
     }
 
-    public func updatable<T>(forKeyPath keyPath: String, as type: T.Type = T.self) -> Updatable<T> {
+    public func updatable<T>(forKeyPath keyPath: String, as type: T.Type = T.self) -> AnyUpdatableValue<T> {
         return KVOUpdatable(object: self, keyPath: keyPath).map({ $0 as! T }, inverse: { $0 as Any })
     }
-    public func updatable<T>(forKeyPath keyPath: String, as type: T?.Type = Optional<T>.self) -> Updatable<T?> {
+    public func updatable<T>(forKeyPath keyPath: String, as type: T?.Type = Optional<T>.self) -> AnyUpdatableValue<T?> {
         return KVOUpdatable(object: self, keyPath: keyPath).map({ $0 as! T? }, inverse: { $0 as Any? })
     }
 

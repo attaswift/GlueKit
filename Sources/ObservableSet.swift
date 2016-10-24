@@ -74,9 +74,9 @@ public struct ObservableSet<Element: Hashable>: ObservableSetType {
     public typealias Base = Set<Element>
     public typealias Change = SetChange<Element>
 
-    let box: _ObservableSetBase<Element>
+    let box: _AbstractObservableSet<Element>
 
-    init(box: _ObservableSetBase<Element>) {
+    init(box: _AbstractObservableSet<Element>) {
         self.box = box
     }
 
@@ -94,7 +94,7 @@ public struct ObservableSet<Element: Hashable>: ObservableSetType {
     func holding(_ connection: Connection) -> ObservableSet<Element> { box.hold(connection); return self }
 }
 
-open class _ObservableSetBase<Element: Hashable>: ObservableSetType {
+open class _AbstractObservableSet<Element: Hashable>: ObservableSetType {
     private var connections: [Connection] = []
 
     deinit {
@@ -122,7 +122,7 @@ open class _ObservableSetBase<Element: Hashable>: ObservableSetType {
     }
 }
 
-class ObservableSetBox<Contents: ObservableSetType>: _ObservableSetBase<Contents.Element> {
+class ObservableSetBox<Contents: ObservableSetType>: _AbstractObservableSet<Contents.Element> {
     typealias Element = Contents.Element
 
     let contents: Contents
@@ -143,7 +143,7 @@ class ObservableSetBox<Contents: ObservableSetType>: _ObservableSetBase<Contents
     override var observableCount: Observable<Int> { return contents.observableCount }
 }
 
-class ObservableConstantSet<Element: Hashable>: _ObservableSetBase<Element> {
+class ObservableConstantSet<Element: Hashable>: _AbstractObservableSet<Element> {
     let contents: Set<Element>
 
     init(_ contents: Set<Element>) {

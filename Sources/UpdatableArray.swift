@@ -131,9 +131,9 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
     public typealias Base = [Element]
     public typealias Change = ArrayChange<Element>
 
-    let box: _UpdatableArrayBase<Element>
+    let box: _AbstractUpdatableArray<Element>
 
-    init(box: _UpdatableArrayBase<Element>) {
+    init(box: _AbstractUpdatableArray<Element>) {
         self.box = box
     }
 
@@ -169,7 +169,7 @@ public struct UpdatableArray<Element>: UpdatableArrayType {
     public var updatableArray: UpdatableArray<Element> { return self }
 }
 
-open class _UpdatableArrayBase<Element>: _ObservableArrayBase<Element>, UpdatableArrayType {
+open class _AbstractUpdatableArray<Element>: _AbstractObservableArray<Element>, UpdatableArrayType {
 
     open func apply(_ change: ArrayChange<Element>) { abstract() }
 
@@ -200,7 +200,7 @@ open class _UpdatableArrayBase<Element>: _ObservableArrayBase<Element>, Updatabl
     public final var updatableArray: UpdatableArray<Element> { return UpdatableArray(box: self) }
 }
 
-internal class UpdatableArrayBox<Contents: UpdatableArrayType>: _UpdatableArrayBase<Contents.Element> {
+internal class UpdatableArrayBox<Contents: UpdatableArrayType>: _AbstractUpdatableArray<Contents.Element> {
     typealias Element = Contents.Element
 
     var contents: Contents

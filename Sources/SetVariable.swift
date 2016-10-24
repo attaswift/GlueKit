@@ -8,7 +8,7 @@
 
 import Foundation
 
-public final class SetVariable<Element: Hashable>: _UpdatableSetBase<Element> {
+public final class SetVariable<Element: Hashable>: _AsbtractUpdatableSet<Element> {
     public typealias Value = Set<Element>
     public typealias Base = Set<Element>
     public typealias Change = SetChange<Element>

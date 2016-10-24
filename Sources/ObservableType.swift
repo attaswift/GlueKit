@@ -16,18 +16,11 @@ public protocol ObservableType {
     var updates: AnySource<Update<Change>> { get }
 }
 
-public protocol UpdatableType: ObservableType, SinkType {
+public protocol UpdatableType: ObservableType {
     /// The current value of this observable.
     ///
     /// The setter is nonmutating because the value ultimately needs to be stored in a reference type anyway.
     var value: Change.Value { get nonmutating set }
 
     func withTransaction<Result>(_ body: () -> Result) -> Result
-}
-
-extension UpdatableType {
-    public func receive(_ value: Change.Value) -> Void {
-        self.value = value
-    }
-
 }

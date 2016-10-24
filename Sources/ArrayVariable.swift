@@ -10,7 +10,7 @@ import Foundation
 
 //MARK: ArrayVariable
 
-public final class ArrayVariable<Element>: _UpdatableArrayBase<Element> {
+public final class ArrayVariable<Element>: _AbstractUpdatableArray<Element> {
     public typealias Value = Array<Element>
     public typealias Change = ArrayChange<Element>
 

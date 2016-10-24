@@ -15,7 +15,7 @@ extension ObservableArrayType {
     }
 }
 
-private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field: ObservableValueType>: _ObservableArrayBase<Field.Value>, SignalDelegate {
+private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field: ObservableValueType>: _AbstractObservableArray<Field.Value>, SignalDelegate {
     typealias Element = Field.Value
     typealias Base = Array<Element>
     typealias Change = ArrayChange<Element>

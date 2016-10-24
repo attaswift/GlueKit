@@ -12,11 +12,11 @@ import Foundation
 ///
 /// - SeeAlso: UnownedVariable<Value>, WeakVariable<Value>
 ///
-public class Variable<Value>: AbstractUpdatableBase<Value> {
+public class Variable<Value>: _AbstractUpdatableValue<Value> {
     public typealias Change = ValueChange<Value>
 
     private var _value: Value
-    private var _state = TransactionState<Change>()
+    private var _state = TransactionState<Variable>()
 
     /// Create a new variable with an initial value.
     public init(_ value: Value) {
@@ -47,11 +47,11 @@ public class Variable<Value>: AbstractUpdatableBase<Value> {
 }
 
 /// An unowned variable contains an unowned reference to an object that can be read and updated. Updates are observable.
-public class UnownedVariable<Value: AnyObject>: AbstractUpdatableBase<Value> {
+public class UnownedVariable<Value: AnyObject>: _AbstractUpdatableValue<Value> {
     public typealias Change = ValueChange<Value>
 
     private unowned var _value: Value
-    private var _state = TransactionState<Change>()
+    private var _state = TransactionState<UnownedVariable>()
 
     /// Create a new variable with an initial value.
     public init(_ value: Value) {
@@ -82,12 +82,12 @@ public class UnownedVariable<Value: AnyObject>: AbstractUpdatableBase<Value> {
 }
 
 /// A weak variable contains a weak reference to an object that can be read and updated. Updates are observable.
-public class WeakVariable<Object: AnyObject>: AbstractUpdatableBase<Object?> {
+public class WeakVariable<Object: AnyObject>: _AbstractUpdatableValue<Object?> {
     public typealias Value = Object?
     public typealias Change = ValueChange<Value>
 
     private weak var _value: Object?
-    private var _state = TransactionState<Change>()
+    private var _state = TransactionState<WeakVariable>()
 
     /// Create a new variable with an initial value.
     public init(_ value: Value) {

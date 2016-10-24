@@ -45,12 +45,12 @@ public protocol SourceType {
     func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value
 
     /// A type-erased representation of this source.
-    var concealed: AnySource<Value> { get }
+    var anySource: AnySource<Value> { get }
 }
 
 
 extension SourceType {
-    public var concealed: AnySource<Value> {
+    public var anySource: AnySource<Value> {
         return AnySource(box: SourceBox(self))
     }
 }
@@ -73,9 +73,9 @@ extension SourceType {
 /// GlueKit provides built-in extension methods for transforming sources to other kinds of sources.
 ///
 public struct AnySource<Value>: SourceType {
-    private let box: _AbstractSourceBase<Value>
+    private let box: _AbstractSource<Value>
 
-    internal init(box: _AbstractSourceBase<Value>) {
+    internal init(box: _AbstractSource<Value>) {
         self.box = box
     }
 
@@ -89,10 +89,10 @@ public struct AnySource<Value>: SourceType {
         return box.remove(sink)
     }
 
-    public var concealed: AnySource<Value> { return self }
+    public var anySource: AnySource<Value> { return self }
 }
 
-open class _AbstractSourceBase<Value>: SourceType {
+open class _AbstractSource<Value>: SourceType {
     @discardableResult
     open func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
         abstract()
@@ -103,12 +103,12 @@ open class _AbstractSourceBase<Value>: SourceType {
         abstract()
     }
 
-    public final var concealed: AnySource<Value> {
+    public final var anySource: AnySource<Value> {
         return AnySource(box: self)
     }
 }
 
-internal class SourceBox<Base: SourceType>: _AbstractSourceBase<Base.Value> {
+internal class SourceBox<Base: SourceType>: _AbstractSource<Base.Value> {
     typealias Value = Base.Value
 
     let base: Base

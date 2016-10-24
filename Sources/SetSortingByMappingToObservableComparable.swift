@@ -17,7 +17,7 @@ extension ObservableSetType where Element: AnyObject {
     }
 }
 
-private class SetSortingByMappingToObservableComparable<Parent: ObservableSetType, Field: ObservableValueType>: _ObservableArrayBase<Field.Value>
+private class SetSortingByMappingToObservableComparable<Parent: ObservableSetType, Field: ObservableValueType>: _AbstractObservableArray<Field.Value>
 where Parent.Element: AnyObject, Field.Value: Comparable {
     typealias Element = Field.Value
     typealias Change = ArrayChange<Element>

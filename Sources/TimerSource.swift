@@ -33,7 +33,7 @@ extension DispatchQueue {
 
 private class AtomicToken {
     // TODO: This should use atomics, which are currently (Xcode 8 beta 5) unavailable in Swift
-    private let lock = NSLock()
+    private let lock = Lock()
     private var token: Int = 0
 
     @discardableResult
@@ -56,15 +56,27 @@ private class AtomicToken {
 /// The timer interval should be relatively large (at least multiple seconds); this is not supposed to be a realtime timer.
 ///
 /// Note that this source will only schedule an actual timer while there are sinks connected to it.
-public final class TimerSource<V>: _AbstractSourceBase<Void>, SignalDelegate {
+public final class TimerSource<V>: _AbstractSource<Void> {
 
     private let queue: DispatchQueue
     private let next: (Void) -> Date?
     private var token = AtomicToken()
-    private var signal = OwningSignal<Void>()
+    private var signal = Signal<Void>()
 
-    public override func connect<S: SinkType>(_ sink: S) -> Connection where S.SinkValue == Void {
-        return self.signal.with(self).connect(sink)
+    public override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Void {
+        let first = signal.add(sink)
+        if first {
+            self.start()
+        }
+        return first
+    }
+
+    public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Void {
+        let last = signal.remove(sink)
+        if last {
+            self.stop()
+        }
+        return last
     }
 
     /// Set up a new TimerSource that is scheduled on a given queue at the times determined by the supplied block.
@@ -95,13 +107,6 @@ public final class TimerSource<V>: _AbstractSourceBase<Void>, SignalDelegate {
         queue.async {
             self.scheduleNext(frozenToken)
         }
-    }
-
-    internal func start(_ signal: Signal<Void>) {
-        self.start()
-    }
-    internal func stop(_ signal: Signal<Void>) {
-        self.stop()
     }
 
     private func scheduleNext(_ frozenToken: Int) {
