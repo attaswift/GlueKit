@@ -24,6 +24,20 @@ class SimpleSourcesTests: XCTestCase {
         source.remove(sink)
     }
 
+    func testNeverSource() {
+        let source = AnySource<Int>.never()
+
+        let sink = MockSink<Int>()
+        source.add(sink)
+
+        sink.expectingNothing {
+            // Ah, uhm, not sure what to test here, really
+        }
+
+        source.remove(sink)
+    }
+
+
     func testJustSource() {
         let source = AnySource<Int>.just(42)
 
