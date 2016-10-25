@@ -1,4 +1,4 @@
 language: objective-c
-osx_image: xcode8
+osx_image: xcode8.1
 script: xcrun xcodebuild -workspace GlueKit.xcworkspace -scheme GlueKit-macOS test
 after_success: bash <(curl -s https://codecov.io/bash)
