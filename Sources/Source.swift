@@ -94,14 +94,10 @@ public struct AnySource<Value>: SourceType {
 
 open class _AbstractSource<Value>: SourceType {
     @discardableResult
-    open func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        abstract()
-    }
+    open func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value { abstract() }
 
     @discardableResult
-    open func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        abstract()
-    }
+    open func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value { abstract() }
 
     public final var anySource: AnySource<Value> {
         return AnySource(box: self)
@@ -124,6 +120,6 @@ internal class SourceBox<Base: SourceType>: _AbstractSource<Base.Value> {
 
     @discardableResult
     override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        return base.add(sink)
+        return base.remove(sink)
     }
 }

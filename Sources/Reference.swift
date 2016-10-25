@@ -6,19 +6,11 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-internal struct UnownedReference<Target: AnyObject>: Hashable, Equatable {
+internal struct UnownedReference<Target: AnyObject> {
     unowned var value: Target
 
     init(_ value: Target) {
         self.value = value
-    }
-
-    var hashValue: Int {
-        return ObjectIdentifier(value).hashValue
-    }
-
-    static func ==<Target: AnyObject>(a: UnownedReference<Target>, b: UnownedReference<Target>) -> Bool {
-        return a.value === b.value
     }
 }
 

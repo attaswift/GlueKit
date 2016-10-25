@@ -39,6 +39,7 @@ public final class MergedSource<Value>: _AbstractSource<Value> {
         self.inputs = sources.map { $0.anySource }
     }
 
+    @discardableResult
     public override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
         let first = signal.add(sink)
         if first {
@@ -49,6 +50,7 @@ public final class MergedSource<Value>: _AbstractSource<Value> {
         return first
     }
 
+    @discardableResult
     public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
         let last = signal.remove(sink)
         if last {
@@ -65,7 +67,7 @@ public final class MergedSource<Value>: _AbstractSource<Value> {
 
     /// Returns a new MergedSource that merges the same sources as self but also listens to `source`.
     /// The returned source will forward all values sent by either of its input sources to its own connected sinks.
-    public func merge<Source: SourceType>(_ source: Source) -> MergedSource<Value> where Source.Value == Value {
+    public func merged<Source: SourceType>(with source: Source) -> MergedSource<Value> where Source.Value == Value {
         return MergedSource(sources: self.inputs + [source.anySource])
     }
 }

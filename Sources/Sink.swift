@@ -55,24 +55,14 @@ public struct AnySink<Value>: SinkType {
 fileprivate class _AbstractSink<Value>: SinkType {
     // TODO: Eliminate this when Swift starts supporting generalized protocol existentials.
 
-    func receive(_ value: Value) {
-        abstract()
-    }
+    func receive(_ value: Value) { abstract() }
 
-    var hashValue: Int {
-        abstract()
-    }
+    var hashValue: Int { abstract() }
 
-    func isEqual(to other: _AbstractSink<Value>) -> Bool {
-        abstract()
-    }
+    func isEqual(to other: _AbstractSink<Value>) -> Bool { abstract() }
 
     public static func ==(left: _AbstractSink<Value>, right: _AbstractSink<Value>) -> Bool {
         return left.isEqual(to: right)
-    }
-
-    public final var anySink: AnySink<Value> {
-        return AnySink(self)
     }
 }
 

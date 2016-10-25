@@ -11,33 +11,72 @@ import XCTest
 
 class SignalTests: XCTestCase {
 
-    //MARK: Test simple stuff
+    //MARK: Test add/remove API
 
-    func testSimpleConnection() {
+    func test_AddRemove_SinkReceivesValuesWhileAdded() {
         let signal = Signal<Int>()
+        let sink = MockSink<Int>()
 
-        signal.send(1)
+        sink.expectingNothing {
+            signal.send(1)
+        }
 
-        var r = [Int]()
-        let connection = signal.connect { i in r.append(i) }
+        signal.add(sink)
 
-        signal.send(2)
-        signal.send(3)
-        signal.send(4)
+        sink.expecting([2, 3, 4]) {
+            signal.send(2)
+            signal.send(3)
+            signal.send(4)
+        }
 
-        connection.disconnect()
+        signal.remove(sink)
 
-        signal.send(5)
-
-        XCTAssertEqual(r, [2, 3, 4])
+        sink.expectingNothing {
+            signal.send(5)
+        }
     }
 
-    func testReleasingConnectionDisconnects() {
+    func test_AddRemove_SignalRetainsAddedSinks() {
+        let signal = Signal<Int>()
+
+        weak var weakSink: MockSink<Int>? = nil
+
+        do {
+            let sink = MockSink<Int>()
+            weakSink = sink
+
+            signal.add(sink)
+        }
+
+        XCTAssertNotNil(weakSink)
+
+        signal.remove(weakSink!)
+
+        XCTAssertNil(weakSink)
+    }
+
+    //MARK: Test connect API
+
+    func test_Connect_DisconnectingTheConnection() {
+        let signal = Signal<Int>()
+
+        var received = [Int]()
+
+        let c = signal.connect { received.append($0) }
+
+        signal.send(1)
+        c.disconnect()
+        signal.send(2)
+
+        XCTAssertEqual(received, [1])
+        noop(c)
+    }
+
+    func test_Connect_ReleasingConnectionAutomaticallyDisconnects() {
         let signal = Signal<Int>()
         var values = [Int]()
-        var c: Connection? = nil
 
-        c = signal.connect { values.append($0) }
+        var c: Connection? = signal.connect { values.append($0) }
         signal.send(1)
         c = nil
         signal.send(2)
@@ -46,7 +85,7 @@ class SignalTests: XCTestCase {
         noop(c)
     }
 
-    func testDuplicateDisconnect() {
+    func test_Connect_DuplicateDisconnect() {
         let signal = Signal<Int>()
 
         let c = signal.connect { i in }
@@ -56,7 +95,7 @@ class SignalTests: XCTestCase {
         c.disconnect()
     }
 
-    func testMultipleConnections() {
+    func test_Connect_MultipleConnections() {
         let signal = Signal<Int>()
 
         signal.send(1)
@@ -83,9 +122,7 @@ class SignalTests: XCTestCase {
         XCTAssertEqual(b, [3, 4])
     }
 
-    //MARK: Test memory management
-
-    func testConnectionRetainsTheSignal() {
+    func test_Connect_ConnectionRetainsTheSignal() {
         var values = [Int]()
         weak var weakSignal: Signal<Int>? = nil
         weak var weakConnection: Connection? = nil
@@ -102,14 +139,14 @@ class SignalTests: XCTestCase {
 
             XCTAssertNotNil(weakSignal)
             XCTAssertNotNil(weakConnection)
-            noop(connection)
+            withExtendedLifetime(connection) {}
         }
         XCTAssertNil(weakSignal)
         XCTAssertNil(weakConnection)
         XCTAssertEqual(values, [1])
     }
 
-    func testDisconnectingConnectionReleasesResources() {
+    func test_Connect_DisconnectingConnectionReleasesResources() {
         weak var weakSignal: Signal<Int>? = nil
         weak var weakResource: NSMutableArray? = nil
 
@@ -135,10 +172,10 @@ class SignalTests: XCTestCase {
         connection.disconnect()
 
         XCTAssertNil(weakSignal)
-        XCTAssertNil(weakResource)
+        XCTAssertNil(weakResource) 
     }
 
-    func testSourceDoesNotRetainConnection() {
+    func test_Connect_SourceDoesNotRetainConnection() {
         var values = [Int]()
         weak var weakConnection: Connection? = nil
         let signal = Signal<Int>()
@@ -158,7 +195,7 @@ class SignalTests: XCTestCase {
 
     //MARK: Test sinks adding and removing connections
 
-    func testAddingAConnectionInASink() {
+    func test_Connect_AddingAConnectionInASink() {
         let signal = Signal<Int>()
 
         var v1 = [Int]()
@@ -193,7 +230,7 @@ class SignalTests: XCTestCase {
         XCTAssertEqual(v2, [3])
     }
 
-    func testRemovingConnectionWhileItIsBeingTriggered() {
+    func test_Connect_RemovingConnectionWhileItIsBeingTriggered() {
         let signal = Signal<Int>()
 
         signal.send(1)
@@ -213,7 +250,7 @@ class SignalTests: XCTestCase {
         XCTAssertEqual(r, [2])
     }
 
-    func testRemovingNextConnection() {
+    func test_Connect_RemovingNextConnection() {
         let signal = Signal<Int>()
 
         var r = [Int]()
@@ -251,7 +288,7 @@ class SignalTests: XCTestCase {
     }
 
 
-    func testRemovingAndReaddingConnectionsAlternately() {
+    func test_Connect_RemovingAndReaddingConnectionsAlternately() {
         // This is a weaker test of the semantics of connect/disconnect nested in sinks.
         let signal = Signal<Int>()
 
@@ -285,7 +322,7 @@ class SignalTests: XCTestCase {
         XCTAssertEqual(r2, [2, 4, 6])
     }
 
-    func testSinkDisconnectingThenReconnectingItself() {
+    func test_Connect_SinkDisconnectingThenReconnectingItself() {
         // This is a weaker test of the semantics of connect/disconnect nested in sinks.
         let signal = Signal<Int>()
 
@@ -309,131 +346,9 @@ class SignalTests: XCTestCase {
         XCTAssertEqual(r, [1, 2, 3, 4, 5, 6])
     }
 
-    // MARK: Test didConnectFirstSink and didDisconnectLastSink
-    func testFirstAndLastConnectCallbacksAreCalled() {
-        var first = 0
-        var last = 0
-        let signal = Signal<Int>(start: { _ in first += 1 }, stop: { _ in last += 1 })
-
-        XCTAssertEqual(first, 0)
-        XCTAssertEqual(last, 0)
-
-        signal.send(0)
-
-        XCTAssertEqual(first, 0)
-        XCTAssertEqual(last, 0)
-
-        var count = 0
-        let connection = signal.connect { i in count += 1 }
-
-        XCTAssertEqual(first, 1)
-        XCTAssertEqual(last, 0)
-        XCTAssertEqual(count, 0)
-
-        signal.send(1)
-
-        XCTAssertEqual(first, 1)
-        XCTAssertEqual(last, 0)
-        XCTAssertEqual(count, 1)
-
-        connection.disconnect()
-
-        XCTAssertEqual(first, 1)
-        XCTAssertEqual(last, 1)
-        XCTAssertEqual(count, 1)
-
-        signal.send(2)
-
-        XCTAssertEqual(first, 1)
-        XCTAssertEqual(last, 1)
-        XCTAssertEqual(count, 1)
-    }
-
-    func testFirstAndLastConnectCallbacksAreCalledWithTheSignal() {
-
-        var first: Signal<Int>? = nil
-        var last: Signal<Int>? = nil
-
-        let signal = Signal<Int>(start: { s in first = s }, stop: { s in last = s })
-
-        signal.send(0)
-
-        var count = 0
-        let connection = signal.connect { i in count += 1 }
-
-        XCTAssert(first != nil && first === signal)
-
-        connection.disconnect()
-
-        XCTAssert(last != nil && last === signal)
-    }
-
-    func testFirstAndLastConnectCallbacksCanBeCalledMultipleTimes() {
-        var first = 0
-        var last = 0
-        let signal = Signal<Int>(start: { _ in first += 1 }, stop: { _ in last += 1 })
-
-        let c1 = signal.connect { i in }
-
-        XCTAssertEqual(first, 1)
-        XCTAssertEqual(last, 0)
-
-        c1.disconnect()
-
-        XCTAssertEqual(first, 1)
-        XCTAssertEqual(last, 1)
-
-        let c2 = signal.connect { i in }
-
-        XCTAssertEqual(first, 2)
-        XCTAssertEqual(last, 1)
-
-        c2.disconnect()
-
-        XCTAssertEqual(first, 2)
-        XCTAssertEqual(last, 2)
-    }
-
-    func testFirstConnectCallbackIsOnlyCalledOnFirstConnections() {
-        var first = 0
-        let signal = Signal<Int>(start: { _ in first += 1 }, stop: { _ in })
-
-        XCTAssertEqual(first, 0)
-
-        let c1 = signal.connect { i in }
-
-        XCTAssertEqual(first, 1)
-        let c2 = signal.connect { i in }
-        c1.disconnect()
-        c2.disconnect()
-
-        let c3 = signal.connect { i in }
-        XCTAssertEqual(first, 2)
-        c3.disconnect()
-    }
-
-    func testLastConnectCallbackIsOnlyCalledOnLastConnections() {
-        var last = 0
-        let signal = Signal<Int>(start: { _ in }, stop: { _ in last += 1 })
-
-        XCTAssertEqual(last, 0)
-
-        let c1 = signal.connect { i in }
-        let c2 = signal.connect { i in }
-        c1.disconnect()
-        XCTAssertEqual(last, 0)
-        c2.disconnect()
-        XCTAssertEqual(last, 1)
-
-        let c3 = signal.connect { i in }
-        XCTAssertEqual(last, 1)
-        c3.disconnect()
-        XCTAssertEqual(last, 2)
-    }
-
     //MARK: Test reentrant sends
 
-    func testSinksAreNeverNested() {
+    func test_Reentrancy_SinksAreNeverNested() {
         let signal = Signal<Int>()
 
         var s = ""
@@ -452,7 +367,7 @@ class SignalTests: XCTestCase {
         XCTAssertEqual(s, " (3) (2) (1) (0)")
     }
 
-    func testSinksReceiveAllValuesSentAfterTheyConnectedEvenWhenReentrant() {
+    func test_Reentrancy_SinksReceiveAllValuesSentAfterTheyConnectedEvenWhenReentrant() {
         var s = ""
         let signal = Signal<Int>()
 
@@ -488,7 +403,7 @@ class SignalTests: XCTestCase {
         c2.disconnect()
     }
 
-    func testSinksDoNotReceiveValuesSentToTheSignalBeforeTheyWereConnected() {
+    func test_Reentrancy_SinksDoNotReceiveValuesSentToTheSignalBeforeTheyWereConnected() {
         let signal = Signal<Int>()
 
         var values1 = [Int]()
@@ -519,7 +434,7 @@ class SignalTests: XCTestCase {
 
     //MARK: sendLater / sendNow
 
-    func testSendLaterSendsValueLater() {
+    func test_Reentrancy_SendLaterSendsValueLater() {
         let signal = Signal<Int>()
 
         var r = [Int]()
@@ -538,7 +453,7 @@ class SignalTests: XCTestCase {
         c.disconnect()
     }
 
-    func testSendLaterDoesntSendValueToSinksConnectedLater() {
+    func test_Reentrancy_SendLaterDoesntSendValueToSinksConnectedLater() {
         let signal = Signal<Int>()
 
         signal.sendLater(0)
@@ -560,7 +475,7 @@ class SignalTests: XCTestCase {
         c.disconnect()
     }
 
-    func testSendLaterDoesntSendValueToSinksConnectedLaterEvenIfThereAreOtherSinks() {
+    func test_Reentrancy_SendLaterDoesntSendValueToSinksConnectedLaterEvenIfThereAreOtherSinks() {
         let signal = Signal<Int>()
 
         var r1 = [Int]()
@@ -589,7 +504,7 @@ class SignalTests: XCTestCase {
     }
 
 
-    func testSendLaterUsingCounter() {
+    func test_Reentrancy_SendLaterUsingCounter() {
         let counter = Counter()
 
         var s = ""
@@ -610,14 +525,18 @@ class SignalTests: XCTestCase {
 }
 
 private class Counter: SourceType {
-    typealias SourceValue = Int
+    typealias Value = Int
 
     private let lock = Lock()
     private var counter: Int = 0
     private var signal = Signal<Int>()
 
-    func connect(_ sink: Sink<Int>) -> Connection {
-        return signal.connect(sink)
+    func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Int {
+        return signal.add(sink)
+    }
+
+    func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Int {
+        return signal.remove(sink)
     }
 
     @discardableResult

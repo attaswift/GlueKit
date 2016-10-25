@@ -22,7 +22,7 @@ func XCTAssertEqual<E: Equatable>(_ a: @autoclosure () -> [[E]], _ b: @autoclosu
     }
 }
 
-class TestObservable<Value>: ObservableValueType {
+class TestObservable<Value>: ObservableValueType, LazyObserver {
     var _state = TransactionState<ValueChange<Value>>()
     var _value: Value
 
@@ -44,7 +44,7 @@ class TestObservable<Value>: ObservableValueType {
     var updates: ValueUpdateSource<Value> { return _state.source(retaining: self) }
 }
 
-class TestUpdatable<Value>: UpdatableValueType {
+class TestUpdatable<Value>: UpdatableValueType, LazyObserver {
     var _state = TransactionState<ValueChange<Value>>()
     var _value: Value
 

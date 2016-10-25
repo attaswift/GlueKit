@@ -12,6 +12,11 @@ internal protocol LazyObserver: class {
     func stopObserving()
 }
 
+extension LazyObserver {
+    public func startObserving() {}
+    public func stopObserving() {}
+}
+
 private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
     typealias Value = Update<Change>
 

@@ -22,19 +22,16 @@ extension SourceType {
 /// The closure's subscription to the source remains active until this object is deallocated
 /// or `disconnect` is called on it.
 public class Connection {
-    public func disconnect() {
-        // Do nothing
-    }
+    internal init() {}
+    public func disconnect() { abstract() }
 }
 
 /// An object that controls the lifetime of a closure's subscription to a particular source.
 internal class ConcreteConnection<Source: SourceType>: Connection {
     typealias Value = Source.Value
 
-    let source: Source
-    let sink: (Value) -> Void
-
-    var isDisconnected = false
+    var source: Source?
+    var sink: Optional<(Value) -> Void>
 
     init(source: Source, sink: @escaping (Value) -> Void) {
         self.source = source
@@ -42,7 +39,7 @@ internal class ConcreteConnection<Source: SourceType>: Connection {
         super.init()
 
         // Wrap the closure in a sink and add it to the source.
-        source.add(ClosureSink(self, sink))
+        source.add(ClosureSink(ObjectIdentifier(self), sink))
     }
 
     deinit {
@@ -50,26 +47,39 @@ internal class ConcreteConnection<Source: SourceType>: Connection {
     }
 
     public override func disconnect() {
-        guard !isDisconnected else { return }
-        // Construct a dummy `ClosureSink` that is identical to the original one and remove it from the source.
+        guard let source = self.source, let sink = self.sink else { return }
+
+        // Construct a dummy `ClosureSink` that looks identical to the original one and remove it from the source.
         // At first glance, we could use a dummy closure here, because the closure isn't involved in the sink's identity.
         // However, sources sometimes synchronously send farewell values to removed sinks using the instance 
         // given here --- so using e.g. an empty closure would lose these.
-        source.remove(ClosureSink(self, sink))
-        isDisconnected = true
+        source.remove(ClosureSink(ObjectIdentifier(self), sink))
+
+        // Release resources associated with this connection.
+        self.source = nil
+        self.sink = nil
     }
+}
+
+private struct ClosureSinkData<Value> {
+    /// The connection of this sink, serving as the unique identifier of it.
+    unowned let connection: Connection
 }
 
 /// A Sink that wraps a closure. `Hashable` is implemented by using the identity of the unique `Connection`
 /// object associated with the subscription.
 internal struct ClosureSink<Value>: SinkType {
-    /// The connection of this sink, serving as the unique identifier of it.
-    unowned let connection: Connection
-    /// The closure that is to be called when this sink receives a value.
-    let sink: (Value) -> Void
+    /// The object identifier of connection object.
+    /// The natural choice would be to use an unowned reference to the connection object itself;
+    /// but `Connection`'s `deinit` needs to be able to create `ClosureSink`s, and it's not a good 
+    /// idea to create unowned references during deinit -- the semantics are unclear to me, and I get crashes.
+    private let identifier: ObjectIdentifier
 
-    init(_ connection: Connection, _ sink: @escaping (Value) -> Void) {
-        self.connection = connection
+    /// The closure that is to be called when this sink receives a value.
+    private let sink: (Value) -> Void
+
+    init(_ identifier: ObjectIdentifier, _ sink: @escaping (Value) -> Void) {
+        self.identifier = identifier
         self.sink = sink
     }
 
@@ -78,11 +88,11 @@ internal struct ClosureSink<Value>: SinkType {
     }
 
     var hashValue: Int {
-        return ObjectIdentifier(connection).hashValue
+        return identifier.hashValue
     }
 
     static func ==(left: ClosureSink, right: ClosureSink) -> Bool {
         // Sink equality is based on the identity of the connection.
-        return left.connection === right.connection
+        return left.identifier == right.identifier
     }
 }

@@ -10,18 +10,31 @@ import Foundation
 import XCTest
 import GlueKit
 
-class MockSink<Value: Equatable> {
+class MockSink<Value: Equatable>: SinkType {
+    var isExpecting = false
     var expected: [Value] = []
     var actual: [Value] = []
 
     var connection: Connection? = nil
 
-    init<S: SourceType>(_ source: S) where S.SourceValue == Value {
+    init() {
+    }
+
+    init<Source: SourceType>(_ source: Source) where Source.Value == Value {
         self.connection = source.connect { [unowned self] value in self.actual.append(value) }
     }
 
     deinit {
-        self.connection!.disconnect()
+        self.connection?.disconnect()
+    }
+
+    func receive(_ value: Value) {
+        if !isExpecting {
+            XCTFail("Sink received unexpected value: \(value)")
+        }
+        else {
+            self.actual.append(value)
+        }
     }
 
     func expectingNothing<R>(file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
@@ -39,10 +52,13 @@ class MockSink<Value: Equatable> {
     }
 
     private func run<R>(file: StaticString, line: UInt, _ body: () throws -> R) rethrows -> R {
-        let result = try body()
-        XCTAssertEqual(actual, expected, file: file, line: line)
-        actual = []
-        expected = []
-        return result
+        isExpecting = true
+        defer {
+            XCTAssertEqual(actual, expected, file: file, line: line)
+            actual = []
+            expected = []
+            isExpecting = false
+        }
+        return try body()
     }
 }

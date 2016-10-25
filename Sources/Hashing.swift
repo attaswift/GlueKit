@@ -35,6 +35,15 @@ extension Int {
         }
         return result
     }
+
+    func mixed(with buffer: UnsafeRawBufferPointer) -> Int {
+        var result = self
+        for byte in buffer {
+            result = result ^ Int(byte)
+            result = result &* factor
+        }
+        return result
+    }
 }
 
 func combinedHashes<S: Sequence>(_ values: S) -> Int where S.Iterator.Element == Int {
