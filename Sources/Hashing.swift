@@ -36,7 +36,7 @@ extension Int {
         return result
     }
 
-    func mixed(with buffer: UnsafeRawBufferPointer) -> Int {
+    func mixed(with buffer: UnsafeBufferPointer<UInt8>) -> Int {
         var result = self
         for byte in buffer {
             result = result ^ Int(byte)

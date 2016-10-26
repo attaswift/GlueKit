@@ -280,7 +280,7 @@ class HashingTests: XCTestCase {
 
         for (h32, h64, data) in input {
             let actual = data.withUnsafeBytes { p in
-                Int.baseHash.mixed(with: UnsafeRawBufferPointer(start: p, count: data.count))
+                Int.baseHash.mixed(with: UnsafeBufferPointer(start: p, count: data.count))
             }
             switch MemoryLayout<Int>.size {
             case 4:
