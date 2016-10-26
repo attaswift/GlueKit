@@ -58,10 +58,11 @@ I expect to have a useful first release before the end of 2016.
 ##  Presentation
 
 Károly gave a talk on GlueKit during [Functional Swift Conference 2016][FunSwift16] in Budapest.
-[See the slides][slides], or watch the video (later).
+[Watch the video][funvideo] or [read the slides][slides].
 
 [FunSwift16]: http://2016.funswiftconf.com
 [slides]: https://vellum.tech/assets/FunSwift2016%20-%20GlueKit.pdf
+[funvideo]: https://www.youtube.com/watch?v=98jsahDV4ts
 
 ## Installation
 ### CocoaPods
