@@ -76,7 +76,7 @@ private final class CompositeObservable<Left: ObservableValueType, Right: Observ
         return combinator(left.value, right.value)
     }
 
-    internal override func startObserving() {
+    internal override func activate() {
         assert(_value == nil)
         let v1 = left.value
         let v2 = right.value
@@ -88,7 +88,7 @@ private final class CompositeObservable<Left: ObservableValueType, Right: Observ
         right.updates.add(MethodSink(owner: self, identifier: 2, method: CompositeObservable.applyRight))
     }
 
-    internal override func stopObserving() {
+    internal override func deactivate() {
         left.updates.remove(MethodSink(owner: self, identifier: 1, method: CompositeObservable.applyLeft))
         right.updates.remove(MethodSink(owner: self, identifier: 2, method: CompositeObservable.applyRight))
         _value = nil

@@ -54,14 +54,14 @@ final class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArr
     override var value: [Element] { return first.value + second.value }
     override var count: Int { return first.count + second.count }
 
-    override func startObserving() {
+    override func activate() {
         firstCount = first.count
         secondCount = second.count
         first.updates.add(firstSink)
         second.updates.add(secondSink)
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         first.updates.remove(firstSink)
         second.updates.remove(secondSink)
         firstCount = -1

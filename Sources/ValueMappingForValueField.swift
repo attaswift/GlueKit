@@ -67,7 +67,7 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
         self.key = key
     }
 
-    override func startObserving() {
+    override func activate() {
         precondition(currentValue == nil)
         let field = key(parent.value)
         self.field = field
@@ -76,7 +76,7 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
         parent.updates.add(parentSink)
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         precondition(currentValue != nil)
         self.field!.updates.remove(fieldSink)
         parent.updates.remove(parentSink)

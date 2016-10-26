@@ -6,6 +6,16 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
+extension SourceType {
+    /// Returns a source that, applies `transform` on each value produced by `self` and each subscriber sink.
+    ///
+    /// `transform` should be a pure function, i.e., one with no side effects or hidden parameters.
+    /// For each value that is received from `self`, it is called as many times as there are subscribers.
+    public func sourceOperator<Result>(_ type: Result.Type = Result.self, _ transform: @escaping (Value, (Result) -> Void) -> Void) -> AnySource<Result> {
+        return SourceOperator(input: self, transform: transform).anySource
+    }
+}
+
 class TransformedSource<Input: SourceType, Value>: _AbstractSource<Value> {
     let input: Input
 
@@ -13,17 +23,15 @@ class TransformedSource<Input: SourceType, Value>: _AbstractSource<Value> {
         self.input = input
     }
 
-    final override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        return self.input.add(TransformedSink(source: self, sink: sink))
+    final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+        self.input.add(TransformedSink(source: self, sink: sink))
     }
 
-    final override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        return self.input.remove(TransformedSink(source: self, sink: sink))
+    final override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+        self.input.remove(TransformedSink(source: self, sink: sink))
     }
 
-    func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
-        abstract()
-    }
+    func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value { abstract() }
 }
 
 private struct TransformedSink<Input: SourceType, Sink: SinkType>: SinkType {
@@ -47,6 +55,19 @@ private struct TransformedSink<Input: SourceType, Sink: SinkType>: SinkType {
 
     static func ==(left: TransformedSink, right: TransformedSink) -> Bool {
         return left._source === right._source && left._sink == right._sink
+    }
+}
+
+class SourceOperator<Input: SourceType, Value>: TransformedSource<Input, Value> {
+    let transform: (Input.Value, (Value) -> Void) -> Void
+
+    init(input: Input, transform: @escaping (Input.Value, (Value) -> Void) -> Void) {
+        self.transform = transform
+        super.init(input: input)
+    }
+
+    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
+        transform(value, sink.receive)
     }
 }
 

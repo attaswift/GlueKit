@@ -16,7 +16,7 @@ extension ObservableValueType {
     }
 }
 
-private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: ObservableSetType>: _AbstractSource<Update<SetChange<Field.Element>>>, LazyObserver {
+private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: ObservableSetType>: TransactionalSource<SetChange<Field.Element>> {
     typealias Element = Field.Element
     typealias Change = SetChange<Element>
     typealias Value = Update<Change>
@@ -24,7 +24,6 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var state = TransactionState<Change>()
     private var _field: Field? = nil
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
@@ -32,29 +31,19 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
         self.key = key
     }
 
-    @discardableResult
-    override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        return state.source(retaining: self).add(sink)
-    }
-
-    @discardableResult
-    override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        return state.source(retaining: self).remove(sink)
-    }
-
     fileprivate var field: Field {
         if let field = self._field { return field }
         return key(parent.value)
     }
 
-    func startObserving() {
+    override func activate() {
         let field = key(parent.value)
         field.updates.add(fieldSink)
         parent.updates.add(parentSink)
         _field = field
     }
 
-    func stopObserving() {
+    override func deactivate() {
         parent.updates.remove(parentSink)
         _field!.updates.remove(fieldSink)
         _field = nil

@@ -53,7 +53,7 @@ extension ObservableValueType {
 
 /// A source of changes for an AnyObservableArray field.
 private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>
-: _AbstractSource<Update<ArrayChange<Field.Element>>>, LazyObserver {
+: TransactionalSource<ArrayChange<Field.Element>> {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
@@ -61,7 +61,6 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var state = TransactionState<Change>()
     private var field: Field? = nil
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
@@ -69,22 +68,14 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
         self.key = key
     }
 
-    override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Update<Change> {
-        return state.source(retaining: self).add(sink)
-    }
-
-    override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Update<Change> {
-        return state.source(retaining: self).remove(sink)
-    }
-
-    func startObserving() {
+    override func activate() {
         let field = key(parent.value)
         parent.updates.add(parentSink)
         field.updates.add(fieldSink)
         self.field = field
     }
 
-    func stopObserving() {
+    override func deactivate() {
         parent.updates.remove(parentSink)
         field!.updates.remove(fieldSink)
         field = nil

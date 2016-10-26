@@ -192,7 +192,7 @@ open class _AbstractUpdatableSet<Element: Hashable>: _AbstractObservableSet<Elem
     }
 }
 
-open class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, LazyObserver {
+open class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, Signaler {
     private var state = TransactionState<SetChange<Element>>()
 
     public final override var updates: SetUpdateSource<Element> {
@@ -221,11 +221,11 @@ open class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>,
         state.send(change)
     }
 
-    open func startObserving() {
+    open func activate() {
         // Do nothing
     }
 
-    open func stopObserving() {
+    open func deactivate() {
         // Do nothing
     }
 }

@@ -38,7 +38,7 @@ public extension NSObject {
 
 }
 
-private class KVOUpdatable: NSObject, UpdatableValueType, LazyObserver {
+private class KVOUpdatable: NSObject, UpdatableValueType, Signaler {
     typealias Value = Any?
     typealias Change = ValueChange<Any?>
 
@@ -70,11 +70,11 @@ private class KVOUpdatable: NSObject, UpdatableValueType, LazyObserver {
 
     var updates: ValueUpdateSource<Any?> { return state.source(retaining: self) }
 
-    func startObserving() {
+    func activate() {
         object.addObserver(self, forKeyPath: keyPath, options: [.old, .new, .prior], context: &context)
     }
 
-    func stopObserving() {
+    func deactivate() {
         object.removeObserver(self, forKeyPath: keyPath, context: &context)
     }
 

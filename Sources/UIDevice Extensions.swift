@@ -43,13 +43,13 @@ private final class ObservableDeviceOrientation: _BaseObservableValue<UIDeviceOr
         endTransaction()
     }
 
-    override func startObserving() {
+    override func activate() {
         device.beginGeneratingDeviceOrientationNotifications()
         orientation = device.orientation
         notificationSource.add(sink)
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         notificationSource.remove(sink)
         device.endGeneratingDeviceOrientationNotifications()
         orientation = nil
@@ -106,7 +106,7 @@ private final class ObservableBatteryState: _BaseObservableValue<(UIDeviceBatter
         }
     }
 
-    override func startObserving() {
+    override func activate() {
         if !device.isBatteryMonitoringEnabled {
             device.isBatteryMonitoringEnabled = true
             didEnableBatteryMonitoring = true
@@ -116,7 +116,7 @@ private final class ObservableBatteryState: _BaseObservableValue<(UIDeviceBatter
         batteryLevelSource.add(sink)
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         batteryStateSource.remove(sink)
         batteryLevelSource.remove(sink)
         if didEnableBatteryMonitoring {
@@ -171,7 +171,7 @@ private final class ObservableDeviceProximity: _BaseObservableValue<Bool> {
         endTransaction()
     }
 
-    override func startObserving() {
+    override func activate() {
         if !device.isProximityMonitoringEnabled {
             device.isProximityMonitoringEnabled = true
             didEnableProximityMonitoring = true
@@ -180,7 +180,7 @@ private final class ObservableDeviceProximity: _BaseObservableValue<Bool> {
         notificationSource.add(sink)
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         notificationSource.remove(sink)
         if didEnableProximityMonitoring {
             device.isProximityMonitoringEnabled = false

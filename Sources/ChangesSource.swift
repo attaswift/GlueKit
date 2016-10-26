@@ -60,12 +60,12 @@ internal class ChangesSource<Change: ChangeType, Updates: SourceType>: _Abstract
         self.updates = updates
     }
 
-    override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Change {
-        return updates.add(ChangesSink(sink))
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Change {
+        updates.add(ChangesSink(sink))
     }
 
-    override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Change {
-        return updates.remove(ChangesSink(sink))
+    override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Change {
+        updates.remove(ChangesSink(sink))
     }
 }
 

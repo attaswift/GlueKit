@@ -19,14 +19,12 @@ extension SourceType {
 }
 
 class NeverSource<Value>: _AbstractSource<Value> {
-    override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
         // Do nothing.
-        return false
     }
 
-    override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+    override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
         // Do nothing.
-        return false
     }
 }
 
@@ -45,13 +43,11 @@ class JustSource<Value>: _AbstractSource<Value> {
         super.init()
     }
 
-    override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
         sink.receive(value)
-        return false
     }
 
-    override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+    override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
         // Do nothing.
-        return false
     }
 }

@@ -204,7 +204,7 @@ open class _AbstractUpdatableArray<Element>: _AbstractObservableArray<Element>, 
     }
 }
 
-open class _BaseUpdatableArray<Element>: _AbstractUpdatableArray<Element>, LazyObserver {
+open class _BaseUpdatableArray<Element>: _AbstractUpdatableArray<Element>, Signaler {
     private var state = TransactionState<ArrayChange<Element>>()
 
     public final override var updates: ArrayUpdateSource<Element> {
@@ -233,11 +233,11 @@ open class _BaseUpdatableArray<Element>: _AbstractUpdatableArray<Element>, LazyO
         state.send(change)
     }
 
-    open func startObserving() {
+    open func activate() {
         // Do nothing
     }
 
-    open func stopObserving() {
+    open func deactivate() {
         // Do nothing
     }
 }

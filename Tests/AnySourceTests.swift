@@ -18,14 +18,12 @@ private class ForwardingSource<Source: SourceType>: SourceType {
         self.target = target
     }
 
-    @discardableResult
-    func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        return target.add(sink)
+    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+        target.add(sink)
     }
 
-    @discardableResult
-    func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        return target.remove(sink)
+    func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+        target.remove(sink)
     }
 }
 

@@ -72,14 +72,14 @@ where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.
         }
     }
 
-    override func startObserving() {
+    override func activate() {
         precondition(latest == nil)
         latest = (left.value, right.value)
         left.updates.add(MethodSink(owner: self, identifier: 1, method: CompositeUpdatable.applyLeft))
         right.updates.add(MethodSink(owner: self, identifier: 2, method: CompositeUpdatable.applyRight))
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         precondition(latest != nil)
         left.updates.remove(MethodSink(owner: self, identifier: 1, method: CompositeUpdatable.applyLeft))
         right.updates.remove(MethodSink(owner: self, identifier: 2, method: CompositeUpdatable.applyRight))

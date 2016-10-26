@@ -6,6 +6,16 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
+internal protocol Signaler: class {
+    func activate()
+    func deactivate()
+}
+
+extension Signaler {
+    func activate() {}
+    func deactivate() {}
+}
+
 private enum PendingItem<Value> {
     case sendValue(Value)
     case addSink(AnySink<Value>)
@@ -46,12 +56,19 @@ private enum PendingItem<Value> {
 /// (Although Variable does.)
 ///
 public class Signal<Value>: _AbstractSource<Value> {
+    private let holder: Signaler?
     private let lock = Lock()
     private var sending = false
     private var sinks: Set<AnySink<Value>> = []
     private var pendingItems: [PendingItem<Value>] = []
 
     public override init() {
+        self.holder = nil
+        super.init()
+    }
+
+    internal init(holder: Signaler) {
+        self.holder = holder
         super.init()
     }
 
@@ -179,10 +196,9 @@ public class Signal<Value>: _AbstractSource<Value> {
         }
     }
 
-    @discardableResult
-    public override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+    public override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
         let sink = sink.anySink
-        return lock.withLock {
+        let first: Bool = lock.withLock {
             let first = self.sinks.isEmpty
             if self.pendingItems.isEmpty {
                 let (inserted, _) = self.sinks.insert(sink)
@@ -194,12 +210,14 @@ public class Signal<Value>: _AbstractSource<Value> {
             }
             return first
         }
+        if first {
+            holder?.activate()
+        }
     }
 
-    @discardableResult
-    public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+    public override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
         let sink = sink.anySink
-        return lock.withLock {
+        let last: Bool = lock.withLock {
             var old = self.sinks.remove(sink)
             if old == nil {
                 for i in 0 ..< pendingItems.count {
@@ -212,6 +230,9 @@ public class Signal<Value>: _AbstractSource<Value> {
             }
             precondition(old != nil, "Sink is not subscribed to this signal")
             return old != nil && self.sinks.isEmpty
+        }
+        if last {
+            holder?.deactivate()
         }
     }
 

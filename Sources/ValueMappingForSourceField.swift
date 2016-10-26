@@ -20,7 +20,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
 }
 
 /// A source of values for a Source field.
-private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: _AbstractSource<Field.Value>
+private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: SignalerSource<Field.Value>
 where Parent.Change == ValueChange<Parent.Value> {
 
     typealias Value = Field.Value
@@ -29,48 +29,22 @@ where Parent.Change == ValueChange<Parent.Value> {
     let key: (Parent.Value) -> Field
 
     private var _field: Field? = nil
-    private weak var _signal: Signal<Value>? = nil
-
-    private var signal: Signal<Value> {
-        if let signal = _signal {
-            return signal
-        }
-        let signal = Signal<Value>()
-        _signal = signal
-        return signal
-    }
-
-    override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        let first = signal.add(sink)
-        if first {
-            self.startObserving()
-        }
-        return first
-    }
-
-    override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        let last = _signal!.remove(sink)
-        if last {
-            self.stopObserving()
-        }
-        return last
-    }
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    private func startObserving() {
+    override func activate() {
         precondition(_field == nil)
         let field = key(parent.value)
         _field = field
         parent.updates.add(MethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))
-        field.add(self.signal.asSink)
+        field.add(signal.asSink)
     }
 
-    private func stopObserving() {
-        _field!.remove(_signal!.asSink)
+    override func deactivate() {
+        _field!.remove(signal.asSink)
         _field = nil
         parent.updates.remove(MethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))
     }
@@ -81,7 +55,6 @@ where Parent.Change == ValueChange<Parent.Value> {
             break
         case .change(let change):
             let field = key(change.new)
-            let signal = _signal!
             _field!.remove(signal.asSink)
             _field = field
             field.add(signal.asSink)

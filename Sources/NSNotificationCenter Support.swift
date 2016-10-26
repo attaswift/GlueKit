@@ -23,37 +23,26 @@ extension NotificationCenter {
     }
 }
 
-@objc private class NotificationSource: NSObject, SourceType {
-    typealias Value = Notification
-
+private class NotificationSource: SignalerSource<Notification> {
     let center: NotificationCenter
     let name: NSNotification.Name
     let sender: AnyObject?
     let queue: OperationQueue?
-
-    let signal = Signal<Notification>()
 
     init(center: NotificationCenter, name: NSNotification.Name, sender: AnyObject?, queue: OperationQueue?) {
         self.center = center
         self.name = name
         self.sender = sender
         self.queue = queue
+        super.init()
     }
 
-    func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Notification {
-        let first = signal.add(sink)
-        if first {
-            center.addObserver(self, selector: #selector(didReceive(_:)), name: name, object: sender)
-        }
-        return first
+    override func activate() {
+        center.addObserver(self, selector: #selector(didReceive(_:)), name: name, object: sender)
     }
 
-    func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Notification {
-        let last = signal.remove(sink)
-        if last {
-            center.removeObserver(self, name: name, object: sender)
-        }
-        return last
+    override func deactivate() {
+        center.removeObserver(self, name: name, object: sender)
     }
 
     @objc private func didReceive(_ notification: Notification) {

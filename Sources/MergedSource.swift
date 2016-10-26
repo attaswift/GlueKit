@@ -28,10 +28,9 @@ extension SourceType {
 /// A Source that receives all values from a set of input sources and forwards all to its own connected sinks.
 ///
 /// Note that MergedSource only connects to its input sources while it has at least one connection of its own.
-public final class MergedSource<Value>: _AbstractSource<Value> {
+public final class MergedSource<Value>: SignalerSource<Value> {
     public typealias SourceValue = Value
 
-    private var signal = Signal<Value>()
     private let inputs: [AnySource<Value>]
 
     /// Initializes a new merged source with `sources` as its input sources.
@@ -39,26 +38,16 @@ public final class MergedSource<Value>: _AbstractSource<Value> {
         self.inputs = sources.map { $0.anySource }
     }
 
-    @discardableResult
-    public override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        let first = signal.add(sink)
-        if first {
-            for i in 0 ..< inputs.count {
-                inputs[i].add(MergedSink(source: self, index: i))
-            }
+    override func activate() {
+        for i in 0 ..< inputs.count {
+            inputs[i].add(MergedSink(source: self, index: i))
         }
-        return first
     }
 
-    @discardableResult
-    public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        let last = signal.remove(sink)
-        if last {
-            for i in 0 ..< inputs.count {
-                inputs[i].remove(MergedSink(source: self, index: i))
-            }
+    override func deactivate() {
+        for i in 0 ..< inputs.count {
+            inputs[i].remove(MergedSink(source: self, index: i))
         }
-        return last
     }
 
     fileprivate func receive(_ value: Value, from index: Int) {

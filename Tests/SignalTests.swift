@@ -531,12 +531,12 @@ private class Counter: SourceType {
     private var counter: Int = 0
     private var signal = Signal<Int>()
 
-    func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Int {
-        return signal.add(sink)
+    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Int {
+        signal.add(sink)
     }
 
-    func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Int {
-        return signal.remove(sink)
+    func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Int {
+        signal.remove(sink)
     }
 
     @discardableResult

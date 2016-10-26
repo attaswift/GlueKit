@@ -67,7 +67,7 @@ private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult
         return true
     }
 
-    override func startObserving() {
+    override func activate() {
         for e in parent.value {
             let test = self.isIncluded(e)
             if test.value {
@@ -80,7 +80,7 @@ private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult
         parent.updates.add(parentSink)
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         parent.updates.remove(parentSink)
         for (sink, test) in elementSinks {
             test.updates.remove(sink)

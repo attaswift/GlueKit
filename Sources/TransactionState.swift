@@ -7,25 +7,16 @@
 //
 
 
-internal protocol LazyObserver: class {
-    func startObserving()
-    func stopObserving()
-}
-
-extension LazyObserver {
-    public func startObserving() {}
-    public func stopObserving() {}
-}
-
 private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
     typealias Value = Update<Change>
 
-    let owner: LazyObserver
+    let owner: Signaler
     var isInTransaction: Bool
 
-    init(owner: LazyObserver, isInTransaction: Bool) {
+    init(owner: Signaler, isInTransaction: Bool) {
         self.owner = owner
         self.isInTransaction = isInTransaction
+        super.init(holder: owner)
     }
 
     func begin() {
@@ -45,30 +36,20 @@ private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
         send(.change(change))
     }
 
-    @discardableResult
-    public override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+    public override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
         if self.isInTransaction {
             // Make sure the new subscriber knows we're in the middle of a transaction.
             sink.receive(.beginTransaction)
         }
-        let first = super.add(sink)
-        if first {
-            owner.startObserving()
-        }
-        return first
+        super.add(sink)
     }
 
-    @discardableResult
-    public override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        let last = super.remove(sink)
-        if last {
-            owner.stopObserving()
-        }
+    public override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+        super.remove(sink)
         if self.isInTransaction {
             // Wave goodbye by sending a virtual endTransaction that makes state management easier.
             sink.receive(.endTransaction)
         }
-        return last
     }
 }
 
@@ -76,7 +57,7 @@ internal struct TransactionState<Change: ChangeType> {
     private weak var signal: TransactionSignal<Change>? = nil
     private var transactionCount = 0
 
-    mutating func source(retaining owner: LazyObserver) -> AnySource<Update<Change>> {
+    mutating func source(retaining owner: Signaler) -> AnySource<Update<Change>> {
         if let signal = self.signal {
             assert(signal.owner === owner)
             return signal.anySource
@@ -135,3 +116,22 @@ internal struct TransactionState<Change: ChangeType> {
         }
     }
 }
+
+open class TransactionalSource<Change: ChangeType>: _AbstractSource<Update<Change>>, Signaler {
+    internal var state = TransactionState<Change>()
+
+    public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        state.source(retaining: self).add(sink)
+    }
+
+    public final override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        state.source(retaining: self).remove(sink)
+    }
+
+    func activate() {
+    }
+
+    func deactivate() {
+    }
+}
+

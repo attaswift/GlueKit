@@ -75,7 +75,7 @@ private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _BaseObs
         return true
     }
 
-    override func startObserving() {
+    override func activate() {
         for e in parent.value {
             if test(e) {
                 matchingElements.insert(e)
@@ -84,7 +84,7 @@ private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _BaseObs
         parent.updates.add(sink)
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         parent.updates.remove(sink)
         matchingElements = []
     }

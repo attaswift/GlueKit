@@ -65,13 +65,13 @@ private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field
 
     override var count: Int { return parent.count }
 
-    override func startObserving() {
+    override func activate() {
         let fields = parent.value.map(key)
         parent.updates.add(parentSink)
         fieldSinks = RefList(fields.lazy.map { field in FieldSink(owner: self, field: field) })
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         parent.updates.remove(parentSink)
         fieldSinks.forEach { $0.disconnect() }
         fieldSinks.removeAll()

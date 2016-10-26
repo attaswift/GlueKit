@@ -26,12 +26,12 @@ private final class UnpackedObservableArrayReference<ArrayReference: ObservableV
         super.init()
     }
 
-    override func startObserving() {
+    override func activate() {
         _reference.updates.add(referenceSink)
         _reference.value.updates.add(targetSink)
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         _reference.value.updates.remove(targetSink)
         _reference.updates.remove(referenceSink)
     }

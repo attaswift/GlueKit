@@ -32,21 +32,20 @@ private final class BracketingSource<Input: SourceType>: _AbstractSource<Input.V
         self.goodbye = goodbye
     }
 
-    final override func add<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
+    final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
         // Note that this assumes issue #5 ("Disallow reentrant updates") is implemented.
         // Otherwise `sink.receive` could send values itself, which it also needs to receive,
         // requiring complicated scheduling.
         if let greeting = hello() {
             sink.receive(greeting)
         }
-        return input.add(sink)
+        input.add(sink)
     }
 
-    final override func remove<Sink: SinkType>(_ sink: Sink) -> Bool where Sink.Value == Value {
-        let last = input.remove(sink)
+    final override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+        input.remove(sink)
         if let farewell = goodbye() {
             sink.receive(farewell)
         }
-        return last
     }
 }

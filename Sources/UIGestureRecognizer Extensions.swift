@@ -26,12 +26,12 @@ private class ObservableGestureRecognizerState: _BaseObservableValue<UIGestureRe
         return _gestureRecognizer.state
     }
 
-    override func startObserving() {
+    override func activate() {
         _value = _gestureRecognizer.state
         _gestureRecognizer.addTarget(self, action: #selector(ObservableGestureRecognizerState.gestureRecognizerDidFire))
     }
 
-    override func stopObserving() {
+    override func deactivate() {
         _gestureRecognizer.removeTarget(self, action: #selector(ObservableGestureRecognizerState.gestureRecognizerDidFire))
         _value = nil
     }

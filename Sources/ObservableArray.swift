@@ -161,7 +161,7 @@ open class _AbstractObservableArray<Element>: ObservableArrayType {
     public final var anyObservableArray: AnyObservableArray<Element> { return AnyObservableArray(box: self) }
 }
 
-open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, LazyObserver {
+open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, Signaler {
     private var state = TransactionState<ArrayChange<Element>>()
 
     public final override var updates: ArrayUpdateSource<Element> {
@@ -184,11 +184,11 @@ open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, Laz
         state.send(change)
     }
 
-    open func startObserving() {
+    open func activate() {
         // Do nothing
     }
 
-    open func stopObserving() {
+    open func deactivate() {
         // Do nothing
     }
 }
