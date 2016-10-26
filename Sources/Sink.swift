@@ -20,6 +20,9 @@ extension SinkType {
 }
 
 extension SinkType where Self: AnyObject {
+    public func unowned() -> AnySink<Value> {
+        return UnownedSink(self).anySink
+    }
     public var hashValue: Int { return ObjectIdentifier(self).hashValue }
     public static func ==(a: Self, b: Self) -> Bool { return a === b }
 }
@@ -88,5 +91,28 @@ fileprivate class SinkBox<Wrapped: SinkType>: _AbstractSink<Wrapped.Value> {
     override func isEqual(to other: _AbstractSink<Wrapped.Value>) -> Bool {
         guard let other = other as? SinkBox<Wrapped> else { return false }
         return self.contents == other.contents
+    }
+}
+
+fileprivate class UnownedSink<Wrapped: SinkType & AnyObject>: _AbstractSink<Wrapped.Value> {
+    typealias Value = Wrapped.Value
+
+    unowned let wrapped: Wrapped
+
+    init(_ wrapped: Wrapped) {
+        self.wrapped = wrapped
+    }
+
+    override func receive(_ value: Value) {
+        wrapped.receive(value)
+    }
+
+    override var hashValue: Int {
+        return wrapped.hashValue
+    }
+
+    override func isEqual(to other: _AbstractSink<Wrapped.Value>) -> Bool {
+        guard let other = other as? UnownedSink<Wrapped> else { return false }
+        return self.wrapped == other.wrapped
     }
 }

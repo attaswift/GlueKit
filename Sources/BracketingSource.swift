@@ -15,7 +15,7 @@ extension SourceType {
     ///
     /// For each subscriber that is to be removed, the returned source first removes it from `self`, then
     /// evaluates `goodbye`; if it returns a non-nil value, the bracketing source sends it to the sink.
-    func bracketed(hello: @escaping () -> Value?, goodbye: @escaping () -> Value?) -> AnySource<Value> {
+    public func bracketed(hello: @escaping () -> Value?, goodbye: @escaping () -> Value?) -> AnySource<Value> {
         return BracketingSource(self, hello: hello, goodbye: goodbye).anySource
     }
 }

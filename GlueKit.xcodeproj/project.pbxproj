@@ -384,6 +384,15 @@
 		BBE9AACB1DC0F0A5000B3DD0 /* Update.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AAC91DC0F0A5000B3DD0 /* Update.swift */; };
 		BBE9AACC1DC0F0A5000B3DD0 /* Update.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AAC91DC0F0A5000B3DD0 /* Update.swift */; };
 		BBE9AACD1DC0F0A5000B3DD0 /* Update.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AAC91DC0F0A5000B3DD0 /* Update.swift */; };
+		BBE9AACF1DC0F1F6000B3DD0 /* ChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AACE1DC0F1F6000B3DD0 /* ChangeTests.swift */; };
+		BBE9AAD01DC0F1F6000B3DD0 /* ChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AACE1DC0F1F6000B3DD0 /* ChangeTests.swift */; };
+		BBE9AAD11DC0F1F6000B3DD0 /* ChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AACE1DC0F1F6000B3DD0 /* ChangeTests.swift */; };
+		BBE9AAD41DC0F474000B3DD0 /* BufferedSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AAD31DC0F474000B3DD0 /* BufferedSourceTests.swift */; };
+		BBE9AAD51DC0F474000B3DD0 /* BufferedSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AAD31DC0F474000B3DD0 /* BufferedSourceTests.swift */; };
+		BBE9AAD61DC0F474000B3DD0 /* BufferedSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AAD31DC0F474000B3DD0 /* BufferedSourceTests.swift */; };
+		BBE9AAD81DC0FC17000B3DD0 /* BracketingSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AAD71DC0FC17000B3DD0 /* BracketingSourceTests.swift */; };
+		BBE9AAD91DC0FC17000B3DD0 /* BracketingSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AAD71DC0FC17000B3DD0 /* BracketingSourceTests.swift */; };
+		BBE9AADA1DC0FC17000B3DD0 /* BracketingSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AAD71DC0FC17000B3DD0 /* BracketingSourceTests.swift */; };
 		BBEA2A291DBF9ADA00CCCB08 /* MockSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E3D1DABC81A00E85FB9 /* MockSink.swift */; };
 		BBEA2A2B1DBF9E9C00CCCB08 /* AnySinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBEA2A2A1DBF9E9C00CCCB08 /* AnySinkTests.swift */; };
 		BBEA2A2C1DBF9E9C00CCCB08 /* AnySinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBEA2A2A1DBF9E9C00CCCB08 /* AnySinkTests.swift */; };
@@ -606,6 +615,9 @@
 		BBE4DF5B1DA55DA3005EC162 /* SetMappingBase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetMappingBase.swift; sourceTree = "<group>"; };
 		BBE4DF611DA5654F005EC162 /* SetMappingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetMappingTests.swift; sourceTree = "<group>"; };
 		BBE9AAC91DC0F0A5000B3DD0 /* Update.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Update.swift; sourceTree = "<group>"; };
+		BBE9AACE1DC0F1F6000B3DD0 /* ChangeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChangeTests.swift; sourceTree = "<group>"; };
+		BBE9AAD31DC0F474000B3DD0 /* BufferedSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedSourceTests.swift; sourceTree = "<group>"; };
+		BBE9AAD71DC0FC17000B3DD0 /* BracketingSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BracketingSourceTests.swift; sourceTree = "<group>"; };
 		BBEA2A2A1DBF9E9C00CCCB08 /* AnySinkTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnySinkTests.swift; sourceTree = "<group>"; };
 		BBEA2A2E1DBFA1B700CCCB08 /* HashingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HashingTests.swift; sourceTree = "<group>"; };
 		BBEA2A331DBFC4C300CCCB08 /* AnySourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnySourceTests.swift; sourceTree = "<group>"; };
@@ -821,10 +833,11 @@
 				BBCD9DF41DA9104A00E85FB9 /* RefListTests.swift */,
 				BBEA2A2E1DBFA1B700CCCB08 /* HashingTests.swift */,
 				BBB55BD81C8FCE740050DDA9 /* Sources and Signals */,
+				BBE9AAD21DC0F204000B3DD0 /* Abstract Observables */,
 				BBB55BD91C8FCE9D0050DDA9 /* Observable Values */,
 				BBB55BDA1C8FCEAE0050DDA9 /* Observable Arrays */,
 				BBE4DF601DA56530005EC162 /* Observable Sets */,
-				BBEA2A4C1DBFE60500CCCB08 /* Foundation Extensions Tests */,
+				BBEA2A4C1DBFE60500CCCB08 /* Foundation Extensions */,
 				BB8D366C1DA116AA000D44C5 /* Examples */,
 			);
 			path = Tests;
@@ -905,6 +918,8 @@
 				BBB55BA21C8FCE2C0050DDA9 /* SimpleSourcesTests.swift */,
 				BBB55B9B1C8FCE2C0050DDA9 /* MergedSourceTests.swift */,
 				BBB55BA31C8FCE2C0050DDA9 /* SourceOperatorTests.swift */,
+				BBE9AAD31DC0F474000B3DD0 /* BufferedSourceTests.swift */,
+				BBE9AAD71DC0FC17000B3DD0 /* BracketingSourceTests.swift */,
 				BBCD9E511DAC1B1300E85FB9 /* ConnectorTests.swift */,
 			);
 			name = "Sources and Signals";
@@ -1008,14 +1023,22 @@
 			name = "Observable Sets";
 			sourceTree = "<group>";
 		};
-		BBEA2A4C1DBFE60500CCCB08 /* Foundation Extensions Tests */ = {
+		BBE9AAD21DC0F204000B3DD0 /* Abstract Observables */ = {
+			isa = PBXGroup;
+			children = (
+				BBE9AACE1DC0F1F6000B3DD0 /* ChangeTests.swift */,
+			);
+			name = "Abstract Observables";
+			sourceTree = "<group>";
+		};
+		BBEA2A4C1DBFE60500CCCB08 /* Foundation Extensions */ = {
 			isa = PBXGroup;
 			children = (
 				BBB55BA51C8FCE2C0050DDA9 /* TimerSourceTests.swift */,
 				BBB55B9A1C8FCE2C0050DDA9 /* KVOSupportTests.swift */,
 				BBB55B9C1C8FCE2C0050DDA9 /* NotificationCenterSupportTests.swift */,
 			);
-			name = "Foundation Extensions Tests";
+			name = "Foundation Extensions";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1431,6 +1454,8 @@
 				BBEBFF791DB77D77008AC632 /* ArrayFilteringTests.swift in Sources */,
 				BBB55BCC1C8FCE2C0050DDA9 /* TestUtilities.swift in Sources */,
 				BBB55BB41C8FCE2C0050DDA9 /* NotificationCenterSupportTests.swift in Sources */,
+				BBE9AAD41DC0F474000B3DD0 /* BufferedSourceTests.swift in Sources */,
+				BBE9AACF1DC0F1F6000B3DD0 /* ChangeTests.swift in Sources */,
 				BBB55BBA1C8FCE2C0050DDA9 /* DistinctTests.swift in Sources */,
 				BBB55BAE1C8FCE2C0050DDA9 /* KVOSupportTests.swift in Sources */,
 				BBCD9E3A1DABC45000E85FB9 /* TypeHelperTests.swift in Sources */,
@@ -1470,6 +1495,7 @@
 				BBEBFF731DB77D77008AC632 /* ArrayModificationTests.swift in Sources */,
 				BB8D366E1DA116CB000D44C5 /* Bookshelf.swift in Sources */,
 				BBB55BB71C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,
+				BBE9AAD81DC0FC17000B3DD0 /* BracketingSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1563,10 +1589,13 @@
 				BBEA2A301DBFA1B700CCCB08 /* HashingTests.swift in Sources */,
 				BBEA2A291DBF9ADA00CCCB08 /* MockSink.swift in Sources */,
 				BBB55BCD1C8FCE2C0050DDA9 /* TestUtilities.swift in Sources */,
+				BBE9AAD51DC0F474000B3DD0 /* BufferedSourceTests.swift in Sources */,
+				BBE9AAD01DC0F1F6000B3DD0 /* ChangeTests.swift in Sources */,
 				BBCD9DF61DA9104A00E85FB9 /* RefListTests.swift in Sources */,
 				BBEA2A371DBFC71000CCCB08 /* SimpleSourcesTests.swift in Sources */,
 				BBEA2A351DBFC4C300CCCB08 /* AnySourceTests.swift in Sources */,
 				BBEA2A381DBFC7B800CCCB08 /* MergedSourceTests.swift in Sources */,
+				BBE9AAD91DC0FC17000B3DD0 /* BracketingSourceTests.swift in Sources */,
 				BBEA2A2C1DBF9E9C00CCCB08 /* AnySinkTests.swift in Sources */,
 				BBEA2A4D1DC0BB4D00CCCB08 /* SourceOperatorTests.swift in Sources */,
 				BBEA2A321DBFC3BB00CCCB08 /* SignalTests.swift in Sources */,
@@ -1747,6 +1776,8 @@
 				BBB55BCE1C8FCE2C0050DDA9 /* TestUtilities.swift in Sources */,
 				BBB55BB61C8FCE2C0050DDA9 /* NotificationCenterSupportTests.swift in Sources */,
 				BBB55BBC1C8FCE2C0050DDA9 /* DistinctTests.swift in Sources */,
+				BBE9AAD61DC0F474000B3DD0 /* BufferedSourceTests.swift in Sources */,
+				BBE9AAD11DC0F1F6000B3DD0 /* ChangeTests.swift in Sources */,
 				BBB55BB01C8FCE2C0050DDA9 /* KVOSupportTests.swift in Sources */,
 				BBCD9E3C1DABC45000E85FB9 /* TypeHelperTests.swift in Sources */,
 				BBB55BC51C8FCE2C0050DDA9 /* SignalTests.swift in Sources */,
@@ -1786,6 +1817,7 @@
 				BBCD9E481DABEA5500E85FB9 /* ObservableArrayTests.swift in Sources */,
 				BBB55BB91C8FCE2C0050DDA9 /* ObservableTests.swift in Sources */,
 				BBA0336C1DA7D03300E83AC1 /* ArrayChangeTests.swift in Sources */,
+				BBE9AADA1DC0FC17000B3DD0 /* BracketingSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

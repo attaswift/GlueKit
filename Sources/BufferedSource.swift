@@ -23,11 +23,11 @@ private final class BufferedSource<Input: SourceType>: SignalerSource<Input.Valu
     }
 
     override func activate() {
-        source.add(self)
+        source.add(self.unowned())
     }
 
     override func deactivate() {
-        source.remove(self)
+        source.remove(self.unowned())
     }
 
     func receive(_ value: Input.Value) {
