@@ -57,4 +57,3 @@ extension Update {
         }
     }
 }
-

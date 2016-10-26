@@ -1,5 +1,5 @@
 //
-//  ChangeType.swift
+//  Change.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-08-12.
