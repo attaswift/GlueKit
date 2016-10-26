@@ -27,8 +27,11 @@ class TransformedSource<Input: SourceType, Value>: _AbstractSource<Value> {
         self.input.add(TransformedSink(source: self, sink: sink))
     }
 
-    final override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        self.input.remove(TransformedSink(source: self, sink: sink))
+    @discardableResult
+    final override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+        typealias TSink = TransformedSink<Input, Sink>
+        let old: TSink = self.input.remove(TSink(source: self, sink: sink)).opened()!
+        return old.sink.anySink
     }
 
     func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value { abstract() }
@@ -37,24 +40,24 @@ class TransformedSource<Input: SourceType, Value>: _AbstractSource<Value> {
 private struct TransformedSink<Input: SourceType, Sink: SinkType>: SinkType {
     typealias Value = Input.Value
 
-    let _source: TransformedSource<Input, Sink.Value>
-    let _sink: Sink
+    let source: TransformedSource<Input, Sink.Value>
+    let sink: Sink
 
     init(source: TransformedSource<Input, Sink.Value>, sink: Sink) {
-        _source = source
-        _sink = sink
+        self.source = source
+        self.sink = sink
     }
 
     func receive(_ value: Input.Value) {
-        _source.receive(value, for: _sink)
+        source.receive(value, for: sink)
     }
 
     var hashValue: Int {
-        return Int.baseHash.mixed(with: ObjectIdentifier(_source)).mixed(with: _sink)
+        return Int.baseHash.mixed(with: ObjectIdentifier(source)).mixed(with: sink)
     }
 
     static func ==(left: TransformedSink, right: TransformedSink) -> Bool {
-        return left._source === right._source && left._sink == right._sink
+        return left.source === right.source && left.sink == right.sink
     }
 }
 

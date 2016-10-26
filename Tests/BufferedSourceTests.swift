@@ -24,10 +24,10 @@ private class TestSource: SourceType {
         precondition(inserted)
     }
 
-    func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Int {
+    @discardableResult
+    func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Int {
         removed += 1
-        let old = sinks.remove(sink.anySink)
-        precondition(old != nil)
+        return sinks.remove(sink.anySink)!
     }
 
     func send(_ value: Int) {

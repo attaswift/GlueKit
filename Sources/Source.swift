@@ -37,8 +37,11 @@ public protocol SourceType {
     /// Remove `sink`'s subscription to this source, i.e., stop calling the sink's `receive` function and release it.
     /// The subscription remains active until `remove` is called with an identical sink.
     ///
+    /// - Returns: The sink that was previously added to the sink. 
+    ///     This may be distinguishable by the input parameter by identity comparison or some other means.
     /// - SeeAlso: `connect`, `add`
-    func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value
+    @discardableResult
+    func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value
 
     /// A type-erased representation of this source.
     var anySource: AnySource<Value> { get }
@@ -79,8 +82,9 @@ public struct AnySource<Value>: SourceType {
         box.add(sink)
     }
 
-    public func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        box.remove(sink)
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+        return box.remove(sink)
     }
 
     public var anySource: AnySource<Value> { return self }
@@ -89,7 +93,8 @@ public struct AnySource<Value>: SourceType {
 open class _AbstractSource<Value>: SourceType {
     open func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value { abstract() }
 
-    open func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value { abstract() }
+    @discardableResult
+    open func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value { abstract() }
 
     public final var anySource: AnySource<Value> {
         return AnySource(box: self)
@@ -103,8 +108,9 @@ open class SignalerSource<Value>: _AbstractSource<Value>, Signaler {
         self.signal.add(sink)
     }
 
-    public final override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        self.signal.remove(sink)
+    @discardableResult
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+        return self.signal.remove(sink)
     }
 
     func activate() {}
@@ -124,7 +130,8 @@ internal class SourceBox<Base: SourceType>: _AbstractSource<Base.Value> {
         base.add(sink)
     }
 
-    override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        base.remove(sink)
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+        return base.remove(sink)
     }
 }

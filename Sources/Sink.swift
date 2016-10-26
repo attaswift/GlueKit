@@ -53,6 +53,12 @@ public struct AnySink<Value>: SinkType {
     public static func ==(left: AnySink, right: AnySink) -> Bool {
         return left.box == right.box
     }
+
+    public func opened<Sink: SinkType>(as type: Sink.Type = Sink.self) -> Sink? where Sink.Value == Value {
+        if let sink = box as? Sink { return sink }
+        if let box = self.box as? SinkBox<Sink> { return box.contents }
+        return nil
+    }
 }
 
 fileprivate class _AbstractSink<Value>: SinkType {
@@ -67,6 +73,10 @@ fileprivate class _AbstractSink<Value>: SinkType {
     public static func ==(left: _AbstractSink<Value>, right: _AbstractSink<Value>) -> Bool {
         return left.isEqual(to: right)
     }
+
+    public final var anySink: AnySink<Value> {
+        return AnySink(self)
+    }
 }
 
 fileprivate class SinkBox<Wrapped: SinkType>: _AbstractSink<Wrapped.Value> {
@@ -74,7 +84,7 @@ fileprivate class SinkBox<Wrapped: SinkType>: _AbstractSink<Wrapped.Value> {
 
     typealias Value = Wrapped.Value
 
-    private let contents: Wrapped
+    fileprivate let contents: Wrapped
 
     init(_ contents: Wrapped) {
         self.contents = contents

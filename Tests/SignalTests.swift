@@ -535,8 +535,9 @@ private class Counter: SourceType {
         signal.add(sink)
     }
 
-    func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Int {
-        signal.remove(sink)
+    @discardableResult
+    func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Int {
+        return signal.remove(sink)
     }
 
     @discardableResult

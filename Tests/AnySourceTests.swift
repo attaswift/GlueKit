@@ -22,8 +22,8 @@ private class ForwardingSource<Source: SourceType>: SourceType {
         target.add(sink)
     }
 
-    func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        target.remove(sink)
+    func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+        return target.remove(sink)
     }
 }
 

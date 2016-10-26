@@ -215,9 +215,10 @@ public class Signal<Value>: _AbstractSource<Value> {
         }
     }
 
-    public override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+    @discardableResult
+    public override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
         let sink = sink.anySink
-        let last: Bool = lock.withLock {
+        let (last, old): (Bool, AnySink<Value>) = lock.withLock {
             var old = self.sinks.remove(sink)
             if old == nil {
                 for i in 0 ..< pendingItems.count {
@@ -229,11 +230,12 @@ public class Signal<Value>: _AbstractSource<Value> {
                 }
             }
             precondition(old != nil, "Sink is not subscribed to this signal")
-            return old != nil && self.sinks.isEmpty
+            return (self.sinks.isEmpty, old!)
         }
         if last {
             holder?.deactivate()
         }
+        return old
     }
 
     public var isConnected: Bool {

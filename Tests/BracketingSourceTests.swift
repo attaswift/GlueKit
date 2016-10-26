@@ -45,7 +45,7 @@ class BracketingSourceTests: XCTestCase {
         }
 
         s1.expectingNothing {
-            bracket.remove(s1)
+            _ = bracket.remove(s1)
         }
 
         s2.expecting(3) {
@@ -53,7 +53,7 @@ class BracketingSourceTests: XCTestCase {
         }
 
         s2.expectingNothing {
-            bracket.remove(s2)
+            _ = bracket.remove(s2)
         }
 
         XCTAssertFalse(source.isConnected)
@@ -95,7 +95,7 @@ class BracketingSourceTests: XCTestCase {
         }
 
         s1.expecting(0) {
-            bracket.remove(s1)
+            _ = bracket.remove(s1)
         }
         XCTAssertEqual(goodbyeCount, 1)
 
@@ -104,7 +104,7 @@ class BracketingSourceTests: XCTestCase {
         }
 
         s2.expecting(0) {
-            bracket.remove(s2)
+            _ = bracket.remove(s2)
         }        
         XCTAssertFalse(source.isConnected)
         XCTAssertEqual(goodbyeCount, 2)

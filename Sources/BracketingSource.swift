@@ -42,10 +42,12 @@ private final class BracketingSource<Input: SourceType>: _AbstractSource<Input.V
         input.add(sink)
     }
 
-    final override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        input.remove(sink)
+    @discardableResult
+    final override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+        let old = input.remove(sink)
         if let farewell = goodbye() {
-            sink.receive(farewell)
+            old.receive(farewell)
         }
+        return old
     }
 }

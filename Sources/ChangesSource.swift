@@ -14,17 +14,12 @@ extension ObservableType {
     }
 }
 
-internal class ChangesSink<Change: ChangeType, Wrapped: SinkType>: SinkType where Wrapped.Value == Change {
+private class ChangesSinkState<Change: ChangeType> {
     typealias Value = Update<Change>
 
-    let wrapped: Wrapped
     var pending: Change? = nil
 
-    init(_ wrapped: Wrapped) {
-        self.wrapped = wrapped
-    }
-
-    func receive(_ update: Update<Change>) {
+    func apply(_ update: Update<Change>) -> Change? {
         switch update {
         case .beginTransaction:
             precondition(pending == nil)
@@ -39,9 +34,29 @@ internal class ChangesSink<Change: ChangeType, Wrapped: SinkType>: SinkType wher
             if let change = pending {
                 pending = nil
                 if !change.isEmpty {
-                    wrapped.receive(change)
+                    return change
                 }
             }
+        }
+        return nil
+    }
+}
+
+private struct ChangesSink<Wrapped: SinkType>: SinkType where Wrapped.Value: ChangeType {
+    typealias Change = Wrapped.Value
+    typealias Value = Update<Change>
+
+    let wrapped: Wrapped
+    let state: ChangesSinkState<Change>?
+
+    init(_ wrapped: Wrapped, withState needState: Bool) {
+        self.wrapped = wrapped
+        self.state = needState ? ChangesSinkState<Change>() : nil
+    }
+
+    func receive(_ update: Update<Change>) {
+        if let change = state?.apply(update) {
+            wrapped.receive(change)
         }
     }
 
@@ -61,11 +76,13 @@ internal class ChangesSource<Change: ChangeType, Updates: SourceType>: _Abstract
     }
 
     override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Change {
-        updates.add(ChangesSink(sink))
+        updates.add(ChangesSink(sink, withState: true))
     }
 
-    override func remove<Sink: SinkType>(_ sink: Sink) where Sink.Value == Change {
-        updates.remove(ChangesSink(sink))
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Change> where Sink.Value == Change {
+        let old: ChangesSink<Sink> = updates.remove(ChangesSink(sink, withState: false)).opened()!
+        return old.wrapped.anySink
     }
 }
 
