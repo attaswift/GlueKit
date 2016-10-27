@@ -15,7 +15,7 @@ class UpdatableTests: XCTestCase {
         let master = Variable<Int>(0)
         let slave = Variable<Int>(100)
 
-        let c = master.values.connect(slave)
+        let c = master.connect(to: slave)
 
         XCTAssertEqual(slave.value, 0)
 
@@ -46,7 +46,7 @@ class UpdatableTests: XCTestCase {
         let master = Variable<Int>(0)
         let slave = Variable<Int>(1)
 
-        let c = master.bind(slave)
+        let c = master.bind(to: slave)
 
         XCTAssertEqual(master.value, 0) // Slave should get the value of master
         XCTAssertEqual(slave.value, 0)

@@ -1,12 +1,28 @@
 //
-//  MethodSink.swift
+//  StrongMethodSink.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-10-24.
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-public struct MethodSink<Owner: AnyObject, Identifier: Hashable, Value>: SinkType {
+public protocol MethodSink: SinkType {
+    associatedtype Owner: AnyObject
+
+    var owner: Owner { get }
+}
+
+extension MethodSink {
+    public var hashValue: Int {
+        return ObjectIdentifier(owner).hashValue
+    }
+
+    public static func ==(left: Self, right: Self) -> Bool {
+        return left.owner === right.owner
+    }
+}
+
+public struct StrongMethodSink<Owner: AnyObject, Identifier: Hashable, Value>: SinkType {
     public let owner: Owner
     public let identifier: Identifier
     public let method: (Owner) -> (Value) -> Void
@@ -25,12 +41,12 @@ public struct MethodSink<Owner: AnyObject, Identifier: Hashable, Value>: SinkTyp
         return Int.baseHash.mixed(with: ObjectIdentifier(owner).hashValue).mixed(with: identifier.hashValue)
     }
 
-    public static func ==(left: MethodSink, right: MethodSink) -> Bool {
+    public static func ==(left: StrongMethodSink, right: StrongMethodSink) -> Bool {
         return left.owner === right.owner && left.identifier == right.identifier
     }
 }
 
-public struct MethodSinkWithContext<Owner: AnyObject, Context: Hashable, Value>: SinkType {
+public struct StrongMethodSinkWithContext<Owner: AnyObject, Context: Hashable, Value>: SinkType {
     public let owner: Owner
     public let method: (Owner) -> (Value, Context) -> Void
     public let context: Context
@@ -49,7 +65,7 @@ public struct MethodSinkWithContext<Owner: AnyObject, Context: Hashable, Value>:
         return Int.baseHash.mixed(with: ObjectIdentifier(owner).hashValue).mixed(with: context.hashValue)
     }
 
-    public static func ==(left: MethodSinkWithContext, right: MethodSinkWithContext) -> Bool {
+    public static func ==(left: StrongMethodSinkWithContext, right: StrongMethodSinkWithContext) -> Bool {
         return left.owner === right.owner && left.context == right.context
     }
 }

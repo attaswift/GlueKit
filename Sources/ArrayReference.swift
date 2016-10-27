@@ -37,11 +37,11 @@ private final class UnpackedObservableArrayReference<ArrayReference: ObservableV
     }
 
     private var referenceSink: AnySink<ValueUpdate<Target>> {
-        return MethodSink(owner: self, identifier: 0, method: UnpackedObservableArrayReference.applyReferenceUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: UnpackedObservableArrayReference.applyReferenceUpdate).anySink
     }
 
     private var targetSink: AnySink<ArrayUpdate<Element>> {
-        return MethodSink(owner: self, identifier: 0, method: UnpackedObservableArrayReference.applyTargetUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: UnpackedObservableArrayReference.applyTargetUpdate).anySink
     }
 
     private func applyReferenceUpdate(_ update: ValueUpdate<Target>) {

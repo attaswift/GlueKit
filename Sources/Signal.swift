@@ -6,12 +6,12 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-internal protocol Signaler: class {
+internal protocol SignalDelegate: class {
     func activate()
     func deactivate()
 }
 
-extension Signaler {
+extension SignalDelegate {
     func activate() {}
     func deactivate() {}
 }
@@ -56,19 +56,19 @@ private enum PendingItem<Value> {
 /// (Although Variable does.)
 ///
 public class Signal<Value>: _AbstractSource<Value> {
-    private let holder: Signaler?
+    internal weak var delegate: SignalDelegate?
     private let lock = Lock()
     private var sending = false
     private var sinks: Set<AnySink<Value>> = []
     private var pendingItems: [PendingItem<Value>] = []
 
     public override init() {
-        self.holder = nil
+        self.delegate = nil
         super.init()
     }
 
-    internal init(holder: Signaler) {
-        self.holder = holder
+    internal init(delegate: SignalDelegate) {
+        self.delegate = delegate
         super.init()
     }
 
@@ -211,7 +211,7 @@ public class Signal<Value>: _AbstractSource<Value> {
             return first
         }
         if first {
-            holder?.activate()
+            delegate?.activate()
         }
     }
 
@@ -233,7 +233,7 @@ public class Signal<Value>: _AbstractSource<Value> {
             return (self.sinks.isEmpty, old!)
         }
         if last {
-            holder?.deactivate()
+            delegate?.deactivate()
         }
         return old
     }

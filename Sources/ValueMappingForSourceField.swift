@@ -39,14 +39,14 @@ where Parent.Change == ValueChange<Parent.Value> {
         precondition(_field == nil)
         let field = key(parent.value)
         _field = field
-        parent.updates.add(MethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))
+        parent.updates.add(StrongMethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))
         field.add(signal.asSink)
     }
 
     override func deactivate() {
         _field!.remove(signal.asSink)
         _field = nil
-        parent.updates.remove(MethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))
+        parent.updates.remove(StrongMethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))
     }
 
     private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {

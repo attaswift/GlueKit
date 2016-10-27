@@ -34,7 +34,7 @@ private class DistinctUnion<Input: ObservableArrayType>: _BaseObservableSet<Inpu
     }
 
     private var sink: AnySink<ArrayUpdate<Element>> {
-        return MethodSink(owner: self, identifier: 0, method: DistinctUnion.apply).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: DistinctUnion.apply).anySink
     }
 
     private func apply(_ update: ArrayUpdate<Element>) {

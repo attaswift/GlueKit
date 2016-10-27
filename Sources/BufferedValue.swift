@@ -34,7 +34,7 @@ where Base.Change == ValueChange<Base.Value> {
     }
 
     private var applySink: AnySink<ValueUpdate<Value>> {
-        return MethodSink(owner: self, identifier: 0, method: BufferedObservableValue.apply).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: BufferedObservableValue.apply).anySink
     }
 
     private func apply(_ update: ValueUpdate<Value>) {

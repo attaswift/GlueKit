@@ -37,11 +37,11 @@ private final class UnpackedObservableSetReference<SetReference: ObservableValue
     }
 
     private var referenceSink: AnySink<ValueUpdate<Target>> {
-        return MethodSink(owner: self, identifier: 0, method: UnpackedObservableSetReference.applyReferenceUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: UnpackedObservableSetReference.applyReferenceUpdate).anySink
     }
 
     private var targetSink: AnySink<SetUpdate<Element>> {
-        return MethodSink(owner: self, identifier: 0, method: UnpackedObservableSetReference.applyTargetUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: UnpackedObservableSetReference.applyTargetUpdate).anySink
     }
 
     private func applyReferenceUpdate(_ update: ValueUpdate<Target>) {

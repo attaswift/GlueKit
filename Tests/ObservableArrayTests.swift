@@ -92,8 +92,8 @@ class ObservableArrayTests: XCTestCase {
             XCTAssertEqual(observableCount.value, 3)
 
             let mock = MockArrayObserver(test)
-            let valueMock = MockValueObserver(observable.map { "\($0)" }) // map is to convert array into something equatable
-            let countMock = MockValueObserver(observableCount)
+            let valueMock = MockValueUpdateSink(observable.map { "\($0)" }) // map is to convert array into something equatable
+            let countMock = MockValueUpdateSink(observableCount)
 
             mock.expecting(3, .insert(4, at: 2)) {
                 valueMock.expecting(.init(from: "[1, 2, 3]", to: "[1, 2, 4, 3]")) {
@@ -193,7 +193,7 @@ class ObservableArrayTests: XCTestCase {
 
             let updatable = test.updatable
             XCTAssertEqual(updatable.value, [1, 2, -3])
-            let umock = MockValueObserver(updatable.map { "\($0)" }) // The mapping transforms the array into something equatable
+            let umock = MockValueUpdateSink(updatable.map { "\($0)" }) // The mapping transforms the array into something equatable
             mock.expecting(3, .replaceSlice([1, 2, -3], at: 0, with: [0, 1, 2, 3])) {
                 umock.expecting(.init(from: "[1, 2, -3]", to: "[0, 1, 2, 3]")) {
                     updatable.value = [0, 1, 2, 3]

@@ -130,8 +130,8 @@ class ObservableSetTypeTests: XCTestCase {
             XCTAssertEqual(observableCount.value, 3)
 
             let mock = MockSetObserver(test)
-            let vmock = MockValueObserver(observableValue)
-            let cmock = MockValueObserver(observableCount)
+            let vmock = MockValueUpdateSink(observableValue)
+            let cmock = MockValueUpdateSink(observableCount)
 
             mock.expecting("[]/[4]") {
                 vmock.expecting(.init(from: [1, 2, 3], to: [1, 2, 3, 4])) {
@@ -343,7 +343,7 @@ class ObservableSetTypeTests: XCTestCase {
 
         XCTAssertEqual(containsTwo.value, true)
 
-        let mock = MockValueObserver(containsTwo)
+        let mock = MockValueUpdateSink(containsTwo)
 
         mock.expectingNoChange {
             test.insert(5)

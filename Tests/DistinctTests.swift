@@ -10,79 +10,253 @@ import XCTest
 import GlueKit
 
 class DistinctTests: XCTestCase {
-    func testDistinct_DefaultEqualityTestOnValues() {
-        let test = TestObservable(0)
-        var r = [Int]()
-        let c = test.distinct().values.connect { i in r.append(i) }
+    func test_updates_reportsChangesAtTheEndOfTheTransaction() {
+        let test = TestUpdatableValue(0)
+        let distinct = test.distinct()
 
-        test.value = 0
-        test.value = 1
-        test.value = 1
-        test.value = 1
-        test.value = 2
+        let sink = MockValueUpdateSink<Int>()
+        distinct.updates.add(sink)
 
-        XCTAssertEqual(r, [0, 1, 2])
+        sink.expecting("begin") {
+            test.begin()
+        }
 
-        c.disconnect()
+        sink.expectingNothing {
+            test.value = 1
+            test.value = 2
+        }
+
+        sink.expecting(["0→2", "end"]) {
+            test.end()
+        }
+
+        distinct.updates.remove(sink)
     }
 
-    func testDistinct_DefaultEqualityTestOnFutureValues() {
-        let test = TestObservable(0)
-        var r = [Int]()
-        let c = test.distinct().futureValues.connect { i in r.append(i) }
+    func test_updates_ignoresTransactionsThatDontChangeTheValue() {
+        let test = TestUpdatableValue(0)
+        let distinct = test.distinct()
 
-        test.value = 0 // This will be not sent to the future source.
-        test.value = 1
-        test.value = 1
-        test.value = 1
-        test.value = 2
+        let sink = MockValueUpdateSink<Int>()
+        distinct.updates.add(sink)
 
-        XCTAssertEqual(r, [1, 2])
-        c.disconnect()
+        sink.expecting("begin") {
+            test.begin()
+        }
+
+        sink.expectingNothing {
+            test.value = 1
+            test.value = 0
+        }
+
+        sink.expecting(["end"]) {
+            test.end()
+        }
+
+        distinct.updates.remove(sink)
     }
 
-    func testDistinct_CustomEqualityTest() {
-        let test = TestObservable(0)
+    func test_updates_subscribersMaySeeDifferentChanges() {
+        let test = TestUpdatableValue(0)
+        let distinct = test.distinct()
+
+        let sink0to2 = MockValueUpdateSink<Int>()
+        distinct.updates.add(sink0to2)
+
+        let sink0to3 = MockValueUpdateSink<Int>()
+        distinct.updates.add(sink0to3)
+
+        sink0to2.expecting("begin") {
+            sink0to3.expecting("begin") {
+                test.begin()
+            }
+        }
+
+        sink0to2.expectingNothing {
+            sink0to3.expectingNothing {
+                test.value = 1
+            }
+        }
+
+        let sink1to2 = MockValueUpdateSink<Int>()
+        sink1to2.expecting("begin") {
+            distinct.updates.add(sink1to2)
+        }
+
+        let sink1to3 = MockValueUpdateSink<Int>()
+        sink1to3.expecting("begin") {
+            distinct.updates.add(sink1to3)
+        }
+
+        sink0to2.expectingNothing {
+            sink0to3.expectingNothing {
+                sink1to2.expectingNothing {
+                    sink1to3.expectingNothing {
+                        test.value = 2
+                    }
+                }
+            }
+        }
+
+        sink0to2.expecting(["0→2", "end"]) {
+            distinct.updates.remove(sink0to2)
+        }
+
+        sink1to2.expecting(["1→2", "end"]) {
+            distinct.updates.remove(sink1to2)
+        }
+
+        sink0to3.expectingNothing {
+            sink1to3.expectingNothing {
+                test.value = 3
+            }
+        }
+
+        sink0to3.expecting(["0→3", "end"]) {
+            sink1to3.expecting(["1→3", "end"]) {
+                test.end()
+            }
+        }
+
+        sink0to3.expectingNothing {
+            distinct.updates.remove(sink0to3)
+        }
+
+        sink1to3.expectingNothing {
+            distinct.updates.remove(sink1to3)
+        }
+    }
+
+    func test_values_defaultEqualityTest() {
+        let test = TestObservableValue(0)
+        let values = test.distinct().values
+
+        let sink = MockSink<Int>()
+
+        sink.expecting(0) {
+            values.add(sink)
+        }
+
+        sink.expectingNothing {
+            test.value = 0
+        }
+
+        sink.expecting(1) {
+            test.value = 1
+        }
+
+        sink.expectingNothing {
+            test.value = 1
+            test.value = 1
+        }
+
+        sink.expecting(2) {
+            test.value = 2
+        }
+
+        values.remove(sink)
+    }
+
+    func test_futureValues_defaultEqualityTest() {
+        let test = TestObservableValue(0)
+        let values = test.distinct().futureValues
+
+        let sink = MockSink<Int>()
+
+        sink.expectingNothing {
+            values.add(sink)
+            test.value = 0
+        }
+
+        sink.expecting(1) {
+            test.value = 1
+        }
+
+        sink.expectingNothing {
+            test.value = 1
+            test.value = 1
+        }
+
+        sink.expecting(2) {
+            test.value = 2
+        }
+        
+        values.remove(sink)
+    }
+
+    func test_values_customEqualityTest() {
+        let test = TestObservableValue(0)
 
         // This is a really stupid equality test: 1 is never equal to anything, while everything else is the same.
         // This will only let through changes from/to a 1 value.
-        let distinctTest = test.distinct { a, b in a != 1 && b != 1 }
+        let distinct = test.distinct { a, b in a != 1 && b != 1 }
+        let values = distinct.values
 
-        var defaultValues = [Int]()
-        let defaultConnection = distinctTest.values.connect { i in defaultValues.append(i) }
+        let sink = MockSink<Int>()
 
-        var futureValues = [Int]()
-        let futureConnection = distinctTest.futureValues.connect { i in futureValues.append(i) }
+        sink.expecting(0) {
+            values.add(sink)
+        }
 
-        test.value = 0
-        test.value = 1
-        test.value = 1
-        test.value = 1
-        test.value = 2
-        test.value = 2
-        test.value = 2
-        test.value = 3
+        sink.expectingNothing {
+            test.value = 0
+        }
 
-        XCTAssertEqual(defaultValues, [0, 1, 1, 1, 2])
-        XCTAssertEqual(futureValues, [1, 1, 1, 2])
-        defaultConnection.disconnect()
-        futureConnection.disconnect()
+        sink.expecting(1) {
+            test.value = 1
+        }
+
+        sink.expecting(1) {
+            test.value = 1
+        }
+
+        sink.expecting(1) {
+            test.value = 1
+        }
+
+        sink.expecting(2) {
+            test.value = 2
+        }
+
+        sink.expectingNothing {
+            test.value = 2
+            test.value = 2
+            test.value = 3
+            test.value = 2
+            test.value = 4
+        }
+
+        values.remove(sink)
     }
 
     func testDistinct_IsUpdatableWhenCalledOnUpdatables() {
-        let test = TestUpdatable(0)
+        let test = TestUpdatableValue(0)
 
         let d = test.distinct()
 
         XCTAssertEqual(d.value, 0)
 
-        let mock = MockValueObserver(d)
+        let mock = MockValueUpdateSink(d)
 
-        mock.expecting(.init(from: 0, to: 42)) {
+        mock.expecting(["begin", "0→42", "end"]) {
             d.value = 42
         }
+
         XCTAssertEqual(d.value, 42)
         XCTAssertEqual(test.value, 42)
+
+        mock.expecting(["begin", "42→23", "end"]) {
+            d.withTransaction {
+                d.value = 23
+            }
+        }
+
+        mock.expecting(["begin", "end"]) {
+            d.withTransaction {}
+        }
+
+        XCTAssertEqual(d.value, 23)
+        XCTAssertEqual(test.value, 23)
     }
 }
 

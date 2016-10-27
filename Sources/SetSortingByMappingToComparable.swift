@@ -48,7 +48,7 @@ private final class SetSortingByMappingToComparable<Parent: ObservableSetType, E
     }
 
     private var sink: AnySink<SetUpdate<Parent.Element>> {
-        return MethodSink(owner: self, identifier: 0, method: SetSortingByMappingToComparable.apply).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: SetSortingByMappingToComparable.apply).anySink
     }
 
     private func apply(_ update: SetUpdate<Parent.Element>) {

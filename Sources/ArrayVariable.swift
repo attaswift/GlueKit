@@ -26,17 +26,8 @@ public final class ArrayVariable<Element>: _BaseUpdatableArray<Element> {
         _value = elements
     }
 
-    public override func apply(_ change: ArrayChange<Element>) {
-        if change.isEmpty { return }
-        if isConnected {
-            beginTransaction()
-            _value.apply(change)
-            sendChange(change)
-            endTransaction()
-        }
-        else {
-            _value.apply(change)
-        }
+    override func rawApply(_ change: ArrayChange<Element>) {
+        _value.apply(change)
     }
 
     public override var value: [Element] {

@@ -40,11 +40,11 @@ class SetMappingForArrayField<Parent: ObservableSetType, Field: ObservableArrayT
     }
 
     private var parentSink: AnySink<SetUpdate<Parent.Element>> {
-        return MethodSink(owner: self, identifier: 1, method: SetMappingForArrayField.applyParentUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 1, method: SetMappingForArrayField.applyParentUpdate).anySink
     }
 
     private var fieldSink: AnySink<ArrayUpdate<Field.Element>> {
-        return MethodSink(owner: self, identifier: 2, method: SetMappingForArrayField.applyFieldUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 2, method: SetMappingForArrayField.applyFieldUpdate).anySink
     }
 
     private func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {

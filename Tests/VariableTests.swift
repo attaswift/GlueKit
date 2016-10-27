@@ -168,7 +168,7 @@ class VariableTests: XCTestCase {
             XCTAssert(eq(v.value, c))
             v.value = a
 
-            let mock = MockValueObserver(v, eq)
+            let mock = MockValueUpdateSink(v, eq)
             mock.expecting(.init(from: a, to: b)) {
                 v.value = b
             }

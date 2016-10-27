@@ -10,13 +10,11 @@
 private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
     typealias Value = Update<Change>
 
-    let owner: Signaler
     var isInTransaction: Bool
 
-    init(owner: Signaler, isInTransaction: Bool) {
-        self.owner = owner
+    init(owner: SignalDelegate, isInTransaction: Bool) {
         self.isInTransaction = isInTransaction
-        super.init(holder: owner)
+        super.init(delegate: owner)
     }
 
     func begin() {
@@ -55,18 +53,38 @@ private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
     }
 }
 
+private final class UpdateSource<Change: ChangeType>: _AbstractSource<Update<Change>> {
+    let owner: AnyObject
+    let signal: TransactionSignal<Change>
+
+    init(owner: AnyObject, signal: TransactionSignal<Change>) {
+        self.owner = owner
+        self.signal = signal
+    }
+
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        signal.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Update<Change>> where Sink.Value == Update<Change> {
+        return signal.remove(sink)
+    }
+
+}
+
 internal struct TransactionState<Change: ChangeType> {
-    fileprivate weak var signal: TransactionSignal<Change>? = nil
+    fileprivate var signal: TransactionSignal<Change>? = nil
     private var transactionCount = 0
 
-    mutating func source(retaining owner: Signaler) -> AnySource<Update<Change>> {
+    mutating func source(delegate: SignalDelegate) -> AnySource<Update<Change>> {
         if let signal = self.signal {
-            assert(signal.owner === owner)
-            return signal.anySource
+            assert(signal.delegate === delegate)
+            return UpdateSource(owner: delegate, signal: signal).anySource
         }
-        let signal = TransactionSignal<Change>(owner: owner, isInTransaction: self.isChanging)
+        let signal = TransactionSignal<Change>(owner: delegate, isInTransaction: self.isChanging)
         self.signal = signal
-        return signal.anySource
+        return UpdateSource(owner: delegate, signal: signal).anySource
     }
 
     var isChanging: Bool { return transactionCount > 0 }
@@ -119,13 +137,13 @@ internal struct TransactionState<Change: ChangeType> {
     }
 }
 
-open class TransactionalSource<Change: ChangeType>: _AbstractSource<Update<Change>>, Signaler {
+open class TransactionalSource<Change: ChangeType>: _AbstractSource<Update<Change>>, SignalDelegate {
     public typealias Value = Update<Change>
 
     internal var state = TransactionState<Change>()
 
     public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        state.source(retaining: self).add(sink)
+        state.source(delegate: self).add(sink)
     }
 
     @discardableResult
@@ -139,4 +157,3 @@ open class TransactionalSource<Change: ChangeType>: _AbstractSource<Update<Chang
     func deactivate() {
     }
 }
-

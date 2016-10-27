@@ -29,7 +29,7 @@ class ValueMappingTests: XCTestCase {
 
         XCTAssertEqual(title.value, "FOO")
 
-        let mock = MockValueObserver(title)
+        let mock = MockValueUpdateSink(title)
 
         mock.expecting(.init(from: "FOO", to: "BAR")) {
             book.title.value = "bar"
@@ -45,7 +45,7 @@ class ValueMappingTests: XCTestCase {
 
         XCTAssertEqual(title.value, "FOO")
 
-        let mock = MockValueObserver(title)
+        let mock = MockValueUpdateSink(title)
 
         mock.expecting(.init(from: "FOO", to: "BAR")) {
             book.title.value = "bar"
@@ -100,7 +100,7 @@ class ValueMappingTests: XCTestCase {
 
         XCTAssertEqual(title.value, "BOOK")
 
-        let mock = MockValueObserver(title)
+        let mock = MockValueUpdateSink(title)
 
         mock.expecting(.init(from: "BOOK", to: "UPDATED")) {
             book.title.value = "updated"
@@ -122,7 +122,7 @@ class ValueMappingTests: XCTestCase {
 
         XCTAssertEqual(title.value, "book")
 
-        let mock = MockValueObserver(title)
+        let mock = MockValueUpdateSink(title)
 
         mock.expecting(.init(from: "book", to: "updated")) {
             title.value = "updated"

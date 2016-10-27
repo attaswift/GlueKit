@@ -48,8 +48,8 @@ class TypeHelperTests: XCTestCase {
         XCTAssertEqual(updatable.value, value0)
 
         let smock = MockSink(source)
-        let omock = MockValueObserver(observable)
-        let umock = MockValueObserver(updatable)
+        let omock = MockValueUpdateSink(observable)
+        let umock = MockValueUpdateSink(updatable)
 
         smock.expecting(value1) {
             omock.expecting(.init(from: value0, to: value1)) {

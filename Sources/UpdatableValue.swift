@@ -31,12 +31,10 @@ public struct AnyUpdatableValue<Value>: UpdatableValueType {
     }
 
     public init(getter: @escaping (Void) -> Value,
-                setter: @escaping (Value) -> Void,
-                transaction: @escaping (() -> Void) -> Void,
+                apply: @escaping (Update<ValueChange<Value>>) -> Void,
                 updates: @escaping (Void) -> ValueUpdateSource<Value>) {
         self.box = UpdatableClosureBox(getter: getter,
-                                       setter: setter,
-                                       transaction: transaction,
+                                       apply: apply,
                                        updates: updates)
     }
 
@@ -50,8 +48,8 @@ public struct AnyUpdatableValue<Value>: UpdatableValueType {
         nonmutating set { box.value = newValue }
     }
 
-    public func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return box.withTransaction(body)
+    public func apply(_ update: Update<Change>) {
+        box.apply(update)
     }
 
     public var updates: ValueUpdateSource<Value> {
@@ -78,20 +76,42 @@ open class _AbstractUpdatableValue<Value>: _AbstractObservableValue<Value>, Upda
         get { abstract() }
         set { abstract() }
     }
-    open func withTransaction<Result>(_ body: () -> Result) -> Result { abstract() }
+    open func apply(_ update: Update<Change>) { abstract() }
 
     public final var anyUpdatable: AnyUpdatableValue<Value> { return AnyUpdatableValue(box: self) }
 }
 
-open class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, Signaler {
+public class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, SignalDelegate {
     private var state = TransactionState<ValueChange<Value>>()
 
-    public final override var updates: ValueUpdateSource<Value> { return state.source(retaining: self) }
+    func rawGetValue() -> Value { abstract() }
+    func rawSetValue(_ value: Value) { abstract() }
 
-    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        state.begin()
-        defer { state.end() }
-        return body()
+    public final override var updates: ValueUpdateSource<Value> { return state.source(delegate: self) }
+
+    public final override var value: Value {
+        get {
+            return rawGetValue()
+        }
+        set {
+            beginTransaction()
+            let old = rawGetValue()
+            rawSetValue(newValue)
+            sendChange(ValueChange(from: old, to: newValue))
+            endTransaction()
+        }
+    }
+
+    public final override func apply(_ update: Update<Change>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            rawSetValue(change.new)
+            sendChange(change)
+        case .endTransaction:
+            state.end()
+        }
     }
 
     final func beginTransaction() {
@@ -104,6 +124,10 @@ open class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, Signaler 
 
     final func sendChange(_ change: Change) {
         state.send(change)
+    }
+
+    final func send(_ update: Update<Change>) {
+        state.send(update)
     }
 
     open func activate() {
@@ -128,8 +152,8 @@ internal class UpdatableBox<Base: UpdatableValueType>: _AbstractUpdatableValue<B
         set { base.value = newValue }
     }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return base.withTransaction(body)
+    override func apply(_ update: Update<ValueChange<Value>>) {
+        base.apply(update)
     }
 
     override var updates: ValueUpdateSource<Value> {
@@ -143,34 +167,30 @@ internal class UpdatableBox<Base: UpdatableValueType>: _AbstractUpdatableValue<B
 
 private class UpdatableClosureBox<Value>: _AbstractUpdatableValue<Value> {
     /// The getter closure for the current value of this updatable.
-    private let _getter: (Void) -> Value
-    /// The setter closure for updating the current value of this updatable.
-    private let _setter: (Value) -> Void
-    private let _transaction: (() -> Void) -> Void
+    private let _getter: () -> Value
+    private let _apply: (Update<ValueChange<Value>>) -> Void
     /// A closure returning a source providing the values of future updates to this updatable.
     private let _updates: (Void) -> ValueUpdateSource<Value>
 
-    public init(getter: @escaping (Void) -> Value,
-                setter: @escaping (Value) -> Void,
-                transaction: @escaping (() -> Void) -> Void,
+    public init(getter: @escaping () -> Value,
+                apply: @escaping (Update<ValueChange<Value>>) -> Void,
                 updates: @escaping (Void) -> ValueUpdateSource<Value>) {
         self._getter = getter
-        self._setter = setter
-        self._transaction = transaction
+        self._apply = apply
         self._updates = updates
     }
 
     override var value: Value {
         get { return _getter() }
-        set { _setter(newValue) }
+        set {
+            _apply(.beginTransaction)
+            _apply(.change(ValueChange(from: _getter(), to: newValue)))
+            _apply(.endTransaction)
+        }
     }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        var result: Result? = nil
-        _transaction {
-            result = body()
-        }
-        return result!
+    override func apply(_ update: Update<ValueChange<Value>>) {
+        _apply(update)
     }
 
     override var updates: ValueUpdateSource<Value> {

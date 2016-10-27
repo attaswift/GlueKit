@@ -87,11 +87,11 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
     }
 
     private var parentSink: AnySink<SetUpdate<Parent.Element>> {
-        return MethodSink(owner: self, identifier: 0, method: SetSortingByMappingToObservableComparable.applyParentUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: SetSortingByMappingToObservableComparable.applyParentUpdate).anySink
     }
 
     private func fieldSink(for element: Parent.Element) -> FieldSink {
-        return MethodSinkWithContext(owner: self,
+        return StrongMethodSinkWithContext(owner: self,
                                      method: SetSortingByMappingToObservableComparable.applyFieldUpdate,
                                      context: element).anySink
     }

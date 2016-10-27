@@ -22,5 +22,30 @@ public protocol UpdatableType: ObservableType {
     /// The setter is nonmutating because the value ultimately needs to be stored in a reference type anyway.
     var value: Change.Value { get nonmutating set }
 
-    func withTransaction<Result>(_ body: () -> Result) -> Result
+    func apply(_ update: Update<Change>)
+}
+
+extension UpdatableType {
+    public func withTransaction<Result>(_ body: () -> Result) -> Result {
+        apply(.beginTransaction)
+        defer { apply(.endTransaction) }
+        return body()
+    }
+
+    public func apply(_ change: Change) {
+        apply(.beginTransaction)
+        apply(.change(change))
+        apply(.endTransaction)
+    }
+}
+
+extension ObservableType {
+    public func connect<Updatable: UpdatableType>(to updatable: Updatable) -> Connection
+    where Updatable.Change == Change {
+        updatable.apply(.beginTransaction)
+        updatable.apply(.change(Change(from: updatable.value, to: self.value)))
+        let connection = updates.connect { update in updatable.apply(update) }
+        updatable.apply(.endTransaction)
+        return connection
+    }
 }

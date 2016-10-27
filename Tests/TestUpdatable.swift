@@ -9,7 +9,7 @@
 import XCTest
 @testable import GlueKit
 
-class TestUpdatable: UpdatableType, Signaler {
+class TestUpdatable: UpdatableType, SignalDelegate {
     typealias Change = TestChange
     typealias Value = Int
 
@@ -39,18 +39,24 @@ class TestUpdatable: UpdatableType, Signaler {
         _state.end()
     }
 
-    func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
-        return body()
+    func apply(_ update: Update<TestChange>) {
+        switch update {
+        case .beginTransaction:
+            _state.begin()
+        case .change(let change):
+            change.apply(on: &_value)
+            _state.send(change)
+        case .endTransaction:
+            _state.end()
+        }
     }
 
     var isConnected: Bool { return _state.isConnected }
 
-    var updates: AnySource<Update<Change>> { return _state.source(retaining: self) }
+    var updates: AnySource<Update<Change>> { return _state.source(delegate: self) }
 }
 
-class TestUpdatableValue<Value>: UpdatableValueType, Signaler {
+class TestUpdatableValue<Value>: UpdatableValueType, SignalDelegate {
     typealias Change = ValueChange<Value>
 
     var _state = TransactionState<Change>()
@@ -79,13 +85,19 @@ class TestUpdatableValue<Value>: UpdatableValueType, Signaler {
         _state.end()
     }
 
-    func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
-        return body()
+    func apply(_ update: Update<Change>) {
+        switch update {
+        case .beginTransaction:
+            _state.begin()
+        case .change(let change):
+            change.apply(on: &_value)
+            _state.send(change)
+        case .endTransaction:
+            _state.end()
+        }
     }
 
     var isConnected: Bool { return _state.isConnected }
 
-    var updates: AnySource<Update<Change>> { return _state.source(retaining: self) }
+    var updates: AnySource<Update<Change>> { return _state.source(delegate: self) }
 }

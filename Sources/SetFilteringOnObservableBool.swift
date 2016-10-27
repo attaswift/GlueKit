@@ -90,11 +90,11 @@ private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult
     }
 
     private var parentSink: AnySink<SetUpdate<Parent.Element>> {
-        return MethodSink(owner: self, identifier: 0, method: SetFilteringOnObservableBool.applyParentUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: SetFilteringOnObservableBool.applyParentUpdate).anySink
     }
 
     private func elementSink(for element: Parent.Element) -> AnySink<ValueUpdate<Bool>> {
-        return MethodSinkWithContext(owner: self, method: SetFilteringOnObservableBool.applyElementUpdate, context: element).anySink
+        return StrongMethodSinkWithContext(owner: self, method: SetFilteringOnObservableBool.applyElementUpdate, context: element).anySink
     }
 
 

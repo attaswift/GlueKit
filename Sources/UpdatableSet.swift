@@ -8,7 +8,7 @@
 
 public protocol UpdatableSetType: ObservableSetType, UpdatableType {
     var value: Base { get nonmutating set }
-    func apply(_ change: SetChange<Element>)
+    func apply(_ update: SetUpdate<Element>)
 
     // Optional members
     func remove(_ member: Element)
@@ -23,7 +23,7 @@ public protocol UpdatableSetType: ObservableSetType, UpdatableType {
     var anyUpdatableSet: AnyUpdatableSet<Element> { get }
 }
 
-extension UpdatableSetType {
+extension UpdatableSetType where Change == SetChange<Element> {
     public func remove(_ member: Element) {
         // Note: This should be kept in sync with the same member in _AbstractUpdatableSet.
         if contains(member) {
@@ -71,11 +71,14 @@ extension UpdatableSetType {
         self.apply(SetChange(removed: intersection))
     }
 
+    public func apply(_ update: ValueUpdate<Set<Element>>) {
+        self.apply(update.map { change in SetChange(from: change.old, to: change.new) })
+    }
+
     public var anyUpdatable: AnyUpdatableValue<Set<Element>> {
         return AnyUpdatableValue(
             getter: { self.value },
-            setter: { self.value = $0 },
-            transaction: { self.withTransaction($0) },
+            apply: self.apply,
             updates: { self.valueUpdates })
     }
 
@@ -105,8 +108,7 @@ public struct AnyUpdatableSet<Element: Hashable>: UpdatableSetType {
     public func isSubset(of other: Set<Element>) -> Bool { return box.isSubset(of: other) }
     public func isSuperset(of other: Set<Element>) -> Bool { return box.isSuperset(of: other) }
 
-    public func withTransaction<Result>(_ body: () -> Result) -> Result { return box.withTransaction(body) }
-    public func apply(_ change: SetChange<Element>) { box.apply(change) }
+    public func apply(_ update: SetUpdate<Element>) { box.apply(update) }
     public func remove(_ member: Element) { box.remove(member) }
     public func insert(_ member: Element) { box.insert(member) }
     public func removeAll() { box.removeAll() }
@@ -129,8 +131,7 @@ open class _AbstractUpdatableSet<Element: Hashable>: _AbstractObservableSet<Elem
         get { abstract() }
         set { abstract() }
     }
-    open func withTransaction<Result>(_ body: () -> Result) -> Result { abstract() }
-    open func apply(_ change: SetChange<Element>) { abstract() }
+    open func apply(_ update: SetUpdate<Element>) { abstract() }
 
     open func remove(_ member: Element) {
         // Note: This should be kept in sync with the same member in the UpdatableSetType extension above.
@@ -182,8 +183,7 @@ open class _AbstractUpdatableSet<Element: Hashable>: _AbstractObservableSet<Elem
     open var anyUpdatable: AnyUpdatableValue<Set<Element>> {
         return AnyUpdatableValue(
             getter: { self.value },
-            setter: { self.value = $0 },
-            transaction: { self.withTransaction($0) },
+            apply: self.apply,
             updates: { self.valueUpdates })
     }
 
@@ -192,17 +192,25 @@ open class _AbstractUpdatableSet<Element: Hashable>: _AbstractObservableSet<Elem
     }
 }
 
-open class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, Signaler {
+public class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, SignalDelegate {
     private var state = TransactionState<SetChange<Element>>()
 
+    func rawApply(_ change: SetChange<Element>) { abstract() }
+
     public final override var updates: SetUpdateSource<Element> {
-        return state.source(retaining: self)
+        return state.source(delegate: self)
     }
 
-    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        state.begin()
-        defer { state.end() }
-        return body()
+    public final override func apply(_ update: Update<SetChange<Element>>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            rawApply(change)
+            sendChange(change)
+        case .endTransaction:
+            state.end()
+        }
     }
 
     final var isConnected: Bool {
@@ -247,8 +255,7 @@ class UpdatableSetBox<Contents: UpdatableSetType>: _AbstractUpdatableSet<Content
         set { contents.value = newValue }
     }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result { return contents.withTransaction(body) }
-    override func apply(_ change: SetChange<Element>) { contents.apply(change) }
+    override func apply(_ update: SetUpdate<Element>) { contents.apply(update) }
 
     override func remove(_ member: Element) { contents.remove(member) }
     override func insert(_ member: Element) { contents.insert(member) }

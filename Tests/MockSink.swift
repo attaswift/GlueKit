@@ -10,43 +10,55 @@ import Foundation
 import XCTest
 import GlueKit
 
-class MockSink<Value: Equatable>: SinkType {
+class TransformedMockSink<Value, Output: Equatable>: SinkType {
+    let transform: (Value) -> Output
+
     var isExpecting = false
-    var expected: [Value] = []
-    var actual: [Value] = []
+    var expected: [Output] = []
+    var actual: [Output] = []
 
     var connection: Connection? = nil
 
-    init() {
+    init(_ transform: @escaping (Value) -> Output) {
+        self.transform = transform
     }
 
-    init<Source: SourceType>(_ source: Source) where Source.Value == Value {
-        self.connection = source.connect { [unowned self] value in self.actual.append(value) }
+    init<Source: SourceType>(_ source: Source, _ transform: @escaping (Value) -> Output) where Source.Value == Value {
+        self.transform = transform
+        self.connection = source.connect { [unowned self] input in self.receive(input) }
     }
 
     deinit {
         self.connection?.disconnect()
     }
 
-    func receive(_ value: Value) {
+    func disconnect() {
+        self.connection?.disconnect()
+        self.connection = nil
+    }
+
+    func receive(_ input: Value) {
         if !isExpecting {
-            XCTFail("Sink received unexpected value: \(value)")
+            XCTFail("Sink received unexpected value: \(input)")
         }
         else {
-            self.actual.append(value)
+            self.actual.append(transform(input))
         }
     }
 
+    @discardableResult
     func expectingNothing<R>(file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
         return try run(file: file, line: line, body)
     }
 
-    func expecting<R>(_ value: Value, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+    @discardableResult
+    func expecting<R>(_ value: Output, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
         expected.append(value)
         return try run(file: file, line: line, body)
     }
 
-    func expecting<R>(_ values: [Value], file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+    @discardableResult
+    func expecting<R>(_ values: [Output], file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
         expected.append(contentsOf: values)
         return try run(file: file, line: line, body)
     }
@@ -60,5 +72,15 @@ class MockSink<Value: Equatable>: SinkType {
             isExpecting = false
         }
         return try body()
+    }
+}
+
+class MockSink<Value: Equatable>: TransformedMockSink<Value, Value> {
+    init() {
+        super.init({ $0 })
+    }
+
+    init<Source: SourceType>(_ source: Source) where Source.Value == Value {
+        super.init(source, { $0 })
     }
 }

@@ -18,6 +18,82 @@ public extension ObservableValueType where Change == ValueChange<Value>, Value: 
     }
 }
 
+private class DistinctSinkState<V> {
+    typealias Value = ValueUpdate<V>
+
+    let areEquivalent: (V, V) -> Bool
+    var pending: ValueChange<V>? = nil
+
+    init(_ areEquivalent: @escaping (V, V) -> Bool) {
+        self.areEquivalent = areEquivalent
+    }
+
+    fileprivate func applyUpdate<Sink: SinkType>(_ update: Value, _ sink: Sink) where Sink.Value == Value {
+        switch update {
+        case .beginTransaction:
+            precondition(pending == nil)
+            sink.receive(update)
+        case .change(let change):
+            if pending == nil {
+                pending = change
+            }
+            else {
+                pending!.merge(with: change)
+            }
+        case .endTransaction:
+            if let change = pending, !areEquivalent(change.old, change.new) {
+                sink.receive(.change(change))
+            }
+            pending = nil
+            sink.receive(update)
+        }
+    }
+}
+
+private struct DistinctSink<V, Sink: SinkType>: SinkType where Sink.Value == ValueUpdate<V> {
+    typealias Value = ValueUpdate<V>
+
+    let owner: AnyObject
+    let sink: Sink
+    let state: DistinctSinkState<V>?
+
+    func receive(_ update: Value) {
+        state?.applyUpdate(update, sink)
+    }
+
+    var hashValue: Int {
+        return Int.baseHash.mixed(with: ObjectIdentifier(owner)).mixed(with: sink)
+    }
+
+    static func ==(left: DistinctSink, right: DistinctSink) -> Bool {
+        return left.owner === right.owner && left.sink == right.sink
+    }
+}
+
+private class DistinctUpdateSource<V>: _AbstractSource<ValueUpdate<V>> {
+    typealias Value = ValueUpdate<V>
+
+    let owner: AnyObject
+    let areEquivalent: (V, V) -> Bool
+    let target: AnySource<Value>
+
+    init(owner: AnyObject, areEquivalent: @escaping (V, V) -> Bool, target: AnySource<ValueUpdate<V>>) {
+        self.owner = owner
+        self.areEquivalent = areEquivalent
+        self.target = target
+    }
+
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+        target.add(DistinctSink(owner: owner, sink: sink, state: DistinctSinkState(areEquivalent)))
+    }
+
+    override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+        let old = target.remove(DistinctSink(owner: owner, sink: sink, state: nil))
+        let opened = old.opened(as: DistinctSink<V, Sink>.self)!
+        return opened.sink.anySink
+    }
+}
+
 private class DistinctObservableValue<Input: ObservableValueType>: _AbstractObservableValue<Input.Value> where Input.Change == ValueChange<Input.Value> {
     typealias Value = Input.Value
 
@@ -34,7 +110,7 @@ private class DistinctObservableValue<Input: ObservableValueType>: _AbstractObse
     }
 
     override var updates: ValueUpdateSource<Value> {
-        return input.updates.flatMap { update in update.filter { !self.areEquivalent($0.old, $0.new) } }
+        return DistinctUpdateSource<Value>(owner: self, areEquivalent: areEquivalent, target: input.updates).anySource
     }
 }
 
@@ -70,12 +146,11 @@ private class DistinctUpdatableValue<Input: UpdatableValueType>: _AbstractUpdata
         }
     }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return input.withTransaction(body)
+    override func apply(_ update: Update<ValueChange<Input.Value>>) {
+        input.apply(update)
     }
 
-
     override var updates: ValueUpdateSource<Value> {
-        return input.updates.flatMap { update in update.filter { !self.areEquivalent($0.old, $0.new) } }
+        return DistinctUpdateSource<Value>(owner: self, areEquivalent: areEquivalent, target: input.updates).anySource
     }
 }

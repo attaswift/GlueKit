@@ -9,7 +9,7 @@
 import XCTest
 @testable import GlueKit
 
-class TestObservable: ObservableType, Signaler {
+class TestObservable: ObservableType, SignalDelegate {
     typealias Change = TestChange
     typealias Value = Int
 
@@ -41,10 +41,10 @@ class TestObservable: ObservableType, Signaler {
 
     var isConnected: Bool { return _state.isConnected }
 
-    var updates: AnySource<Update<Change>> { return _state.source(retaining: self) }
+    var updates: AnySource<Update<Change>> { return _state.source(delegate: self) }
 }
 
-class TestObservableValue<Value>: ObservableValueType, Signaler {
+class TestObservableValue<Value>: ObservableValueType, SignalDelegate {
     typealias Change = ValueChange<Value>
 
     var _state = TransactionState<Change>()
@@ -75,6 +75,5 @@ class TestObservableValue<Value>: ObservableValueType, Signaler {
 
     var isConnected: Bool { return _state.isConnected }
 
-    var updates: AnySource<Update<Change>> { return _state.source(retaining: self) }
+    var updates: AnySource<Update<Change>> { return _state.source(delegate: self) }
 }
-

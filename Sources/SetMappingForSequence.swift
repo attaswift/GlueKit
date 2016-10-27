@@ -34,7 +34,7 @@ class SetMappingForSequence<Parent: ObservableSetType, Result: Sequence>: SetMap
     }
 
     private var sink: AnySink<SetUpdate<Parent.Element>> {
-        return MethodSink(owner: self, identifier: 0, method: SetMappingForSequence.apply).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: SetMappingForSequence.apply).anySink
     }
 
     private func apply(_ update: SetUpdate<Parent.Element>) {

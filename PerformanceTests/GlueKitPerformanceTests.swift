@@ -126,14 +126,14 @@ class SignalSubscriptionTests: XCTestCase {
 
             self.startMeasuring()
             for i in 0 ..< count {
-                signal.add(MethodSink(owner: object, identifier: i, method: TestSink.receive))
+                signal.add(StrongMethodSink(owner: object, identifier: i, method: TestSink.receive))
             }
             self.stopMeasuring()
 
             signal.send(1)
 
             for i in 0 ..< count {
-                signal.remove(MethodSink(owner: object, identifier: i, method: TestSink.receive))
+                signal.remove(StrongMethodSink(owner: object, identifier: i, method: TestSink.receive))
             }
 
             XCTAssertFalse(signal.isConnected)

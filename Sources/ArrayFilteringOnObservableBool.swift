@@ -80,7 +80,7 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
     }
 
     private var parentSink: AnySink<ArrayUpdate<Element>> {
-        return MethodSink(owner: self, identifier: 0, method: ArrayFilteringOnObservableBool.applyParentUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: ArrayFilteringOnObservableBool.applyParentUpdate).anySink
     }
 
     private func applyParentUpdate(_ update: ArrayUpdate<Element>) {

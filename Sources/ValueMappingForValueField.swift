@@ -91,10 +91,10 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
     }
 
     private var parentSink: AnySink<ValueUpdate<Parent.Value>> {
-        return MethodSink(owner: self, identifier: 0, method: ValueMappingForValueField.applyParentUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: ValueMappingForValueField.applyParentUpdate).anySink
     }
     private var fieldSink: AnySink<ValueUpdate<Field.Value>> {
-        return MethodSink(owner: self, identifier: 1, method: ValueMappingForValueField.applyFieldUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 1, method: ValueMappingForValueField.applyFieldUpdate).anySink
     }
 
     private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
@@ -186,8 +186,8 @@ private final class ValueMappingForUpdatableField<Parent: ObservableValueType, F
         }
     }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return _observable.key(_observable.parent.value).withTransaction(body)
+    override func apply(_ update: Update<ValueChange<Field.Value>>) {
+        return _observable.key(_observable.parent.value).apply(update)
     }
 
     override var updates: ValueUpdateSource<Value> {

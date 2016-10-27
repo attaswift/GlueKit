@@ -37,7 +37,7 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: _BaseObser
     }
 
     private var sink: AnySink<ArrayUpdate<Element>> {
-        return MethodSink(owner: self, identifier: 0, method: BufferedObservableArray<Content>.applyUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: BufferedObservableArray<Content>.applyUpdate).anySink
     }
 
     private func applyUpdate(_ update: ArrayUpdate<Element>) {

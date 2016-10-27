@@ -11,7 +11,7 @@ extension UpdatableValueType where Change == ValueChange<Value> {
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, you must provide an equality test that returns true if two values are to be
     /// considered equivalent.
-    public func bind<Target: UpdatableValueType>(_ target: Target, by areEquivalent: @escaping (Value, Value) -> Bool) -> Connection where Target.Value == Value, Target.Change == ValueChange<Value> {
+    public func bind<Target: UpdatableValueType>(to target: Target, by areEquivalent: @escaping (Value, Value) -> Bool) -> Connection where Target.Value == Value, Target.Change == ValueChange<Value> {
         return BindConnection(source: self, target: target, by: areEquivalent)
     }
 }
@@ -37,19 +37,20 @@ class BindConnection<Source: UpdatableValueType, Target: UpdatableValueType>: Co
 where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
     typealias Value = Source.Value
 
-    let source: Source
-    let target: Target
-    let forwardSink: BindSink<Target>
-    let backwardSink: BindSink<Source>
+    var source: AnySource<Value>?
+    var target: AnySource<Value>?
+
+    var forwardSink: BindSink<Target>?
+    var backwardSink: BindSink<Source>?
 
     init(source: Source, target: Target, by areEquivalent: @escaping (Value, Value) -> Bool) {
-        self.source = source
-        self.target = target
+        self.source = source.futureValues
+        self.target = target.futureValues
         self.forwardSink = BindSink(target: target, by: areEquivalent)
         self.backwardSink = BindSink(target: source, by: areEquivalent)
 
-        source.futureValues.add(self.forwardSink)
-        target.futureValues.add(self.backwardSink)
+        self.source!.add(self.forwardSink!)
+        self.target!.add(self.backwardSink!)
         if !areEquivalent(source.value, target.value) {
             target.value = source.value
         }
@@ -60,8 +61,16 @@ where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, 
     }
 
     override func disconnect() {
-        source.futureValues.remove(forwardSink)
-        target.futureValues.remove(backwardSink)
+        if let source = self.source, let sink = self.forwardSink {
+            source.remove(sink)
+        }
+        if let source = self.target, let sink = self.backwardSink {
+            source.remove(sink)
+        }
+        self.source = nil
+        self.target = nil
+        self.forwardSink = nil
+        self.backwardSink = nil
     }
 }
 
@@ -70,19 +79,19 @@ extension UpdatableValueType where Value: Equatable, Change == ValueChange<Value
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, the variables aren't synched when a bound variable is set to a value that is equal
     /// to the value of its counterpart.
-    public func bind<Target: UpdatableValueType>(_ target: Target) -> Connection where Target.Value == Value, Target.Change == ValueChange<Value> {
-        return self.bind(target, by: ==)
+    public func bind<Target: UpdatableValueType>(to target: Target) -> Connection where Target.Value == Value, Target.Change == ValueChange<Value> {
+        return self.bind(to: target, by: ==)
     }
 }
 
 extension Connector {
     public func bind<Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target, by areEquivalent: @escaping (Source.Value, Source.Value) -> Bool)
         where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
-            source.bind(target, by: areEquivalent).putInto(self)
+            source.bind(to: target, by: areEquivalent).putInto(self)
     }
 
     public func bind<Value: Equatable, Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target)
         where Source.Value == Value, Target.Value == Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
-            source.bind(target).putInto(self)
+            source.bind(to: target).putInto(self)
     }
 }

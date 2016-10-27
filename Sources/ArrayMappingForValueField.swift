@@ -91,7 +91,7 @@ private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field
     }
 
     private var parentSink: AnySink<ArrayUpdate<Parent.Element>> {
-        return MethodSink(owner: self, identifier: 0, method: ArrayMappingForValueField.applyParentUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: ArrayMappingForValueField.applyParentUpdate).anySink
     }
     private func applyParentUpdate(_ update: ArrayUpdate<Parent.Element>) {
         switch update {

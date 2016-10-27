@@ -58,7 +58,7 @@ private class SetFoldingByTwoWayFunction<Parent: ObservableSetType, Value>: _Bas
     }
 
     private var sink: AnySink<SetUpdate<Parent.Element>> {
-        return MethodSink(owner: self, identifier: 0, method: SetFoldingByTwoWayFunction.apply).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: SetFoldingByTwoWayFunction.apply).anySink
     }
 
     private func apply(_ update: SetUpdate<Parent.Element>) {

@@ -101,8 +101,8 @@ open class _AbstractSource<Value>: SourceType {
     }
 }
 
-open class SignalerSource<Value>: _AbstractSource<Value>, Signaler {
-    internal lazy var signal: Signal<Value> = .init(holder: self)
+open class SignalerSource<Value>: _AbstractSource<Value>, SignalDelegate {
+    internal lazy var signal: Signal<Value> = .init(delegate: self)
 
     public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
         self.signal.add(sink)

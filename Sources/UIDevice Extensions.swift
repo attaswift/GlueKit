@@ -31,7 +31,7 @@ private final class ObservableDeviceOrientation: _BaseObservableValue<UIDeviceOr
     }
 
     var sink: AnySink<Notification> {
-        return MethodSink(owner: self, identifier: 0, method: ObservableDeviceOrientation.receive).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: ObservableDeviceOrientation.receive).anySink
     }
 
     func receive(_ notification: Notification) {
@@ -92,7 +92,7 @@ private final class ObservableBatteryState: _BaseObservableValue<(UIDeviceBatter
     }
 
     var sink: AnySink<Notification> {
-        return MethodSink(owner: self, identifier: 0, method: ObservableBatteryState.receive).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: ObservableBatteryState.receive).anySink
     }
 
     func receive(_ notification: Notification) {
@@ -159,7 +159,7 @@ private final class ObservableDeviceProximity: _BaseObservableValue<Bool> {
     }
 
     var sink: AnySink<Notification> {
-        return MethodSink(owner: self, identifier: 0, method: ObservableDeviceProximity.receive).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: ObservableDeviceProximity.receive).anySink
     }
 
     func receive(_ notification: Notification) {

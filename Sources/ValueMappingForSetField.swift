@@ -56,11 +56,11 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
     }
 
     private var parentSink: AnySink<ValueUpdate<Parent.Value>> {
-        return MethodSink(owner: self, identifier: 0, method: UpdateSourceForSetField.applyParentUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: UpdateSourceForSetField.applyParentUpdate).anySink
     }
 
     private var fieldSink: AnySink<SetUpdate<Field.Element>> {
-        return MethodSink(owner: self, identifier: 0, method: UpdateSourceForSetField.applyFieldUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: UpdateSourceForSetField.applyFieldUpdate).anySink
     }
 
     private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
@@ -124,10 +124,7 @@ private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType
     override func isSubset(of other: Set<Element>) -> Bool { return field.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return field.isSuperset(of: other) }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return field.withTransaction(body)
-    }
-    override func apply(_ change: SetChange<Element>) { field.apply(change) }
+    override func apply(_ update: SetUpdate<Element>) { field.apply(update) }
 
     override func remove(_ member: Element) { field.remove(member) }
     override func insert(_ member: Element) { field.insert(member) }

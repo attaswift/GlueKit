@@ -38,7 +38,7 @@ public extension NSObject {
 
 }
 
-private class KVOUpdatable: NSObject, UpdatableValueType, Signaler {
+private class KVOUpdatable: NSObject, UpdatableValueType, SignalDelegate {
     typealias Value = Any?
     typealias Change = ValueChange<Any?>
 
@@ -62,13 +62,18 @@ private class KVOUpdatable: NSObject, UpdatableValueType, Signaler {
         }
     }
 
-    func withTransaction<Result>(_ body: () -> Result) -> Result {
-        state.begin()
-        defer { state.end() }
-        return body()
+    func apply(_ update: Update<ValueChange<Any?>>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            object.setValue(change.new, forKeyPath: keyPath)
+        case .endTransaction:
+            state.end()
+        }
     }
 
-    var updates: ValueUpdateSource<Any?> { return state.source(retaining: self) }
+    var updates: ValueUpdateSource<Any?> { return state.source(delegate: self) }
 
     func activate() {
         object.addObserver(self, forKeyPath: keyPath, options: [.old, .new, .prior], context: &context)

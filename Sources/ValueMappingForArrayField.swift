@@ -82,11 +82,11 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
     }
 
     var parentSink: AnySink<ValueUpdate<Parent.Value>> {
-        return MethodSink(owner: self, identifier: 1, method: UpdateSourceForArrayField.applyParentUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 1, method: UpdateSourceForArrayField.applyParentUpdate).anySink
     }
 
     var fieldSink: AnySink<ArrayUpdate<Field.Element>> {
-        return MethodSink(owner: self, identifier: 1, method: UpdateSourceForArrayField.applyFieldUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 1, method: UpdateSourceForArrayField.applyFieldUpdate).anySink
     }
 
     private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
@@ -163,6 +163,5 @@ private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Fi
     override var count: Int { return field.count }
     override var observableCount: AnyObservableValue<Int> { return parent.map { self.key($0).observableCount } }
     override var updates: ArrayUpdateSource<Element> { return _updateSource.anySource }
-    override func withTransaction<Result>(_ body: () -> Result) -> Result { return field.withTransaction(body) }
-    override func apply(_ change: ArrayChange<Field.Element>) { field.apply(change) }
+    override func apply(_ update: Update<ArrayChange<Field.Element>>) { field.apply(update) }
 }

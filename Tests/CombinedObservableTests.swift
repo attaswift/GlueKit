@@ -17,7 +17,7 @@ class CombinedObservableTests: XCTestCase {
 
         let combined = a.combined(b) { a, b in "\(a),\(b)" }
 
-        let mock = MockValueObserver(combined)
+        let mock = MockValueUpdateSink(combined)
 
         mock.expecting(.init(from: "1,2", to: "3,2")) {
             a.value = 3
@@ -187,7 +187,7 @@ class CombinedObservableTests: XCTestCase {
 
         XCTAssertEqual(n.value, -1)
 
-        let mock = MockValueObserver(n)
+        let mock = MockValueUpdateSink(n)
 
         mock.expecting(.init(from: -1, to: -2)) {
             a.value = 2

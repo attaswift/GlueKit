@@ -57,8 +57,8 @@ private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Va
         }
     }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return parent.withTransaction(body)
+    override func apply(_ update: Update<ValueChange<Value>>) {
+        parent.apply(update.map { change in change.map(inverse) })
     }
 
     override var updates: ValueUpdateSource<Value> {

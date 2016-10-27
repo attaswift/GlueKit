@@ -34,7 +34,7 @@ private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _Bas
     }
 
     private var parentSink: AnySink<ArrayUpdate<Element>> {
-        return MethodSink(owner: self, identifier: 0, method: ArrayFilteringOnPredicate.apply).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: ArrayFilteringOnPredicate.apply).anySink
     }
 
     private func apply(_ update: ArrayUpdate<Element>) {

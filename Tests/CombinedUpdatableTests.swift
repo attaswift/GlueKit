@@ -22,7 +22,7 @@ class CombinedUpdatableTests: XCTestCase {
         combined.value = 12
         XCTAssertEqual(combined.value, 12)
 
-        let mock = MockValueObserver(combined)
+        let mock = MockValueUpdateSink(combined)
 
         mock.expecting(.init(from: 12, to: 32)) {
             a.value = 3

@@ -69,8 +69,10 @@ private struct ChangesSink<Wrapped: SinkType>: SinkType where Wrapped.Value: Cha
     }
 }
 
-internal class ChangesSource<Change: ChangeType, Updates: SourceType>: _AbstractSource<Change> where Updates.Value == Update<Change> {
+internal class ChangesSource<Change: ChangeType, Updates: SourceType>: _AbstractSource<Change>
+where Updates.Value == Update<Change> {
     let updates: Updates
+
     init(_ updates: Updates) {
         self.updates = updates
     }
@@ -85,4 +87,3 @@ internal class ChangesSource<Change: ChangeType, Updates: SourceType>: _Abstract
         return old.wrapped.anySink
     }
 }
-

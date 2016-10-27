@@ -21,8 +21,8 @@
 public protocol UpdatableArrayType: ObservableArrayType, UpdatableType {
 
     // Required members
-    func apply(_ change: ArrayChange<Element>)
     var value: [Element] { get nonmutating set }
+    func apply(_ update: ArrayUpdate<Element>)
     subscript(index: Int) -> Element { get nonmutating set }
     subscript(bounds: Range<Int>) -> ArraySlice<Element> { get nonmutating set }
 
@@ -32,14 +32,15 @@ public protocol UpdatableArrayType: ObservableArrayType, UpdatableType {
     var anyUpdatableArray: AnyUpdatableArray<Element> { get }
 }
 
-extension UpdatableArrayType {
+extension UpdatableArrayType where Change == ArrayChange<Element> {
+    public func apply(_ update: Update<ValueChange<[Element]>>) {
+        self.apply(update.map { change in ArrayChange(from: change.old, to: change.new) })
+    }
+
     public var anyUpdatable: AnyUpdatableValue<[Element]> {
-        return AnyUpdatableValue(
-            getter: { self.value },
-            setter: { self.value = $0 },
-            transaction: { self.withTransaction($0) },
-            updates: { self.valueUpdates }
-        )
+        return AnyUpdatableValue(getter: { self.value },
+                                 apply: self.apply,
+                                 updates: { self.valueUpdates })
     }
 
     public var anyUpdatableArray: AnyUpdatableArray<Element> {
@@ -143,14 +144,6 @@ public struct AnyUpdatableArray<Element>: UpdatableArrayType {
     public var count: Int { return box.count }
     public var updates: ArrayUpdateSource<Element> { return box.updates }
 
-    public func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return self.box.withTransaction(body)
-    }
-
-    public func apply(_ change: ArrayChange<Element>) {
-        box.apply(change)
-    }
-
     public var value: [Element] {
         get { return box.value }
         nonmutating set { box.value = newValue }
@@ -165,6 +158,10 @@ public struct AnyUpdatableArray<Element>: UpdatableArrayType {
         nonmutating set { box[bounds] = newValue }
     }
 
+    public func apply(_ update: Update<ArrayChange<Element>>) {
+        self.box.apply(update)
+    }
+
     public var observableCount: AnyObservableValue<Int> { return box.observableCount }
 
     public var anyObservable: AnyObservableValue<Array<Element>> { return box.anyObservable }
@@ -174,10 +171,6 @@ public struct AnyUpdatableArray<Element>: UpdatableArrayType {
 }
 
 open class _AbstractUpdatableArray<Element>: _AbstractObservableArray<Element>, UpdatableArrayType {
-
-    open func apply(_ change: ArrayChange<Element>) { abstract() }
-
-    open func withTransaction<Result>(_ body: () -> Result) -> Result { abstract() }
 
     open override var value: [Element] {
         get { abstract() }
@@ -192,10 +185,11 @@ open class _AbstractUpdatableArray<Element>: _AbstractObservableArray<Element>, 
         set { abstract() }
     }
 
+    open func apply(_ update: ArrayUpdate<Element>) { abstract() }
+
     open var anyUpdatable: AnyUpdatableValue<[Element]> {
         return AnyUpdatableValue(getter: { self.value },
-                                 setter: { self.value = $0 },
-                                 transaction: { self.withTransaction($0) },
+                                 apply: self.apply,
                                  updates: { self.valueUpdates })
     }
 
@@ -204,17 +198,25 @@ open class _AbstractUpdatableArray<Element>: _AbstractObservableArray<Element>, 
     }
 }
 
-open class _BaseUpdatableArray<Element>: _AbstractUpdatableArray<Element>, Signaler {
+public class _BaseUpdatableArray<Element>: _AbstractUpdatableArray<Element>, SignalDelegate {
     private var state = TransactionState<ArrayChange<Element>>()
 
+    func rawApply(_ change: ArrayChange<Element>) { abstract() }
+
     public final override var updates: ArrayUpdateSource<Element> {
-        return state.source(retaining: self)
+        return state.source(delegate: self)
     }
 
-    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        state.begin()
-        defer { state.end() }
-        return body()
+    public final override func apply(_ update: Update<ArrayChange<Element>>) {
+        switch update {
+        case .beginTransaction:
+            self.beginTransaction()
+        case .change(let change):
+            self.rawApply(change)
+            self.sendChange(change)
+        case .endTransaction:
+            self.endTransaction()
+        }
     }
 
     final var isConnected: Bool {
@@ -251,12 +253,8 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: _AbstractUpdatab
         self.contents = contents
     }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return contents.withTransaction(body)
-    }
-
-    override func apply(_ change: ArrayChange<Element>) {
-        contents.apply(change)
+    override func apply(_ update: ArrayUpdate<Element>) {
+        contents.apply(update)
     }
 
     override var value: [Element] {

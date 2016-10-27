@@ -105,10 +105,10 @@ open class _AbstractObservableValue<Value>: ObservableValueType {
     }
 }
 
-open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, Signaler {
+open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, SignalDelegate {
     private var state = TransactionState<ValueChange<Value>>()
 
-    public final override var updates: ValueUpdateSource<Value> { return state.source(retaining: self) }
+    public final override var updates: ValueUpdateSource<Value> { return state.source(delegate: self) }
 
     final func beginTransaction() {
         state.begin()
@@ -120,6 +120,10 @@ open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, Signale
 
     final func sendChange(_ change: Change) {
         state.send(change)
+    }
+
+    final func send(_ update: Update<Change>) {
+        state.send(update)
     }
 
     open func activate() {
@@ -176,15 +180,4 @@ private class ConstantObservable<Value>: _AbstractObservableValue<Value> {
     }
 }
 
-extension Connector {
-    @discardableResult
-    public func connect<Source: SourceType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
-        return source.connect(sink).putInto(self)
-    }
-
-    @discardableResult
-    public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Observable.Change) -> Void) -> Connection {
-        return observable.changes.connect(sink).putInto(self)
-    }
-}
 

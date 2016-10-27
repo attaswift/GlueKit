@@ -19,19 +19,13 @@ public class Variable<Value>: _BaseUpdatableValue<Value> {
     public init(_ value: Value) {
         _value = value
     }
-
-    /// The current value of the variable.
-    public final override var value: Value {
-        get { return _value }
-        set {
-            let old = _value
-            beginTransaction()
-            _value = newValue
-            sendChange(Change(from: old, to: _value))
-            endTransaction()
-        }
+    override func rawGetValue() -> Value {
+        return _value
     }
-}
+    override func rawSetValue(_ value: Value) {
+        _value = value
+    }
+ }
 
 /// An unowned variable contains an unowned reference to an object that can be read and updated. Updates are observable.
 public class UnownedVariable<Value: AnyObject>: _BaseUpdatableValue<Value> {
@@ -43,17 +37,11 @@ public class UnownedVariable<Value: AnyObject>: _BaseUpdatableValue<Value> {
     public init(_ value: Value) {
         _value = value
     }
-
-    /// The current value of the variable.
-    public final override var value: Value {
-        get { return _value }
-        set {
-            let old = _value
-            beginTransaction()
-            _value = newValue
-            sendChange(Change(from: old, to: _value))
-            endTransaction()
-        }
+    override func rawGetValue() -> Value {
+        return _value
+    }
+    override func rawSetValue(_ value: Value) {
+        _value = value
     }
 }
 
@@ -76,16 +64,11 @@ public class WeakVariable<Object: AnyObject>: _BaseUpdatableValue<Object?> {
         super.init()
     }
 
-    /// The current value of the variable.
-    public final override var value: Value {
-        get { return _value }
-        set {
-            let old = _value
-            beginTransaction()
-            _value = newValue
-            sendChange(Change(from: old, to: _value))
-            endTransaction()
-        }
+    override func rawGetValue() -> Value {
+        return _value
+    }
+    override func rawSetValue(_ value: Value) {
+        _value = value
     }
 }
 

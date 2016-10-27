@@ -10,7 +10,7 @@ import XCTest
 import GlueKit
 
 class ChangesSourceTests: XCTestCase {
-    func testRetainsUpdates() {
+    func testRetainsObservable() {
         weak var weakObservable: TestObservable? = nil
         var changes: AnySource<TestChange>? = nil
         do {

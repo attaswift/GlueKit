@@ -69,12 +69,8 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         return _value.isSuperset(of: other)
     }
 
-    public override func apply(_ change: SetChange<Element>) {
-        guard !change.isEmpty else { return }
-        beginTransaction()
+    override func rawApply(_ change: SetChange<Element>) {
         _value.apply(change)
-        sendChange(change)
-        endTransaction()
     }
 
     public override func remove(_ member: Element) {

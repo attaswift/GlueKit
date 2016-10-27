@@ -84,13 +84,13 @@ private final class CompositeObservable<Left: ObservableValueType, Right: Observ
         _rightValue = v2
         _value = combinator(v1, v2)
 
-        left.updates.add(MethodSink(owner: self, identifier: 1, method: CompositeObservable.applyLeft))
-        right.updates.add(MethodSink(owner: self, identifier: 2, method: CompositeObservable.applyRight))
+        left.updates.add(StrongMethodSink(owner: self, identifier: 1, method: CompositeObservable.applyLeft))
+        right.updates.add(StrongMethodSink(owner: self, identifier: 2, method: CompositeObservable.applyRight))
     }
 
     internal override func deactivate() {
-        left.updates.remove(MethodSink(owner: self, identifier: 1, method: CompositeObservable.applyLeft))
-        right.updates.remove(MethodSink(owner: self, identifier: 2, method: CompositeObservable.applyRight))
+        left.updates.remove(StrongMethodSink(owner: self, identifier: 1, method: CompositeObservable.applyLeft))
+        right.updates.remove(StrongMethodSink(owner: self, identifier: 2, method: CompositeObservable.applyRight))
         _value = nil
         _leftValue = nil
         _rightValue = nil

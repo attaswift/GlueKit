@@ -161,11 +161,11 @@ open class _AbstractObservableArray<Element>: ObservableArrayType {
     public final var anyObservableArray: AnyObservableArray<Element> { return AnyObservableArray(box: self) }
 }
 
-open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, Signaler {
+open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, SignalDelegate {
     private var state = TransactionState<ArrayChange<Element>>()
 
     public final override var updates: ArrayUpdateSource<Element> {
-        return state.source(retaining: self)
+        return state.source(delegate: self)
     }
 
     final var isConnected: Bool {

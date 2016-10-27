@@ -40,7 +40,7 @@ private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Eleme
     }
 
     private var sink: AnySink<SetUpdate<Parent.Element>> {
-        return MethodSink(owner: self, identifier: 0, method: InjectiveSetMappingForValue.apply).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: InjectiveSetMappingForValue.apply).anySink
     }
 
     private func apply(_ update: SetUpdate<Parent.Element>) {
@@ -104,7 +104,7 @@ private final class SetMappingForValue<Parent: ObservableSetType, Element: Hasha
     }
 
     private var sink: AnySink<SetUpdate<Parent.Element>> {
-        return MethodSink(owner: self, identifier: 0, method: SetMappingForValue.apply).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: SetMappingForValue.apply).anySink
     }
 
     private func apply(_ update: SetUpdate<Parent.Element>) {

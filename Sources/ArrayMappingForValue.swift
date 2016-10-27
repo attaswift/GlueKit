@@ -83,7 +83,7 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
     }
 
     private var sink: AnySink<ArrayUpdate<Input>> {
-        return MethodSink(owner: self, identifier: 0, method: BufferedArrayMappingForValue.apply).anySink
+        return StrongMethodSink(owner: self, identifier: 0, method: BufferedArrayMappingForValue.apply).anySink
     }
 
     private func apply(_ update: Update<ArrayChange<Input>>) {

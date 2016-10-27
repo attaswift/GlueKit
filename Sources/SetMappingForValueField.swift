@@ -42,11 +42,11 @@ class SetMappingForValueField<Parent: ObservableSetType, Field: ObservableValueT
     }
 
     private var parentSink: AnySink<SetUpdate<Parent.Element>> {
-        return MethodSink(owner: self, identifier: 1, method: SetMappingForValueField.applyParentUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 1, method: SetMappingForValueField.applyParentUpdate).anySink
     }
 
     private var fieldSink: AnySink<ValueUpdate<Field.Value>> {
-        return MethodSink(owner: self, identifier: 2, method: SetMappingForValueField.applyFieldUpdate).anySink
+        return StrongMethodSink(owner: self, identifier: 2, method: SetMappingForValueField.applyFieldUpdate).anySink
     }
 
     private func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {

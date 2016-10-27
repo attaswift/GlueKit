@@ -69,10 +69,10 @@ final class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArr
     }
 
     private var firstSink: AnySink<ArrayUpdate<Element>> {
-        return MethodSink(owner: self, identifier: 1, method: ArrayConcatenation.applyFirst).anySink
+        return StrongMethodSink(owner: self, identifier: 1, method: ArrayConcatenation.applyFirst).anySink
     }
     private var secondSink: AnySink<ArrayUpdate<Element>> {
-        return MethodSink(owner: self, identifier: 2, method: ArrayConcatenation.applySecond).anySink
+        return StrongMethodSink(owner: self, identifier: 2, method: ArrayConcatenation.applySecond).anySink
     }
 
     private func applyFirst(_ update: ArrayUpdate<Element>) {

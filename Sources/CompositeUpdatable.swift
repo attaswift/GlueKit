@@ -55,34 +55,31 @@ where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.
         self.right = right
     }
 
-    override var value: Value {
-        get {
-            if let latest = self.latest { return latest }
-            return (left.value, right.value)
-        }
-        set {
-            beginTransaction()
-            left.withTransaction {
-                left.value = newValue.0
-                right.withTransaction {
-                    right.value = newValue.1
-                }
-            }
-            endTransaction()
-        }
+    override private func rawGetValue() -> Value {
+        if let latest = self.latest { return latest }
+        return (left.value, right.value)
+    }
+
+    override private func rawSetValue(_ value: Value) {
+        left.apply(.beginTransaction)
+        right.apply(.beginTransaction)
+        left.value = value.0
+        right.value = value.1
+        right.apply(.endTransaction)
+        left.apply(.endTransaction)
     }
 
     override func activate() {
         precondition(latest == nil)
         latest = (left.value, right.value)
-        left.updates.add(MethodSink(owner: self, identifier: 1, method: CompositeUpdatable.applyLeft))
-        right.updates.add(MethodSink(owner: self, identifier: 2, method: CompositeUpdatable.applyRight))
+        left.updates.add(StrongMethodSink(owner: self, identifier: 1, method: CompositeUpdatable.applyLeft))
+        right.updates.add(StrongMethodSink(owner: self, identifier: 2, method: CompositeUpdatable.applyRight))
     }
 
     override func deactivate() {
         precondition(latest != nil)
-        left.updates.remove(MethodSink(owner: self, identifier: 1, method: CompositeUpdatable.applyLeft))
-        right.updates.remove(MethodSink(owner: self, identifier: 2, method: CompositeUpdatable.applyRight))
+        left.updates.remove(StrongMethodSink(owner: self, identifier: 1, method: CompositeUpdatable.applyLeft))
+        right.updates.remove(StrongMethodSink(owner: self, identifier: 2, method: CompositeUpdatable.applyRight))
         latest = nil
     }
 
