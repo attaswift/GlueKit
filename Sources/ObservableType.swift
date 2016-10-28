@@ -49,3 +49,15 @@ extension ObservableType {
         return connection
     }
 }
+
+extension Connector {
+    @discardableResult
+    public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Update<Observable.Change>) -> Void) -> Connection {
+        return observable.updates.connect(sink).putInto(self)
+    }
+
+    @discardableResult
+    public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Observable.Change) -> Void) -> Connection {
+        return observable.changes.connect(sink).putInto(self)
+    }
+}

@@ -55,12 +55,12 @@ where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.
         self.right = right
     }
 
-    override private func rawGetValue() -> Value {
+    override func rawGetValue() -> Value {
         if let latest = self.latest { return latest }
         return (left.value, right.value)
     }
 
-    override private func rawSetValue(_ value: Value) {
+    override func rawSetValue(_ value: Value) {
         left.apply(.beginTransaction)
         right.apply(.beginTransaction)
         left.value = value.0

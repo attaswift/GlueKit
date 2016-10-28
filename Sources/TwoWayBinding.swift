@@ -85,13 +85,15 @@ extension UpdatableValueType where Value: Equatable, Change == ValueChange<Value
 }
 
 extension Connector {
-    public func bind<Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target, by areEquivalent: @escaping (Source.Value, Source.Value) -> Bool)
+    @discardableResult
+    public func bind<Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target, by areEquivalent: @escaping (Source.Value, Source.Value) -> Bool) -> Connection
         where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
-            source.bind(to: target, by: areEquivalent).putInto(self)
+            return source.bind(to: target, by: areEquivalent).putInto(self)
     }
 
-    public func bind<Value: Equatable, Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target)
+    @discardableResult
+    public func bind<Value: Equatable, Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target) -> Connection
         where Source.Value == Value, Target.Value == Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
-            source.bind(to: target).putInto(self)
+            return self.bind(source, to: target, by: ==)
     }
 }

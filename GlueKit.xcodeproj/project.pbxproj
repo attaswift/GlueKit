@@ -28,7 +28,7 @@
 		BB170F381DC1545E0000443E /* TransactionStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB170F371DC1545E0000443E /* TransactionStateTests.swift */; };
 		BB170F391DC1545E0000443E /* TransactionStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB170F371DC1545E0000443E /* TransactionStateTests.swift */; };
 		BB170F3A1DC1545E0000443E /* TransactionStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB170F371DC1545E0000443E /* TransactionStateTests.swift */; };
-		BB170F3B1DC220A80000443E /* MockValueUpdateSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E0A1DAAB6E700E85FB9 /* MockValueUpdateSink.swift */; };
+		BB170F3B1DC220A80000443E /* MockUpdateSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E0A1DAAB6E700E85FB9 /* MockUpdateSink.swift */; };
 		BB170F3C1DC220B20000443E /* ObservableValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9D1C8FCE2C0050DDA9 /* ObservableValueTests.swift */; };
 		BB170F3E1DC221180000443E /* ValueChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB170F3D1DC221180000443E /* ValueChangeTests.swift */; };
 		BB170F3F1DC221180000443E /* ValueChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB170F3D1DC221180000443E /* ValueChangeTests.swift */; };
@@ -128,6 +128,10 @@
 		BB82E3E81D9912FB0035DDAD /* BTree.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB82E3E71D9912FB0035DDAD /* BTree.framework */; };
 		BB82E3EA1D9913050035DDAD /* BTree.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB82E3E91D9913050035DDAD /* BTree.framework */; };
 		BB82E3EC1D99130C0035DDAD /* BTree.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB82E3EB1D99130C0035DDAD /* BTree.framework */; };
+		BB88C40E1DC3A08B00C7EC3C /* ObservableTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C40D1DC3A08B00C7EC3C /* ObservableTypeTests.swift */; };
+		BB88C40F1DC3A08B00C7EC3C /* ObservableTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C40D1DC3A08B00C7EC3C /* ObservableTypeTests.swift */; };
+		BB88C4101DC3A08B00C7EC3C /* ObservableTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C40D1DC3A08B00C7EC3C /* ObservableTypeTests.swift */; };
+		BB88C4111DC3A84C00C7EC3C /* VariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BA71C8FCE2C0050DDA9 /* VariableTests.swift */; };
 		BB8990261D5F84050097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990251D5F84050097F350 /* Foundation.framework */; };
 		BB8990271D5F84150097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990251D5F84050097F350 /* Foundation.framework */; };
 		BB8990291D5F84210097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990281D5F84210097F350 /* Foundation.framework */; };
@@ -355,8 +359,8 @@
 		BBCD9E051DAA910500E85FB9 /* SetFolding.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E011DAA910500E85FB9 /* SetFolding.swift */; };
 		BBCD9E071DAA918400E85FB9 /* SetFoldingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E061DAA918400E85FB9 /* SetFoldingTests.swift */; };
 		BBCD9E091DAA918400E85FB9 /* SetFoldingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E061DAA918400E85FB9 /* SetFoldingTests.swift */; };
-		BBCD9E0B1DAAB6E700E85FB9 /* MockValueUpdateSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E0A1DAAB6E700E85FB9 /* MockValueUpdateSink.swift */; };
-		BBCD9E0D1DAAB6E700E85FB9 /* MockValueUpdateSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E0A1DAAB6E700E85FB9 /* MockValueUpdateSink.swift */; };
+		BBCD9E0B1DAAB6E700E85FB9 /* MockUpdateSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E0A1DAAB6E700E85FB9 /* MockUpdateSink.swift */; };
+		BBCD9E0D1DAAB6E700E85FB9 /* MockUpdateSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E0A1DAAB6E700E85FB9 /* MockUpdateSink.swift */; };
 		BBCD9E0F1DAAC33700E85FB9 /* ValueMappingForValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E0E1DAAC33700E85FB9 /* ValueMappingForValue.swift */; };
 		BBCD9E111DAAC33700E85FB9 /* ValueMappingForValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E0E1DAAC33700E85FB9 /* ValueMappingForValue.swift */; };
 		BBCD9E121DAAC33700E85FB9 /* ValueMappingForValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E0E1DAAC33700E85FB9 /* ValueMappingForValue.swift */; };
@@ -535,6 +539,7 @@
 		BB82E3E71D9912FB0035DDAD /* BTree.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BTree.framework; path = "../../Library/Developer/Xcode/DerivedData/Frameworks-hdqbwmkrmmjgibgcvklleelldnbh/Build/Products/Debug-iphoneos/BTree.framework"; sourceTree = "<group>"; };
 		BB82E3E91D9913050035DDAD /* BTree.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BTree.framework; path = "../BTree/build/Debug-watchos/BTree.framework"; sourceTree = "<group>"; };
 		BB82E3EB1D99130C0035DDAD /* BTree.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BTree.framework; path = "../BTree/build/Debug-appletvos/BTree.framework"; sourceTree = "<group>"; };
+		BB88C40D1DC3A08B00C7EC3C /* ObservableTypeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTypeTests.swift; sourceTree = "<group>"; };
 		BB8990021D5DF2D20097F350 /* SetChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetChange.swift; sourceTree = "<group>"; };
 		BB8990041D5DF8630097F350 /* Change.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Change.swift; sourceTree = "<group>"; };
 		BB8990091D5DF88C0097F350 /* ObservableSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = ObservableSet.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -626,7 +631,7 @@
 		BBCD9DFD1DAA8F7800E85FB9 /* ArrayFoldingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayFoldingTests.swift; sourceTree = "<group>"; };
 		BBCD9E011DAA910500E85FB9 /* SetFolding.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetFolding.swift; sourceTree = "<group>"; };
 		BBCD9E061DAA918400E85FB9 /* SetFoldingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetFoldingTests.swift; sourceTree = "<group>"; };
-		BBCD9E0A1DAAB6E700E85FB9 /* MockValueUpdateSink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockValueUpdateSink.swift; sourceTree = "<group>"; };
+		BBCD9E0A1DAAB6E700E85FB9 /* MockUpdateSink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockUpdateSink.swift; sourceTree = "<group>"; };
 		BBCD9E0E1DAAC33700E85FB9 /* ValueMappingForValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueMappingForValue.swift; sourceTree = "<group>"; };
 		BBCD9E131DAAC4DC00E85FB9 /* ValueMappingForArrayField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueMappingForArrayField.swift; sourceTree = "<group>"; };
 		BBCD9E181DAAC50900E85FB9 /* ValueMappingForSourceField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueMappingForSourceField.swift; sourceTree = "<group>"; };
@@ -964,13 +969,12 @@
 		BBB55BD91C8FCE9D0050DDA9 /* Observable Values */ = {
 			isa = PBXGroup;
 			children = (
-				BBCD9E0A1DAAB6E700E85FB9 /* MockValueUpdateSink.swift */,
 				BB170F3D1DC221180000443E /* ValueChangeTests.swift */,
 				BBB55B9D1C8FCE2C0050DDA9 /* ObservableValueTests.swift */,
 				BB170F411DC22A300000443E /* UpdatableValueTests.swift */,
 				BBB55BA61C8FCE2C0050DDA9 /* TwoWayBindingTests.swift */,
-				BBB55B9E1C8FCE2C0050DDA9 /* DistinctTests.swift */,
 				BBB55BA71C8FCE2C0050DDA9 /* VariableTests.swift */,
+				BBB55B9E1C8FCE2C0050DDA9 /* DistinctTests.swift */,
 				BBB55BA01C8FCE2C0050DDA9 /* ValueMappingTests.swift */,
 				BBCD9E311DAAD66500E85FB9 /* CombinedObservableTests.swift */,
 				BBCD9E351DAAD74600E85FB9 /* CombinedUpdatableTests.swift */,
@@ -1064,11 +1068,13 @@
 		BBE9AAD21DC0F204000B3DD0 /* Abstract Observables */ = {
 			isa = PBXGroup;
 			children = (
+				BBCD9E0A1DAAB6E700E85FB9 /* MockUpdateSink.swift */,
 				BB170F271DC106DE0000443E /* TestChange.swift */,
 				BB170F2B1DC10D350000443E /* TestObservable.swift */,
 				BB170F331DC110BD0000443E /* TestUpdatable.swift */,
 				BBE9AACE1DC0F1F6000B3DD0 /* ChangeTests.swift */,
 				BB170F231DC1066D0000443E /* UpdateTests.swift */,
+				BB88C40D1DC3A08B00C7EC3C /* ObservableTypeTests.swift */,
 				BB170F2F1DC10DDB0000443E /* ChangesSourceTests.swift */,
 				BB170F371DC1545E0000443E /* TransactionStateTests.swift */,
 			);
@@ -1504,7 +1510,7 @@
 				BBB55BAE1C8FCE2C0050DDA9 /* KVOSupportTests.swift in Sources */,
 				BBCD9E3A1DABC45000E85FB9 /* TypeHelperTests.swift in Sources */,
 				BBB55BC31C8FCE2C0050DDA9 /* SignalTests.swift in Sources */,
-				BBCD9E0B1DAAB6E700E85FB9 /* MockValueUpdateSink.swift in Sources */,
+				BBCD9E0B1DAAB6E700E85FB9 /* MockUpdateSink.swift in Sources */,
 				BBE4DF661DA5656B005EC162 /* SetMappingTests.swift in Sources */,
 				BBEBFF771DB77D77008AC632 /* ArrayVariableTests.swift in Sources */,
 				BBCD9E361DAAD74600E85FB9 /* CombinedUpdatableTests.swift in Sources */,
@@ -1513,6 +1519,7 @@
 				BB471D9A1DA57FF8002550B0 /* SetSortingTests.swift in Sources */,
 				BBEBFF781DB77D77008AC632 /* ArrayMappingTests.swift in Sources */,
 				BBCD9E4E1DABFE8800E85FB9 /* SetVariableTests.swift in Sources */,
+				BB88C40E1DC3A08B00C7EC3C /* ObservableTypeTests.swift in Sources */,
 				BBEBFF7A1DB77D77008AC632 /* ArrayFoldingTests.swift in Sources */,
 				BBCD9DF51DA9104A00E85FB9 /* RefListTests.swift in Sources */,
 				BB170F341DC110BD0000443E /* TestUpdatable.swift in Sources */,
@@ -1640,7 +1647,7 @@
 			files = (
 				BBEA2A301DBFA1B700CCCB08 /* HashingTests.swift in Sources */,
 				BB170F3C1DC220B20000443E /* ObservableValueTests.swift in Sources */,
-				BB170F3B1DC220A80000443E /* MockValueUpdateSink.swift in Sources */,
+				BB170F3B1DC220A80000443E /* MockUpdateSink.swift in Sources */,
 				BBEA2A291DBF9ADA00CCCB08 /* MockSink.swift in Sources */,
 				BB170F431DC22A300000443E /* UpdatableValueTests.swift in Sources */,
 				BB170F461DC255200000443E /* TwoWayBindingTests.swift in Sources */,
@@ -1652,6 +1659,7 @@
 				BBCD9DF61DA9104A00E85FB9 /* RefListTests.swift in Sources */,
 				BB170F391DC1545E0000443E /* TransactionStateTests.swift in Sources */,
 				BB170F311DC10DDB0000443E /* ChangesSourceTests.swift in Sources */,
+				BB88C40F1DC3A08B00C7EC3C /* ObservableTypeTests.swift in Sources */,
 				BBEA2A371DBFC71000CCCB08 /* SimpleSourcesTests.swift in Sources */,
 				BBEA2A351DBFC4C300CCCB08 /* AnySourceTests.swift in Sources */,
 				BBEA2A381DBFC7B800CCCB08 /* MergedSourceTests.swift in Sources */,
@@ -1659,6 +1667,7 @@
 				BBE9AAD91DC0FC17000B3DD0 /* BracketingSourceTests.swift in Sources */,
 				BB170F351DC110BD0000443E /* TestUpdatable.swift in Sources */,
 				BB170F451DC239BC0000443E /* DistinctTests.swift in Sources */,
+				BB88C4111DC3A84C00C7EC3C /* VariableTests.swift in Sources */,
 				BBEA2A2C1DBF9E9C00CCCB08 /* AnySinkTests.swift in Sources */,
 				BBEA2A4D1DC0BB4D00CCCB08 /* SourceOperatorTests.swift in Sources */,
 				BBEA2A321DBFC3BB00CCCB08 /* SignalTests.swift in Sources */,
@@ -1845,7 +1854,7 @@
 				BBB55BB01C8FCE2C0050DDA9 /* KVOSupportTests.swift in Sources */,
 				BBCD9E3C1DABC45000E85FB9 /* TypeHelperTests.swift in Sources */,
 				BBB55BC51C8FCE2C0050DDA9 /* SignalTests.swift in Sources */,
-				BBCD9E0D1DAAB6E700E85FB9 /* MockValueUpdateSink.swift in Sources */,
+				BBCD9E0D1DAAB6E700E85FB9 /* MockUpdateSink.swift in Sources */,
 				BBC36AED1DA8453000AB3E9D /* ArrayChangeSeparationTests.swift in Sources */,
 				BBE4DF681DA5656D005EC162 /* SetMappingTests.swift in Sources */,
 				BBCD9E381DAAD74600E85FB9 /* CombinedUpdatableTests.swift in Sources */,
@@ -1855,6 +1864,7 @@
 				BBCD9E501DABFE8800E85FB9 /* SetVariableTests.swift in Sources */,
 				BBC4AE501D9A829500FF7DE0 /* ArrayFilteringTests.swift in Sources */,
 				BBCD9DF71DA9104A00E85FB9 /* RefListTests.swift in Sources */,
+				BB88C4101DC3A08B00C7EC3C /* ObservableTypeTests.swift in Sources */,
 				BBB55BBF1C8FCE2C0050DDA9 /* ArrayMappingTests.swift in Sources */,
 				BBCD9E091DAA918400E85FB9 /* SetFoldingTests.swift in Sources */,
 				BB170F361DC110BD0000443E /* TestUpdatable.swift in Sources */,

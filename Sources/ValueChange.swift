@@ -46,6 +46,12 @@ public struct ValueChange<Value>: ChangeType {
     }
 }
 
+extension ValueChange: CustomStringConvertible {
+    public var description: String {
+        return "\(old)→\(new)"
+    }
+}
+
 public func ==<Value: Equatable>(a: ValueChange<Value>, b: ValueChange<Value>) -> Bool {
     return a.old == b.old && a.new == b.new
 }

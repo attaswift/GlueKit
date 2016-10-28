@@ -21,7 +21,6 @@ extension UpdatableValueType where Change == ValueChange<Value> {
 
 /// The type erased representation of an UpdatableValueType.
 public struct AnyUpdatableValue<Value>: UpdatableValueType {
-    public typealias SinkValue = Value
     public typealias Change = ValueChange<Value>
 
     private let box: _AbstractUpdatableValue<Value>

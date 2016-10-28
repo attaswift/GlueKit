@@ -42,9 +42,4 @@ public class Connector {
     public func connect<Source: SourceType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
         return source.connect(sink).putInto(self)
     }
-
-    @discardableResult
-    public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Observable.Change) -> Void) -> Connection {
-        return observable.changes.connect(sink).putInto(self)
-    }
 }

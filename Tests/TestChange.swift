@@ -9,7 +9,7 @@
 import XCTest
 import GlueKit
 
-internal struct TestChange: ChangeType, Equatable {
+internal struct TestChange: ChangeType, Equatable, CustomStringConvertible {
     typealias Value = Int
 
     var values: [Int]
@@ -38,6 +38,10 @@ internal struct TestChange: ChangeType, Equatable {
 
     func reversed() -> TestChange {
         return TestChange(values.reversed())
+    }
+
+    public var description: String {
+        return values.map { "\($0)" }.joined(separator: "→")
     }
 
     static func ==(left: TestChange, right: TestChange) -> Bool {
