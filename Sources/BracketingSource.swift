@@ -20,6 +20,38 @@ extension SourceType {
     }
 }
 
+private class BracketingSink<Sink: SinkType>: SinkType {
+    typealias Value = Sink.Value
+
+    let sink: Sink
+    var pendingValues: [Value]?
+    var removed = false
+
+    init(_ sink: Sink) {
+        self.sink = sink
+        self.pendingValues = nil
+    }
+
+    init(_ sink: Sink, _ initial: Value) {
+        self.sink = sink
+        self.pendingValues = [initial]
+    }
+
+    func receive(_ value: Value) {
+        if pendingValues == nil {
+            sink.receive(value)
+        }
+        else {
+            pendingValues!.append(value)
+        }
+    }
+
+    var hashValue: Int { return sink.hashValue }
+    static func ==(left: BracketingSink, right: BracketingSink) -> Bool {
+        return left.sink == right.sink
+    }
+}
+
 private final class BracketingSource<Input: SourceType>: _AbstractSource<Input.Value> {
     typealias Value = Input.Value
     let input: Input
@@ -33,21 +65,28 @@ private final class BracketingSource<Input: SourceType>: _AbstractSource<Input.V
     }
 
     final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        // Note that this assumes issue #5 ("Disallow reentrant updates") is implemented.
-        // Otherwise `sink.receive` could send values itself, which it also needs to receive,
-        // requiring complicated scheduling.
         if let greeting = hello() {
-            sink.receive(greeting)
+            let bracketing = BracketingSink(sink, greeting)
+            input.add(bracketing)
+            while !bracketing.pendingValues!.isEmpty && !bracketing.removed {
+                let value = bracketing.pendingValues!.removeFirst()
+                bracketing.sink.receive(value)
+            }
+            bracketing.pendingValues = nil
         }
-        input.add(sink)
+        else {
+            input.add(BracketingSink(sink))
+        }
     }
 
     @discardableResult
     final override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
-        let old = input.remove(sink)
+        let old = input.remove(BracketingSink(sink))
+        let bracketing = old.opened(as: BracketingSink<Sink>.self)!
+        bracketing.removed = true
         if let farewell = goodbye() {
-            old.receive(farewell)
+            bracketing.sink.receive(farewell)
         }
-        return old
+        return bracketing.sink.anySink
     }
 }
