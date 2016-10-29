@@ -41,7 +41,7 @@ internal struct TestChange: ChangeType, Equatable, CustomStringConvertible {
     }
 
     public var description: String {
-        return values.map { "\($0)" }.joined(separator: "→")
+        return values.map { "\($0)" }.joined(separator: " -> ")
     }
 
     static func ==(left: TestChange, right: TestChange) -> Bool {

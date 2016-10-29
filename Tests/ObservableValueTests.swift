@@ -13,13 +13,13 @@ class ObservableValueTests: XCTestCase {
     func test_anyObservable_fromObservableValue() {
         let test = TestObservableValue(0)
 
-        let any = test.anyObservable
+        let any = test.anyObservableValue
 
         XCTAssertEqual(any.value, 0)
 
         let updateSink = MockValueUpdateSink<Int>(any.updates)
 
-        let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old)→\($0.new)" })
+        let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old) -> \($0.new)" })
         changeSink.connect(to: any.changes)
 
         let valuesSink = MockSink<Int>()
@@ -32,12 +32,12 @@ class ObservableValueTests: XCTestCase {
         updateSink.expecting("begin") {
             test.begin()
         }
-        updateSink.expecting("0→1") {
+        updateSink.expecting("0 -> 1") {
             test.value = 1
         }
 
         updateSink.expecting("end") {
-            changeSink.expecting("0→1") {
+            changeSink.expecting("0 -> 1") {
                 valuesSink.expecting(1) {
                     futureValuesSink.expecting(1) {
                         test.end()
@@ -53,14 +53,14 @@ class ObservableValueTests: XCTestCase {
         let test = AnyObservableValue(getter: { value },
                                       updates: signal.anySource)
 
-        let any = test.anyObservable
+        let any = test.anyObservableValue
 
         XCTAssertEqual(any.value, 0)
 
         let updateSink = MockValueUpdateSink<Int>()
         updateSink.connect(to: any.updates)
 
-        let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old)→\($0.new)" })
+        let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old) -> \($0.new)" })
         changeSink.connect(to: any.changes)
 
         let valuesSink = MockSink<Int>()
@@ -73,13 +73,13 @@ class ObservableValueTests: XCTestCase {
         updateSink.expecting("begin") {
             signal.send(.beginTransaction)
         }
-        updateSink.expecting("0→1") {
+        updateSink.expecting("0 -> 1") {
             value = 1
             signal.send(.change(ValueChange(from: 0, to: 1)))
         }
 
         updateSink.expecting("end") {
-            changeSink.expecting("0→1") {
+            changeSink.expecting("0 -> 1") {
                 valuesSink.expecting(1) {
                     futureValuesSink.expecting(1) {
                         signal.send(.endTransaction)

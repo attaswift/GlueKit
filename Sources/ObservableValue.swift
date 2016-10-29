@@ -7,7 +7,6 @@
 //
 
 public typealias ValueUpdate<Value> = Update<ValueChange<Value>>
-public typealias ValueUpdateSource<Value> = AnySource<Update<ValueChange<Value>>>
 
 /// An observable has a value that is readable at any time, and may change in response to certain events.
 /// Interested parties can sign up to receive notifications when the observable's value changes.
@@ -34,12 +33,12 @@ public protocol ObservableValueType: ObservableType, CustomPlaygroundQuickLookab
     var value: Value { get }
 
     /// Returns the type-erased version of this ObservableValueType.
-    var anyObservable: AnyObservableValue<Value> { get }
+    var anyObservableValue: AnyObservableValue<Value> { get }
 }
 
 extension ObservableValueType where Change == ValueChange<Value> {
     /// Returns the type-erased version of this ObservableValueType.
-    public var anyObservable: AnyObservableValue<Value> {
+    public var anyObservableValue: AnyObservableValue<Value> {
         return AnyObservableValue(self)
     }
 
@@ -94,7 +93,7 @@ public struct AnyObservableValue<Value>: ObservableValueType {
         return box.remove(sink)
     }
 
-    public var anyObservable: AnyObservableValue<Value> {
+    public var anyObservableValue: AnyObservableValue<Value> {
         return self
     }
 }
@@ -109,7 +108,7 @@ open class _AbstractObservableValue<Value>: ObservableValueType {
     @discardableResult
     open func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> { abstract() }
 
-    public final var anyObservable: AnyObservableValue<Value> {
+    public final var anyObservableValue: AnyObservableValue<Value> {
         return AnyObservableValue(box: self)
     }
 }
@@ -196,7 +195,7 @@ where Updates.Value == Update<ValueChange<Value>> {
 public extension ObservableValueType {
     /// Creates a constant observable wrapping the given value. The returned observable is not modifiable and it will not ever send updates.
     public static func constant(_ value: Value) -> AnyObservableValue<Value> {
-        return ConstantObservable(value).anyObservable
+        return ConstantObservable(value).anyObservableValue
     }
 }
 

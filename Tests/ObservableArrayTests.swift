@@ -9,7 +9,9 @@
 import XCTest
 @testable import GlueKit
 
-private class TestObservableArray<Element>: ObservableArrayType {
+private class TestObservableArray<Element>: ObservableArrayType, SignalDelegate {
+    typealias Change = ArrayChange<Element>
+    
     var _state = TransactionState<ArrayChange<Element>>()
     var _value: [Element]
 
@@ -25,8 +27,13 @@ private class TestObservableArray<Element>: ObservableArrayType {
         return _value[bounds]
     }
 
-    var updates: Source<ArrayUpdate<Element>> {
-        return _state.source(retaining: self)
+    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
+        _state.add(sink, with: self)
+    }
+
+    @discardableResult
+    func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
+        return _state.remove(sink)
     }
 
     func begin() {
@@ -150,7 +157,7 @@ class ObservableArrayTests: XCTestCase {
         XCTAssertEqual(test[0 ..< 2], [1, 2])
 
         let mock = MockArrayObserver(test)
-        mock.expectingNoChange {
+        mock.expectingNothing {
             // Whatevs
         }
 
@@ -164,7 +171,7 @@ class ObservableArrayTests: XCTestCase {
 
             let mock = MockArrayObserver(test)
 
-            mock.expectingNoChange {
+            mock.expectingNothing {
                 test.apply(ArrayChange(initialCount: test.count))
             }
 

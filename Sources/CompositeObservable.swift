@@ -10,7 +10,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
     public func combined<Other: ObservableValueType>(_ other: Other) -> AnyObservableValue<(Value, Other.Value)>
     where Other.Change == ValueChange<Other.Value>
     {
-        return CompositeObservable(left: self, right: other, combinator: { ($0, $1) }).anyObservable
+        return CompositeObservable(left: self, right: other, combinator: { ($0, $1) }).anyObservableValue
     }
 
     public func combined<A: ObservableValueType, B: ObservableValueType>(_ a: A, _ b: B) -> AnyObservableValue<(Value, A.Value, B.Value)>
@@ -41,7 +41,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
     public func combined<Other: ObservableValueType, Output>(_ other: Other, by combinator: @escaping (Value, Other.Value) -> Output) -> AnyObservableValue<Output>
     where Other.Change == ValueChange<Other.Value>
     {
-        return CompositeObservable(left: self, right: other, combinator: combinator).anyObservable
+        return CompositeObservable(left: self, right: other, combinator: combinator).anyObservableValue
     }
 
     public func combined<A: ObservableValueType, B: ObservableValueType, Output>(_ a: A, _ b: B, by combinator: @escaping (Value, A.Value, B.Value) -> Output) -> AnyObservableValue<Output>

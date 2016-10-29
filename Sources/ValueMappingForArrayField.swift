@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableValueType {
+extension ObservableValueType where Change == ValueChange<Value> {
 
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
@@ -42,18 +42,43 @@ extension ObservableValueType {
     /// messages is updated in the current room.  The observable can also be used to simply retrieve the list of messages
     /// at any time.
     ///
-    public func map<Field: ObservableArrayType>(_ key: @escaping (Value) -> Field) -> AnyObservableArray<Field.Element> {
+    public func map<Field: ObservableArrayType>(_ key: @escaping (Value) -> Field) -> AnyObservableArray<Field.Element> where Field.Change == ArrayChange<Field.Element> {
         return ValueMappingForArrayField(parent: self, key: key).anyObservableArray
     }
 
-    public func map<Field: UpdatableArrayType>(_ key: @escaping (Value) -> Field) -> AnyUpdatableArray<Field.Element> {
+    public func map<Field: UpdatableArrayType>(_ key: @escaping (Value) -> Field) -> AnyUpdatableArray<Field.Element> where Field.Change == ArrayChange<Field.Element> {
         return ValueMappingForUpdatableArrayField(parent: self, key: key).anyUpdatableArray
+    }
+}
+
+private struct ParentSink<Parent: ObservableValueType, Field: ObservableArrayType>: OwnedSink
+where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Field.Element> {
+    typealias Owner = UpdateSourceForArrayField<Parent, Field>
+
+    unowned let owner: Owner
+    let identifier = 1
+
+    func receive(_ update: ValueUpdate<Parent.Value>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private struct FieldSink<Parent: ObservableValueType, Field: ObservableArrayType>: OwnedSink
+where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Field.Element> {
+    typealias Owner = UpdateSourceForArrayField<Parent, Field>
+
+    unowned let owner: Owner
+    let identifier = 2
+
+    func receive(_ update: ArrayUpdate<Field.Element>) {
+        owner.applyFieldUpdate(update)
     }
 }
 
 /// A source of changes for an AnyObservableArray field.
 private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>
-: TransactionalSource<ArrayChange<Field.Element>> {
+: TransactionalSource<ArrayChange<Field.Element>>
+where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Field.Element> {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
@@ -70,59 +95,51 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
 
     override func activate() {
         let field = key(parent.value)
-        parent.updates.add(parentSink)
-        field.updates.add(fieldSink)
+        parent.add(ParentSink(owner: self))
+        field.add(FieldSink(owner: self))
         self.field = field
     }
 
     override func deactivate() {
-        parent.updates.remove(parentSink)
-        field!.updates.remove(fieldSink)
+        parent.remove(ParentSink(owner: self))
+        field!.remove(FieldSink(owner: self))
         field = nil
     }
 
-    var parentSink: AnySink<ValueUpdate<Parent.Value>> {
-        return StrongMethodSink(owner: self, identifier: 1, method: UpdateSourceForArrayField.applyParentUpdate).anySink
-    }
-
-    var fieldSink: AnySink<ArrayUpdate<Field.Element>> {
-        return StrongMethodSink(owner: self, identifier: 1, method: UpdateSourceForArrayField.applyFieldUpdate).anySink
-    }
-
-    private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
+    func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
         switch update {
         case .beginTransaction:
             state.begin()
         case .change(let change):
             let old = key(change.old).value
             let field = self.key(change.new)
-            self.field!.updates.remove(fieldSink)
+            self.field!.remove(FieldSink(owner: self))
             self.field = field
-            field.updates.add(fieldSink)
+            field.add(FieldSink(owner: self))
             state.send(.init(from: old, to: field.value))
         case .endTransaction:
             state.end()
         }
     }
 
-    private func applyFieldUpdate(_ update: ArrayUpdate<Field.Element>) {
+    func applyFieldUpdate(_ update: ArrayUpdate<Field.Element>) {
         state.send(update)
     }
 }
 
-private class ValueMappingForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>: _AbstractObservableArray<Field.Element> {
+private final class ValueMappingForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>: _AbstractObservableArray<Field.Element>
+where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Field.Element> {
     typealias Element = Field.Element
-    typealias Base = [Element]
     typealias Change = ArrayChange<Element>
 
-    private let _updateSource: UpdateSourceForArrayField<Parent, Field>
+    private let updateSource: UpdateSourceForArrayField<Parent, Field>
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
-        _updateSource = UpdateSourceForArrayField(parent: parent, key: key)
+        updateSource = UpdateSourceForArrayField(parent: parent, key: key)
     }
-    var parent: Parent { return _updateSource.parent }
-    var key: (Parent.Value) -> Field { return _updateSource.key }
-    var field: Field { return _updateSource.key(_updateSource.parent.value) }
+    var parent: Parent { return updateSource.parent }
+    var key: (Parent.Value) -> Field { return updateSource.key }
+    var field: Field { return updateSource.key(updateSource.parent.value) }
 
     override var isBuffered: Bool { return field.isBuffered }
     override subscript(_ index: Int) -> Element { return field[index] }
@@ -130,22 +147,30 @@ private class ValueMappingForArrayField<Parent: ObservableValueType, Field: Obse
     override var value: Array<Element> { return field.value }
     override var count: Int { return field.count }
     override var observableCount: AnyObservableValue<Int> { return parent.map { self.key($0).observableCount } }
-    override var updates: ArrayUpdateSource<Element> { return _updateSource.anySource }
+
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        updateSource.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return updateSource.remove(sink)
+    }
 }
 
-private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Field: UpdatableArrayType>: _AbstractUpdatableArray<Field.Element> {
+private final class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Field: UpdatableArrayType>: _AbstractUpdatableArray<Field.Element>
+where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Field.Element> {
     typealias Element = Field.Element
-    typealias Base = [Element]
     typealias Change = ArrayChange<Element>
 
-    let _updateSource: UpdateSourceForArrayField<Parent, Field>
+    let updateSource: UpdateSourceForArrayField<Parent, Field>
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
-        _updateSource = UpdateSourceForArrayField(parent: parent, key: key)
+        updateSource = UpdateSourceForArrayField(parent: parent, key: key)
     }
-    var parent: Parent { return _updateSource.parent }
-    var key: (Parent.Value) -> Field { return _updateSource.key }
-    var field: Field { return _updateSource.key(_updateSource.parent.value) }
+    var parent: Parent { return updateSource.parent }
+    var key: (Parent.Value) -> Field { return updateSource.key }
+    var field: Field { return updateSource.key(updateSource.parent.value) }
 
     override var isBuffered: Bool { return field.isBuffered }
     override subscript(_ index: Int) -> Element {
@@ -162,6 +187,14 @@ private class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Fi
     }
     override var count: Int { return field.count }
     override var observableCount: AnyObservableValue<Int> { return parent.map { self.key($0).observableCount } }
-    override var updates: ArrayUpdateSource<Element> { return _updateSource.anySource }
     override func apply(_ update: Update<ArrayChange<Field.Element>>) { field.apply(update) }
+
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        updateSource.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return updateSource.remove(sink)
+    }
 }

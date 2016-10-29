@@ -19,7 +19,7 @@ public protocol UpdatableSetType: ObservableSetType, UpdatableType {
     func formSymmetricDifference(_ other: Set<Element>)
     func subtract(_ other: Set<Element>)
     
-    var anyUpdatable: AnyUpdatableValue<Set<Element>> { get }
+    var anyUpdatableValue: AnyUpdatableValue<Set<Element>> { get }
     var anyUpdatableSet: AnyUpdatableSet<Element> { get }
 }
 
@@ -75,11 +75,11 @@ extension UpdatableSetType where Change == SetChange<Element> {
         self.apply(update.map { change in SetChange(from: change.old, to: change.new) })
     }
 
-    public var anyUpdatable: AnyUpdatableValue<Set<Element>> {
+    public var anyUpdatableValue: AnyUpdatableValue<Set<Element>> {
         return AnyUpdatableValue(
             getter: { self.value },
             apply: self.apply,
-            updates: { self.valueUpdates })
+            updates: self.valueUpdates)
     }
 
     public var anyUpdatableSet: AnyUpdatableSet<Element> {
@@ -117,12 +117,20 @@ public struct AnyUpdatableSet<Element: Hashable>: UpdatableSetType {
     public func formSymmetricDifference(_ other: Set<Element>) { box.formSymmetricDifference(other) }
     public func subtract(_ other: Set<Element>) { box.subtract(other) }
 
-    public var updates: SetUpdateSource<Element> { return box.updates }
+    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<SetChange<Element>> {
+        box.add(sink)
+    }
+
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<SetChange<Element>> {
+        return box.remove(sink)
+    }
+
     public var observableCount: AnyObservableValue<Int> { return box.observableCount }
 
-    public var anyObservable: AnyObservableValue<Set<Element>> { return box.anyObservable }
+    public var anyObservableValue: AnyObservableValue<Set<Element>> { return box.anyObservableValue }
     public var anyObservableSet: AnyObservableSet<Element> { return box.anyObservableSet }
-    public var anyUpdatable: AnyUpdatableValue<Set<Element>> { return box.anyUpdatable }
+    public var anyUpdatableValue: AnyUpdatableValue<Set<Element>> { return box.anyUpdatableValue }
     public var anyUpdatableSet: AnyUpdatableSet<Element> { return self }
 }
 
@@ -180,11 +188,11 @@ open class _AbstractUpdatableSet<Element: Hashable>: _AbstractObservableSet<Elem
         self.apply(SetChange(removed: intersection))
     }
 
-    open var anyUpdatable: AnyUpdatableValue<Set<Element>> {
+    open var anyUpdatableValue: AnyUpdatableValue<Set<Element>> {
         return AnyUpdatableValue(
             getter: { self.value },
             apply: self.apply,
-            updates: { self.valueUpdates })
+            updates: self.valueUpdates)
     }
 
     public final var updatableSet: AnyUpdatableSet<Element> {
@@ -199,8 +207,13 @@ public class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element
 
     func rawApply(_ change: Change) { abstract() }
 
-    public final override var updates: UpdateSource<Change> {
-        return state.source(delegate: self)
+    public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        state.add(sink, with: self)
+    }
+
+    @discardableResult
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return state.remove(sink)
     }
 
     public final override func apply(_ update: Update<Change>) {
@@ -240,7 +253,7 @@ public class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element
     }
 }
 
-class UpdatableSetBox<Contents: UpdatableSetType>: _AbstractUpdatableSet<Contents.Element> {
+final class UpdatableSetBox<Contents: UpdatableSetType>: _AbstractUpdatableSet<Contents.Element> where Contents.Change == SetChange<Contents.Element> {
     typealias Element = Contents.Element
     typealias Change = SetChange<Element>
 
@@ -272,10 +285,17 @@ class UpdatableSetBox<Contents: UpdatableSetType>: _AbstractUpdatableSet<Content
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
 
-    override var updates: SetUpdateSource<Element> { return contents.updates }
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        contents.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return contents.remove(sink)
+    }
 
     override var observableCount: AnyObservableValue<Int> { return contents.observableCount }
 
-    override var anyObservable: AnyObservableValue<Set<Element>> { return contents.anyObservable }
-    override var anyUpdatable: AnyUpdatableValue<Set<Element>> { return contents.anyUpdatable }
+    override var anyObservableValue: AnyObservableValue<Set<Element>> { return contents.anyObservableValue }
+    override var anyUpdatableValue: AnyUpdatableValue<Set<Element>> { return contents.anyUpdatableValue }
 }

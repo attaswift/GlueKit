@@ -20,20 +20,20 @@ class ObservableTypeTests: XCTestCase {
             test.withTransaction {}
         }
 
-        sink.expecting(["begin", "0→1", "end"]) {
+        sink.expecting(["begin", "0 -> 1", "end"]) {
             test.withTransaction {
                 test.apply(TestChange(from: 0, to: 1))
             }
         }
 
-        sink.expecting(["begin", "1→2", "2→3", "end"]) {
+        sink.expecting(["begin", "1 -> 2", "2 -> 3", "end"]) {
             test.withTransaction {
                 test.apply(TestChange(from: 1, to: 2))
                 test.apply(TestChange(from: 2, to: 3))
             }
         }
 
-        sink.expecting(["begin", "3→4", "end"]) {
+        sink.expecting(["begin", "3 -> 4", "end"]) {
             test.withTransaction {
                 test.withTransaction {
                     test.apply(TestChange(from: 3, to: 4))
@@ -50,7 +50,7 @@ class ObservableTypeTests: XCTestCase {
         let sink = MockUpdateSink<TestChange>()
         test.updates.add(sink)
 
-        sink.expecting(["begin", "0→1", "end"]) {
+        sink.expecting(["begin", "0 -> 1", "end"]) {
             test.apply(TestChange([0, 1]))
         }
 
@@ -67,7 +67,7 @@ class ObservableTypeTests: XCTestCase {
 
         observable.value = 1
         
-        XCTAssertEqual(received.map { "\($0)" }, ["beginTransaction", "change(0→1)", "endTransaction"])
+        XCTAssertEqual(received.map { "\($0)" }, ["beginTransaction", "change(0 -> 1)", "endTransaction"])
         received = []
 
         connector.disconnect()
@@ -87,7 +87,7 @@ class ObservableTypeTests: XCTestCase {
 
         observable.value = 1
 
-        XCTAssertEqual(received.map { "\($0)" }, ["0→1"])
+        XCTAssertEqual(received.map { "\($0)" }, ["0 -> 1"])
         received = []
 
         connector.disconnect()

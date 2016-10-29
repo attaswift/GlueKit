@@ -11,7 +11,6 @@ public final class ArrayVariable<Element>: _BaseUpdatableArray<Element> {
     public typealias Change = ArrayChange<Element>
 
     fileprivate var _value: [Element]
-    fileprivate var _apply: ((Change) -> Void)? = nil
 
     public override init() {
         _value = []

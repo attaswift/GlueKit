@@ -8,7 +8,7 @@
 
 extension ObservableValueType where Change == ValueChange<Value> {
     public func buffered() -> AnyObservableValue<Value> {
-        return BufferedObservableValue(self).anyObservable
+        return BufferedObservableValue(self).anyObservableValue
     }
 }
 

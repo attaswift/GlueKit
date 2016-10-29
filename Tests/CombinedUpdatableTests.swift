@@ -25,19 +25,19 @@ class CombinedUpdatableTests: XCTestCase {
         let changes = combined.changes
         let mock = TransformedMockSink(changes, { "\($0)" })
 
-        mock.expecting("12→32") {
+        mock.expecting("12 -> 32") {
             a.value = 3
         }
 
         XCTAssertEqual(combined.value, 32)
 
-        mock.expecting("32→34") {
+        mock.expecting("32 -> 34") {
             b.value = 4
         }
 
         XCTAssertEqual(combined.value, 34)
 
-        mock.expecting("34→56") {
+        mock.expecting("34 -> 56") {
             combined.value = 56
         }
         XCTAssertEqual(combined.value, 56)

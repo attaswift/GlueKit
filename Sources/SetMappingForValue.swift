@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType {
+extension ObservableSetType where Change == SetChange<Element> {
     /// Return an observable set that contains the results of injectively mapping the given closure over the elements of this set.
     ///
     /// - Parameter transform: A mapping closure. `transform` must be an injection; if it maps two nonequal elements into
@@ -18,7 +18,17 @@ extension ObservableSetType {
     }
 }
 
-private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Element: Hashable>: _BaseObservableSet<Element> {
+private struct InjectiveSink<Parent: ObservableSetType, Element: Hashable>: UniqueOwnedSink where Parent.Change == SetChange<Parent.Element> {
+    typealias Owner = InjectiveSetMappingForValue<Parent, Element>
+
+    unowned let owner: Owner
+
+    func receive(_ update: SetUpdate<Parent.Element>) {
+        owner.apply(update)
+    }
+}
+
+private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Element: Hashable>: _BaseObservableSet<Element>where Parent.Change == SetChange<Parent.Element> {
     typealias Change = SetChange<Element>
 
     let parent: Parent
@@ -32,18 +42,14 @@ private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Eleme
         super.init()
 
         _value = Set(parent.value.map(transform))
-        parent.updates.add(sink)
+        parent.add(InjectiveSink(owner: self))
     }
 
     deinit {
-        parent.updates.remove(sink)
+        parent.remove(InjectiveSink(owner: self))
     }
 
-    private var sink: AnySink<SetUpdate<Parent.Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: InjectiveSetMappingForValue.apply).anySink
-    }
-
-    private func apply(_ update: SetUpdate<Parent.Element>) {
+    func apply(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
@@ -69,7 +75,7 @@ private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Eleme
     override func isSuperset(of other: Set<Element>) -> Bool { return _value.isSuperset(of: other) }
 }
 
-extension ObservableSetType {
+extension ObservableSetType where Change == SetChange<Element> {
     /// Return an observable set that contains the results of mapping the given closure over the elements of this set.
     ///
     /// - Parameter transform: A mapping closure. `transform` does not need to be an injection; elements where
@@ -81,7 +87,17 @@ extension ObservableSetType {
     }
 }
 
-private final class SetMappingForValue<Parent: ObservableSetType, Element: Hashable>: SetMappingBase<Element> {
+private struct MapSink<Parent: ObservableSetType, Element: Hashable>: UniqueOwnedSink where Parent.Change == SetChange<Parent.Element> {
+    typealias Owner = SetMappingForValue<Parent, Element>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: SetUpdate<Parent.Element>) {
+        owner.apply(update)
+    }
+}
+
+private final class SetMappingForValue<Parent: ObservableSetType, Element: Hashable>: SetMappingBase<Element> where Parent.Change == SetChange<Parent.Element> {
     typealias Change = SetChange<Element>
 
     let parent: Parent
@@ -96,18 +112,14 @@ private final class SetMappingForValue<Parent: ObservableSetType, Element: Hasha
         for element in parent.value {
             _ = self.insert(transform(element))
         }
-        parent.updates.add(sink)
+        parent.updates.add(MapSink(owner: self))
     }
 
     deinit {
-        parent.updates.remove(sink)
+        parent.updates.remove(MapSink(owner: self))
     }
 
-    private var sink: AnySink<SetUpdate<Parent.Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: SetMappingForValue.apply).anySink
-    }
-
-    private func apply(_ update: SetUpdate<Parent.Element>) {
+    func apply(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

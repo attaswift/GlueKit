@@ -13,13 +13,13 @@ class UpdatableValueTests: XCTestCase {
     func test_anyUpdatable_fromUpdatableValue() {
         let test = TestUpdatableValue<Int>(0)
 
-        let any = test.anyUpdatable
+        let any = test.anyUpdatableValue
 
         XCTAssertEqual(any.value, 0)
 
         let updateSink = MockValueUpdateSink<Int>(any.updates)
 
-        let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old)→\($0.new)" })
+        let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old) -> \($0.new)" })
         changeSink.connect(to: any.changes)
 
         let valuesSink = MockSink<Int>()
@@ -32,12 +32,12 @@ class UpdatableValueTests: XCTestCase {
         updateSink.expecting("begin") {
             test.begin()
         }
-        updateSink.expecting("0→1") {
+        updateSink.expecting("0 -> 1") {
             test.value = 1
         }
 
         updateSink.expecting("end") {
-            changeSink.expecting("0→1") {
+            changeSink.expecting("0 -> 1") {
                 valuesSink.expecting(1) {
                     futureValuesSink.expecting(1) {
                         test.end()
@@ -46,8 +46,8 @@ class UpdatableValueTests: XCTestCase {
             }
         }
 
-        updateSink.expecting(["begin", "1→2", "end"]) {
-            changeSink.expecting("1→2") {
+        updateSink.expecting(["begin", "1 -> 2", "end"]) {
+            changeSink.expecting("1 -> 2") {
                 valuesSink.expecting(2) {
                     futureValuesSink.expecting(2) {
                         any.value = 2
@@ -60,8 +60,8 @@ class UpdatableValueTests: XCTestCase {
             any.withTransaction {}
         }
 
-        updateSink.expecting(["begin", "2→3", "3→4", "end"]) {
-            changeSink.expecting("2→4") {
+        updateSink.expecting(["begin", "2 -> 3", "3 -> 4", "end"]) {
+            changeSink.expecting("2 -> 4") {
                 valuesSink.expecting(4) {
                     futureValuesSink.expecting(4) {
                         any.withTransaction {
@@ -104,13 +104,13 @@ class UpdatableValueTests: XCTestCase {
             },
             updates: signal.anySource)
 
-        let any = test.anyUpdatable
+        let any = test.anyUpdatableValue
 
         XCTAssertEqual(any.value, 0)
 
         let updateSink = MockValueUpdateSink<Int>(any.updates)
 
-        let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old)→\($0.new)" })
+        let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old) -> \($0.new)" })
         changeSink.connect(to: any.changes)
 
         let valuesSink = MockSink<Int>()
@@ -123,12 +123,12 @@ class UpdatableValueTests: XCTestCase {
         updateSink.expecting("begin") {
             begin()
         }
-        updateSink.expecting("0→1") {
+        updateSink.expecting("0 -> 1") {
             test.value = 1
         }
 
         updateSink.expecting("end") {
-            changeSink.expecting("0→1") {
+            changeSink.expecting("0 -> 1") {
                 valuesSink.expecting(1) {
                     futureValuesSink.expecting(1) {
                         end()
@@ -137,8 +137,8 @@ class UpdatableValueTests: XCTestCase {
             }
         }
 
-        updateSink.expecting(["begin", "1→2", "end"]) {
-            changeSink.expecting("1→2") {
+        updateSink.expecting(["begin", "1 -> 2", "end"]) {
+            changeSink.expecting("1 -> 2") {
                 valuesSink.expecting(2) {
                     futureValuesSink.expecting(2) {
                         any.value = 2
@@ -151,8 +151,8 @@ class UpdatableValueTests: XCTestCase {
             any.withTransaction {}
         }
 
-        updateSink.expecting(["begin", "2→3", "3→4", "end"]) {
-            changeSink.expecting("2→4") {
+        updateSink.expecting(["begin", "2 -> 3", "3 -> 4", "end"]) {
+            changeSink.expecting("2 -> 4") {
                 valuesSink.expecting(4) {
                     futureValuesSink.expecting(4) {
                         any.withTransaction {
@@ -167,7 +167,7 @@ class UpdatableValueTests: XCTestCase {
 
     func test_anyObservable_fromAnyUpdatable() {
         let test = TestUpdatableValue<Int>(0)
-        let any = test.anyUpdatable.anyObservable
+        let any = test.anyUpdatableValue.anyObservableValue
 
         XCTAssertEqual(any.value, 0)
 
@@ -176,7 +176,7 @@ class UpdatableValueTests: XCTestCase {
         updateSink.expecting("begin") {
             test.begin()
         }
-        updateSink.expecting("0→1") {
+        updateSink.expecting("0 -> 1") {
             test.value = 1
         }
 

@@ -9,7 +9,7 @@
 public extension ObservableValueType where Change == ValueChange<Value> {
     /// Returns an observable that calculates `transform` on all current and future values of this observable.
     public func map<Output>(_ transform: @escaping (Value) -> Output) -> AnyObservableValue<Output> {
-        return ValueMappingForValue<Self, Output>(parent: self, transform: transform).anyObservable
+        return ValueMappingForValue<Self, Output>(parent: self, transform: transform).anyObservableValue
     }
 }
 
@@ -40,7 +40,7 @@ private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _A
 
 extension UpdatableValueType where Change == ValueChange<Value> {
     public func map<Output>(_ transform: @escaping (Value) -> Output, inverse: @escaping (Output) -> Value) -> AnyUpdatableValue<Output> {
-        return ValueMappingForUpdatableValue<Self, Output>(parent: self, transform: transform, inverse: inverse).anyUpdatable
+        return ValueMappingForUpdatableValue<Self, Output>(parent: self, transform: transform, inverse: inverse).anyUpdatableValue
     }
 }
 

@@ -28,7 +28,7 @@ public protocol UpdatableArrayType: ObservableArrayType, UpdatableType {
 
     // The following are defined in extensions but may be specialized in implementations:
 
-    var anyUpdatable: AnyUpdatableValue<[Element]> { get }
+    var anyUpdatableValue: AnyUpdatableValue<[Element]> { get }
     var anyUpdatableArray: AnyUpdatableArray<Element> { get }
 }
 
@@ -37,10 +37,10 @@ extension UpdatableArrayType where Change == ArrayChange<Element> {
         self.apply(update.map { change in ArrayChange(from: change.old, to: change.new) })
     }
 
-    public var anyUpdatable: AnyUpdatableValue<[Element]> {
+    public var anyUpdatableValue: AnyUpdatableValue<[Element]> {
         return AnyUpdatableValue(getter: { self.value },
                                  apply: self.apply,
-                                 updates: { self.valueUpdates })
+                                 updates: self.valueUpdates)
     }
 
     public var anyUpdatableArray: AnyUpdatableArray<Element> {
@@ -142,7 +142,15 @@ public struct AnyUpdatableArray<Element>: UpdatableArrayType {
 
     public var isBuffered: Bool { return box.isBuffered }
     public var count: Int { return box.count }
-    public var updates: ArrayUpdateSource<Element> { return box.updates }
+
+    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
+        box.add(sink)
+    }
+
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
+        return box.remove(sink)
+    }
 
     public var value: [Element] {
         get { return box.value }
@@ -164,9 +172,9 @@ public struct AnyUpdatableArray<Element>: UpdatableArrayType {
 
     public var observableCount: AnyObservableValue<Int> { return box.observableCount }
 
-    public var anyObservable: AnyObservableValue<Array<Element>> { return box.anyObservable }
+    public var anyObservableValue: AnyObservableValue<Array<Element>> { return box.anyObservableValue }
     public var anyObservableArray: AnyObservableArray<Element> { return box.anyObservableArray }
-    public var anyUpdatable: AnyUpdatableValue<[Element]> { return box.anyUpdatable }
+    public var anyUpdatableValue: AnyUpdatableValue<[Element]> { return box.anyUpdatableValue }
     public var anyUpdatableArray: AnyUpdatableArray<Element> { return self }
 }
 
@@ -187,10 +195,10 @@ open class _AbstractUpdatableArray<Element>: _AbstractObservableArray<Element>, 
 
     open func apply(_ update: ArrayUpdate<Element>) { abstract() }
 
-    open var anyUpdatable: AnyUpdatableValue<[Element]> {
+    open var anyUpdatableValue: AnyUpdatableValue<[Element]> {
         return AnyUpdatableValue(getter: { self.value },
                                  apply: self.apply,
-                                 updates: { self.valueUpdates })
+                                 updates: self.valueUpdates)
     }
 
     public final var anyUpdatableArray: AnyUpdatableArray<Element> {
@@ -203,8 +211,13 @@ public class _BaseUpdatableArray<Element>: _AbstractUpdatableArray<Element>, Sig
 
     func rawApply(_ change: ArrayChange<Element>) { abstract() }
 
-    public final override var updates: ArrayUpdateSource<Element> {
-        return state.source(delegate: self)
+    public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
+        state.add(sink, with: self)
+    }
+
+    @discardableResult
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
+        return state.remove(sink)
     }
 
     public final override func apply(_ update: Update<ArrayChange<Element>>) {
@@ -244,7 +257,7 @@ public class _BaseUpdatableArray<Element>: _AbstractUpdatableArray<Element>, Sig
     }
 }
 
-internal class UpdatableArrayBox<Contents: UpdatableArrayType>: _AbstractUpdatableArray<Contents.Element> {
+internal final class UpdatableArrayBox<Contents: UpdatableArrayType>: _AbstractUpdatableArray<Contents.Element> where Contents.Change == ArrayChange<Contents.Element> {
     typealias Element = Contents.Element
 
     var contents: Contents
@@ -274,8 +287,17 @@ internal class UpdatableArrayBox<Contents: UpdatableArrayType>: _AbstractUpdatab
 
     override var isBuffered: Bool { return contents.isBuffered }
     override var count: Int { return contents.count }
-    override var updates: ArrayUpdateSource<Element> { return contents.updates }
+
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
+        contents.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
+        return contents.remove(sink)
+    }
+
     override var observableCount: AnyObservableValue<Int> { return contents.observableCount }
-    override var anyObservable: AnyObservableValue<[Element]> { return contents.anyObservable }
-    override var anyUpdatable: AnyUpdatableValue<Array<Contents.Element>> { return contents.anyUpdatable }
+    override var anyObservableValue: AnyObservableValue<[Element]> { return contents.anyObservableValue }
+    override var anyUpdatableValue: AnyUpdatableValue<Array<Contents.Element>> { return contents.anyUpdatableValue }
 }

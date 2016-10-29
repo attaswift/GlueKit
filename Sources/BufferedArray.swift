@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType {
+extension ObservableArrayType where Change == ArrayChange<Element> {
     public func buffered() -> AnyObservableArray<Element> {
         if isBuffered {
             return anyObservableArray
@@ -17,7 +17,17 @@ extension ObservableArrayType {
     }
 }
 
-internal class BufferedObservableArray<Content: ObservableArrayType>: _BaseObservableArray<Content.Element> {
+private struct BufferedSink<Content: ObservableArrayType>: UniqueOwnedSink where Content.Change == ArrayChange<Content.Element> {
+    typealias Owner = BufferedObservableArray<Content>
+
+    unowned let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Content.Element>) {
+        owner.applyUpdate(update)
+    }
+}
+
+internal class BufferedObservableArray<Content: ObservableArrayType>: _BaseObservableArray<Content.Element> where Content.Change == ArrayChange<Content.Element>  {
     typealias Element = Content.Element
     typealias Change = ArrayChange<Element>
 
@@ -29,18 +39,18 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: _BaseObser
         _content = content
         _value = content.value
         super.init()
-        _content.updates.add(sink)
+        _content.add(BufferedSink(owner: self))
     }
 
     deinit {
-        _content.updates.remove(sink)
+        _content.remove(BufferedSink(owner: self))
     }
 
     private var sink: AnySink<ArrayUpdate<Element>> {
         return StrongMethodSink(owner: self, identifier: 0, method: BufferedObservableArray<Content>.applyUpdate).anySink
     }
 
-    private func applyUpdate(_ update: ArrayUpdate<Element>) {
+    func applyUpdate(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

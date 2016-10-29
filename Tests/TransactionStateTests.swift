@@ -61,8 +61,8 @@ class TransactionStateTests: XCTestCase {
         // We can't compare the sources, but we can check that triggering
         // a change is reported from both of them.
 
-        sink1.expecting(["begin", "0→1", "end"]) {
-            sink2.expecting(["begin", "0→1", "end"]) {
+        sink1.expecting(["begin", "0 -> 1", "end"]) {
+            sink2.expecting(["begin", "0 -> 1", "end"]) {
                 observable.value = 1
             }
         }
@@ -83,8 +83,8 @@ class TransactionStateTests: XCTestCase {
         // We can't compare the sources, but we can check that triggering
         // a change is reported from both of them.
 
-        sink1.expecting(["begin", "0→1", "end"]) {
-            sink2.expecting(["begin", "0→1", "end"]) {
+        sink1.expecting(["begin", "0 -> 1", "end"]) {
+            sink2.expecting(["begin", "0 -> 1", "end"]) {
                 observable.value = 1
             }
         }
@@ -103,7 +103,7 @@ class TransactionStateTests: XCTestCase {
         let sink = MockValueUpdateSink<Int>()
         observable.updates.add(sink)
 
-        sink.expecting(["begin", "0→1", "end"]) {
+        sink.expecting(["begin", "0 -> 1", "end"]) {
             observable.state.begin()
             observable.state.sendIfConnected(ValueChange(from: 0, to: 1))
             observable.state.end()
@@ -124,7 +124,7 @@ class TransactionStateTests: XCTestCase {
 
         observable.state.sendLater(ValueChange(from: 0, to: 1))
 
-        sink.expecting("0→1") {
+        sink.expecting("0 -> 1") {
             observable.state.sendNow()
         }
 
@@ -145,7 +145,7 @@ class TransactionStateTests: XCTestCase {
             observable.state.send(.beginTransaction)
         }
 
-        sink.expecting("0→1") {
+        sink.expecting("0 -> 1") {
             observable.state.send(.change(ValueChange(from: 0, to: 1)))
         }
 

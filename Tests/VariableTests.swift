@@ -85,7 +85,7 @@ class VariableTests: XCTestCase {
 
         s = ""
         v.value = 2
-        XCTAssertEqual(s, " (begin) (3→2) (2→1) (1→0) (end)")
+        XCTAssertEqual(s, " (begin) (3 -> 2) (2 -> 1) (1 -> 0) (end)")
 
         c.disconnect()
     }
@@ -191,11 +191,11 @@ class VariableTests: XCTestCase {
             v.value = a
 
             let mock = MockValueUpdateSink(v)
-            mock.expecting(["begin", "\(a)→\(b)", "end"]) {
+            mock.expecting(["begin", "\(a) -> \(b)", "end"]) {
                 v.value = b
             }
             XCTAssert(eq(v.value, b))
-            mock.expecting(["begin", "\(b)→\(a)", "\(a)→\(c)", "end"]) {
+            mock.expecting(["begin", "\(b) -> \(a)", "\(a) -> \(c)", "end"]) {
                 v.withTransaction {
                     v.value = a
                     v.value = c

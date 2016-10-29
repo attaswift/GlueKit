@@ -49,13 +49,13 @@ class DistinctUnionTests: XCTestCase {
         }
         XCTAssertEqual(set.value, Set([0, 1, 2]))
 
-        mock.expectingNoChange {
+        mock.expectingNothing {
             array.append(1)
         }
         XCTAssertEqual(array.value, [0, 1, 2, 1])
         XCTAssertEqual(set.value, Set([0, 1, 2]))
 
-        mock.expectingNoChange {
+        mock.expectingNothing {
             _ = array.remove(at: 3)
         }
         XCTAssertEqual(array.value, [0, 1, 2])

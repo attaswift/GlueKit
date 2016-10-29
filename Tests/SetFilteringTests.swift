@@ -54,10 +54,10 @@ class SetFilteringTests: XCTestCase {
         mock.expecting("[]/[10]") { set.insert(10) }
         XCTAssertEqual(even.value, [0, 2, 4, 6, 8, 10])
 
-        mock.expectingNoChange { set.insert(11) }
+        mock.expectingNothing { set.insert(11) }
         XCTAssertEqual(even.value, [0, 2, 4, 6, 8, 10])
 
-        mock.expectingNoChange { set.remove(5) }
+        mock.expectingNothing { set.remove(5) }
         XCTAssertEqual(even.value, [0, 2, 4, 6, 8, 10])
 
         mock.expecting("[6]/[]") { set.remove(6) }
@@ -107,11 +107,11 @@ class SetFilteringTests: XCTestCase {
             set.insert(f[10])
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[4], f[6], f[8], f[10]])
-        mock.expectingNoChange {
+        mock.expectingNothing {
             set.insert(f[11])
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[4], f[6], f[8], f[10]])
-        mock.expectingNoChange {
+        mock.expectingNothing {
             set.remove(f[3])
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[4], f[6], f[8], f[10]])
@@ -127,11 +127,11 @@ class SetFilteringTests: XCTestCase {
             f[8].number.value = 9
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[6], f[10], f[11]])
-        mock.expectingNoChange {
+        mock.expectingNothing {
             f[8].number.value = 7
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[6], f[10], f[11]])
-        mock.expectingNoChange {
+        mock.expectingNothing {
             f[6].number.value = 8
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[6], f[10], f[11]])

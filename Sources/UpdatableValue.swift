@@ -9,12 +9,12 @@
 /// An observable thing that also includes support for updating its value.
 public protocol UpdatableValueType: ObservableValueType, UpdatableType {
     /// Returns the type-erased version of this UpdatableValueType.
-    var anyUpdatable: AnyUpdatableValue<Value> { get }
+    var anyUpdatableValue: AnyUpdatableValue<Value> { get }
 }
 
 extension UpdatableValueType where Change == ValueChange<Value> {
     /// Returns the type-erased version of this UpdatableValueType.
-    public var anyUpdatable: AnyUpdatableValue<Value> {
+    public var anyUpdatableValue: AnyUpdatableValue<Value> {
         return AnyUpdatableValue(self)
     }
 }
@@ -61,11 +61,11 @@ public struct AnyUpdatableValue<Value>: UpdatableValueType {
         return box.remove(sink)
     }
 
-    public var anyObservable: AnyObservableValue<Value> {
-        return box.anyObservable
+    public var anyObservableValue: AnyObservableValue<Value> {
+        return box.anyObservableValue
     }
 
-    public var anyUpdatable: AnyUpdatableValue<Value> {
+    public var anyUpdatableValue: AnyUpdatableValue<Value> {
         return self
     }
 }
@@ -79,7 +79,7 @@ open class _AbstractUpdatableValue<Value>: _AbstractObservableValue<Value>, Upda
     }
     open func apply(_ update: Update<Change>) { abstract() }
 
-    public final var anyUpdatable: AnyUpdatableValue<Value> { return AnyUpdatableValue(box: self) }
+    public final var anyUpdatableValue: AnyUpdatableValue<Value> { return AnyUpdatableValue(box: self) }
 }
 
 public class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, SignalDelegate {

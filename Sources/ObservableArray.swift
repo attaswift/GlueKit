@@ -28,7 +28,6 @@ public protocol ObservableArrayType: ObservableType, CustomReflectable {
     // Required methods
     var count: Int { get }
     subscript(bounds: Range<Int>) -> ArraySlice<Element> { get }
-    var updates: ArrayUpdateSource<Element> { get }
 
     // Extras
     var isBuffered: Bool { get }
@@ -36,7 +35,7 @@ public protocol ObservableArrayType: ObservableType, CustomReflectable {
     subscript(index: Int) -> Element { get }
     var observableCount: AnyObservableValue<Int> { get }
 
-    var anyObservable: AnyObservableValue<Base> { get }
+    var anyObservableValue: AnyObservableValue<Base> { get }
     var anyObservableArray: AnyObservableArray<Element> { get }
 }
 
@@ -54,8 +53,8 @@ extension ObservableArrayType {
     }
 }
 
-extension ObservableArrayType {
-    internal var valueUpdates: ValueUpdateSource<[Element]> {
+extension ObservableArrayType where Change == ArrayChange<Element> {
+    internal var valueUpdates: AnySource<ValueUpdate<[Element]>> {
         var value = self.value
         return self.updates.map { event in
             event.map { change in
@@ -66,13 +65,13 @@ extension ObservableArrayType {
         }.buffered()
     }
 
-    public var anyObservable: AnyObservableValue<Base> {
-        return AnyObservableValue(getter: { self.value }, updates: { self.valueUpdates })
+    public var anyObservableValue: AnyObservableValue<Base> {
+        return AnyObservableValue(getter: { self.value }, updates: self.valueUpdates)
     }
 
     public var observableCount: AnyObservableValue<Int> {
         return AnyObservableValue(getter: { self.count },
-                                  updates: { self.updates.map { $0.map { $0.countChange } } })
+                                  updates: self.updates.map { $0.map { $0.countChange } })
     }
 
     public var anyObservableArray: AnyObservableArray<Element> {
@@ -132,9 +131,17 @@ public struct AnyObservableArray<Element>: ObservableArrayType {
     public subscript(_ range: Range<Int>) -> ArraySlice<Element> { return box[range] }
     public var value: Array<Element> { return box.value }
     public var count: Int { return box.count }
-    public var updates: ArrayUpdateSource<Element> { return box.updates }
+
+    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
+        box.add(sink)
+    }
+
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
+        return box.remove(sink)
+    }
     public var observableCount: AnyObservableValue<Int> { return box.observableCount }
-    public var anyObservable: AnyObservableValue<[Element]> { return box.anyObservable }
+    public var anyObservableValue: AnyObservableValue<[Element]> { return box.anyObservableValue }
     public var anyObservableArray: AnyObservableArray<Element> { return self }
 }
 
@@ -147,15 +154,23 @@ open class _AbstractObservableArray<Element>: ObservableArrayType {
     open subscript(_ range: Range<Int>) -> ArraySlice<Element> { abstract() }
     open var value: Array<Element> { abstract() }
     open var count: Int { abstract() }
-    open var updates: ArrayUpdateSource<Element> { abstract() }
+
+    open func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
+        abstract()
+    }
+
+    @discardableResult
+    open func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
+        abstract()
+    }
 
     open var observableCount: AnyObservableValue<Int> {
         return AnyObservableValue(getter: { self.count },
-                                  updates: { self.updates.map { $0.map { $0.countChange } } })
+                                  updates: self.updates.map { $0.map { $0.countChange } })
     }
 
-    open var anyObservable: AnyObservableValue<[Element]> {
-        return AnyObservableValue(getter: { self.value }, updates: { self.valueUpdates })
+    open var anyObservableValue: AnyObservableValue<[Element]> {
+        return AnyObservableValue(getter: { self.value }, updates: self.valueUpdates)
     }
 
     public final var anyObservableArray: AnyObservableArray<Element> { return AnyObservableArray(box: self) }
@@ -164,8 +179,13 @@ open class _AbstractObservableArray<Element>: ObservableArrayType {
 open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, SignalDelegate {
     private var state = TransactionState<ArrayChange<Element>>()
 
-    public final override var updates: ArrayUpdateSource<Element> {
-        return state.source(delegate: self)
+    public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
+        state.add(sink, with: self)
+    }
+
+    @discardableResult
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
+        return state.remove(sink)
     }
 
     final var isConnected: Bool {
@@ -193,7 +213,7 @@ open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, Sig
     }
 }
 
-internal class ObservableArrayBox<Contents: ObservableArrayType>: _AbstractObservableArray<Contents.Element> {
+internal final class ObservableArrayBox<Contents: ObservableArrayType>: _AbstractObservableArray<Contents.Element> where Contents.Change == ArrayChange<Contents.Element> {
     typealias Element = Contents.Element
 
     let contents: Contents
@@ -207,12 +227,19 @@ internal class ObservableArrayBox<Contents: ObservableArrayType>: _AbstractObser
     override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return contents[range] }
     override var value: Array<Element> { return contents.value }
     override var count: Int { return contents.count }
-    override var updates: ArrayUpdateSource<Element> { return contents.updates }
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
+        contents.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
+        return contents.remove(sink)
+    }
     override var observableCount: AnyObservableValue<Int> { return contents.observableCount }
-    override var anyObservable: AnyObservableValue<[Element]> { return contents.anyObservable }
+    override var anyObservableValue: AnyObservableValue<[Element]> { return contents.anyObservableValue }
 }
 
-internal class ObservableArrayConstant<Element>: _AbstractObservableArray<Element> {
+internal final class ObservableArrayConstant<Element>: _AbstractObservableArray<Element> {
     let _value: Array<Element>
 
     init(_ value: [Element]) {
@@ -224,9 +251,16 @@ internal class ObservableArrayConstant<Element>: _AbstractObservableArray<Elemen
     override subscript(_ range: Range<Int>) -> ArraySlice<Element> { return _value[range] }
     override var value: Array<Element> { return _value }
     override var count: Int { return _value.count }
-    override var updates: ArrayUpdateSource<Element> { return AnySource.empty() }
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
+        // Do nothing
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
+        return sink
+    }
     override var observableCount: AnyObservableValue<Int> { return AnyObservableValue.constant(_value.count) }
-    override var anyObservable: AnyObservableValue<[Element]> { return AnyObservableValue.constant(_value) }
+    override var anyObservableValue: AnyObservableValue<[Element]> { return AnyObservableValue.constant(_value) }
 }
 
 extension ObservableArrayType {

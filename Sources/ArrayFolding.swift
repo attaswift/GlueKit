@@ -19,7 +19,7 @@ extension ObservableArrayType {
     ///
     /// - SeeAlso: `sum()` which returns a reduction using addition.
     public func reduce<Result>(_ initial: Result, add: @escaping (Result, Element) -> Result, remove: @escaping (Result, Element) -> Result) -> AnyObservableValue<Result> {
-        return ArrayFoldingByTwoWayFunction<Self, Result>(base: self, initial: initial, add: add, remove: remove).anyObservable
+        return ArrayFoldingByTwoWayFunction<Self, Result>(base: self, initial: initial, add: add, remove: remove).anyObservableValue
     }
 }
 

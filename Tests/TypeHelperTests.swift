@@ -52,8 +52,8 @@ class TypeHelperTests: XCTestCase {
         let umock = MockValueUpdateSink(updatable)
 
         smock.expecting(value1) {
-            omock.expecting(["begin", "\(value0)→\(value1)", "end"]) {
-                umock.expecting(["begin", "\(value0)→\(value1)", "end"]) {
+            omock.expecting(["begin", "\(value0) -> \(value1)", "end"]) {
+                umock.expecting(["begin", "\(value0) -> \(value1)", "end"]) {
                     setter(t, value1)
                 }
             }
@@ -62,8 +62,8 @@ class TypeHelperTests: XCTestCase {
         XCTAssertEqual(updatable.value, value1)
 
         smock.expecting(value2) {
-            omock.expecting(["begin", "\(value1)→\(value2)", "end"]) {
-                umock.expecting(["begin", "\(value1)→\(value2)", "end"]) {
+            omock.expecting(["begin", "\(value1) -> \(value2)", "end"]) {
+                umock.expecting(["begin", "\(value1) -> \(value2)", "end"]) {
                     updatable.value = value2
                 }
             }

@@ -56,4 +56,17 @@ extension Update {
             return .endTransaction
         }
     }
+
+    public func flatMap<Result: ChangeType>(_ transform: (Change) -> Result?) -> Update<Result>? {
+        switch self {
+        case .beginTransaction:
+            return .beginTransaction
+        case .change(let change):
+            guard let new = transform(change) else { return nil }
+            return .change(new)
+        case .endTransaction:
+            return .endTransaction
+        }
+    }
+
 }

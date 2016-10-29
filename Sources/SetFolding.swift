@@ -19,7 +19,7 @@ extension ObservableSetType {
     ///
     /// - SeeAlso: `sum()` which returns a reduction using addition.
     public func reduce<Result>(_ initial: Result, add: @escaping (Result, Element) -> Result, remove: @escaping (Result, Element) -> Result) -> AnyObservableValue<Result> {
-        return SetFoldingByTwoWayFunction<Self, Result>(parent: self, initial: initial, add: add, remove: remove).anyObservable
+        return SetFoldingByTwoWayFunction<Self, Result>(parent: self, initial: initial, add: add, remove: remove).anyObservableValue
     }
 }
 

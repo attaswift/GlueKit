@@ -48,7 +48,7 @@ public struct ValueChange<Value>: ChangeType {
 
 extension ValueChange: CustomStringConvertible {
     public var description: String {
-        return "\(old)→\(new)"
+        return "\(old) -> \(new)"
     }
 }
 

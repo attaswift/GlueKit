@@ -17,7 +17,7 @@ class UpdateTests: XCTestCase {
             .change(change),
             .endTransaction,
         ]
-        let expected: [String] = ["nil", "1→2→3", "nil"]
+        let expected: [String] = ["nil", "1 -> 2 -> 3", "nil"]
         let actual = updates.map { update -> String in
             if let change = update.change {
                 return "\(change)"
@@ -36,7 +36,7 @@ class UpdateTests: XCTestCase {
             .change(change),
             .endTransaction,
             ]
-        let expected1: [String] = ["begin", "1→2→3", "end"]
+        let expected1: [String] = ["begin", "1 -> 2 -> 3", "end"]
         let actual1 = updates.map { describe($0.filter { _ in true }) }
         XCTAssertEqual(actual1, expected1)
 
@@ -53,7 +53,7 @@ class UpdateTests: XCTestCase {
             .endTransaction,
             ]
 
-        let expected: [String] = ["begin", "2→4→6", "end"]
+        let expected: [String] = ["begin", "2 -> 4 -> 6", "end"]
         let actual = updates.map { describe($0.map { TestChange($0.values.map { 2 * $0 }) }) }
         XCTAssertEqual(actual, expected)
     }

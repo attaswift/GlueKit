@@ -10,7 +10,7 @@ import UIKit
 
 extension UIDevice {
     public var observableOrientation: AnyObservableValue<UIDeviceOrientation> {
-        return ObservableDeviceOrientation(self).anyObservable
+        return ObservableDeviceOrientation(self).anyObservableValue
     }
 }
 
@@ -59,11 +59,11 @@ private final class ObservableDeviceOrientation: _BaseObservableValue<UIDeviceOr
 extension UIDevice {
     public var observableBatteryState: AnyObservableValue<(UIDeviceBatteryState, Float)> {
         if let observable = objc_getAssociatedObject(self, &batteryKey) as? ObservableBatteryState {
-            return observable.anyObservable
+            return observable.anyObservableValue
         }
         let observable = ObservableBatteryState(self)
         objc_setAssociatedObject(self, &batteryKey, observable, .OBJC_ASSOCIATION_RETAIN)
-        return observable.anyObservable
+        return observable.anyObservableValue
     }
 }
 
@@ -130,11 +130,11 @@ private final class ObservableBatteryState: _BaseObservableValue<(UIDeviceBatter
 extension UIDevice {
     public var observableProximityState: AnyObservableValue<Bool> {
         if let observable = objc_getAssociatedObject(self, &proximityKey) as? ObservableDeviceProximity {
-            return observable.anyObservable
+            return observable.anyObservableValue
         }
         let observable = ObservableDeviceProximity(self)
         objc_setAssociatedObject(self, &proximityKey, observable, .OBJC_ASSOCIATION_RETAIN)
-        return observable.anyObservable
+        return observable.anyObservableValue
     }
 }
 

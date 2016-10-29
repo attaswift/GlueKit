@@ -26,7 +26,7 @@ class DistinctTests: XCTestCase {
             test.value = 2
         }
 
-        sink.expecting(["0→2", "end"]) {
+        sink.expecting(["0 -> 2", "end"]) {
             test.end()
         }
 
@@ -98,11 +98,11 @@ class DistinctTests: XCTestCase {
             }
         }
 
-        sink0to2.expecting(["0→2", "end"]) {
+        sink0to2.expecting(["0 -> 2", "end"]) {
             distinct.updates.remove(sink0to2)
         }
 
-        sink1to2.expecting(["1→2", "end"]) {
+        sink1to2.expecting(["1 -> 2", "end"]) {
             distinct.updates.remove(sink1to2)
         }
 
@@ -112,8 +112,8 @@ class DistinctTests: XCTestCase {
             }
         }
 
-        sink0to3.expecting(["0→3", "end"]) {
-            sink1to3.expecting(["1→3", "end"]) {
+        sink0to3.expecting(["0 -> 3", "end"]) {
+            sink1to3.expecting(["1 -> 3", "end"]) {
                 test.end()
             }
         }
@@ -238,14 +238,14 @@ class DistinctTests: XCTestCase {
 
         let mock = MockValueUpdateSink(d)
 
-        mock.expecting(["begin", "0→42", "end"]) {
+        mock.expecting(["begin", "0 -> 42", "end"]) {
             d.value = 42
         }
 
         XCTAssertEqual(d.value, 42)
         XCTAssertEqual(test.value, 42)
 
-        mock.expecting(["begin", "42→23", "end"]) {
+        mock.expecting(["begin", "42 -> 23", "end"]) {
             d.withTransaction {
                 d.value = 23
             }

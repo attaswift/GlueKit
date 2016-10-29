@@ -19,13 +19,13 @@ class CombinedObservableTests: XCTestCase {
 
         let mock = MockValueUpdateSink(combined)
 
-        mock.expecting(["begin", "[1,2]→[3,2]", "end"]) {
+        mock.expecting(["begin", "[1,2] -> [3,2]", "end"]) {
             a.value = 3
         }
 
         XCTAssertEqual(combined.value, "[3,2]")
 
-        mock.expecting(["begin", "[3,2]→[3,4]", "end"]) {
+        mock.expecting(["begin", "[3,2] -> [3,4]", "end"]) {
             b.value = 4
         }
 
@@ -189,7 +189,7 @@ class CombinedObservableTests: XCTestCase {
 
         let mock = MockValueUpdateSink(n)
 
-        mock.expecting(["begin", "-1→-2", "end"]) {
+        mock.expecting(["begin", "-1 -> -2", "end"]) {
             a.value = 2
         }
     }

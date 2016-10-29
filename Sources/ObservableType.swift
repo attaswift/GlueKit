@@ -62,9 +62,11 @@ extension UpdatableType {
     }
 
     public func apply(_ change: Change) {
-        apply(.beginTransaction)
-        apply(.change(change))
-        apply(.endTransaction)
+        if !change.isEmpty {
+            apply(.beginTransaction)
+            apply(.change(change))
+            apply(.endTransaction)
+        }
     }
 }
 

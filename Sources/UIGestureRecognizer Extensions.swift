@@ -10,7 +10,7 @@ import UIKit
 
 extension UIGestureRecognizer {
     public var observableState: AnyObservableValue<UIGestureRecognizerState> {
-        return ObservableGestureRecognizerState(self).anyObservable
+        return ObservableGestureRecognizerState(self).anyObservableValue
     }
 }
 

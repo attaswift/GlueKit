@@ -42,7 +42,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
     /// message at any time.
     ///
     public func map<O: ObservableValueType>(_ key: @escaping (Value) -> O) -> AnyObservableValue<O.Value> where O.Change == ValueChange<O.Value> {
-        return ValueMappingForValueField(parent: self, key: key).anyObservable
+        return ValueMappingForValueField(parent: self, key: key).anyObservableValue
     }
 }
 
@@ -63,7 +63,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Fi
     typealias Owner = ValueMappingForValueField<Parent, Field>
 
     unowned let owner: Owner
-    let identifier = 1
+    let identifier = 2
 
     func receive(_ update: ValueUpdate<Field.Value>) {
         owner.applyFieldUpdate(update)
@@ -180,7 +180,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
     /// or to update it.
     ///
     public func map<U: UpdatableValueType>(_ key: @escaping (Value) -> U) -> AnyUpdatableValue<U.Value> where U.Change == ValueChange<U.Value> {
-        return ValueMappingForUpdatableField<Self, U>(parent: self, key: key).anyUpdatable
+        return ValueMappingForUpdatableField<Self, U>(parent: self, key: key).anyUpdatableValue
     }
 }
 

@@ -156,7 +156,7 @@ class ArrayFilteringTests: XCTestCase {
 
         // filtered is [b3, b5]
 
-        mock.expectingNoChange {
+        mock.expectingNothing {
             b4.title.value = "The TeXbook"
         }
 

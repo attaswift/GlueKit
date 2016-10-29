@@ -85,11 +85,11 @@ class SetMappingTests: XCTestCase {
         XCTAssertEqual(mappedSet.value, [0, 1, 2, 4])
 
         let mock = MockSetObserver(mappedSet)
-        mock.expectingNoChange { set.insert(1) }
+        mock.expectingNothing { set.insert(1) }
         XCTAssertEqual(mappedSet.value, [0, 1, 2, 4])
         mock.expecting("[2]/[]") { set.remove(4) }
         XCTAssertEqual(mappedSet.value, [0, 1, 4])
-        mock.expectingNoChange { set.remove(3) }
+        mock.expectingNothing { set.remove(3) }
         XCTAssertEqual(mappedSet.value, [0, 1, 4])
     }
 
@@ -119,17 +119,17 @@ class SetMappingTests: XCTestCase {
         mock.expecting("[baz]/[bazaar]") { b3.title.value = "bazaar" }
         XCTAssertEqual(titles.value, ["foo", "bazaar", "fred"])
 
-        mock.expectingNoChange { b3.title.value = "bazaar" }
+        mock.expectingNothing { b3.title.value = "bazaar" }
         XCTAssertEqual(titles.value, ["foo", "bazaar", "fred"])
 
-        mock.expectingNoChange { b2.title.value = "xyzzy" } // b2 isn't in books
+        mock.expectingNothing { b2.title.value = "xyzzy" } // b2 isn't in books
         XCTAssertEqual(titles.value, ["foo", "bazaar", "fred"])
 
         mock.expecting("[foo]/[xyzzy]") { b1.title.value = "xyzzy" }
         XCTAssertEqual(titles.value, ["xyzzy", "bazaar", "fred"])
 
-        mock.expectingNoChange { books.insert(b2) }
-        mock.expectingNoChange { books.remove(b1) }
+        mock.expectingNothing { books.insert(b2) }
+        mock.expectingNothing { books.remove(b1) }
         XCTAssertEqual(titles.value, ["xyzzy", "bazaar", "fred"])
 
         mock.expecting("[xyzzy]/[]") { books.remove(b2) }
@@ -158,7 +158,7 @@ class SetMappingTests: XCTestCase {
         mock.expecting("[]/[e]") { books.insert(b4) }
         XCTAssertEqual(authors.value, ["a", "b", "c", "d", "e"])
 
-        mock.expectingNoChange { books.remove(b1) }
+        mock.expectingNothing { books.remove(b1) }
         XCTAssertEqual(authors.value, ["a", "b", "c", "d", "e"])
 
         mock.expecting("[c]/[]") { b4.authors.remove("c") }
@@ -194,7 +194,7 @@ class SetMappingTests: XCTestCase {
         mock.expecting("[]/[e]") { books.insert(b4) }
         XCTAssertEqual(chapters.value, ["a", "b", "c", "d", "e"])
 
-        mock.expectingNoChange { books.remove(b1) }
+        mock.expectingNothing { books.remove(b1) }
         XCTAssertEqual(chapters.value, ["a", "b", "c", "d", "e"])
 
         mock.expecting("[c]/[]") { _ = b4.chapters.remove(at: 1) } // b4.chapters was bce
@@ -203,7 +203,7 @@ class SetMappingTests: XCTestCase {
         mock.expecting("[]/[c]") { b4.chapters.insert("c", at: 1) } // b4.chapters was be
         XCTAssertEqual(chapters.value, ["a", "b", "c", "d", "e"])
 
-        mock.expectingNoChange { b4.chapters.value = ["e", "c", "b"] } // Reordering chapters has no effect on result set
+        mock.expectingNothing { b4.chapters.value = ["e", "c", "b"] } // Reordering chapters has no effect on result set
         XCTAssertEqual(chapters.value, ["a", "b", "c", "d", "e"])
 
         mock.expecting("[a]/[f]") { b2.chapters.value = ["f"] }
@@ -236,7 +236,7 @@ class SetMappingTests: XCTestCase {
         mock.expecting("[]/[e]") { books.insert(b4) }
         XCTAssertEqual(authors.value, ["a", "b", "c", "d", "e"])
 
-        mock.expectingNoChange { books.remove(b1) }
+        mock.expectingNothing { books.remove(b1) }
         XCTAssertEqual(authors.value, ["a", "b", "c", "d", "e"])
 
         mock.expecting("[d]/[]") { books.remove(b3) }

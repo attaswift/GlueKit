@@ -8,7 +8,7 @@
 
 extension UpdatableValueType where Change == ValueChange<Value> {
     public func combined<Other: UpdatableValueType>(_ other: Other) -> AnyUpdatableValue<(Value, Other.Value)> where Other.Change == ValueChange<Other.Value> {
-        return CompositeUpdatable(left: self, right: other).anyUpdatable
+        return CompositeUpdatable(left: self, right: other).anyUpdatableValue
     }
 
     public func combined<A: UpdatableValueType, B: UpdatableValueType>(_ a: A, _ b: B) -> AnyUpdatableValue<(Value, A.Value, B.Value)>

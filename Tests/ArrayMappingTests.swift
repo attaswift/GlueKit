@@ -61,7 +61,7 @@ class ArrayMappingTests: XCTestCase {
         XCTAssertEqual(titles.value, ["fuzzy", "barney"])
 
         // The observable doesn't know the title of a book may change, so it won't notice when we modify it.
-        mock.expectingNoChange {
+        mock.expectingNothing {
             barney.title.value = "bazaar"
         }
         // However, this particular observable generates results on the fly, so the pull-based API includes the change.
@@ -108,7 +108,7 @@ class ArrayMappingTests: XCTestCase {
         XCTAssertEqual(titles.value, ["fuzzy", "barney"])
 
         // The observable doesn't know the title of a book may change, so it won't notice when we modify it.
-        mock.expectingNoChange {
+        mock.expectingNothing {
             barney.title.value = "bazaar"
         }
         // The observable is buffered, so if we pull a value out of it, it won't include the update.
@@ -361,7 +361,7 @@ class ArrayMappingTests: XCTestCase {
 
         // At this point, no book has any author.
 
-        mock.expectingNoChange {
+        mock.expectingNothing {
             books.append(contentsOf: books.value)
         }
         XCTAssertEqual(authors.value, [
@@ -507,7 +507,7 @@ class ArrayMappingTests: XCTestCase {
         ])
         checkSlices()
 
-        mock.expectingNoChange {
+        mock.expectingNothing {
             _ = books.removeLast() // b5
         }
         XCTAssertEqual(authors.value, [
@@ -527,7 +527,7 @@ class ArrayMappingTests: XCTestCase {
         ])
         checkSlices()
 
-        mock.expectingNoChange {
+        mock.expectingNothing {
             _ = books.removeFirst() // b2
         }
         XCTAssertEqual(authors.value, [
@@ -536,7 +536,7 @@ class ArrayMappingTests: XCTestCase {
         ])
         checkSlices()
 
-        mock.expectingNoChange {
+        mock.expectingNothing {
             _ = books.removeLast() // b4
         }
         XCTAssertEqual(authors.value, [

@@ -60,7 +60,7 @@ private struct DistinctSink<V, Sink: SinkType>: SinkType where Sink.Value == Val
 
 public extension ObservableValueType where Change == ValueChange<Value> {
     public func distinct(_ areEquivalent: @escaping (Value, Value) -> Bool) -> AnyObservableValue<Value> {
-        return DistinctObservableValue(self, by: areEquivalent).anyObservable
+        return DistinctObservableValue(self, by: areEquivalent).anyObservableValue
     }
 }
 
@@ -98,7 +98,7 @@ private class DistinctObservableValue<Input: ObservableValueType>: _AbstractObse
 
 public extension UpdatableValueType where Change == ValueChange<Value> {
     public func distinct(_ areEquivalent: @escaping (Value, Value) -> Bool) -> AnyUpdatableValue<Value> {
-        return DistinctUpdatableValue(self, by: areEquivalent).anyUpdatable
+        return DistinctUpdatableValue(self, by: areEquivalent).anyUpdatableValue
     }
 }
 
