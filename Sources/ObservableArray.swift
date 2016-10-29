@@ -7,7 +7,7 @@
 //
 
 public typealias ArrayUpdate<Element> = Update<ArrayChange<Element>>
-public typealias ArrayUpdateSource<Element> = AnySource<ArrayUpdate<Element>>
+public typealias ArrayUpdateSource<Element> = AnySource<Update<ArrayChange<Element>>>
 
 //MARK: ObservableArrayType
 

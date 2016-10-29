@@ -6,18 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-public extension ObservableValueType where Change == ValueChange<Value> {
-    public func distinct(_ areEquivalent: @escaping (Value, Value) -> Bool) -> AnyObservableValue<Value> {
-        return DistinctObservableValue(self, by: areEquivalent).anyObservable
-    }
-}
-
-public extension ObservableValueType where Change == ValueChange<Value>, Value: Equatable {
-    public func distinct() -> AnyObservableValue<Value> {
-        return distinct(==)
-    }
-}
-
 private class DistinctSinkState<V> {
     typealias Value = ValueUpdate<V>
 
@@ -91,6 +79,18 @@ private class DistinctUpdateSource<V>: _AbstractSource<ValueUpdate<V>> {
         let old = target.remove(DistinctSink(owner: owner, sink: sink, state: nil))
         let opened = old.opened(as: DistinctSink<V, Sink>.self)!
         return opened.sink.anySink
+    }
+}
+
+public extension ObservableValueType where Change == ValueChange<Value> {
+    public func distinct(_ areEquivalent: @escaping (Value, Value) -> Bool) -> AnyObservableValue<Value> {
+        return DistinctObservableValue(self, by: areEquivalent).anyObservable
+    }
+}
+
+public extension ObservableValueType where Change == ValueChange<Value>, Value: Equatable {
+    public func distinct() -> AnyObservableValue<Value> {
+        return distinct(==)
     }
 }
 

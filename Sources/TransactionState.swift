@@ -53,38 +53,18 @@ private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
     }
 }
 
-private final class UpdateSource<Change: ChangeType>: _AbstractSource<Update<Change>> {
-    let owner: AnyObject
-    let signal: TransactionSignal<Change>
-
-    init(owner: AnyObject, signal: TransactionSignal<Change>) {
-        self.owner = owner
-        self.signal = signal
-    }
-
-    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        signal.add(sink)
-    }
-
-    @discardableResult
-    override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Update<Change>> where Sink.Value == Update<Change> {
-        return signal.remove(sink)
-    }
-
-}
-
 internal struct TransactionState<Change: ChangeType> {
     fileprivate var signal: TransactionSignal<Change>? = nil
     private var transactionCount = 0
 
-    mutating func source(delegate: SignalDelegate) -> AnySource<Update<Change>> {
+    mutating func source(delegate: SignalDelegate) -> UpdateSource<Change> {
         if let signal = self.signal {
             assert(signal.delegate === delegate)
-            return UpdateSource(owner: delegate, signal: signal).anySource
+            return _UpdateSource(owner: delegate, signal: signal).anySource
         }
         let signal = TransactionSignal<Change>(owner: delegate, isInTransaction: self.isChanging)
         self.signal = signal
-        return UpdateSource(owner: delegate, signal: signal).anySource
+        return _UpdateSource(owner: delegate, signal: signal).anySource
     }
 
     var isChanging: Bool { return transactionCount > 0 }
@@ -157,3 +137,25 @@ open class TransactionalSource<Change: ChangeType>: _AbstractSource<Update<Chang
     func deactivate() {
     }
 }
+
+private struct _UpdateSource<Change: ChangeType>: SourceType {
+    typealias Value = Update<Change>
+
+    private let owner: AnyObject
+    private let signal: Signal<Value>
+
+    init(owner: AnyObject, signal: Signal<Value>) {
+        self.owner = owner
+        self.signal = signal
+    }
+
+    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+        signal.add(sink)
+    }
+
+    @discardableResult
+    func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+        return signal.remove(sink)
+    }
+}
+

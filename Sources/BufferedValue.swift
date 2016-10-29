@@ -12,7 +12,17 @@ extension ObservableValueType where Change == ValueChange<Value> {
     }
 }
 
-internal class BufferedObservableValue<Base: ObservableValueType>: _BaseObservableValue<Base.Value>
+private struct BufferedObservableSink<Base: ObservableValueType>: OwnedSink where Base.Change == ValueChange<Base.Value> {
+    typealias Owner = BufferedObservableValue<Base>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ValueUpdate<Base.Value>) {
+        owner.apply(update)
+    }
+}
+
+private class BufferedObservableValue<Base: ObservableValueType>: _BaseObservableValue<Base.Value>
 where Base.Change == ValueChange<Base.Value> {
     typealias Value = Base.Value
 
@@ -26,18 +36,14 @@ where Base.Change == ValueChange<Base.Value> {
         self._value = base.value
         super.init()
 
-        _base.updates.add(applySink)
+        _base.updates.add(BufferedObservableSink(owner: self))
     }
 
     deinit {
-        _base.updates.remove(applySink)
+        _base.updates.remove(BufferedObservableSink(owner: self))
     }
 
-    private var applySink: AnySink<ValueUpdate<Value>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: BufferedObservableValue.apply).anySink
-    }
-
-    private func apply(_ update: ValueUpdate<Value>) {
+    func apply(_ update: ValueUpdate<Value>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

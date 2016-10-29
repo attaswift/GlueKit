@@ -7,7 +7,7 @@
 //
 
 public typealias SetUpdate<Element: Hashable> = Update<SetChange<Element>>
-public typealias SetUpdateSource<Element: Hashable> = AnySource<SetUpdate<Element>>
+public typealias SetUpdateSource<Element: Hashable> = AnySource<Update<SetChange<Element>>>
 
 public protocol ObservableSetType: ObservableType {
     associatedtype Element: Hashable

@@ -40,7 +40,7 @@ class TransformedSource<Input: SourceType, Value>: _AbstractSource<Value> {
 private struct TransformedSink<Input: SourceType, Sink: SinkType>: SinkType {
     typealias Value = Input.Value
 
-    let source: TransformedSource<Input, Sink.Value>
+    unowned let source: TransformedSource<Input, Sink.Value>
     let sink: Sink
 
     init(source: TransformedSource<Input, Sink.Value>, sink: Sink) {

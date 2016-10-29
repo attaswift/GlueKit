@@ -72,6 +72,10 @@ public class Signal<Value>: _AbstractSource<Value> {
         super.init()
     }
 
+    deinit {
+        precondition(sinks.count == 0 && pendingItems.count == 0)
+    }
+
     /// Atomically return the pending value that needs to be sent next, or nil.
     /// If there are no more values, exit the sending state.
     private func _nextValueToSend(enterSending: Bool) -> Value? {

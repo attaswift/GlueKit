@@ -245,6 +245,9 @@ class VariableTests: XCTestCase {
         }
         XCTAssertNil(box)
         XCTAssertNil(variable.value)
+
+        let nilVariable = WeakVariable<Box>()
+        XCTAssertNil(nilVariable.value)
     }
 
 

@@ -6,6 +6,22 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
+protocol OwnedSink: SinkType {
+    associatedtype Owner: AnyObject
+
+    var owner: Owner { get }
+}
+
+extension OwnedSink {
+    var hashValue: Int {
+        return ObjectIdentifier(owner).hashValue
+    }
+
+    static func ==(left: Self, right: Self) -> Bool {
+        return left.owner === right.owner
+    }
+}
+
 public protocol MethodSink: SinkType {
     associatedtype Owner: AnyObject
 

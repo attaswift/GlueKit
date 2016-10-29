@@ -41,7 +41,7 @@ class TestObservable: ObservableType, SignalDelegate {
 
     var isConnected: Bool { return _state.isConnected }
 
-    var updates: AnySource<Update<Change>> { return _state.source(delegate: self) }
+    var updates: UpdateSource<Change> { return _state.source(delegate: self) }
 }
 
 class TestObservableValue<Value>: ObservableValueType, SignalDelegate {
@@ -75,5 +75,5 @@ class TestObservableValue<Value>: ObservableValueType, SignalDelegate {
 
     var isConnected: Bool { return _state.isConnected }
 
-    var updates: AnySource<Update<Change>> { return _state.source(delegate: self) }
+    var updates: UpdateSource<Change> { return _state.source(delegate: self) }
 }

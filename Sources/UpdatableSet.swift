@@ -193,15 +193,17 @@ open class _AbstractUpdatableSet<Element: Hashable>: _AbstractObservableSet<Elem
 }
 
 public class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, SignalDelegate {
+    public typealias Change = SetChange<Element>
+
     private var state = TransactionState<SetChange<Element>>()
 
-    func rawApply(_ change: SetChange<Element>) { abstract() }
+    func rawApply(_ change: Change) { abstract() }
 
-    public final override var updates: SetUpdateSource<Element> {
+    public final override var updates: UpdateSource<Change> {
         return state.source(delegate: self)
     }
 
-    public final override func apply(_ update: Update<SetChange<Element>>) {
+    public final override func apply(_ update: Update<Change>) {
         switch update {
         case .beginTransaction:
             state.begin()
@@ -225,7 +227,7 @@ public class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element
         state.end()
     }
 
-    final func sendChange(_ change: SetChange<Element>) {
+    final func sendChange(_ change: Change) {
         state.send(change)
     }
 
@@ -240,6 +242,7 @@ public class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element
 
 class UpdatableSetBox<Contents: UpdatableSetType>: _AbstractUpdatableSet<Contents.Element> {
     typealias Element = Contents.Element
+    typealias Change = SetChange<Element>
 
     let contents: Contents
 

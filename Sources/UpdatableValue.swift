@@ -55,10 +55,6 @@ public struct AnyUpdatableValue<Value>: UpdatableValueType {
         return box.updates
     }
 
-    public var futureValues: AnySource<Value> {
-        return box.futureValues
-    }
-
     public var anyObservable: AnyObservableValue<Value> {
         return box.anyObservable
     }
@@ -157,10 +153,6 @@ internal class UpdatableBox<Base: UpdatableValueType>: _AbstractUpdatableValue<B
 
     override var updates: ValueUpdateSource<Value> {
         return base.updates
-    }
-
-    override var futureValues: AnySource<Value> {
-        return base.futureValues
     }
 }
 

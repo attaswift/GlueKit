@@ -6,6 +6,8 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
+public typealias UpdateSource<Change: ChangeType> = AnySource<Update<Change>>
+
 public protocol ObservableType {
     associatedtype Change: ChangeType
 
@@ -13,7 +15,7 @@ public protocol ObservableType {
     var value: Change.Value { get }
 
     /// A source that reports update transaction events for this observable.
-    var updates: AnySource<Update<Change>> { get }
+    var updates: UpdateSource<Change> { get }
 }
 
 public protocol UpdatableType: ObservableType {

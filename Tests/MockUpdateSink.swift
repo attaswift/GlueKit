@@ -30,7 +30,6 @@ class MockUpdateSink<Change: ChangeType>: TransformedMockSink<Update<Change>, St
     convenience init<Observable: ObservableValueType>(_ observable: Observable) where Observable.Change == Change {
         self.init(observable.updates)
     }
-
 }
 
 typealias MockValueUpdateSink<Value> = MockUpdateSink<ValueChange<Value>>

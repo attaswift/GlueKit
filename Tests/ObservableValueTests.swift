@@ -17,19 +17,17 @@ class ObservableValueTests: XCTestCase {
 
         XCTAssertEqual(any.value, 0)
 
-        let updateSink = MockValueUpdateSink<Int>()
-        any.updates.add(updateSink)
+        let updateSink = MockValueUpdateSink<Int>(any.updates)
 
         let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old)→\($0.new)" })
-        any.changes.add(changeSink)
+        changeSink.connect(to: any.changes)
 
         let valuesSink = MockSink<Int>()
         valuesSink.expecting(0) {
-            any.values.add(valuesSink)
+            valuesSink.connect(to: any.values)
         }
 
-        let futureValuesSink = MockSink<Int>()
-        any.futureValues.add(futureValuesSink)
+        let futureValuesSink = MockSink<Int>(any.futureValues)
 
         updateSink.expecting("begin") {
             test.begin()
@@ -60,18 +58,17 @@ class ObservableValueTests: XCTestCase {
         XCTAssertEqual(any.value, 0)
 
         let updateSink = MockValueUpdateSink<Int>()
-        any.updates.add(updateSink)
+        updateSink.connect(to: any.updates)
 
         let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old)→\($0.new)" })
-        any.changes.add(changeSink)
+        changeSink.connect(to: any.changes)
 
         let valuesSink = MockSink<Int>()
         valuesSink.expecting(0) {
-            any.values.add(valuesSink)
+            valuesSink.connect(to: any.values)
         }
 
-        let futureValuesSink = MockSink<Int>()
-        any.futureValues.add(futureValuesSink)
+        let futureValuesSink = MockSink<Int>(any.futureValues)
 
         updateSink.expecting("begin") {
             signal.send(.beginTransaction)

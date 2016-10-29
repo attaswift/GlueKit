@@ -7,7 +7,7 @@
 //
 
 public typealias ValueUpdate<Value> = Update<ValueChange<Value>>
-public typealias ValueUpdateSource<Value> = AnySource<ValueUpdate<Value>>
+public typealias ValueUpdateSource<Value> = AnySource<Update<ValueChange<Value>>>
 
 /// An observable has a value that is readable at any time, and may change in response to certain events.
 /// Interested parties can sign up to receive notifications when the observable's value changes.
@@ -36,9 +36,6 @@ public protocol ObservableValueType: ObservableType, CustomPlaygroundQuickLookab
     /// A source that delivers change descriptions whenever the value of this observable changes.
     var updates: ValueUpdateSource<Value> { get }
 
-    /// A source that delivers new values whenever this observable changes.
-    var futureValues: AnySource<Value> { get }
-
     /// Returns the type-erased version of this ObservableValueType.
     var anyObservable: AnyObservableValue<Value> { get }
 }
@@ -49,6 +46,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
         return AnyObservableValue(self)
     }
 
+    /// A source that delivers new values whenever this observable changes.
     public var futureValues: AnySource<Value> { return changes.map { $0.new } }
 
     /// A source that, for each new sink, immediately sends it the current value, and thereafter delivers updated values,
@@ -86,7 +84,6 @@ public struct AnyObservableValue<Value>: ObservableValueType {
 
     public var value: Value { return box.value }
     public var updates: ValueUpdateSource<Value> { return box.updates }
-    public var futureValues: AnySource<Value> { return box.futureValues }
     public var anyObservable: AnyObservableValue<Value> { return self }
 }
 
@@ -95,10 +92,6 @@ open class _AbstractObservableValue<Value>: ObservableValueType {
 
     open var value: Value { abstract() }
     open var updates: ValueUpdateSource<Value> { abstract() }
-
-    open var futureValues: AnySource<Value> {
-        return changes.map { $0.new }
-    }
 
     public final var anyObservable: AnyObservableValue<Value> {
         return AnyObservableValue(box: self)
@@ -145,7 +138,6 @@ internal class ObservableValueBox<Base: ObservableValueType>: _AbstractObservabl
     }
     override var value: Value { return base.value }
     override var updates: ValueUpdateSource<Value> { return base.updates }
-    override var futureValues: AnySource<Value> { return base.futureValues }
 }
 
 private class ObservableClosureBox<Value>: _AbstractObservableValue<Value> {
@@ -175,7 +167,7 @@ private class ConstantObservable<Value>: _AbstractObservableValue<Value> {
 
     override var value: Value { return _value }
 
-    override var updates: AnySource<Update<ValueChange<Value>>> {
+    override var updates: UpdateSource<ValueChange<Value>> {
         return .empty()
     }
 }

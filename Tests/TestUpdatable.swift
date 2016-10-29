@@ -53,7 +53,7 @@ class TestUpdatable: UpdatableType, SignalDelegate {
 
     var isConnected: Bool { return _state.isConnected }
 
-    var updates: AnySource<Update<Change>> { return _state.source(delegate: self) }
+    var updates: UpdateSource<Change> { return _state.source(delegate: self) }
 }
 
 class TestUpdatableValue<Value>: UpdatableValueType, SignalDelegate {
@@ -99,5 +99,5 @@ class TestUpdatableValue<Value>: UpdatableValueType, SignalDelegate {
 
     var isConnected: Bool { return _state.isConnected }
 
-    var updates: AnySource<Update<Change>> { return _state.source(delegate: self) }
+    var updates: UpdateSource<Change> { return _state.source(delegate: self) }
 }

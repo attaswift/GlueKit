@@ -25,6 +25,11 @@ class TransformedMockSink<Value, Output: Equatable>: SinkType {
 
     init<Source: SourceType>(_ source: Source, _ transform: @escaping (Value) -> Output) where Source.Value == Value {
         self.transform = transform
+        self.connect(to: source)
+    }
+
+    func connect<Source: SourceType>(to source: Source) where Source.Value == Value {
+        precondition(connection == nil)
         self.connection = source.connect { [unowned self] input in self.receive(input) }
     }
 
