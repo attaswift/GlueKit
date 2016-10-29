@@ -21,6 +21,9 @@
 		BB015F391DC509D000C8C05A /* SetMappingForValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF561DA55384005EC162 /* SetMappingForValue.swift */; };
 		BB015F3A1DC50B1200C8C05A /* ArrayMappingForValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A83F1D6B9A7E001D2821 /* ArrayMappingForValue.swift */; };
 		BB015F3B1DC50C6700C8C05A /* MockArrayObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */; };
+		BB015F3C1DC5106B00C8C05A /* ArrayMappingForValueField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B2D1C8FCC810050DDA9 /* ArrayMappingForValueField.swift */; };
+		BB015F3D1DC512D600C8C05A /* ArrayMappingForArrayField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7E04C71DA7233B00BE3051 /* ArrayMappingForArrayField.swift */; };
+		BB015F3E1DC5147700C8C05A /* ArrayMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */; };
 		BB1657E71D71D65900094BAC /* ArrayChangeSeparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1657E61D71D65900094BAC /* ArrayChangeSeparation.swift */; };
 		BB1657E91D71D65900094BAC /* ArrayChangeSeparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1657E61D71D65900094BAC /* ArrayChangeSeparation.swift */; };
 		BB1657EA1D71D65900094BAC /* ArrayChangeSeparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1657E61D71D65900094BAC /* ArrayChangeSeparation.swift */; };
@@ -1593,11 +1596,13 @@
 				BB6CE3BA1DC4CD3F00295C55 /* ObservableType.swift in Sources */,
 				BB6CE3BF1DC4CD6F00295C55 /* UpdatableValue.swift in Sources */,
 				BB9D73CA1DBB2EB400E20D67 /* Connect.swift in Sources */,
+				BB015F3C1DC5106B00C8C05A /* ArrayMappingForValueField.swift in Sources */,
 				BB015F331DC4FC3700C8C05A /* ArrayVariable.swift in Sources */,
 				BB9D73DC1DBB612600E20D67 /* Connector.swift in Sources */,
 				BB6CE3B91DC4CD3B00295C55 /* Update.swift in Sources */,
 				BB6CE3C21DC4CD7A00295C55 /* BufferedValue.swift in Sources */,
 				BB6CE3CE1DC4E4B100295C55 /* Type Helpers.swift in Sources */,
+				BB015F3D1DC512D600C8C05A /* ArrayMappingForArrayField.swift in Sources */,
 				BB6CE3BD1DC4CD6900295C55 /* ValueChange.swift in Sources */,
 				BB9D73D51DBB4BB300E20D67 /* MergedSource.swift in Sources */,
 				BBB55B671C8FCC820050DDA9 /* Reference.swift in Sources */,
@@ -1662,6 +1667,7 @@
 				BB015F311DC4F90200C8C05A /* MockSetObserver.swift in Sources */,
 				BB170F451DC239BC0000443E /* DistinctTests.swift in Sources */,
 				BB6CE3D11DC4E72100295C55 /* KVOSupportTests.swift in Sources */,
+				BB015F3E1DC5147700C8C05A /* ArrayMappingTests.swift in Sources */,
 				BB88C4111DC3A84C00C7EC3C /* VariableTests.swift in Sources */,
 				BBEA2A2C1DBF9E9C00CCCB08 /* AnySinkTests.swift in Sources */,
 				BB015F2E1DC4F5BA00C8C05A /* ObservableSetTests.swift in Sources */,

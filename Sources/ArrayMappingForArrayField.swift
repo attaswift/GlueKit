@@ -8,8 +8,8 @@
 
 import BTree
 
-extension ObservableArrayType {
-    public func flatMap<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> AnyObservableArray<Field.Element> {
+extension ObservableArrayType where Change == ArrayChange<Element> {
+    public func flatMap<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> AnyObservableArray<Field.Element> where Field.Change == ArrayChange<Field.Element> {
         return ArrayMappingForArrayField<Self, Field>(parent: self, key: key).anyObservableArray
     }
 }
@@ -68,19 +68,22 @@ private struct Indexmap {
     }
 }
 
-private final class SinkForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: SinkType, RefListElement {
-    unowned let owner: ArrayMappingForArrayField<Parent, Field>
-    let field: Field
-    var refListLink = RefListLink<SinkForArrayField>()
+private final class FieldSink<Parent: ObservableArrayType, Field: ObservableArrayType>: SinkType, RefListElement
+where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ArrayChange<Field.Element> {
+    typealias Owner = ArrayMappingForArrayField<Parent, Field>
 
-    init(owner: ArrayMappingForArrayField<Parent, Field>, field: Field) {
+    unowned let owner: Owner
+    let field: Field
+    var refListLink = RefListLink<FieldSink>()
+
+    init(owner: Owner, field: Field) {
         self.owner = owner
         self.field = field
-        field.updates.add(self)
+        field.add(self)
     }
 
     func disconnect() {
-        field.updates.remove(self)
+        field.remove(self)
     }
 
     func receive(_ update: ArrayUpdate<Field.Element>) {
@@ -88,14 +91,25 @@ private final class SinkForArrayField<Parent: ObservableArrayType, Field: Observ
     }
 }
 
-private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: _BaseObservableArray<Field.Element> {
+private struct ParentSink<Parent: ObservableArrayType, Field: ObservableArrayType>: UniqueOwnedSink
+where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ArrayChange<Field.Element> {
+    typealias Owner = ArrayMappingForArrayField<Parent, Field>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: _BaseObservableArray<Field.Element>
+where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ArrayChange<Field.Element> {
     typealias Element = Field.Element
-    typealias FieldSink = SinkForArrayField<Parent, Field>
 
     private let parent: Parent
     private let key: (Parent.Element) -> Field
 
-    private var fieldSinks = RefList<FieldSink>()
+    private var fieldSinks = RefList<FieldSink<Parent, Field>>()
     private var indexMapping = Indexmap()
 
     init(parent: Parent, key: @escaping (Parent.Element) -> Field) {
@@ -103,7 +117,7 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
         self.key = key
         super.init()
 
-        parent.updates.add(parentSink)
+        parent.updates.add(ParentSink<Parent, Field>(owner: self))
         for pe in parent.value {
             let field = key(pe)
             fieldSinks.append(FieldSink(owner: self, field: field))
@@ -112,12 +126,8 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
     }
 
     deinit {
-        parent.updates.remove(parentSink)
+        parent.updates.remove(ParentSink<Parent, Field>(owner: self))
         fieldSinks.forEach { $0.disconnect() }
-    }
-
-    var parentSink: AnySink<ArrayUpdate<Parent.Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: ArrayMappingForArrayField.applyParentUpdate).anySink
     }
 
     func applyParentUpdate(_ update: ArrayUpdate<Parent.Element>) {
@@ -157,7 +167,7 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
         }
     }
 
-    fileprivate func applyFieldUpdate(_ update: ArrayUpdate<Field.Element>, from sink: FieldSink) {
+    func applyFieldUpdate(_ update: ArrayUpdate<Field.Element>, from sink: FieldSink<Parent, Field>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

@@ -70,7 +70,7 @@ extension ObservableArrayType where Change == ArrayChange<Element> {
 private struct BufferedMapSink<Input, Output, Content: ObservableArrayType>: UniqueOwnedSink where Content.Element == Input, Content.Change == ArrayChange<Content.Element> {
     typealias Owner = BufferedArrayMappingForValue<Input, Output, Content>
 
-    unowned let owner: Owner
+    unowned(unsafe) let owner: Owner
 
     func receive(_ update: ArrayUpdate<Content.Element>) {
         owner.apply(update)
@@ -93,11 +93,11 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
         self._value = content.value.map(transform)
         super.init()
 
-        content.updates.add(BufferedMapSink(owner: self))
+        content.add(BufferedMapSink(owner: self))
     }
 
     deinit {
-        content.updates.remove(BufferedMapSink(owner: self))
+        content.remove(BufferedMapSink(owner: self))
     }
 
     func apply(_ update: Update<ArrayChange<Input>>) {
