@@ -9,49 +9,49 @@
 import Foundation
 
 extension SourceType {
-    public func dispatch(_ queue: DispatchQueue) -> AnySource<Value> {
-        return DispatchOnQueueSource(input: self, queue: queue).anySource
+    public func dispatch(on queue: DispatchQueue) -> AnySource<Value> {
+        return TransformedSource(input: self, transform: SinkTransformForDispatchQueue(queue)).anySource
+    }
+
+    public func dispatch(on queue: OperationQueue) -> AnySource<Value> {
+        return TransformedSource(input: self, transform: SinkTransformForOperationQueue(queue)).anySource
     }
 }
 
-private final class DispatchOnQueueSource<Input: SourceType>: TransformedSource<Input, Input.Value> {
-    typealias Value = Input.Value
+final class SinkTransformForDispatchQueue<Value>: SinkTransform {
+    typealias Input = Value
+    typealias Output = Value
+
     let queue: DispatchQueue
 
-    init(input: Input, queue: DispatchQueue) {
+    init(_ queue: DispatchQueue) {
         self.queue = queue
-        super.init(input: input)
     }
 
-    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
+    func apply<Sink: SinkType>(_ input: Value, _ sink: Sink) where Sink.Value == Value {
         queue.async {
-            sink.receive(value)
+            sink.receive(input)
         }
     }
 }
 
-extension SourceType {
-    public func dispatch(_ queue: OperationQueue) -> AnySource<Value> {
-        return DispatchOnOperationQueueSource(input: self, queue: queue).anySource
-    }
-}
+final class SinkTransformForOperationQueue<Value>: SinkTransform {
+    typealias Input = Value
+    typealias Output = Value
 
-private final class DispatchOnOperationQueueSource<Input: SourceType>: TransformedSource<Input, Input.Value> {
-    typealias Value = Input.Value
     let queue: OperationQueue
 
-    init(input: Input, queue: OperationQueue) {
+    init(_ queue: OperationQueue) {
         self.queue = queue
-        super.init(input: input)
     }
 
-    override func receive<Sink: SinkType>(_ value: Input.Value, for sink: Sink) where Sink.Value == Value {
+    func apply<Sink: SinkType>(_ input: Value, _ sink: Sink) where Sink.Value == Value {
         if OperationQueue.current == queue {
-            sink.receive(value)
+            sink.receive(input)
         }
         else {
             queue.addOperation {
-                sink.receive(value)
+                sink.receive(input)
             }
         }
     }

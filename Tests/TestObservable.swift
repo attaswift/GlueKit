@@ -41,7 +41,12 @@ class TestObservable: ObservableType, SignalDelegate {
 
     var isConnected: Bool { return _state.isConnected }
 
-    var updates: UpdateSource<Change> { return _state.source(delegate: self) }
+    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        _state.add(sink, with: self)
+    }
+    func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return _state.remove(sink)
+    }
 }
 
 class TestObservableValue<Value>: ObservableValueType, SignalDelegate {
@@ -75,5 +80,10 @@ class TestObservableValue<Value>: ObservableValueType, SignalDelegate {
 
     var isConnected: Bool { return _state.isConnected }
 
-    var updates: UpdateSource<Change> { return _state.source(delegate: self) }
+    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        _state.add(sink, with: self)
+    }
+    func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return _state.remove(sink)
+    }
 }

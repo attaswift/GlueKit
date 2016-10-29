@@ -73,7 +73,14 @@ private class KVOUpdatable: NSObject, UpdatableValueType, SignalDelegate {
         }
     }
 
-    var updates: ValueUpdateSource<Any?> { return state.source(delegate: self) }
+    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        state.add(sink, with: self)
+    }
+
+    @discardableResult
+    func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return state.remove(sink)
+    }
 
     func activate() {
         object.addObserver(self, forKeyPath: keyPath, options: [.old, .new, .prior], context: &context)

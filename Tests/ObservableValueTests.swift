@@ -51,7 +51,7 @@ class ObservableValueTests: XCTestCase {
         var value = 0
         let signal = Signal<ValueUpdate<Int>>()
         let test = AnyObservableValue(getter: { value },
-                                      updates: { signal.anySource })
+                                      updates: signal.anySource)
 
         let any = test.anyObservable
 
@@ -138,10 +138,10 @@ class ObservableValueTests: XCTestCase {
         XCTAssertEqual(constant.value, 1)
 
         let sink = MockValueUpdateSink<Int>()
-        constant.updates.add(sink)
+        constant.add(sink)
 
         let sink2 = MockValueUpdateSink<Int>()
-        let removed = constant.updates.remove(sink2)
-        XCTAssert(removed.opened(as: TransformedMockSink<ValueUpdate<Int>, String>.self) === sink2)
+        let removed = constant.remove(sink2)
+        XCTAssert(removed === sink2)
     }
 }

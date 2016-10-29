@@ -80,13 +80,12 @@ private final class BracketingSource<Input: SourceType>: _AbstractSource<Input.V
     }
 
     @discardableResult
-    final override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+    final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
         let old = input.remove(BracketingSink(sink))
-        let bracketing = old.opened(as: BracketingSink<Sink>.self)!
-        bracketing.removed = true
+        old.removed = true
         if let farewell = goodbye() {
-            bracketing.sink.receive(farewell)
+            old.sink.receive(farewell)
         }
-        return bracketing.sink.anySink
+        return old.sink
     }
 }

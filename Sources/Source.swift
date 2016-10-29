@@ -41,7 +41,7 @@ public protocol SourceType {
     ///     This may be distinguishable by the input parameter by identity comparison or some other means.
     /// - SeeAlso: `connect`, `add`
     @discardableResult
-    func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value
+    func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value
 
     /// A type-erased representation of this source.
     var anySource: AnySource<Value> { get }
@@ -83,7 +83,7 @@ public struct AnySource<Value>: SourceType {
     }
 
     @discardableResult
-    public func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
         return box.remove(sink)
     }
 
@@ -94,7 +94,7 @@ open class _AbstractSource<Value>: SourceType {
     open func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value { abstract() }
 
     @discardableResult
-    open func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value { abstract() }
+    open func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value { abstract() }
 
     public final var anySource: AnySource<Value> {
         return AnySource(box: self)
@@ -109,7 +109,7 @@ open class SignalerSource<Value>: _AbstractSource<Value>, SignalDelegate {
     }
 
     @discardableResult
-    public final override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
         return self.signal.remove(sink)
     }
 
@@ -131,7 +131,7 @@ internal class SourceBox<Base: SourceType>: _AbstractSource<Base.Value> {
     }
 
     @discardableResult
-    override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
         return base.remove(sink)
     }
 }

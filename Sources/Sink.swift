@@ -15,7 +15,7 @@ public protocol SinkType: Hashable {
 
 extension SinkType {
     public var anySink: AnySink<Value> {
-        return AnySink(SinkBox(self))
+        return AnySink(SinkBox<Self>(self))
     }
 }
 
@@ -55,6 +55,7 @@ public struct AnySink<Value>: SinkType {
     }
 
     public func opened<Sink: SinkType>(as type: Sink.Type = Sink.self) -> Sink? where Sink.Value == Value {
+        if let sink = self as? Sink { return sink }
         if let sink = box as? Sink { return sink }
         if let box = self.box as? SinkBox<Sink> { return box.contents }
         return nil

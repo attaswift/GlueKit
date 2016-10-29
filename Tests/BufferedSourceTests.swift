@@ -25,9 +25,10 @@ private class TestSource: SourceType {
     }
 
     @discardableResult
-    func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Int {
+    func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Int {
         removed += 1
-        return sinks.remove(sink.anySink)!
+        let old = sinks.remove(sink.anySink)!
+        return old.opened()!
     }
 
     func send(_ value: Int) {

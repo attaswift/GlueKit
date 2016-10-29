@@ -12,7 +12,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
     }
 }
 
-private struct BufferedObservableSink<Base: ObservableValueType>: OwnedSink where Base.Change == ValueChange<Base.Value> {
+private struct BufferedObservableSink<Base: ObservableValueType>: UniqueOwnedSink where Base.Change == ValueChange<Base.Value> {
     typealias Owner = BufferedObservableValue<Base>
 
     unowned(unsafe) let owner: Owner

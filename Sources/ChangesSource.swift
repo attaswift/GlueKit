@@ -10,7 +10,7 @@ extension ObservableType {
     /// A source that reports changes to the value of this observable.
     /// Changes reported correspond to complete transactions in `self.updates`.
     public var changes: AnySource<Change> {
-        return ChangesSource(self.updates).anySource
+        return ChangesSource(self).anySource
     }
 }
 
@@ -69,21 +69,29 @@ private struct ChangesSink<Wrapped: SinkType>: SinkType where Wrapped.Value: Cha
     }
 }
 
-internal class ChangesSource<Change: ChangeType, Updates: SourceType>: _AbstractSource<Change>
-where Updates.Value == Update<Change> {
-    let updates: Updates
+internal class ChangesSource<Observable: ObservableType>: _AbstractSource<Observable.Change> {
+    typealias Change = Observable.Change
 
-    init(_ updates: Updates) {
-        self.updates = updates
+    let observable: Observable
+
+    init(_ observable: Observable) {
+        self.observable = observable
     }
 
     override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Change {
-        updates.add(ChangesSink(sink, withState: true))
+        observable.add(ChangesSink(sink, withState: true))
     }
 
     @discardableResult
-    override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Change> where Sink.Value == Change {
-        let old: ChangesSink<Sink> = updates.remove(ChangesSink(sink, withState: false)).opened()!
-        return old.wrapped.anySink
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Change {
+        let old = observable.remove(ChangesSink(sink, withState: false))
+        return old.wrapped
+    }
+}
+
+extension Connector {
+    @discardableResult
+    public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Observable.Change) -> Void) -> Connection {
+        return observable.changes.connect(sink).putInto(self)
     }
 }

@@ -6,28 +6,35 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-public extension ObservableValueType {
+public extension ObservableValueType where Change == ValueChange<Value> {
     /// Returns an observable that calculates `transform` on all current and future values of this observable.
     public func map<Output>(_ transform: @escaping (Value) -> Output) -> AnyObservableValue<Output> {
         return ValueMappingForValue<Self, Output>(parent: self, transform: transform).anyObservable
     }
 }
 
-private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _AbstractObservableValue<Value> {
+private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _AbstractObservableValue<Value> where Parent.Change == ValueChange<Parent.Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
+    let sinkTransform: SinkTransformFromMapping<ValueUpdate<Parent.Value>, ValueUpdate<Value>>
 
     init(parent: Parent, transform: @escaping (Parent.Value) -> Value) {
         self.parent = parent
         self.transform = transform
+        self.sinkTransform = SinkTransformFromMapping { u in u.map { c in c.map(transform) } }
     }
 
     override var value: Value {
         return transform(parent.value)
     }
 
-    override var updates: ValueUpdateSource<Value> {
-        return parent.updates.map { update in update.map { $0.map(self.transform) } }
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        parent.add(TransformedSink(sink: sink, transform: sinkTransform))
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return parent.remove(TransformedSink(sink: sink, transform: sinkTransform)).sink
     }
 }
 
@@ -41,11 +48,13 @@ private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Va
     let parent: Parent
     let transform: (Parent.Value) -> Value
     let inverse: (Value) -> Parent.Value
+    let sinkTransform: SinkTransformFromMapping<ValueUpdate<Parent.Value>, ValueUpdate<Value>>
 
     init(parent: Parent, transform: @escaping (Parent.Value) -> Value, inverse: @escaping (Value) -> Parent.Value) {
         self.parent = parent
         self.transform = transform
         self.inverse = inverse
+        self.sinkTransform = SinkTransformFromMapping { u in u.map { c in c.map(transform) } }
     }
 
     override var value: Value {
@@ -61,7 +70,12 @@ private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Va
         parent.apply(update.map { change in change.map(inverse) })
     }
 
-    override var updates: ValueUpdateSource<Value> {
-        return parent.updates.map { update in update.map { $0.map(self.transform) } }
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        parent.add(TransformedSink(sink: sink, transform: sinkTransform))
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return parent.remove(TransformedSink(sink: sink, transform: sinkTransform)).sink
     }
 }

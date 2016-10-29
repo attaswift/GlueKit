@@ -220,7 +220,7 @@ public class Signal<Value>: _AbstractSource<Value> {
     }
 
     @discardableResult
-    public override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+    public override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
         let sink = sink.anySink
         let (last, old): (Bool, AnySink<Value>) = lock.withLock {
             var old = self.sinks.remove(sink)
@@ -239,7 +239,7 @@ public class Signal<Value>: _AbstractSource<Value> {
         if last {
             delegate?.deactivate()
         }
-        return old
+        return old.opened()!
     }
 
     public var isConnected: Bool {

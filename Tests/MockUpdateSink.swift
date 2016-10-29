@@ -18,17 +18,24 @@ internal func describe<Change: ChangeType>(_ update: Update<Change>?) -> String 
     }
 }
 
-class MockUpdateSink<Change: ChangeType>: TransformedMockSink<Update<Change>, String> {
+class MockUpdateSink<Change: ChangeType>: MockSinkProtocol {
+    let state: MockSinkState<Update<Change>, String>
+
     init() {
-        super.init({ describe($0) })
+        state = .init({ describe($0) })
     }
 
     init<Source: SourceType>(_ source: Source) where Source.Value == Update<Change> {
-        super.init(source, { describe($0) })
+        state = .init({ describe($0) })
+        self.connect(to: source)
     }
 
     convenience init<Observable: ObservableValueType>(_ observable: Observable) where Observable.Change == Change {
         self.init(observable.updates)
+    }
+
+    func receive(_ value: Update<Change>) {
+        state.receive(value)
     }
 }
 

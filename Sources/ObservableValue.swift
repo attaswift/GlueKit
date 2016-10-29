@@ -33,9 +33,6 @@ public protocol ObservableValueType: ObservableType, CustomPlaygroundQuickLookab
     /// The current value of this observable.
     var value: Value { get }
 
-    /// A source that delivers change descriptions whenever the value of this observable changes.
-    var updates: ValueUpdateSource<Value> { get }
-
     /// Returns the type-erased version of this ObservableValueType.
     var anyObservable: AnyObservableValue<Value> { get }
 }
@@ -65,6 +62,8 @@ extension ObservableValueType where Change == ValueChange<Value> {
 
 /// The type erased representation of an ObservableValueType that contains a single value with simple changes.
 public struct AnyObservableValue<Value>: ObservableValueType {
+    public typealias Change = ValueChange<Value>
+
     private let box: _AbstractObservableValue<Value>
 
     init(box: _AbstractObservableValue<Value>) {
@@ -74,24 +73,41 @@ public struct AnyObservableValue<Value>: ObservableValueType {
     /// Initializes an Observable from the given getter closure and source of future changes.
     /// @param getter A closure that returns the current value of the observable at the time of the call.
     /// @param futureValues A closure that returns a source that triggers whenever the observable changes.
-    public init(getter: @escaping (Void) -> Value, updates: @escaping (Void) -> ValueUpdateSource<Value>) {
+    public init<Updates: SourceType>(getter: @escaping (Void) -> Value, updates: Updates) where Updates.Value == Update<Change> {
         self.box = ObservableClosureBox(getter: getter, updates: updates)
     }
 
-    public init<Base: ObservableValueType>(_ base: Base) where Base.Value == Value, Base.Change == ValueChange<Value> {
+    public init<Base: ObservableValueType>(_ base: Base) where Base.Value == Value, Base.Change == Change {
         self.box = ObservableValueBox(base)
     }
 
-    public var value: Value { return box.value }
-    public var updates: ValueUpdateSource<Value> { return box.updates }
-    public var anyObservable: AnyObservableValue<Value> { return self }
+    public var value: Value {
+        return box.value
+    }
+
+    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        box.add(sink)
+    }
+
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return box.remove(sink)
+    }
+
+    public var anyObservable: AnyObservableValue<Value> {
+        return self
+    }
 }
 
 open class _AbstractObservableValue<Value>: ObservableValueType {
     public typealias Change = ValueChange<Value>
 
     open var value: Value { abstract() }
-    open var updates: ValueUpdateSource<Value> { abstract() }
+
+    open func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> { abstract() }
+
+    @discardableResult
+    open func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> { abstract() }
 
     public final var anyObservable: AnyObservableValue<Value> {
         return AnyObservableValue(box: self)
@@ -101,7 +117,14 @@ open class _AbstractObservableValue<Value>: ObservableValueType {
 open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, SignalDelegate {
     private var state = TransactionState<ValueChange<Value>>()
 
-    public final override var updates: ValueUpdateSource<Value> { return state.source(delegate: self) }
+    public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        state.add(sink, with: self)
+    }
+
+    @discardableResult
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return state.remove(sink)
+    }
 
     final func beginTransaction() {
         state.begin()
@@ -128,7 +151,7 @@ open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, SignalD
     }
 }
 
-internal class ObservableValueBox<Base: ObservableValueType>: _AbstractObservableValue<Base.Value> {
+internal final class ObservableValueBox<Base: ObservableValueType>: _AbstractObservableValue<Base.Value> where Base.Change == ValueChange<Base.Value> {
     typealias Value = Base.Value
 
     private let base: Base
@@ -137,20 +160,37 @@ internal class ObservableValueBox<Base: ObservableValueType>: _AbstractObservabl
         self.base = base
     }
     override var value: Value { return base.value }
-    override var updates: ValueUpdateSource<Value> { return base.updates }
+
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        base.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return base.remove(sink)
+    }
 }
 
-private class ObservableClosureBox<Value>: _AbstractObservableValue<Value> {
+private final class ObservableClosureBox<Value, Updates: SourceType>: _AbstractObservableValue<Value>
+where Updates.Value == Update<ValueChange<Value>> {
     private let _value: () -> Value
-    private let _updates: () -> ValueUpdateSource<Value>
+    private let _updates: Updates
 
-    public init(getter: @escaping (Void) -> Value, updates: @escaping (Void) -> ValueUpdateSource<Value>) {
+    public init(getter: @escaping (Void) -> Value, updates: Updates) {
         self._value = getter
         self._updates = updates
     }
 
     override var value: Value { return _value() }
-    override var updates: ValueUpdateSource<Value> { return _updates() }
+
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        _updates.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return _updates.remove(sink)
+    }
 }
 
 public extension ObservableValueType {
@@ -160,15 +200,21 @@ public extension ObservableValueType {
     }
 }
 
-private class ConstantObservable<Value>: _AbstractObservableValue<Value> {
+private final class ConstantObservable<Value>: _AbstractObservableValue<Value> {
     private let _value: Value
 
     init(_ value: Value) { _value = value }
 
     override var value: Value { return _value }
 
-    override var updates: UpdateSource<ValueChange<Value>> {
-        return .empty()
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        // Do nothing
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        // Do nothing
+        return sink
     }
 }
 

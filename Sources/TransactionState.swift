@@ -43,7 +43,7 @@ private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
     }
 
     @discardableResult
-    public override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+    public override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
         let old = super.remove(sink)
         if self.isInTransaction {
             // Wave goodbye by sending a virtual endTransaction that makes state management easier.
@@ -54,58 +54,67 @@ private class TransactionSignal<Change: ChangeType>: Signal<Update<Change>> {
 }
 
 internal struct TransactionState<Change: ChangeType> {
-    fileprivate var signal: TransactionSignal<Change>? = nil
-    private var transactionCount = 0
+    fileprivate var _signal: TransactionSignal<Change>? = nil
+    private var _transactionCount = 0
 
-    mutating func source(delegate: SignalDelegate) -> UpdateSource<Change> {
-        if let signal = self.signal {
-            assert(signal.delegate === delegate)
-            return _UpdateSource(owner: delegate, signal: signal).anySource
+    private mutating func signal(delegate: SignalDelegate) -> TransactionSignal<Change> {
+        if let signal = _signal {
+            precondition(signal.delegate === delegate)
+            return signal
         }
         let signal = TransactionSignal<Change>(owner: delegate, isInTransaction: self.isChanging)
-        self.signal = signal
-        return _UpdateSource(owner: delegate, signal: signal).anySource
+        _signal = signal
+        return signal
     }
 
-    var isChanging: Bool { return transactionCount > 0 }
-    var isConnected: Bool { return signal?.isConnected ?? false }
+    mutating func add<Sink: SinkType>(_ sink: Sink, with delegate: SignalDelegate) where Sink.Value == Update<Change> {
+        self.signal(delegate: delegate).add(sink)
+    }
+
+    @discardableResult
+    mutating func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return _signal!.remove(sink)
+    }
+
+    var isChanging: Bool { return _transactionCount > 0 }
+    var isConnected: Bool { return _signal?.isConnected ?? false }
     var isActive: Bool { return isChanging || isConnected }
 
     mutating func begin() {
-        transactionCount += 1
-        if transactionCount == 1 {
-            signal?.begin()
+        _transactionCount += 1
+        if _transactionCount == 1 {
+            _signal?.begin()
         }
     }
 
     mutating func end() {
-        precondition(transactionCount > 0)
-        transactionCount -= 1
-        if transactionCount == 0 {
-            signal?.end()
+        precondition(_transactionCount > 0)
+        _transactionCount -= 1
+        if _transactionCount == 0 {
+            _signal?.end()
         }
     }
 
     func send(_ change: Change) {
-        precondition(transactionCount > 0)
-        signal?.send(change)
+        precondition(_transactionCount > 0)
+        _signal?.send(change)
     }
 
     func sendIfConnected(_ change: @autoclosure () -> Change) {
-        precondition(transactionCount > 0)
-        if let signal = signal, signal.isConnected {
+        precondition(_transactionCount > 0)
+        if let signal = _signal, signal.isConnected {
             signal.send(change())
         }
     }
 
     func sendLater(_ change: Change) {
-        precondition(transactionCount > 0)
-        signal?.sendLater(.change(change))
+        precondition(_transactionCount > 0)
+        _signal?.sendLater(.change(change))
     }
 
     func sendNow() {
-        precondition(transactionCount > 0)
-        signal?.sendNow()
+        precondition(_transactionCount > 0)
+        _signal?.sendNow()
     }
 
     mutating func send(_ update: Update<Change>) {
@@ -123,12 +132,12 @@ open class TransactionalSource<Change: ChangeType>: _AbstractSource<Update<Chang
     internal var state = TransactionState<Change>()
 
     public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        state.source(delegate: self).add(sink)
+        state.add(sink, with: self)
     }
 
     @discardableResult
-    public final override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
-        return state.signal!.remove(sink)
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
+        return state.remove(sink)
     }
 
     func activate() {
@@ -137,25 +146,3 @@ open class TransactionalSource<Change: ChangeType>: _AbstractSource<Update<Chang
     func deactivate() {
     }
 }
-
-private struct _UpdateSource<Change: ChangeType>: SourceType {
-    typealias Value = Update<Change>
-
-    private let owner: AnyObject
-    private let signal: Signal<Value>
-
-    init(owner: AnyObject, signal: Signal<Value>) {
-        self.owner = owner
-        self.signal = signal
-    }
-
-    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        signal.add(sink)
-    }
-
-    @discardableResult
-    func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
-        return signal.remove(sink)
-    }
-}
-

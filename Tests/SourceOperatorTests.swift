@@ -15,7 +15,7 @@ class SourceOperatorTests: XCTestCase {
         let signal = Signal<Int>()
 
         var count = 0
-        let source = signal.sourceOperator(Double.self) { input, sink in
+        let source = signal.transform(Double.self) { input, sink in
             count += 1
         }
         XCTAssertEqual(count, 0)
@@ -47,7 +47,7 @@ class SourceOperatorTests: XCTestCase {
             let signal = Signal<Int>()
             weakSignal = signal
 
-            source = signal.sourceOperator(Int.self) { input, sink in
+            source = signal.transform(Int.self) { input, sink in
                 // Noop
                 sink(input)
             }
@@ -66,7 +66,7 @@ class SourceOperatorTests: XCTestCase {
         do {
             let resource = NSObject()
             weakResource = resource
-            let source = Signal<Int>().sourceOperator(Int.self) { input, sink in
+            let source = Signal<Int>().transform(Int.self) { input, sink in
                 noop(resource)
                 sink(input)
             }

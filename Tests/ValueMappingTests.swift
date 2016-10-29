@@ -11,13 +11,17 @@ import GlueKit
 
 private class Book {
     let title: Variable<String>
+    #if false
     let authors: SetVariable<String>
     let chapters: ArrayVariable<String>
+    #endif
 
     init(_ title: String, authors: Set<String> = [], chapters: [String] = []) {
         self.title = .init(title)
+        #if false
         self.authors = .init(authors)
         self.chapters = .init(chapters)
+        #endif
     }
 }
 
@@ -31,7 +35,7 @@ class ValueMappingTests: XCTestCase {
 
         let mock = MockValueUpdateSink(title)
 
-        mock.expecting(.init(from: "FOO", to: "BAR")) {
+        mock.expecting(["begin", "FOO→BAR", "end"]) {
             book.title.value = "bar"
         }
         XCTAssertEqual(title.value, "BAR")
@@ -47,12 +51,12 @@ class ValueMappingTests: XCTestCase {
 
         let mock = MockValueUpdateSink(title)
 
-        mock.expecting(.init(from: "FOO", to: "BAR")) {
+        mock.expecting(["begin", "FOO→BAR", "end"]) {
             book.title.value = "bar"
         }
         XCTAssertEqual(title.value, "BAR")
 
-        mock.expecting(.init(from: "BAR", to: "BAZ")) {
+        mock.expecting(["begin", "BAR→BAZ", "end"]) {
             title.value = "BAZ"
         }
         XCTAssertEqual(title.value, "BAZ")
@@ -102,13 +106,13 @@ class ValueMappingTests: XCTestCase {
 
         let mock = MockValueUpdateSink(title)
 
-        mock.expecting(.init(from: "BOOK", to: "UPDATED")) {
+        mock.expecting(["begin", "BOOK→UPDATED", "end"]) {
             book.title.value = "updated"
         }
         XCTAssertEqual(title.value, "UPDATED")
 
         let book2 = Book("other")
-        mock.expecting(.init(from: "UPDATED", to: "OTHER")) {
+        mock.expecting(["begin", "UPDATED→OTHER", "end"]) {
             v.value = book2
         }
         XCTAssertEqual(title.value, "OTHER")
@@ -124,19 +128,20 @@ class ValueMappingTests: XCTestCase {
 
         let mock = MockValueUpdateSink(title)
 
-        mock.expecting(.init(from: "book", to: "updated")) {
+        mock.expecting(["begin", "book→updated", "end"]) {
             title.value = "updated"
         }
         XCTAssertEqual(title.value, "updated")
         XCTAssertEqual(book.title.value, "updated")
 
         let book2 = Book("other")
-        mock.expecting(.init(from: "updated", to: "other")) {
+        mock.expecting(["begin", "updated→other", "end"]) {
             v.value = book2
         }
         XCTAssertEqual(title.value, "other")
     }
-    
+
+    #if false
     func test_arrayField() {
         let book = Book("book", chapters: ["a", "b", "c"])
         let v = Variable<Book>(book)
@@ -310,5 +315,5 @@ class ValueMappingTests: XCTestCase {
         }
         XCTAssertEqual(authors.value, ["fred", "barney"])
     }
-
+    #endif
 }

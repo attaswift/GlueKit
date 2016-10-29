@@ -51,12 +51,14 @@ private class AtomicToken {
     }
 }
 
+public typealias TimerSource = _TimerSource<Void>
+
 /// A Source that is firing at customizable intervals. The time of the each firing is determined by a user-supplied closure.
 ///
 /// The timer interval should be relatively large (at least multiple seconds); this is not supposed to be a realtime timer.
 ///
 /// Note that this source will only schedule an actual timer while there are sinks connected to it.
-public final class TimerSource<V>: SignalerSource<Void> {
+public final class _TimerSource<Dummy>: SignalerSource<Void> {
 
     private let queue: DispatchQueue
     private let next: (Void) -> Date?
@@ -132,7 +134,7 @@ private struct PeriodicTimerData {
     }
 }
 
-public extension TimerSource {
+public extension _TimerSource {
     /// Creates a TimerSource that triggers periodically with a specific time interval.
     ///
     /// This source makes an effort to prevent timer drift by scheduling ticks at predetermined absolute time points,

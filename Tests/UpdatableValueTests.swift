@@ -102,7 +102,7 @@ class UpdatableValueTests: XCTestCase {
                 case .endTransaction: end()
                 }
             },
-            updates: { signal.anySource })
+            updates: signal.anySource)
 
         let any = test.anyUpdatable
 

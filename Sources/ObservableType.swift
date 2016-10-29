@@ -6,16 +6,43 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-public typealias UpdateSource<Change: ChangeType> = AnySource<Update<Change>>
-
 public protocol ObservableType {
     associatedtype Change: ChangeType
 
     /// The current value of this observable.
     var value: Change.Value { get }
 
+    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change>
+
+    @discardableResult
+    func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change>
+}
+
+extension ObservableType {
     /// A source that reports update transaction events for this observable.
-    var updates: UpdateSource<Change> { get }
+    public var updates: UpdateSource<Self> {
+        return UpdateSource(owner: self)
+    }
+
+}
+
+public struct UpdateSource<Observable: ObservableType>: SourceType {
+    public typealias Value = Update<Observable.Change>
+
+    private let owner: Observable
+
+    init(owner: Observable) {
+        self.owner = owner
+    }
+
+    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+        owner.add(sink)
+    }
+
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
+        return owner.remove(sink)
+    }
 }
 
 public protocol UpdatableType: ObservableType {
@@ -56,10 +83,5 @@ extension Connector {
     @discardableResult
     public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Update<Observable.Change>) -> Void) -> Connection {
         return observable.updates.connect(sink).putInto(self)
-    }
-
-    @discardableResult
-    public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Observable.Change) -> Void) -> Connection {
-        return observable.changes.connect(sink).putInto(self)
     }
 }

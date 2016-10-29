@@ -24,9 +24,9 @@ class NeverSource<Value>: _AbstractSource<Value> {
     }
 
     @discardableResult
-    override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
         // Do nothing.
-        return sink.anySink
+        return sink
     }
 }
 
@@ -50,7 +50,7 @@ class JustSource<Value>: _AbstractSource<Value> {
     }
 
     @discardableResult
-    override func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Value {
-        return sink.anySink
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
+        return sink
     }
 }

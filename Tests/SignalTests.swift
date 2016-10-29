@@ -536,7 +536,7 @@ private class Counter: SourceType {
     }
 
     @discardableResult
-    func remove<Sink: SinkType>(_ sink: Sink) -> AnySink<Value> where Sink.Value == Int {
+    func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Int {
         return signal.remove(sink)
     }
 

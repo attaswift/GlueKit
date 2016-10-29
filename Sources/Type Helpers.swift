@@ -112,7 +112,7 @@ public extension SourceType where Value == Any? {
     var asCGAffineTransform: AnySource<CGAffineTransform> { return map(toCGAffineTransform) }
 }
 
-public extension ObservableValueType where Value == Any? {
+public extension ObservableValueType where Value == Any?, Change == ValueChange<Value> {
     /// Casts all values to Type using a forced cast. Traps if a value can't be casted to the specified type.
     func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> AnyObservableValue<T> {
         return self.map { $0 as! T }

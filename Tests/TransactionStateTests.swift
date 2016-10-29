@@ -28,7 +28,12 @@ private class TransactionTestObservable: ObservableValueType, SignalDelegate {
         }
     }
 
-    var updates: ValueUpdateSource<Value> { return state.source(delegate: self) }
+    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        state.add(sink, with: self)
+    }
+    func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return state.remove(sink)
+    }
 
     var activated = 0
     var deactivated = 0

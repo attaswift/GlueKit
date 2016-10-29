@@ -29,9 +29,10 @@ public struct AnyUpdatableValue<Value>: UpdatableValueType {
         self.box = box
     }
 
-    public init(getter: @escaping (Void) -> Value,
-                apply: @escaping (Update<ValueChange<Value>>) -> Void,
-                updates: @escaping (Void) -> ValueUpdateSource<Value>) {
+    public init<Updates: SourceType>(getter: @escaping (Void) -> Value,
+                                     apply: @escaping (Update<ValueChange<Value>>) -> Void,
+                                     updates: Updates)
+        where Updates.Value == Update<Change> {
         self.box = UpdatableClosureBox(getter: getter,
                                        apply: apply,
                                        updates: updates)
@@ -51,8 +52,13 @@ public struct AnyUpdatableValue<Value>: UpdatableValueType {
         box.apply(update)
     }
 
-    public var updates: ValueUpdateSource<Value> {
-        return box.updates
+    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        box.add(sink)
+    }
+
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return box.remove(sink)
     }
 
     public var anyObservable: AnyObservableValue<Value> {
@@ -82,7 +88,14 @@ public class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, SignalD
     func rawGetValue() -> Value { abstract() }
     func rawSetValue(_ value: Value) { abstract() }
 
-    public final override var updates: ValueUpdateSource<Value> { return state.source(delegate: self) }
+    public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        state.add(sink, with: self)
+    }
+
+    @discardableResult
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return state.remove(sink)
+    }
 
     public final override var value: Value {
         get {
@@ -134,7 +147,7 @@ public class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, SignalD
     }
 }
 
-internal class UpdatableBox<Base: UpdatableValueType>: _AbstractUpdatableValue<Base.Value> where Base.Change == ValueChange<Base.Value> {
+internal final class UpdatableBox<Base: UpdatableValueType>: _AbstractUpdatableValue<Base.Value> where Base.Change == ValueChange<Base.Value> {
     typealias Value = Base.Value
     private let base: Base
 
@@ -151,21 +164,27 @@ internal class UpdatableBox<Base: UpdatableValueType>: _AbstractUpdatableValue<B
         base.apply(update)
     }
 
-    override var updates: ValueUpdateSource<Value> {
-        return base.updates
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        base.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return base.remove(sink)
     }
 }
 
-private class UpdatableClosureBox<Value>: _AbstractUpdatableValue<Value> {
+private final class UpdatableClosureBox<Value, Updates: SourceType>: _AbstractUpdatableValue<Value>
+where Updates.Value == Update<ValueChange<Value>> {
     /// The getter closure for the current value of this updatable.
     private let _getter: () -> Value
     private let _apply: (Update<ValueChange<Value>>) -> Void
     /// A closure returning a source providing the values of future updates to this updatable.
-    private let _updates: (Void) -> ValueUpdateSource<Value>
+    private let _updates: Updates
 
     public init(getter: @escaping () -> Value,
                 apply: @escaping (Update<ValueChange<Value>>) -> Void,
-                updates: @escaping (Void) -> ValueUpdateSource<Value>) {
+                updates: Updates) {
         self._getter = getter
         self._apply = apply
         self._updates = updates
@@ -184,7 +203,12 @@ private class UpdatableClosureBox<Value>: _AbstractUpdatableValue<Value> {
         _apply(update)
     }
 
-    override var updates: ValueUpdateSource<Value> {
-        return _updates()
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        _updates.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return _updates.remove(sink)
     }
 }

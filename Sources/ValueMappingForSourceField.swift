@@ -19,6 +19,16 @@ extension ObservableValueType where Change == ValueChange<Value> {
     }
 }
 
+private struct SourceFieldSink<Parent: ObservableValueType, Field: SourceType>: UniqueOwnedSink where Parent.Change == ValueChange<Parent.Value> {
+    typealias Owner = ValueMappingForSourceField<Parent, Field>
+
+    unowned let owner: Owner
+
+    func receive(_ update: ValueUpdate<Parent.Value>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
 /// A source of values for a Source field.
 private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: SignalerSource<Field.Value>
 where Parent.Change == ValueChange<Parent.Value> {
@@ -39,17 +49,17 @@ where Parent.Change == ValueChange<Parent.Value> {
         precondition(_field == nil)
         let field = key(parent.value)
         _field = field
-        parent.updates.add(StrongMethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))
+        parent.add(SourceFieldSink(owner: self))
         field.add(signal.asSink)
     }
 
     override func deactivate() {
         _field!.remove(signal.asSink)
         _field = nil
-        parent.updates.remove(StrongMethodSink(owner: self, identifier: 0, method: ValueMappingForSourceField.applyParentUpdate))
+        parent.remove(SourceFieldSink(owner: self))
     }
 
-    private func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
+    func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
         switch update {
         case .beginTransaction:
             break

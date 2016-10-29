@@ -10,36 +10,25 @@ import Foundation
 import XCTest
 import GlueKit
 
-class TransformedMockSink<Value, Output: Equatable>: SinkType {
+class MockSinkState<Value, Output: Equatable> {
     let transform: (Value) -> Output
-
     var isExpecting = false
     var expected: [Output] = []
     var actual: [Output] = []
-
-    var connection: Connection? = nil
+    var connection: Connection?
 
     init(_ transform: @escaping (Value) -> Output) {
+        self.connection = nil
         self.transform = transform
     }
 
-    init<Source: SourceType>(_ source: Source, _ transform: @escaping (Value) -> Output) where Source.Value == Value {
+    init(_ connection: Connection, _ transform: @escaping (Value) -> Output) {
+        self.connection = connection
         self.transform = transform
-        self.connect(to: source)
-    }
-
-    func connect<Source: SourceType>(to source: Source) where Source.Value == Value {
-        precondition(connection == nil)
-        self.connection = source.connect { [unowned self] input in self.receive(input) }
     }
 
     deinit {
-        self.connection?.disconnect()
-    }
-
-    func disconnect() {
-        self.connection?.disconnect()
-        self.connection = nil
+        connection?.disconnect()
     }
 
     func receive(_ input: Value) {
@@ -47,28 +36,11 @@ class TransformedMockSink<Value, Output: Equatable>: SinkType {
             XCTFail("Sink received unexpected value: \(input)")
         }
         else {
-            self.actual.append(transform(input))
+            actual.append(transform(input))
         }
     }
 
-    @discardableResult
-    func expectingNothing<R>(file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        return try run(file: file, line: line, body)
-    }
-
-    @discardableResult
-    func expecting<R>(_ value: Output, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        expected.append(value)
-        return try run(file: file, line: line, body)
-    }
-
-    @discardableResult
-    func expecting<R>(_ values: [Output], file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        expected.append(contentsOf: values)
-        return try run(file: file, line: line, body)
-    }
-
-    private func run<R>(file: StaticString, line: UInt, _ body: () throws -> R) rethrows -> R {
+    func run<R>(file: StaticString, line: UInt, _ body: () throws -> R) rethrows -> R {
         isExpecting = true
         defer {
             XCTAssertEqual(actual, expected, file: file, line: line)
@@ -78,14 +50,77 @@ class TransformedMockSink<Value, Output: Equatable>: SinkType {
         }
         return try body()
     }
+
+    func disconnect() {
+        connection?.disconnect()
+        connection = nil
+    }
 }
 
-class MockSink<Value: Equatable>: TransformedMockSink<Value, Value> {
+protocol MockSinkProtocol: class, SinkType {
+    associatedtype Output: Equatable
+    var state: MockSinkState<Value, Output> { get }
+}
+
+extension MockSinkProtocol {
+    @discardableResult
+    func expectingNothing<R>(file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+        return try state.run(file: file, line: line, body)
+    }
+
+    @discardableResult
+    func expecting<R>(_ value: Output, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+        state.expected.append(value)
+        return try state.run(file: file, line: line, body)
+    }
+
+    @discardableResult
+    func expecting<R>(_ values: [Output], file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+        state.expected.append(contentsOf: values)
+        return try state.run(file: file, line: line, body)
+    }
+
+    func connect<Source: SourceType>(to source: Source) where Source.Value == Value {
+        precondition(state.connection == nil)
+        state.connection = source.connect { [unowned self] (input: Value) -> Void in self.receive(input) }
+    }
+
+    func disconnect() {
+        state.disconnect()
+    }
+}
+
+
+class TransformedMockSink<Value, Output: Equatable>: MockSinkProtocol {
+    let state: MockSinkState<Value, Output>
+
+    init(_ transform: @escaping (Value) -> Output) {
+        self.state = .init(transform)
+    }
+
+    init<Source: SourceType>(_ source: Source, _ transform: @escaping (Value) -> Output) where Source.Value == Value {
+        self.state = .init(transform)
+        self.connect(to: source)
+    }
+
+    func receive(_ input: Value) {
+        state.receive(input)
+    }
+}
+
+class MockSink<Value: Equatable>: MockSinkProtocol {
+    let state: MockSinkState<Value, Value>
+
     init() {
-        super.init({ $0 })
+        self.state = .init({ $0 })
     }
 
     init<Source: SourceType>(_ source: Source) where Source.Value == Value {
-        super.init(source, { $0 })
+        self.state = .init({ $0 })
+        self.connect(to: source)
+    }
+
+    func receive(_ input: Value) {
+        state.receive(input)
     }
 }
