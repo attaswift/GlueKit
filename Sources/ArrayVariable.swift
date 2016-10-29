@@ -38,7 +38,7 @@ public final class ArrayVariable<Element>: _BaseUpdatableArray<Element> {
                 let old = _value
                 beginTransaction()
                 _value = newValue
-                sendChange(ArrayChange(initialCount: old.count, modification: .replaceSlice(old, at: 0, with: newValue)))
+                sendChange(ArrayChange(from: old, to: newValue))
                 endTransaction()
             }
             else {

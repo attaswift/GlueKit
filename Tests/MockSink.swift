@@ -13,7 +13,7 @@ import GlueKit
 class MockSinkState<Value, Output: Equatable> {
     let transform: (Value) -> Output
     var isExpecting = false
-    var expected: [Output] = []
+    var expected: [[Output]] = []
     var actual: [Output] = []
     var connection: Connection?
 
@@ -43,7 +43,15 @@ class MockSinkState<Value, Output: Equatable> {
     func run<R>(file: StaticString, line: UInt, _ body: () throws -> R) rethrows -> R {
         isExpecting = true
         defer {
-            XCTAssertEqual(actual, expected, file: file, line: line)
+            switch expected.count {
+            case 0:
+                XCTAssertEqual(actual, [], file: file, line: line)
+            case 1:
+                XCTAssertEqual(actual, expected[0], file: file, line: line)
+            default:
+                XCTAssertTrue(expected.contains(where: { actual == $0 }), "Unexpected values received: \(actual)", file: file, line: line)
+            }
+
             actual = []
             expected = []
             isExpecting = false
@@ -65,20 +73,31 @@ protocol MockSinkProtocol: class, SinkType {
 extension MockSinkProtocol {
     @discardableResult
     func expectingNothing<R>(file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+        precondition(state.expected.isEmpty)
         return try state.run(file: file, line: line, body)
     }
 
     @discardableResult
     func expecting<R>(_ value: Output, file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        state.expected.append(value)
+        precondition(state.expected.isEmpty)
+        state.expected = [[value]]
         return try state.run(file: file, line: line, body)
     }
 
     @discardableResult
     func expecting<R>(_ values: [Output], file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
-        state.expected.append(contentsOf: values)
+        precondition(state.expected.isEmpty)
+        state.expected = [values]
         return try state.run(file: file, line: line, body)
     }
+
+    @discardableResult
+    func expectingOneOf<R>(_ values: [[Output]], file: StaticString = #file, line: UInt = #line, body: () throws -> R) rethrows -> R {
+        precondition(state.expected.isEmpty)
+        state.expected = values
+        return try state.run(file: file, line: line, body)
+    }
+
 
     func connect<Source: SourceType>(to source: Source) where Source.Value == Value {
         precondition(state.connection == nil)

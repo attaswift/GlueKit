@@ -96,7 +96,7 @@ class ArrayVariableTests: XCTestCase {
             let c1 = array.changes.connect { changes.append($0) }
             defer { c1.disconnect() }
 
-            let c2 = array.observable.futureValues.connect { values.append($0) }
+            let c2 = array.anyObservableValue.futureValues.connect { values.append($0) }
             defer { c2.disconnect() }
 
             op(array)
