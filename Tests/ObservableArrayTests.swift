@@ -74,6 +74,18 @@ private class TestUpdatableArray<Element>: TestObservableArray<Element>, Updatab
         defer { _state.end() }
         return body()
     }
+
+    func apply(_ update: Update<ArrayChange<Element>>) {
+        switch update {
+        case .beginTransaction:
+            begin()
+        case .change(let change):
+            _value.apply(change)
+            _state.send(change)
+        case .endTransaction:
+            end()
+        }
+    }
 }
 
 class ObservableArrayTests: XCTestCase {
@@ -92,7 +104,7 @@ class ObservableArrayTests: XCTestCase {
             XCTAssertEqual(test.first, 1)
             XCTAssertEqual(test.last, 3)
 
-            let observable = test.observable
+            let observable = test.anyObservableValue
             let observableCount = test.observableCount
 
             XCTAssertEqual(observable.value, [1, 2, 3])
@@ -102,9 +114,9 @@ class ObservableArrayTests: XCTestCase {
             let valueMock = MockValueUpdateSink(observable.map { "\($0)" }) // map is to convert array into something equatable
             let countMock = MockValueUpdateSink(observableCount)
 
-            mock.expecting(3, .insert(4, at: 2)) {
-                valueMock.expecting(.init(from: "[1, 2, 3]", to: "[1, 2, 4, 3]")) {
-                    countMock.expecting(.init(from: 3, to: 4)) {
+            mock.expecting(["begin", "3.insert(4, at: 2)", "end"]) {
+                valueMock.expecting(["begin", "[1, 2, 3] -> [1, 2, 4, 3]", "end"]) {
+                    countMock.expecting(["begin", "3 -> 4", "end"]) {
                         apply(t, ArrayChange<Int>(initialCount: 3, modification: .insert(4, at: 2)))
                     }
                 }
@@ -113,9 +125,9 @@ class ObservableArrayTests: XCTestCase {
             XCTAssertEqual(observable.value, [1, 2, 4, 3])
             XCTAssertEqual(observableCount.value, 4)
 
-            mock.expecting(4, .replaceSlice([1, 2, 4, 4], at: 0, with: [])) {
-                valueMock.expecting(.init(from: "[1, 2, 4, 3]", to: "[]")) {
-                    countMock.expecting(.init(from: 4, to: 0)) {
+            mock.expecting(["begin", "4.replaceSlice([1, 2, 4, 4], at: 0, with: [])", "end"]) {
+                valueMock.expecting(["begin", "[1, 2, 4, 3] -> []", "end"]) {
+                    countMock.expecting(["begin", "4 -> 0", "end"]) {
                         apply(t, ArrayChange<Int>(initialCount: 4, modification: .replaceSlice([1, 2, 4, 4], at: 0, with: [])))
                     }
                 }
@@ -132,15 +144,15 @@ class ObservableArrayTests: XCTestCase {
         }
 
         check(make: { TestObservableArray($0) }, convert: { $0 }, apply: { $0.apply($1) })
-        check(make: { TestObservableArray($0) }, convert: { $0.observableArray }, apply: { $0.apply($1) })
+        check(make: { TestObservableArray($0) }, convert: { $0.anyObservableArray }, apply: { $0.apply($1) })
         check(make: { TestUpdatableArray($0) }, convert: { $0 }, apply: { $0.apply($1) })
-        check(make: { TestUpdatableArray($0) }, convert: { $0.observableArray }, apply: { $0.apply($1) })
-        check(make: { TestUpdatableArray($0) }, convert: { $0.updatableArray }, apply: { $0.apply($1) })
-        check(make: { TestUpdatableArray($0) }, convert: { $0.updatableArray.observableArray }, apply: { $0.apply($1) })
+        check(make: { TestUpdatableArray($0) }, convert: { $0.anyObservableArray }, apply: { $0.apply($1) })
+        check(make: { TestUpdatableArray($0) }, convert: { $0.anyUpdatableArray }, apply: { $0.apply($1) })
+        check(make: { TestUpdatableArray($0) }, convert: { $0.anyUpdatableArray.anyObservableArray }, apply: { $0.apply($1) })
         check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0 }, apply: { $0.apply($1) })
-        check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.observableArray }, apply: { $0.apply($1) })
-        check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.updatableArray }, apply: { $0.apply($1) })
-        check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.updatableArray.observableArray }, apply: { $0.apply($1) })
+        check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.anyObservableArray }, apply: { $0.apply($1) })
+        check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.anyUpdatableArray }, apply: { $0.apply($1) })
+        check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.anyUpdatableArray.anyObservableArray }, apply: { $0.apply($1) })
 
         check(isBuffered: true, make: { TestObservableArray($0) }, convert: { $0.buffered() }, apply: { $0.apply($1) })
         check(isBuffered: true, make: { ArrayVariable($0) }, convert: { $0.buffered() }, apply: { $0.apply($1) })
@@ -162,7 +174,7 @@ class ObservableArrayTests: XCTestCase {
         }
 
         XCTAssertEqual(test.observableCount.value, 3)
-        XCTAssertEqual(test.observable.value, [1, 2, 3])
+        XCTAssertEqual(test.anyObservableValue.value, [1, 2, 3])
     }
 
     func testUpdatable() {
@@ -175,7 +187,7 @@ class ObservableArrayTests: XCTestCase {
                 test.apply(ArrayChange(initialCount: test.count))
             }
 
-            mock.expecting(3, [.remove(1, at: 0), .insert(4, at: 1)]) {
+            mock.expecting(["begin", "3.remove(1, at: 0).insert(4, at: 1)", "end"]) {
                 var change = ArrayChange<Int>(initialCount: 3)
                 change.add(.insert(4, at: 2))
                 change.add(.remove(1, at: 0))
@@ -183,33 +195,35 @@ class ObservableArrayTests: XCTestCase {
             }
             XCTAssertEqual(test.value, [2, 4, 3])
 
-            mock.expecting(3, .replaceSlice([2, 4, 3], at: 0, with: [-1, -2, -3])) {
+            mock.expecting(["begin", "3.replaceSlice([2, 4, 3], at: 0, with: [-1, -2, -3])", "end"]) {
                 test.value = [-1, -2, -3]
             }
             XCTAssertEqual(test.value, [-1, -2, -3])
 
-            mock.expecting(3, .replace(-2, at: 1, with: 2)) {
+            mock.expecting(["begin", "3.replace(-2, at: 1, with: 2)", "end"]) {
                 test[1] = 2
             }
             XCTAssertEqual(test.value, [-1, 2, -3])
 
-            mock.expecting(3, .replaceSlice([-1, 2], at: 0, with: [1, 2])) {
+            mock.expecting(["begin", "3.replaceSlice([-1, 2], at: 0, with: [1, 2])", "end"]) {
                 test[0 ..< 2] = [1, 2]
             }
             XCTAssertEqual(test.value, [1, 2, -3])
 
-            let updatable = test.updatable
+            let updatable = test.anyUpdatableValue
             XCTAssertEqual(updatable.value, [1, 2, -3])
             let umock = MockValueUpdateSink(updatable.map { "\($0)" }) // The mapping transforms the array into something equatable
-            mock.expecting(3, .replaceSlice([1, 2, -3], at: 0, with: [0, 1, 2, 3])) {
-                umock.expecting(.init(from: "[1, 2, -3]", to: "[0, 1, 2, 3]")) {
+            mock.expecting(["begin", "3.replaceSlice([1, 2, -3], at: 0, with: [0, 1, 2, 3])", "end"]) {
+                umock.expecting(["begin", "[1, 2, -3] -> [0, 1, 2, 3]", "end"]) {
                     updatable.value = [0, 1, 2, 3]
                 }
             }
             XCTAssertEqual(updatable.value, [0, 1, 2, 3])
             XCTAssertEqual(test.value, [0, 1, 2, 3])
 
-            mock.expecting(4, [.insert(10, at: 1), .remove(2, at: 3)]) {
+            umock.disconnect()
+
+            mock.expecting(["begin", "4.remove(2, at: 2)", "3.insert(10, at: 1)", "end"]) {
                 test.withTransaction {
                     test.remove(at: 2)
                     test.insert(10, at: 1)
@@ -217,83 +231,83 @@ class ObservableArrayTests: XCTestCase {
             }
             XCTAssertEqual(test.value, [0, 10, 1, 3])
 
-            mock.expecting(4, [.replaceSlice([1, 3], at: 2, with: [11, 12, 13])]) {
+            mock.expecting(["begin", "4.replaceSlice([1, 3], at: 2, with: [11, 12, 13])", "end"]) {
                 test.replaceSubrange(2 ..< 4, with: 11 ... 13)
             }
             XCTAssertEqual(test.value, [0, 10, 11, 12, 13])
 
-            mock.expecting(5, [.replaceSlice([0], at: 0, with: [8, 9])]) {
+            mock.expecting(["begin", "5.replaceSlice([0], at: 0, with: [8, 9])", "end"]) {
                 test.replaceSubrange(0 ..< 1, with: [8, 9])
             }
             XCTAssertEqual(test.value, [8, 9, 10, 11, 12, 13])
 
-            mock.expecting(6, [.insert(14, at: 6)]) {
+            mock.expecting(["begin", "6.insert(14, at: 6)", "end"]) {
                 test.append(14)
             }
             XCTAssertEqual(test.value, [8, 9, 10, 11, 12, 13, 14])
 
-            mock.expecting(7, [.replaceSlice([], at: 7, with: [15, 16, 17])]) {
+            mock.expecting(["begin", "7.replaceSlice([], at: 7, with: [15, 16, 17])", "end"]) {
                 test.append(contentsOf: 15 ... 17)
             }
             XCTAssertEqual(test.value, [8, 9, 10, 11, 12, 13, 14, 15, 16, 17])
 
-            mock.expecting(10, .insert(20, at: 3)) {
+            mock.expecting(["begin", "10.insert(20, at: 3)", "end"]) {
                 test.insert(20, at: 3)
             }
             XCTAssertEqual(test.value, [8, 9, 10, 20, 11, 12, 13, 14, 15, 16, 17])
 
-            mock.expecting(11, .replaceSlice([], at: 4, with: [21, 22, 23])) {
+            mock.expecting(["begin", "11.replaceSlice([], at: 4, with: [21, 22, 23])", "end"]) {
                 test.insert(contentsOf: 21 ... 23, at: 4)
             }
             XCTAssertEqual(test.value, [8, 9, 10, 20, 21, 22, 23, 11, 12, 13, 14, 15, 16, 17])
 
-            mock.expecting(14, .remove(21, at: 4)) {
+            mock.expecting(["begin", "14.remove(21, at: 4)", "end"]) {
                 XCTAssertEqual(test.remove(at: 4), 21)
             }
             XCTAssertEqual(test.value, [8, 9, 10, 20, 22, 23, 11, 12, 13, 14, 15, 16, 17])
 
-            mock.expecting(13, .replaceSlice([20, 22, 23], at: 3, with: [])) {
+            mock.expecting(["begin", "13.replaceSlice([20, 22, 23], at: 3, with: [])", "end"]) {
                 test.removeSubrange(3 ..< 6)
             }
             XCTAssertEqual(test.value, [8, 9, 10, 11, 12, 13, 14, 15, 16, 17])
 
-            mock.expecting(10, .remove(8, at: 0)) {
+            mock.expecting(["begin", "10.remove(8, at: 0)", "end"]) {
                 XCTAssertEqual(test.removeFirst(), 8)
             }
             XCTAssertEqual(test.value, [9, 10, 11, 12, 13, 14, 15, 16, 17])
 
-            mock.expecting(9, .replaceSlice([9, 10], at: 0, with: [])) {
+            mock.expecting(["begin", "9.replaceSlice([9, 10], at: 0, with: [])", "end"]) {
                 test.removeFirst(2)
             }
             XCTAssertEqual(test.value, [11, 12, 13, 14, 15, 16, 17])
 
-            mock.expecting(7, .remove(17, at: 6)) {
+            mock.expecting(["begin", "7.remove(17, at: 6)", "end"]) {
                 XCTAssertEqual(test.removeLast(), 17)
             }
             XCTAssertEqual(test.value, [11, 12, 13, 14, 15, 16])
 
-            mock.expecting(6, .replaceSlice([14, 15, 16], at: 3, with: [])) {
+            mock.expecting(["begin", "6.replaceSlice([14, 15, 16], at: 3, with: [])", "end"]) {
                 test.removeLast(3)
             }
             XCTAssertEqual(test.value, [11, 12, 13])
 
-            mock.expecting(3, .replaceSlice([12, 13], at: 1, with: [20])) {
+            mock.expecting(["begin", "3.remove(13, at: 2)", "2.replace(12, at: 1, with: 20)", "end"]) {
                 test.withTransaction {
                     test.remove(at: 2)
                     test[1] = 20
                 }
             }
 
-            mock.expecting(2, .replaceSlice([11, 20], at: 0, with: [])) {
+            mock.expecting(["begin", "2.replaceSlice([11, 20], at: 0, with: [])", "end"]) {
                 test.removeAll()
             }
             XCTAssertEqual(test.value, [])
         }
 
         check { TestUpdatableArray<Int>($0) }
-        check { TestUpdatableArray<Int>($0).updatableArray }
-        check { TestUpdatableArray<Int>($0).updatableArray.updatableArray }
+        check { TestUpdatableArray<Int>($0).anyUpdatableArray }
+        check { TestUpdatableArray<Int>($0).anyUpdatableArray.anyUpdatableArray }
         check { ArrayVariable<Int>($0) }
-        check { ArrayVariable<Int>($0).updatableArray }
+        check { ArrayVariable<Int>($0).anyUpdatableArray }
     }
 }

@@ -23,7 +23,7 @@ internal func describe<Element>(_ update: Update<ArrayChange<Element>>?) -> Stri
     }
 }
 
-class MockArraySink<Element>: MockSinkProtocol {
+class MockArrayObserver<Element>: MockSinkProtocol {
     typealias Change = ArrayChange<Element>
 
     let state: MockSinkState<Update<Change>, String>

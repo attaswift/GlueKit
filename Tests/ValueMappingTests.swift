@@ -149,7 +149,7 @@ class ValueMappingTests: XCTestCase {
         XCTAssertEqual(chapters[0], "A")
         XCTAssertEqual(chapters[1 ..< 3], ["B", "C"])
 
-        let mock = MockArraySink(chapters)
+        let mock = MockArrayObserver(chapters)
 
         mock.expecting(["begin", "3.insert(D, at: 3)", "end"]) {
             book.chapters.append("d")

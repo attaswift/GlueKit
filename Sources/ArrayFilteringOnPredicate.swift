@@ -6,13 +6,23 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType {
+extension ObservableArrayType where Change == ArrayChange<Element> {
     public func filter(_ isIncluded: @escaping (Element) -> Bool) -> AnyObservableArray<Element> {
         return ArrayFilteringOnPredicate<Self>(parent: self, isIncluded: isIncluded).anyObservableArray
     }
 }
 
-private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _BaseObservableArray<Parent.Element> {
+private struct ParentSink<Parent: ObservableArrayType>: UniqueOwnedSink where Parent.Change == ArrayChange<Parent.Element> {
+    typealias Owner = ArrayFilteringOnPredicate<Parent>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _BaseObservableArray<Parent.Element> where Parent.Change == ArrayChange<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = ArrayChange<Element>
 
@@ -26,18 +36,14 @@ private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _Bas
         self.isIncluded = isIncluded
         self.indexMapping = ArrayFilteringIndexmap(initialValues: parent.value, isIncluded: isIncluded)
         super.init()
-        parent.updates.add(parentSink)
+        parent.add(ParentSink(owner: self))
     }
 
     deinit {
-        parent.updates.remove(parentSink)
+        parent.remove(ParentSink(owner: self))
     }
 
-    private var parentSink: AnySink<ArrayUpdate<Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: ArrayFilteringOnPredicate.apply).anySink
-    }
-
-    private func apply(_ update: ArrayUpdate<Element>) {
+    func applyParentUpdate(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

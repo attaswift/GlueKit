@@ -6,14 +6,26 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType where Element: Hashable {
+extension ObservableArrayType where Element: Hashable, Change == ArrayChange<Element> {
     /// Returns an observable set that contains the same elements as this array.
     public func distinctUnion() -> AnyObservableSet<Element> {
         return DistinctUnion<Self>(self).anyObservableSet
     }
 }
 
-private class DistinctUnion<Input: ObservableArrayType>: _BaseObservableSet<Input.Element> where Input.Element: Hashable {
+private struct DistinctSink<Input: ObservableArrayType>: UniqueOwnedSink
+where Input.Element: Hashable, Input.Change == ArrayChange<Input.Element> {
+    typealias Owner = DistinctUnion<Input>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Input.Element>) {
+        owner.apply(update)
+    }
+}
+
+private class DistinctUnion<Input: ObservableArrayType>: _BaseObservableSet<Input.Element>
+where Input.Element: Hashable, Input.Change == ArrayChange<Input.Element> {
     typealias Element = Input.Element
     typealias Change = SetChange<Element>
 
@@ -26,18 +38,14 @@ private class DistinctUnion<Input: ObservableArrayType>: _BaseObservableSet<Inpu
         for element in input.value {
             _ = self.add(element)
         }
-        input.updates.add(sink)
+        input.updates.add(DistinctSink(owner: self))
     }
 
     deinit {
-        input.updates.remove(sink)
+        input.updates.remove(DistinctSink(owner: self))
     }
 
-    private var sink: AnySink<ArrayUpdate<Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: DistinctUnion.apply).anySink
-    }
-
-    private func apply(_ update: ArrayUpdate<Element>) {
+    func apply(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
@@ -55,7 +63,7 @@ private class DistinctUnion<Input: ObservableArrayType>: _BaseObservableSet<Inpu
                     }
                 }
             }
-            if !change.isEmpty {
+            if !setChange.isEmpty {
                 sendChange(setChange)
             }
         case .endTransaction:

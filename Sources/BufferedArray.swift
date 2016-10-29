@@ -20,7 +20,7 @@ extension ObservableArrayType where Change == ArrayChange<Element> {
 private struct BufferedSink<Content: ObservableArrayType>: UniqueOwnedSink where Content.Change == ArrayChange<Content.Element> {
     typealias Owner = BufferedObservableArray<Content>
 
-    unowned let owner: Owner
+    unowned(unsafe) let owner: Owner
 
     func receive(_ update: ArrayUpdate<Content.Element>) {
         owner.applyUpdate(update)

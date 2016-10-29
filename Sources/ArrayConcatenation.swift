@@ -6,17 +6,42 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType {
-    public func concatenate<A: ObservableArrayType>(with other: A) -> AnyObservableArray<Element> where A.Element == Element {
+extension ObservableArrayType where Change == ArrayChange<Element> {
+    public func concatenate<A: ObservableArrayType>(with other: A) -> AnyObservableArray<Element>
+    where A.Element == Element, A.Change == ArrayChange<A.Element> {
         return ArrayConcatenation(first: self, second: other).anyObservableArray
     }
 }
 
-public func +<A: ObservableArrayType, B: ObservableArrayType>(a: A, b: B) -> AnyObservableArray<A.Element> where A.Element == B.Element {
+public func +<A: ObservableArrayType, B: ObservableArrayType>(a: A, b: B) -> AnyObservableArray<A.Element>
+where A.Element == B.Element, A.Change == ArrayChange<A.Element>, B.Change == ArrayChange<B.Element> {
     return a.concatenate(with: b)
 }
 
-final class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArrayType>: _BaseObservableArray<First.Element> where First.Element == Second.Element {
+private struct FirstSink<First: ObservableArrayType, Second: ObservableArrayType>: UniqueOwnedSink
+where First.Element == Second.Element, First.Change == ArrayChange<First.Element>, Second.Change == ArrayChange<Second.Element> {
+    typealias Owner = ArrayConcatenation<First, Second>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ArrayUpdate<First.Element>) {
+        owner.applyFirst(update)
+    }
+}
+
+private struct SecondSink<First: ObservableArrayType, Second: ObservableArrayType>: UniqueOwnedSink
+where First.Element == Second.Element, First.Change == ArrayChange<First.Element>, Second.Change == ArrayChange<Second.Element> {
+    typealias Owner = ArrayConcatenation<First, Second>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Second.Element>) {
+        owner.applySecond(update)
+    }
+}
+
+final class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArrayType>: _BaseObservableArray<First.Element>
+where First.Element == Second.Element, First.Change == ArrayChange<First.Element>, Second.Change == ArrayChange<Second.Element> {
     typealias Element = First.Element
     typealias Change = ArrayChange<Element>
 
@@ -57,25 +82,18 @@ final class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArr
     override func activate() {
         firstCount = first.count
         secondCount = second.count
-        first.updates.add(firstSink)
-        second.updates.add(secondSink)
+        first.updates.add(FirstSink(owner: self))
+        second.updates.add(SecondSink(owner: self))
     }
 
     override func deactivate() {
-        first.updates.remove(firstSink)
-        second.updates.remove(secondSink)
+        first.updates.remove(FirstSink(owner: self))
+        second.updates.remove(SecondSink(owner: self))
         firstCount = -1
         secondCount = -1
     }
 
-    private var firstSink: AnySink<ArrayUpdate<Element>> {
-        return StrongMethodSink(owner: self, identifier: 1, method: ArrayConcatenation.applyFirst).anySink
-    }
-    private var secondSink: AnySink<ArrayUpdate<Element>> {
-        return StrongMethodSink(owner: self, identifier: 2, method: ArrayConcatenation.applySecond).anySink
-    }
-
-    private func applyFirst(_ update: ArrayUpdate<Element>) {
+    func applyFirst(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
@@ -88,7 +106,7 @@ final class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArr
         }
     }
 
-    private func applySecond(_ update: ArrayUpdate<Element>) {
+    func applySecond(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

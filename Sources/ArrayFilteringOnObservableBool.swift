@@ -6,8 +6,8 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType {
-    public func filter<Test: ObservableValueType>(_ isIncluded: @escaping (Element) -> Test) -> AnyObservableArray<Element> where Test.Value == Bool {
+extension ObservableArrayType where Change == ArrayChange<Element> {
+    public func filter<Test: ObservableValueType>(_ isIncluded: @escaping (Element) -> Test) -> AnyObservableArray<Element> where Test.Value == Bool, Test.Change == ValueChange<Test.Value> {
         return ArrayFilteringOnObservableBool<Self, Test>(parent: self, isIncluded: isIncluded).anyObservableArray
     }
 
@@ -30,22 +30,33 @@ extension ObservableArrayType {
     }
 }
 
-private final class SinkForTest<Parent: ObservableArrayType, Test: ObservableValueType>: SinkType, RefListElement where Test.Value == Bool {
+private struct ParentSink<Parent: ObservableArrayType, Test: ObservableValueType>: UniqueOwnedSink
+where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
+    typealias Owner = ArrayFilteringOnObservableBool<Parent, Test>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private final class FieldSink<Parent: ObservableArrayType, Test: ObservableValueType>: SinkType, RefListElement where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
     typealias Owner = ArrayFilteringOnObservableBool<Parent, Test>
 
     unowned let owner: Owner
     let field: Test
-    var refListLink = RefListLink<SinkForTest<Parent, Test>>()
+    var refListLink = RefListLink<FieldSink<Parent, Test>>()
 
     init(owner: Owner, field: Test) {
         self.owner = owner
         self.field = field
 
-        field.updates.add(self)
+        field.add(self)
     }
 
     func disconnect() {
-        field.updates.remove(self)
+        field.remove(self)
     }
 
     func receive(_ update: ValueUpdate<Bool>) {
@@ -53,16 +64,16 @@ private final class SinkForTest<Parent: ObservableArrayType, Test: ObservableVal
     }
 }
 
-private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: _BaseObservableArray<Parent.Element> where Test.Value == Bool {
+private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: _BaseObservableArray<Parent.Element>
+where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
     typealias Element = Parent.Element
     typealias Change = ArrayChange<Element>
-    typealias FieldSink = SinkForTest<Parent, Test>
 
     private let parent: Parent
     private let isIncluded: (Element) -> Test
 
     private var indexMapping: ArrayFilteringIndexmap<Element>
-    private var elementConnections = RefList<FieldSink>()
+    private var elementConnections = RefList<FieldSink<Parent, Test>>()
 
     init(parent: Parent, isIncluded: @escaping (Element) -> Test) {
         self.parent = parent
@@ -70,20 +81,16 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
         let elements = parent.value
         self.indexMapping = ArrayFilteringIndexmap(initialValues: elements, isIncluded: { isIncluded($0).value })
         super.init()
-        parent.updates.add(parentSink)
+        parent.updates.add(ParentSink(owner: self))
         self.elementConnections = RefList(elements.lazy.map { FieldSink(owner: self, field: isIncluded($0)) })
     }
 
     deinit {
-        parent.updates.remove(parentSink)
+        parent.updates.remove(ParentSink(owner: self))
         self.elementConnections.forEach { $0.disconnect() }
     }
 
-    private var parentSink: AnySink<ArrayUpdate<Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: ArrayFilteringOnObservableBool.applyParentUpdate).anySink
-    }
-
-    private func applyParentUpdate(_ update: ArrayUpdate<Element>) {
+    func applyParentUpdate(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
@@ -102,7 +109,7 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
         }
     }
 
-    fileprivate func applyFieldUpdate(_ update: ValueUpdate<Bool>, from sink: FieldSink) {
+    func applyFieldUpdate(_ update: ValueUpdate<Bool>, from sink: FieldSink<Parent, Test>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

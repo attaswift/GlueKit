@@ -40,7 +40,7 @@ class ArrayMappingTests: XCTestCase {
 
         XCTAssertEqual(titles.value, ["foo", "bar", "baz"])
 
-        let mock = MockArraySink(titles)
+        let mock = MockArrayObserver(titles)
 
         mock.expecting(["begin", "3.insert(fred, at: 3)", "end"]) {
             books.append(Book("fred"))
@@ -87,7 +87,7 @@ class ArrayMappingTests: XCTestCase {
 
         XCTAssertEqual(titles.value, ["foo", "bar", "baz"])
 
-        let mock = MockArraySink(titles)
+        let mock = MockArrayObserver(titles)
 
         mock.expecting(["begin", "3.insert(fred, at: 3)", "end"]) {
             books.append(Book("fred"))
@@ -155,7 +155,7 @@ class ArrayMappingTests: XCTestCase {
 
         XCTAssertEqual(titles.value, ["foo", "bar", "baz"])
 
-        let mock = MockArraySink(titles)
+        let mock = MockArrayObserver(titles)
 
         let b4 = Book("fred")
         mock.expecting(["begin", "3.insert(fred, at: 3)", "end"]) {
@@ -204,7 +204,7 @@ class ArrayMappingTests: XCTestCase {
 
         checkSlices()
 
-        let mock = MockArraySink(authors)
+        let mock = MockArrayObserver(authors)
 
         let b5 = Book("fred", ["e"])
         mock.expecting(["begin", "6.insert(e, at: 6)", "end"]) {

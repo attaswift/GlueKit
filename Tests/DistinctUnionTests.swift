@@ -40,46 +40,46 @@ class DistinctUnionTests: XCTestCase {
 
         let mock = MockSetObserver(set)
 
-        mock.expecting("[]/[1]") {
+        mock.expecting(["begin", "[]/[1]", "end"]) {
             array.append(1)
         }
 
-        mock.expecting("[]/[2]") {
+        mock.expecting(["begin", "[]/[2]", "end"]) {
             array.append(2)
         }
         XCTAssertEqual(set.value, Set([0, 1, 2]))
 
-        mock.expectingNothing {
+        mock.expecting(["begin", "end"]) {
             array.append(1)
         }
         XCTAssertEqual(array.value, [0, 1, 2, 1])
         XCTAssertEqual(set.value, Set([0, 1, 2]))
 
-        mock.expectingNothing {
+        mock.expecting(["begin", "end"]) {
             _ = array.remove(at: 3)
         }
         XCTAssertEqual(array.value, [0, 1, 2])
         XCTAssertEqual(set.value, Set([0, 1, 2]))
 
-        mock.expecting("[1]/[]") {
+        mock.expecting(["begin", "[1]/[]", "end"]) {
             _ = array.remove(at: 1)
         }
         XCTAssertEqual(array.value, [0, 2])
         XCTAssertEqual(set.value, Set([0, 2]))
 
-        mock.expecting("[2]/[3]") {
+        mock.expecting(["begin", "[2]/[3]", "end"]) {
             array[1] = 3
         }
         XCTAssertEqual(array.value, [0, 3])
         XCTAssertEqual(set.value, Set([0, 3]))
 
-        mock.expecting("[]/[4, 5, 6]") {
+        mock.expecting(["begin", "[]/[4, 5, 6]", "end"]) {
             array.append(contentsOf: [4, 4, 4, 5, 5, 6])
         }
         XCTAssertEqual(array.value, [0, 3, 4, 4, 4, 5, 5, 6])
         XCTAssertEqual(set.value, Set([0, 3, 4, 5, 6]))
 
-        mock.expecting("[0, 4, 6]/[]") {
+        mock.expecting(["begin", "[6]/[]", "[4]/[]", "[0]/[]", "end"]) {
             // Remove even values
             array.withTransaction {
                 for i in (0 ..< array.count).reversed() {
@@ -92,7 +92,7 @@ class DistinctUnionTests: XCTestCase {
         XCTAssertEqual(array.value, [3, 5, 5])
         XCTAssertEqual(set.value, Set([3, 5]))
 
-        mock.expecting("[3, 5]/[]") {
+        mock.expecting(["begin", "[3, 5]/[]", "end"]) {
             array.removeAll()
         }
         XCTAssertEqual(set.value, Set())
