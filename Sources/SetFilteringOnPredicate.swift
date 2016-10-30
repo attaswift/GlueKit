@@ -6,7 +6,7 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType {
+extension ObservableSetType where Change == SetChange<Element> {
     public func filter(_ isIncluded: @escaping (Element) -> Bool) -> AnyObservableSet<Element> {
         return SetFilteringOnPredicate<Self>(parent: self, test: isIncluded).anyObservableSet
     }
@@ -30,7 +30,19 @@ extension ObservableSetType {
     }
 }
 
-private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _BaseObservableSet<Parent.Element> {
+private struct FilteringSink<Parent: ObservableSetType>: UniqueOwnedSink
+where Parent.Change == SetChange<Parent.Element> {
+    typealias Owner = SetFilteringOnPredicate<Parent>
+
+    unowned let owner: Owner
+
+    func receive(_ update: SetUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _BaseObservableSet<Parent.Element>
+where Parent.Change == SetChange<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = SetChange<Element>
 
@@ -81,19 +93,15 @@ private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _BaseObs
                 matchingElements.insert(e)
             }
         }
-        parent.updates.add(sink)
+        parent.add(FilteringSink(owner: self))
     }
 
     override func deactivate() {
-        parent.updates.remove(sink)
+        parent.remove(FilteringSink(owner: self))
         matchingElements = []
     }
 
-    private var sink: AnySink<SetUpdate<Parent.Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: SetFilteringOnPredicate.apply).anySink
-    }
-
-    private func apply(_ update: SetUpdate<Parent.Element>) {
+    func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

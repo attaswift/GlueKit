@@ -51,16 +51,16 @@ class SetFilteringTests: XCTestCase {
 
         // Now try some modifications
 
-        mock.expecting("[]/[10]") { set.insert(10) }
+        mock.expecting(["begin", "[]/[10]", "end"]) { set.insert(10) }
         XCTAssertEqual(even.value, [0, 2, 4, 6, 8, 10])
 
-        mock.expectingNothing { set.insert(11) }
+        mock.expecting(["begin", "end"]) { set.insert(11) }
         XCTAssertEqual(even.value, [0, 2, 4, 6, 8, 10])
 
-        mock.expectingNothing { set.remove(5) }
+        mock.expecting(["begin", "end"]) { set.remove(5) }
         XCTAssertEqual(even.value, [0, 2, 4, 6, 8, 10])
 
-        mock.expecting("[6]/[]") { set.remove(6) }
+        mock.expecting(["begin", "[6]/[]", "end"]) { set.remove(6) }
         XCTAssertEqual(even.value, [0, 2, 4, 8, 10])
     }
 
@@ -103,35 +103,35 @@ class SetFilteringTests: XCTestCase {
         XCTAssertFalse(even.isSuperset(of: [f[2], f[5], f[6]]))
 
         // Now try some modifications
-        mock.expecting("[]/[10]") {
+        mock.expecting(["begin", "[]/[10]", "end"]) {
             set.insert(f[10])
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[4], f[6], f[8], f[10]])
-        mock.expectingNothing {
+        mock.expecting(["begin", "end"]) {
             set.insert(f[11])
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[4], f[6], f[8], f[10]])
-        mock.expectingNothing {
+        mock.expecting(["begin", "end"]) {
             set.remove(f[3])
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[4], f[6], f[8], f[10]])
-        mock.expecting("[4]/[]") {
+        mock.expecting(["begin", "[4]/[]", "end"]) {
             set.remove(f[4])
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[6], f[8], f[10]])
-        mock.expecting("[]/[11]") {
+        mock.expecting(["begin", "[]/[11]", "end"]) {
             f[11].number.value = 10
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[6], f[8], f[10], f[11]])
-        mock.expecting("[8]/[]") {
+        mock.expecting(["begin", "[8]/[]", "end"]) {
             f[8].number.value = 9
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[6], f[10], f[11]])
-        mock.expectingNothing {
+        mock.expecting(["begin", "end"]) {
             f[8].number.value = 7
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[6], f[10], f[11]])
-        mock.expectingNothing {
+        mock.expecting(["begin", "end"]) {
             f[6].number.value = 8
         }
         XCTAssertEqual(even.value, [f[0], f[2], f[6], f[10], f[11]])
@@ -147,10 +147,10 @@ class SetFilteringTests: XCTestCase {
 
         let mock = MockSetObserver(filtered)
 
-        mock.expecting("[]/[10]") { set.insert(10) }
-        mock.expecting("[6, 8, 10]/[1, 3, 5]") { predicate.value = { $0 <= 5 } }
-        mock.expecting("[]/[-1]") { set.insert(-1) }
-        mock.expecting("[0, 2, 4]/[7, 9]") { predicate.value = { $0 & 1 == 1 } }
+        mock.expecting(["begin", "[]/[10]", "end"]) { set.insert(10) }
+        mock.expecting(["begin", "[6, 8, 10]/[1, 3, 5]", "end"]) { predicate.value = { $0 <= 5 } }
+        mock.expecting(["begin", "[]/[-1]", "end"]) { set.insert(-1) }
+        mock.expecting(["begin", "[0, 2, 4]/[7, 9]", "end"]) { predicate.value = { $0 & 1 == 1 } }
     }
 
     func test_filter_observableOptionalPredicate() {
@@ -163,13 +163,12 @@ class SetFilteringTests: XCTestCase {
 
         let mock = MockSetObserver(filtered)
 
-        mock.expecting("[]/[10]") { set.insert(10) }
-        mock.expecting("[6, 8, 10]/[1, 3, 5]") { predicate.value = { $0 <= 5 } }
-        mock.expecting("[]/[-1]") { set.insert(-1) }
-        mock.expecting("[0, 2, 4]/[7, 9]") { predicate.value = { $0 & 1 == 1 } }
-        mock.expecting("[]/[0, 2, 4, 6, 8, 10]") { predicate.value = nil }
+        mock.expecting(["begin", "[]/[10]", "end"]) { set.insert(10) }
+        mock.expecting(["begin", "[6, 8, 10]/[1, 3, 5]", "end"]) { predicate.value = { $0 <= 5 } }
+        mock.expecting(["begin", "[]/[-1]", "end"]) { set.insert(-1) }
+        mock.expecting(["begin", "[0, 2, 4]/[7, 9]", "end"]) { predicate.value = { $0 & 1 == 1 } }
+        mock.expecting(["begin", "[]/[0, 2, 4, 6, 8, 10]", "end"]) { predicate.value = nil }
     }
-
 }
 
 private final class Foo: Hashable, Comparable, ExpressibleByIntegerLiteral, CustomStringConvertible {

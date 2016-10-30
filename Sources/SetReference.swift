@@ -6,52 +6,72 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableValueType where Value: ObservableSetType {
+extension ObservableValueType where Value: ObservableSetType, Change == ValueChange<Value>, Value.Change == SetChange<Value.Element> {
     public func unpacked() -> AnyObservableSet<Value.Element> {
         return UnpackedObservableSetReference(self).anyObservableSet
     }
 }
 
+private struct ReferenceSink<Reference: ObservableValueType>: UniqueOwnedSink
+where Reference.Value: ObservableSetType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == SetChange<Reference.Value.Element> {
+    typealias Owner = UnpackedObservableSetReference<Reference>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ValueUpdate<Reference.Value>) {
+        owner.applyReferenceUpdate(update)
+    }
+}
+
+private struct TargetSink<Reference: ObservableValueType>: UniqueOwnedSink
+where Reference.Value: ObservableSetType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == SetChange<Reference.Value.Element> {
+    typealias Owner = UnpackedObservableSetReference<Reference>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: SetUpdate<Reference.Value.Element>) {
+        owner.applyTargetUpdate(update)
+    }
+}
+
+
 /// A mutable reference to an `AnyObservableSet` that's also an observable set.
 /// You can switch to another target set without having to re-register subscribers.
-private final class UnpackedObservableSetReference<SetReference: ObservableValueType>: _BaseObservableSet<SetReference.Value.Element> where SetReference.Value: ObservableSetType {
-    typealias Target = SetReference.Value
+private final class UnpackedObservableSetReference<Reference: ObservableValueType>: _BaseObservableSet<Reference.Value.Element>
+where Reference.Value: ObservableSetType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == SetChange<Reference.Value.Element> {
+    typealias Target = Reference.Value
     typealias Element = Target.Element
     typealias Change = SetChange<Element>
 
-    private var _reference: SetReference
+    private var _reference: Reference
+    private var _target: Reference.Value? = nil // Retained to make sure we keep it alive
 
-    init(_ reference: SetReference)  {
+    init(_ reference: Reference)  {
         _reference = reference
         super.init()
     }
 
     override func activate() {
-        _reference.updates.add(referenceSink)
-        _reference.value.updates.add(targetSink)
+        _reference.add(ReferenceSink(owner: self))
+        let target = _reference.value
+        _target = target
+        target.add(TargetSink(owner: self))
     }
 
     override func deactivate() {
-        _reference.value.updates.remove(targetSink)
-        _reference.updates.remove(referenceSink)
+        _target!.remove(TargetSink(owner: self))
+        _reference.remove(ReferenceSink(owner: self))
     }
 
-    private var referenceSink: AnySink<ValueUpdate<Target>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: UnpackedObservableSetReference.applyReferenceUpdate).anySink
-    }
-
-    private var targetSink: AnySink<SetUpdate<Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: UnpackedObservableSetReference.applyTargetUpdate).anySink
-    }
-
-    private func applyReferenceUpdate(_ update: ValueUpdate<Target>) {
+    func applyReferenceUpdate(_ update: ValueUpdate<Target>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
         case .change(let change):
             if isConnected {
-                change.old.updates.remove(targetSink)
-                change.new.updates.add(targetSink)
+                _target!.remove(TargetSink(owner: self))
+                _target = change.new
+                _target!.add(TargetSink(owner: self))
                 sendChange(SetChange(from: change.old.value, to: change.new.value))
             }
         case .endTransaction:
@@ -59,7 +79,7 @@ private final class UnpackedObservableSetReference<SetReference: ObservableValue
         }
     }
 
-    private func applyTargetUpdate(_ update: SetUpdate<Element>) {
+    func applyTargetUpdate(_ update: SetUpdate<Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

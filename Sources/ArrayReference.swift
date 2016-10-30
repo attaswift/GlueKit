@@ -43,6 +43,7 @@ where Reference.Value: ObservableArrayType, Reference.Change == ValueChange<Refe
     typealias Change = ArrayChange<Element>
 
     private var _reference: Reference
+    private var _target: Reference.Value? = nil // Retained to make sure we keep it alive
 
     init(_ reference: Reference) {
         _reference = reference
@@ -51,11 +52,13 @@ where Reference.Value: ObservableArrayType, Reference.Change == ValueChange<Refe
 
     override func activate() {
         _reference.updates.add(ReferenceSink(owner: self))
-        _reference.value.updates.add(TargetSink(owner: self))
+        let target = _reference.value
+        _target = target
+        target.updates.add(TargetSink(owner: self))
     }
 
     override func deactivate() {
-        _reference.value.updates.remove(TargetSink(owner: self))
+        _target!.updates.remove(TargetSink(owner: self))
         _reference.updates.remove(ReferenceSink(owner: self))
     }
 
@@ -65,8 +68,9 @@ where Reference.Value: ObservableArrayType, Reference.Change == ValueChange<Refe
             beginTransaction()
         case .change(let change):
             if isConnected {
-                change.old.updates.remove(TargetSink(owner: self))
-                change.new.updates.add(TargetSink(owner: self))
+                _target!.remove(TargetSink(owner: self))
+                _target = change.new
+                _target!.add(TargetSink(owner: self))
                 sendChange(ArrayChange(from: change.old.value, to: change.new.value))
             }
         case .endTransaction:

@@ -6,23 +6,55 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType {
-    public func filter<TestResult: ObservableValueType>(_ isIncluded: @escaping (Element) -> TestResult) -> AnyObservableSet<Element> where TestResult.Value == Bool {
-        return SetFilteringOnObservableBool<Self, TestResult>(parent: self, isIncluded: isIncluded).anyObservableSet
+extension ObservableSetType where Change == SetChange<Element> {
+    public func filter<Field: ObservableValueType>(_ isIncluded: @escaping (Element) -> Field) -> AnyObservableSet<Element> where Field.Value == Bool, Field.Change == ValueChange<Field.Value> {
+        return SetFilteringOnObservableBool<Self, Field>(parent: self, isIncluded: isIncluded).anyObservableSet
     }
 }
 
-private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult: ObservableValueType>: _BaseObservableSet<Parent.Element> where TestResult.Value == Bool {
+private struct ParentSink<Parent: ObservableSetType, Field: ObservableValueType>: UniqueOwnedSink
+where Field.Value == Bool, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+    typealias Owner = SetFilteringOnObservableBool<Parent, Field>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: SetUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private struct FieldSink<Parent: ObservableSetType, Field: ObservableValueType>: SinkType
+where Field.Value == Bool, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+    typealias Owner = SetFilteringOnObservableBool<Parent, Field>
+
+    unowned(unsafe) let owner: Owner
+    let element: Parent.Element
+
+    func receive(_ update: ValueUpdate<Field.Value>) {
+        owner.applyFieldUpdate(update, from: element)
+    }
+
+    var hashValue: Int {
+        return Int.baseHash.mixed(with: ObjectIdentifier(owner)).mixed(with: element)
+    }
+
+    static func ==(left: FieldSink, right: FieldSink) -> Bool {
+        return left.owner === right.owner && left.element == right.element
+    }
+}
+
+private class SetFilteringOnObservableBool<Parent: ObservableSetType, Field: ObservableValueType>: _BaseObservableSet<Parent.Element>
+where Field.Value == Bool, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
     typealias Element = Parent.Element
     typealias Change = SetChange<Element>
 
     private let parent: Parent
-    private let isIncluded: (Element) -> TestResult
+    private let isIncluded: (Element) -> Field
 
     private var matchingElements: Set<Element> = []
-    private var elementSinks: Dictionary<AnySink<ValueUpdate<Bool>>, TestResult> = [:]
+    private var fieldSinks: Dictionary<FieldSink<Parent, Field>, Field> = [:]
 
-    init(parent: Parent, isIncluded: @escaping (Element) -> TestResult) {
+    init(parent: Parent, isIncluded: @escaping (Element) -> Field) {
         self.parent = parent
         self.isIncluded = isIncluded
     }
@@ -73,51 +105,42 @@ private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult
             if test.value {
                 matchingElements.insert(e)
             }
-            let sink = elementSink(for: e)
-            test.updates.add(sink)
-            elementSinks[sink] = test
+            let sink = FieldSink(owner: self, element: e)
+            test.add(sink)
+            fieldSinks[sink] = test
         }
-        parent.updates.add(parentSink)
+        parent.add(ParentSink(owner: self))
     }
 
     override func deactivate() {
-        parent.updates.remove(parentSink)
-        for (sink, test) in elementSinks {
-            test.updates.remove(sink)
+        parent.remove(ParentSink(owner: self))
+        for (sink, test) in fieldSinks {
+            test.remove(sink)
         }
-        elementSinks = [:]
+        fieldSinks = [:]
         matchingElements = []
     }
 
-    private var parentSink: AnySink<SetUpdate<Parent.Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: SetFilteringOnObservableBool.applyParentUpdate).anySink
-    }
-
-    private func elementSink(for element: Parent.Element) -> AnySink<ValueUpdate<Bool>> {
-        return StrongMethodSinkWithContext(owner: self, method: SetFilteringOnObservableBool.applyElementUpdate, context: element).anySink
-    }
-
-
-    private func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
+    func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
         case .change(let change):
             var c = SetChange<Element>()
             for e in change.removed {
-                let sink = elementSink(for: e)
-                let test = elementSinks.removeValue(forKey: sink)!
-                test.updates.remove(sink)
+                let sink = FieldSink(owner: self, element: e)
+                let test = fieldSinks.removeValue(forKey: sink)!
+                test.remove(sink)
                 if let old = self.matchingElements.remove(e) {
                     c.remove(old)
                 }
             }
             for e in change.inserted {
                 let test = self.isIncluded(e)
-                let sink = elementSink(for: e)
-                test.updates.add(sink)
-                let old = elementSinks.updateValue(test, forKey: sink)
-                precondition(old != nil)
+                let sink = FieldSink(owner: self, element: e)
+                test.add(sink)
+                let old = fieldSinks.updateValue(test, forKey: sink)
+                precondition(old == nil)
                 if test.value {
                     matchingElements.insert(e)
                     c.insert(e)
@@ -131,7 +154,7 @@ private class SetFilteringOnObservableBool<Parent: ObservableSetType, TestResult
         }
     }
 
-    private func applyElementUpdate(_ update: ValueUpdate<Bool>, from element: Parent.Element) {
+    func applyFieldUpdate(_ update: ValueUpdate<Bool>, from element: Parent.Element) {
         switch update {
         case .beginTransaction:
             beginTransaction()
