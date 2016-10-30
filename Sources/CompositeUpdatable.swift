@@ -40,6 +40,29 @@ extension UpdatableValueType where Change == ValueChange<Value> {
     }
 }
 
+private struct LeftSink<Left: UpdatableValueType, Right: UpdatableValueType>: UniqueOwnedSink
+where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.Value> {
+    typealias Owner = CompositeUpdatable<Left, Right>
+
+    unowned let owner: Owner
+
+    func receive(_ update: ValueUpdate<Left.Value>) {
+        owner.applyLeftUpdate(update)
+    }
+}
+
+private struct RightSink<Left: UpdatableValueType, Right: UpdatableValueType>: UniqueOwnedSink
+where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.Value> {
+    typealias Owner = CompositeUpdatable<Left, Right>
+
+    unowned let owner: Owner
+
+    func receive(_ update: ValueUpdate<Right.Value>) {
+        owner.applyRightUpdate(update)
+    }
+}
+
+
 /// An AnyUpdatableValue that is a composite of two other updatables.
 private final class CompositeUpdatable<Left: UpdatableValueType, Right: UpdatableValueType>: _BaseUpdatableValue<(Left.Value, Right.Value)>
 where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.Value> {
@@ -72,18 +95,18 @@ where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.
     override func activate() {
         precondition(latest == nil)
         latest = (left.value, right.value)
-        left.add(StrongMethodSink(owner: self, identifier: 1, method: CompositeUpdatable.applyLeft))
-        right.add(StrongMethodSink(owner: self, identifier: 2, method: CompositeUpdatable.applyRight))
+        left.add(LeftSink(owner: self))
+        right.add(RightSink(owner: self))
     }
 
     override func deactivate() {
         precondition(latest != nil)
-        left.remove(StrongMethodSink(owner: self, identifier: 1, method: CompositeUpdatable.applyLeft))
-        right.remove(StrongMethodSink(owner: self, identifier: 2, method: CompositeUpdatable.applyRight))
+        left.remove(LeftSink(owner: self))
+        right.remove(RightSink(owner: self))
         latest = nil
     }
 
-    private func applyLeft(_ update: ValueUpdate<Left.Value>) {
+    func applyLeftUpdate(_ update: ValueUpdate<Left.Value>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
@@ -96,7 +119,7 @@ where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.
         }
     }
 
-    private func applyRight(_ update: ValueUpdate<Right.Value>) {
+    func applyRightUpdate(_ update: ValueUpdate<Right.Value>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

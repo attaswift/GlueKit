@@ -259,10 +259,10 @@
 		BB9D73F61DBE03EB00E20D67 /* DispatchSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73F31DBE03EB00E20D67 /* DispatchSource.swift */; };
 		BB9D73F71DBE03EB00E20D67 /* DispatchSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73F31DBE03EB00E20D67 /* DispatchSource.swift */; };
 		BB9D73F81DBE041A00E20D67 /* TimerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B321C8FCC820050DDA9 /* TimerSource.swift */; };
-		BB9D73FE1DBE061D00E20D67 /* MethodSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73FD1DBE061D00E20D67 /* MethodSink.swift */; };
-		BB9D73FF1DBE061D00E20D67 /* MethodSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73FD1DBE061D00E20D67 /* MethodSink.swift */; };
-		BB9D74001DBE061D00E20D67 /* MethodSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73FD1DBE061D00E20D67 /* MethodSink.swift */; };
-		BB9D74011DBE061D00E20D67 /* MethodSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73FD1DBE061D00E20D67 /* MethodSink.swift */; };
+		BB9D73FE1DBE061D00E20D67 /* OwnedSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73FD1DBE061D00E20D67 /* OwnedSink.swift */; };
+		BB9D73FF1DBE061D00E20D67 /* OwnedSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73FD1DBE061D00E20D67 /* OwnedSink.swift */; };
+		BB9D74001DBE061D00E20D67 /* OwnedSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73FD1DBE061D00E20D67 /* OwnedSink.swift */; };
+		BB9D74011DBE061D00E20D67 /* OwnedSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73FD1DBE061D00E20D67 /* OwnedSink.swift */; };
 		BB9D741E1DBE644200E20D67 /* NSNotificationCenter Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B271C8FCC810050DDA9 /* NSNotificationCenter Support.swift */; };
 		BB9D74201DBE654600E20D67 /* NSObject extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */; };
 		BB9D74241DBE7B3700E20D67 /* ObservableSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8990091D5DF88C0097F350 /* ObservableSet.swift */; };
@@ -593,7 +593,7 @@
 		BB9D73E51DBB727300E20D67 /* ChangesSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChangesSource.swift; sourceTree = "<group>"; };
 		BB9D73EE1DBDFEE400E20D67 /* TwoWayBinding.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TwoWayBinding.swift; sourceTree = "<group>"; };
 		BB9D73F31DBE03EB00E20D67 /* DispatchSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DispatchSource.swift; sourceTree = "<group>"; };
-		BB9D73FD1DBE061D00E20D67 /* MethodSink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MethodSink.swift; sourceTree = "<group>"; };
+		BB9D73FD1DBE061D00E20D67 /* OwnedSink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OwnedSink.swift; sourceTree = "<group>"; };
 		BBA033561DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetFilteringOnObservableBool.swift; sourceTree = "<group>"; };
 		BBA0335B1DA7276200E83AC1 /* SetSortingByComparator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetSortingByComparator.swift; sourceTree = "<group>"; };
 		BBA033601DA7278C00E83AC1 /* SetSortingByMappingToObservableComparable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetSortingByMappingToObservableComparable.swift; sourceTree = "<group>"; };
@@ -936,7 +936,7 @@
 			children = (
 				BB9D73CE1DBB38F900E20D67 /* Sink.swift */,
 				BB6CE3B31DC4C21C00295C55 /* TransformedSink.swift */,
-				BB9D73FD1DBE061D00E20D67 /* MethodSink.swift */,
+				BB9D73FD1DBE061D00E20D67 /* OwnedSink.swift */,
 				BBB55B301C8FCC810050DDA9 /* Source.swift */,
 				BB9D73C81DBB2EB400E20D67 /* Connect.swift */,
 				BBB55B221C8FCC810050DDA9 /* Connector.swift */,
@@ -1529,7 +1529,7 @@
 				BB67E5521C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */,
 				BB69A8041D6B344C001D2821 /* UpdatableArray.swift in Sources */,
 				BBB4F2521C9594A9002532CC /* UIDevice Extensions.swift in Sources */,
-				BB9D73FE1DBE061D00E20D67 /* MethodSink.swift in Sources */,
+				BB9D73FE1DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BBCD9E191DAAC50900E85FB9 /* ValueMappingForSourceField.swift in Sources */,
 				BB9D74321DBE7B3B00E20D67 /* SetSortingByMappingToComparable.swift in Sources */,
 			);
@@ -1657,7 +1657,7 @@
 				BB6CE3C41DC4CD8300295C55 /* CompositeObservable.swift in Sources */,
 				BB6CE3C81DC4D2D400295C55 /* ValueMappingForValueField.swift in Sources */,
 				BB9D73F51DBE03EB00E20D67 /* DispatchSource.swift in Sources */,
-				BB9D73FF1DBE061D00E20D67 /* MethodSink.swift in Sources */,
+				BB9D73FF1DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BB015F451DC52ADD00C8C05A /* ArrayFolding.swift in Sources */,
 				BB9D73F81DBE041A00E20D67 /* TimerSource.swift in Sources */,
 				BB9D73D61DBB519500E20D67 /* TransformedSource.swift in Sources */,
@@ -1753,7 +1753,7 @@
 				BBB55B841C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BB7E04D41DA7240C00BE3051 /* SetMappingForSequence.swift in Sources */,
 				BB69A81F1D6B71FA001D2821 /* SetChange.swift in Sources */,
-				BB9D74001DBE061D00E20D67 /* MethodSink.swift in Sources */,
+				BB9D74001DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BB69A8061D6B344D001D2821 /* UpdatableArray.swift in Sources */,
 				BB9D73F61DBE03EB00E20D67 /* DispatchSource.swift in Sources */,
 				BB9D73E81DBB727300E20D67 /* ChangesSource.swift in Sources */,
@@ -1840,7 +1840,7 @@
 				BB69A7F61D6B1D7C001D2821 /* Change.swift in Sources */,
 				BBCD9E211DAAC7E600E85FB9 /* ValueMappingForSetField.swift in Sources */,
 				BB69A80B1D6B442D001D2821 /* ArrayVariable.swift in Sources */,
-				BB9D74011DBE061D00E20D67 /* MethodSink.swift in Sources */,
+				BB9D74011DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BB69A8311D6B7E37001D2821 /* SetSortingByMappingToComparable.swift in Sources */,
 				BBEA2A3D1DBFE37B00CCCB08 /* BracketingSource.swift in Sources */,
 				BBB55B611C8FCC820050DDA9 /* ObservableValue.swift in Sources */,

@@ -69,8 +69,31 @@ extension ObservableValueType where Change == ValueChange<Value> {
     }
 }
 
+private struct LeftSink<Left: ObservableValueType, Right: ObservableValueType, Value>: UniqueOwnedSink
+where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.Value> {
+    typealias Owner = CompositeObservable<Left, Right, Value>
+
+    unowned let owner: Owner
+
+    func receive(_ update: ValueUpdate<Left.Value>) {
+        owner.applyLeftUpdate(update)
+    }
+}
+
+private struct RightSink<Left: ObservableValueType, Right: ObservableValueType, Value>: UniqueOwnedSink
+where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.Value> {
+    typealias Owner = CompositeObservable<Left, Right, Value>
+
+    unowned let owner: Owner
+
+    func receive(_ update: ValueUpdate<Right.Value>) {
+        owner.applyRightUpdate(update)
+    }
+}
+
 /// An AnyObservableValue that is calculated from two other observables.
-private final class CompositeObservable<Left: ObservableValueType, Right: ObservableValueType, Value>: _BaseObservableValue<Value> where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.Value> {
+private final class CompositeObservable<Left: ObservableValueType, Right: ObservableValueType, Value>: _BaseObservableValue<Value>
+where Left.Change == ValueChange<Left.Value>, Right.Change == ValueChange<Right.Value> {
     typealias Change = ValueChange<Value>
 
     private let left: Left
@@ -104,19 +127,19 @@ private final class CompositeObservable<Left: ObservableValueType, Right: Observ
         _rightValue = v2
         _value = combinator(v1, v2)
 
-        left.add(StrongMethodSink(owner: self, identifier: 1, method: CompositeObservable.applyLeft))
-        right.add(StrongMethodSink(owner: self, identifier: 2, method: CompositeObservable.applyRight))
+        left.add(LeftSink(owner: self))
+        right.add(RightSink(owner: self))
     }
 
     internal override func deactivate() {
-        left.remove(StrongMethodSink(owner: self, identifier: 1, method: CompositeObservable.applyLeft))
-        right.remove(StrongMethodSink(owner: self, identifier: 2, method: CompositeObservable.applyRight))
+        left.remove(LeftSink(owner: self))
+        right.remove(RightSink(owner: self))
         _value = nil
         _leftValue = nil
         _rightValue = nil
     }
 
-    private func applyLeft(_ update: ValueUpdate<Left.Value>) {
+    func applyLeftUpdate(_ update: ValueUpdate<Left.Value>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
@@ -131,7 +154,7 @@ private final class CompositeObservable<Left: ObservableValueType, Right: Observ
         }
     }
 
-    private func applyRight(_ update: ValueUpdate<Right.Value>) {
+    func applyRightUpdate(_ update: ValueUpdate<Right.Value>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

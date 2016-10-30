@@ -46,10 +46,6 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: _BaseObser
         _content.remove(BufferedSink(owner: self))
     }
 
-    private var sink: AnySink<ArrayUpdate<Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: BufferedObservableArray<Content>.applyUpdate).anySink
-    }
-
     func applyUpdate(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
