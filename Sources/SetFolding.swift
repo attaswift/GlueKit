@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType {
+extension ObservableSetType where Change == SetChange<Element> {
     /// Returns an observable whose value is always equal to `self.value.reduce(initial, add)`.
     ///
     /// - Parameter initial: The accumulation starts with this initial value.
@@ -23,14 +23,26 @@ extension ObservableSetType {
     }
 }
 
-extension ObservableSetType where Element: IntegerArithmetic & ExpressibleByIntegerLiteral {
+extension ObservableSetType where Element: IntegerArithmetic & ExpressibleByIntegerLiteral, Change == SetChange<Element> {
     /// Return the (observable) sum of the elements contained in this set.
     public func sum() -> AnyObservableValue<Element> {
         return reduce(0, add: +, remove: -)
     }
 }
 
-private class SetFoldingByTwoWayFunction<Parent: ObservableSetType, Value>: _BaseObservableValue<Value> {
+private struct FoldingSink<Parent: ObservableSetType, Value>: UniqueOwnedSink
+where Parent.Change == SetChange<Parent.Element> {
+    typealias Owner = SetFoldingByTwoWayFunction<Parent, Value>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: SetUpdate<Parent.Element>) {
+        owner.applyUpdate(update)
+    }
+}
+
+private class SetFoldingByTwoWayFunction<Parent: ObservableSetType, Value>: _BaseObservableValue<Value>
+where Parent.Change == SetChange<Parent.Element> {
     let parent: Parent
     let add: (Value, Parent.Element) -> Value
     let remove: (Value, Parent.Element) -> Value
@@ -46,22 +58,18 @@ private class SetFoldingByTwoWayFunction<Parent: ObservableSetType, Value>: _Bas
 
         super.init()
 
-        parent.updates.add(sink)
+        parent.add(FoldingSink(owner: self))
     }
 
     deinit {
-        parent.updates.remove(sink)
+        parent.remove(FoldingSink(owner: self))
     }
 
     override var value: Value {
         return _value
     }
 
-    private var sink: AnySink<SetUpdate<Parent.Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: SetFoldingByTwoWayFunction.apply).anySink
-    }
-
-    private func apply(_ update: SetUpdate<Parent.Element>) {
+    func applyUpdate(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()

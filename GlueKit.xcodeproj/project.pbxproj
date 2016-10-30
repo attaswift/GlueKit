@@ -47,6 +47,8 @@
 		BB015F561DC67C3F00C8C05A /* SetReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D92951D647E83003BEDBF /* SetReference.swift */; };
 		BB015F571DC67DA900C8C05A /* SetFilteringOnObservableBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA033561DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift */; };
 		BB015F581DC67F0500C8C05A /* SetFilteringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AEE1DA693F700BC4B58 /* SetFilteringTests.swift */; };
+		BB015F591DC684DC00C8C05A /* SetFoldingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E061DAA918400E85FB9 /* SetFoldingTests.swift */; };
+		BB015F5A1DC684E200C8C05A /* SetFolding.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E011DAA910500E85FB9 /* SetFolding.swift */; };
 		BB1657E71D71D65900094BAC /* ArrayChangeSeparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1657E61D71D65900094BAC /* ArrayChangeSeparation.swift */; };
 		BB1657E91D71D65900094BAC /* ArrayChangeSeparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1657E61D71D65900094BAC /* ArrayChangeSeparation.swift */; };
 		BB1657EA1D71D65900094BAC /* ArrayChangeSeparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1657E61D71D65900094BAC /* ArrayChangeSeparation.swift */; };
@@ -1658,6 +1660,7 @@
 				BB015F4F1DC677A900C8C05A /* SetMappingForValueField.swift in Sources */,
 				BB6CE3BE1DC4CD6B00295C55 /* ObservableValue.swift in Sources */,
 				BB015F341DC4FDCE00C8C05A /* SetMappingBase.swift in Sources */,
+				BB015F5A1DC684E200C8C05A /* SetFolding.swift in Sources */,
 				BBEA2A3B1DBFE37B00CCCB08 /* BracketingSource.swift in Sources */,
 				BBB55B4F1C8FCC820050DDA9 /* Locks.swift in Sources */,
 				BBB55B7B1C8FCC820050DDA9 /* Source.swift in Sources */,
@@ -1700,6 +1703,7 @@
 				BBEA2A381DBFC7B800CCCB08 /* MergedSourceTests.swift in Sources */,
 				BB170F291DC106DE0000443E /* TestChange.swift in Sources */,
 				BB6CE3D81DC4F18B00295C55 /* ArrayChangeSeparationTests.swift in Sources */,
+				BB015F591DC684DC00C8C05A /* SetFoldingTests.swift in Sources */,
 				BB015F3F1DC51D8300C8C05A /* ArrayVariableTests.swift in Sources */,
 				BBE9AAD91DC0FC17000B3DD0 /* BracketingSourceTests.swift in Sources */,
 				BB170F351DC110BD0000443E /* TestUpdatable.swift in Sources */,
