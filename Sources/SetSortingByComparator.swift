@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType {
+extension ObservableSetType where Change == SetChange<Element> {
     public func sorted(by areInIncreasingOrder: @escaping (Element, Element) -> Bool) -> AnyObservableArray<Element> {
         let comparator = Comparator(areInIncreasingOrder)
         return self

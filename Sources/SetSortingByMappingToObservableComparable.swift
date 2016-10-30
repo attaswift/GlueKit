@@ -8,25 +8,55 @@
 
 import BTree
 
-extension ObservableSetType where Element: AnyObject {
+extension ObservableSetType where Element: AnyObject, Change == SetChange<Element> {
     /// Given a transformation into an observable of a comparable type, return an observable array
     /// containing transformed versions of elements in this set, in increasing order.
-    public func sorted<Field: ObservableValueType>(by transform: @escaping (Element) -> Field) -> AnyObservableArray<Field.Value> where Field.Value: Comparable {
+    public func sorted<Field: ObservableValueType>(by transform: @escaping (Element) -> Field) -> AnyObservableArray<Field.Value> where Field.Value: Comparable, Field.Change == ValueChange<Field.Value> {
         return SetSortingByMappingToObservableComparable(parent: self, transform: transform).anyObservableArray
     }
 }
 
+private struct ParentSink<Parent: ObservableSetType, Field: ObservableValueType>: UniqueOwnedSink
+where Parent.Element: AnyObject, Field.Value: Comparable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+    typealias Owner = SetSortingByMappingToObservableComparable<Parent, Field>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: SetUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private struct FieldSink<Parent: ObservableSetType, Field: ObservableValueType>: SinkType
+where Parent.Element: AnyObject, Field.Value: Comparable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+    typealias Owner = SetSortingByMappingToObservableComparable<Parent, Field>
+
+    unowned(unsafe) let owner: Owner
+    let element: Parent.Element
+
+    func receive(_ update: ValueUpdate<Field.Value>) {
+        owner.applyFieldUpdate(update, from: element)
+    }
+
+    var hashValue: Int {
+        return Int.baseHash.mixed(with: ObjectIdentifier(owner)).mixed(with: element)
+    }
+
+    static func ==(left: FieldSink, right: FieldSink) -> Bool {
+        return left.owner === right.owner && left.element == right.element
+    }
+}
+
 private class SetSortingByMappingToObservableComparable<Parent: ObservableSetType, Field: ObservableValueType>: _BaseObservableArray<Field.Value>
-where Parent.Element: AnyObject, Field.Value: Comparable {
+where Parent.Element: AnyObject, Field.Value: Comparable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
     typealias Element = Field.Value
     typealias Change = ArrayChange<Element>
-    typealias FieldSink = AnySink<ValueUpdate<Element>>
 
     private let parent: Parent
     private let transform: (Parent.Element) -> Field
 
     private var contents: Map<Element, Int> = [:]
-    private var fields: Dictionary<FieldSink, Field> = [:]
+    private var fields: Dictionary<FieldSink<Parent, Field>, Field> = [:]
 
     init(parent: Parent, transform: @escaping (Parent.Element) -> Field) {
         self.parent = parent
@@ -36,28 +66,29 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
         for element in parent.value {
             _ = self._insert(newElement(element))
         }
-        parent.updates.add(parentSink)
+        parent.add(ParentSink(owner: self))
     }
 
     deinit {
-        parent.updates.remove(parentSink)
+        parent.remove(ParentSink(owner: self))
         for (sink, field) in fields {
-            field.updates.remove(sink)
+            field.remove(sink)
         }
     }
 
     private func newElement(_ element: Parent.Element) -> Element {
         let field = transform(element)
-        let sink = fieldSink(for: element)
+        let sink = FieldSink(owner: self, element: element)
         let old = fields.updateValue(field, forKey: sink)
+        field.add(sink)
         precondition(old == nil)
         return field.value
     }
 
     private func removeElement(_ element: Parent.Element) {
-        let sink = fieldSink(for: element)
+        let sink = FieldSink(owner: self, element: element)
         let field = fields.removeValue(forKey: sink)!
-        field.updates.remove(sink)
+        field.remove(sink)
     }
 
     private func _insert(_ key: Element) -> Bool {
@@ -86,17 +117,7 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
         return .remove(key, at: oldOffset)
     }
 
-    private var parentSink: AnySink<SetUpdate<Parent.Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: SetSortingByMappingToObservableComparable.applyParentUpdate).anySink
-    }
-
-    private func fieldSink(for element: Parent.Element) -> FieldSink {
-        return StrongMethodSinkWithContext(owner: self,
-                                     method: SetSortingByMappingToObservableComparable.applyFieldUpdate,
-                                     context: element).anySink
-    }
-
-    private func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
+    func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
@@ -123,7 +144,7 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
         }
     }
 
-    private func applyFieldUpdate(_ update: ValueUpdate<Element>, for element: Parent.Element) {
+    func applyFieldUpdate(_ update: ValueUpdate<Element>, from element: Parent.Element) {
         switch update {
         case .beginTransaction:
             beginTransaction()

@@ -8,7 +8,7 @@
 
 import BTree
 
-extension ObservableSetType {
+extension ObservableSetType where Change == SetChange<Element> {
     /// Given a transformation into a comparable type, return an observable array containing transformed
     /// versions of elements in this set, in increasing order.
     public func sorted<Result: Comparable>(by transform: @escaping (Element) -> Result) -> AnyObservableArray<Result> {
@@ -16,14 +16,26 @@ extension ObservableSetType {
     }
 }
 
-extension ObservableSetType where Element: Comparable {
+extension ObservableSetType where Element: Comparable, Change == SetChange<Element> {
     /// Return an observable array containing the members of this set, in increasing order.
     public func sorted() -> AnyObservableArray<Element> {
         return self.sorted { $0 }
     }
 }
 
-private final class SetSortingByMappingToComparable<Parent: ObservableSetType, Element: Comparable>: _BaseObservableArray<Element> {
+private struct SortingSink<Parent: ObservableSetType, Element: Comparable>: UniqueOwnedSink
+where Parent.Change == SetChange<Parent.Element> {
+    typealias Owner = SetSortingByMappingToComparable<Parent, Element>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: SetUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private final class SetSortingByMappingToComparable<Parent: ObservableSetType, Element: Comparable>: _BaseObservableArray<Element>
+where Parent.Change == SetChange<Parent.Element> {
     typealias Change = ArrayChange<Element>
 
     private let parent: Parent
@@ -40,18 +52,14 @@ private final class SetSortingByMappingToComparable<Parent: ObservableSetType, E
             let transformed = transform(element)
             contents[transformed] = (contents[transformed] ?? 0) + 1
         }
-        parent.updates.add(sink)
+        parent.add(SortingSink(owner: self))
     }
 
     deinit {
-        parent.updates.remove(sink)
+        parent.remove(SortingSink(owner: self))
     }
 
-    private var sink: AnySink<SetUpdate<Parent.Element>> {
-        return StrongMethodSink(owner: self, identifier: 0, method: SetSortingByMappingToComparable.apply).anySink
-    }
-
-    private func apply(_ update: SetUpdate<Parent.Element>) {
+    func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
