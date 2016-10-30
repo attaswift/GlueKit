@@ -22,7 +22,8 @@ private struct ParentSink<Parent: ObservableArrayType>: UniqueOwnedSink where Pa
     }
 }
 
-private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _BaseObservableArray<Parent.Element> where Parent.Change == ArrayChange<Parent.Element> {
+private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _BaseObservableArray<Parent.Element>
+where Parent.Change == ArrayChange<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = ArrayChange<Element>
 

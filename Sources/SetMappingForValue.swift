@@ -21,7 +21,7 @@ extension ObservableSetType where Change == SetChange<Element> {
 private struct InjectiveSink<Parent: ObservableSetType, Element: Hashable>: UniqueOwnedSink where Parent.Change == SetChange<Parent.Element> {
     typealias Owner = InjectiveSetMappingForValue<Parent, Element>
 
-    unowned let owner: Owner
+    unowned(unsafe) let owner: Owner
 
     func receive(_ update: SetUpdate<Parent.Element>) {
         owner.apply(update)

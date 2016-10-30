@@ -7,7 +7,8 @@
 //
 
 extension ObservableArrayType where Change == ArrayChange<Element> {
-    public func filter<Test: ObservableValueType>(_ isIncluded: @escaping (Element) -> Test) -> AnyObservableArray<Element> where Test.Value == Bool, Test.Change == ValueChange<Test.Value> {
+    public func filter<Test: ObservableValueType>(_ isIncluded: @escaping (Element) -> Test) -> AnyObservableArray<Element>
+    where Test.Value == Bool, Test.Change == ValueChange<Test.Value> {
         return ArrayFilteringOnObservableBool<Self, Test>(parent: self, isIncluded: isIncluded).anyObservableArray
     }
 
@@ -41,7 +42,8 @@ where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Cha
     }
 }
 
-private final class FieldSink<Parent: ObservableArrayType, Test: ObservableValueType>: SinkType, RefListElement where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
+private final class FieldSink<Parent: ObservableArrayType, Test: ObservableValueType>: SinkType, RefListElement
+where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
     typealias Owner = ArrayFilteringOnObservableBool<Parent, Test>
 
     unowned let owner: Owner

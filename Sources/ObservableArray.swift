@@ -23,7 +23,6 @@ public typealias ArrayUpdateSource<Element> = AnySource<Update<ArrayChange<Eleme
 /// - SeeAlso: ObservableValueType, AnyObservableArray, UpdatableArrayType, ArrayVariable
 public protocol ObservableArrayType: ObservableType, CustomReflectable {
     associatedtype Element
-    typealias Base = Array<Element>
 
     // Required methods
     var count: Int { get }
@@ -31,11 +30,11 @@ public protocol ObservableArrayType: ObservableType, CustomReflectable {
 
     // Extras
     var isBuffered: Bool { get }
-    var value: Base { get }
+    var value: [Element] { get }
     subscript(index: Int) -> Element { get }
     var observableCount: AnyObservableValue<Int> { get }
 
-    var anyObservableValue: AnyObservableValue<Base> { get }
+    var anyObservableValue: AnyObservableValue<[Element]> { get }
     var anyObservableArray: AnyObservableArray<Element> { get }
 }
 
@@ -65,7 +64,7 @@ extension ObservableArrayType where Change == ArrayChange<Element> {
         }.buffered()
     }
 
-    public var anyObservableValue: AnyObservableValue<Base> {
+    public var anyObservableValue: AnyObservableValue<[Element]> {
         return AnyObservableValue(getter: { self.value }, updates: self.valueUpdates)
     }
 

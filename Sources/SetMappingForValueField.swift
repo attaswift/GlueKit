@@ -6,17 +6,40 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType {
+extension ObservableSetType where Change == SetChange<Element> {
     /// Given an observable set and a closure that extracts an observable value from each element,
     /// return an observable set that contains the extracted field values contained in this set.
     ///
     /// - Parameter key: A mapping closure, extracting an observable value from an element of this set.
-    public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> AnyObservableSet<Field.Value> where Field.Value: Hashable {
+    public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> AnyObservableSet<Field.Value> where Field.Value: Hashable, Field.Change == ValueChange<Field.Value> {
         return SetMappingForValueField<Self, Field>(parent: self, key: key).anyObservableSet
     }
 }
 
-class SetMappingForValueField<Parent: ObservableSetType, Field: ObservableValueType>: SetMappingBase<Field.Value> where Field.Value: Hashable {
+private struct ParentSink<Parent: ObservableSetType, Field: ObservableValueType>: UniqueOwnedSink
+where Field.Value: Hashable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+    typealias Owner = SetMappingForValueField<Parent, Field>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: SetUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private struct FieldSink<Parent: ObservableSetType, Field: ObservableValueType>: UniqueOwnedSink
+where Field.Value: Hashable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+    typealias Owner = SetMappingForValueField<Parent, Field>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ValueUpdate<Field.Value>) {
+        owner.applyFieldUpdate(update)
+    }
+}
+
+class SetMappingForValueField<Parent: ObservableSetType, Field: ObservableValueType>: SetMappingBase<Field.Value>
+where Field.Value: Hashable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
     let parent: Parent
     let key: (Parent.Element) -> Field
 
@@ -24,32 +47,24 @@ class SetMappingForValueField<Parent: ObservableSetType, Field: ObservableValueT
         self.parent = parent
         self.key = key
         super.init()
-        parent.updates.add(parentSink)
+        parent.add(ParentSink(owner: self))
 
         for e in parent.value {
             let field = key(e)
-            field.updates.add(fieldSink)
+            field.add(FieldSink(owner: self))
             _ = self.insert(field.value)
         }
     }
 
     deinit {
-        parent.updates.remove(parentSink)
+        parent.remove(ParentSink(owner: self))
         for e in parent.value {
             let field = key(e)
-            field.updates.remove(fieldSink)
+            field.remove(FieldSink(owner: self))
         }
     }
 
-    private var parentSink: AnySink<SetUpdate<Parent.Element>> {
-        return StrongMethodSink(owner: self, identifier: 1, method: SetMappingForValueField.applyParentUpdate).anySink
-    }
-
-    private var fieldSink: AnySink<ValueUpdate<Field.Value>> {
-        return StrongMethodSink(owner: self, identifier: 2, method: SetMappingForValueField.applyFieldUpdate).anySink
-    }
-
-    private func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
+    func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
@@ -58,7 +73,7 @@ class SetMappingForValueField<Parent: ObservableSetType, Field: ObservableValueT
             for e in change.removed {
                 let field = key(e)
                 let value = field.value
-                field.updates.remove(fieldSink)
+                field.remove(FieldSink(owner: self))
                 if self.remove(value) {
                     transformedChange.remove(value)
                 }
@@ -66,7 +81,7 @@ class SetMappingForValueField<Parent: ObservableSetType, Field: ObservableValueT
             for e in change.inserted {
                 let field = key(e)
                 let value = field.value
-                field.updates.add(fieldSink)
+                field.add(FieldSink(owner: self))
                 if self.insert(value) {
                     transformedChange.insert(value)
                 }
@@ -79,7 +94,7 @@ class SetMappingForValueField<Parent: ObservableSetType, Field: ObservableValueT
         }
     }
 
-    private func applyFieldUpdate(_ update: ValueUpdate<Field.Value>) {
+    func applyFieldUpdate(_ update: ValueUpdate<Field.Value>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
