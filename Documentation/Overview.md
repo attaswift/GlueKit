@@ -1,4 +1,15 @@
+
 # Overview of GlueKit
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Sources, Sinks and Connections](#sources-sinks-and-connections)
+- [Signals](#signals)
+- [Observables, Updatables and Variable](#observables-updatables-and-variable)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Sources, Sinks and Connections
 

@@ -450,6 +450,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BB015F4E1DC624FB00C8C05A /* Language Enhancements.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Language Enhancements.md"; sourceTree = "<group>"; };
 		BB1657E61D71D65900094BAC /* ArrayChangeSeparation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayChangeSeparation.swift; sourceTree = "<group>"; };
 		BB1E4D691D61EA5200F1831F /* SetSortingByMappingToComparable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetSortingByMappingToComparable.swift; sourceTree = "<group>"; };
 		BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIBarButtonItem Extensions.swift"; sourceTree = "<group>"; };
@@ -920,6 +921,7 @@
 			isa = PBXGroup;
 			children = (
 				BBB55BDC1C8FCFAD0050DDA9 /* Overview.md */,
+				BB015F4E1DC624FB00C8C05A /* Language Enhancements.md */,
 			);
 			path = Documentation;
 			sourceTree = "<group>";
