@@ -22,7 +22,7 @@ protocol SourceType {
 }
 ```
 
-It is not easy to work with associated types, so GlueKit generally uses the struct `Source<Value>` to represent sources. `Source<Value>` is a type-lifted wrapper around some `SourceType` for the same type of value.
+It is not easy to work with associated types, so GlueKit generally uses the struct `Source<Value>` to represent sources. `Source<Value>` is a type-erased wrapper around some `SourceType` for the same type of value.
 
 For example, you can create a source for the `NSCalendarDayChangedNotification` notification
 and run some code whenever midnight passes:

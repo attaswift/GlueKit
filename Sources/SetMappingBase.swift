@@ -6,24 +6,13 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 /// An observable set where the value is internally represented as a dictionary of element multiplicities.
 /// This class implements the full `ObservableSetType` protocol, and serves as the base class for several transformations
 /// on observable sets.
-class SetMappingBase<Element: Hashable>: _ObservableSetBase<Element> {
+class SetMappingBase<Element: Hashable>: _BaseObservableSet<Element> {
     typealias Change = SetChange<Element>
 
     private(set) var contents: [Element: Int] = [:]
-    private(set) var state = TransactionState<Change>()
-
-    final func begin() {
-        state.begin()
-    }
-
-    final func end() {
-        state.end()
-    }
 
     /// Insert `newMember` into `state`, and return true iff it did not previously contain it.
     final func insert(_ newMember: Element) -> Bool {
@@ -53,6 +42,7 @@ class SetMappingBase<Element: Hashable>: _ObservableSetBase<Element> {
     final override var count: Int { return contents.count }
     final override var value: Set<Element> { return Set(contents.keys) }
     final override func contains(_ member: Element) -> Bool { return contents[member] != nil }
+    
     final override func isSubset(of other: Set<Element>) -> Bool {
         guard other.count >= contents.count else { return false }
         for (key, _) in contents {
@@ -67,9 +57,5 @@ class SetMappingBase<Element: Hashable>: _ObservableSetBase<Element> {
             guard contents[element] != nil else { return false }
         }
         return true
-    }
-
-    final override var updates: SetUpdateSource<Element> {
-        return state.source(retaining: self)
     }
 }

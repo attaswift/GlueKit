@@ -13,8 +13,8 @@ import GlueKit
 
 class CombinedUpdatableTests: XCTestCase {
     func testCombine_Works() {
-        let a = TestUpdatable(0)
-        let b = TestUpdatable(1)
+        let a = TestUpdatableValue(0)
+        let b = TestUpdatableValue(1)
 
         let combined = a.combined(b).map({ (a, b) in 10 * a + b }, inverse: { ($0 / 10, $0 % 10) })
 
@@ -22,21 +22,22 @@ class CombinedUpdatableTests: XCTestCase {
         combined.value = 12
         XCTAssertEqual(combined.value, 12)
 
-        let mock = MockValueObserver(combined)
+        let changes = combined.changes
+        let mock = TransformedMockSink(changes, { "\($0)" })
 
-        mock.expecting(.init(from: 12, to: 32)) {
+        mock.expecting("12 -> 32") {
             a.value = 3
         }
 
         XCTAssertEqual(combined.value, 32)
 
-        mock.expecting(.init(from: 32, to: 34)) {
+        mock.expecting("32 -> 34") {
             b.value = 4
         }
 
         XCTAssertEqual(combined.value, 34)
 
-        mock.expecting(.init(from: 34, to: 56)) {
+        mock.expecting("34 -> 56") {
             combined.value = 56
         }
         XCTAssertEqual(combined.value, 56)
@@ -45,9 +46,9 @@ class CombinedUpdatableTests: XCTestCase {
     }
 
     func testCombine_WithNestedUpdates() {
-        let a = TestUpdatable(3)
-        let b = TestUpdatable(2)
-        let combined: Updatable<(Int, Int)> = a.combined(b)
+        let a = TestUpdatableValue(3)
+        let b = TestUpdatableValue(2)
+        let combined = a.combined(b)
 
         var r = ""
         let c = combined.values.connect { av, bv in
@@ -66,12 +67,12 @@ class CombinedUpdatableTests: XCTestCase {
     }
 
     func testCombineUpToSixUpdatables() {
-        let a = TestUpdatable(1)
-        let b = TestUpdatable(2)
-        let c = TestUpdatable(3)
-        let d = TestUpdatable(4)
-        let e = TestUpdatable(5)
-        let f = TestUpdatable(6)
+        let a = TestUpdatableValue(1)
+        let b = TestUpdatableValue(2)
+        let c = TestUpdatableValue(3)
+        let d = TestUpdatableValue(4)
+        let e = TestUpdatableValue(5)
+        let f = TestUpdatableValue(6)
 
         let t2 = a.combined(b)
         let t3 = a.combined(b, c)

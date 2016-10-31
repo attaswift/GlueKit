@@ -6,15 +6,11 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-public final class SetVariable<Element: Hashable>: _UpdatableSetBase<Element> {
+public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
     public typealias Value = Set<Element>
-    public typealias Base = Set<Element>
     public typealias Change = SetChange<Element>
 
-    fileprivate var _value: Base
-    fileprivate var _state = TransactionState<Change>()
+    fileprivate var _value: Value
 
     public override init() {
         _value = []
@@ -53,11 +49,11 @@ public final class SetVariable<Element: Hashable>: _UpdatableSetBase<Element> {
             return _value
         }
         set {
-            _state.begin()
+            beginTransaction()
             let v = _value
             _value = newValue
-            _state.send(SetChange(removed: v, inserted: newValue))
-            _state.end()
+            sendChange(SetChange(removed: v, inserted: newValue))
+            endTransaction()
         }
     }
 
@@ -73,57 +69,58 @@ public final class SetVariable<Element: Hashable>: _UpdatableSetBase<Element> {
         return _value.isSuperset(of: other)
     }
 
-    public override var updates: SetUpdateSource<Element> {
-        return _state.source(retaining: self)
-    }
-
-    public override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
-        return body()
-    }
-    
-    public override func apply(_ change: SetChange<Element>) {
-        guard !change.isEmpty else { return }
-        _state.begin()
+    override func rawApply(_ change: SetChange<Element>) {
         _value.apply(change)
-        _state.send(change)
-        _state.end()
     }
 
     public override func remove(_ member: Element) {
         guard _value.contains(member) else { return }
-        _state.begin()
-        _value.remove(member)
-        _state.sendIfConnected(SetChange(removed: [member], inserted: []))
-        _state.end()
+        if isConnected {
+            beginTransaction()
+            _value.remove(member)
+            sendChange(SetChange(removed: [member], inserted: []))
+            endTransaction()
+        }
+        else {
+            _value.remove(member)
+        }
     }
 
     public override func insert(_ member: Element) {
         guard !_value.contains(member) else { return }
-        _state.begin()
-        _value.insert(member)
-        _state.sendIfConnected(SetChange(removed: [], inserted: [member]))
-        _state.end()
+        if isConnected {
+            beginTransaction()
+            _value.insert(member)
+            sendChange(SetChange(removed: [], inserted: [member]))
+            endTransaction()
+        }
+        else {
+            _value.insert(member)
+        }
     }
 
     public override func removeAll() {
         guard !isEmpty else { return }
         let value = self._value
-        _state.begin()
-        _value.removeAll()
-        _state.sendIfConnected(SetChange(removed: value, inserted: []))
-        _state.end()
+        if isConnected {
+            beginTransaction()
+            _value.removeAll()
+            sendChange(SetChange(removed: value, inserted: []))
+            endTransaction()
+        }
+        else {
+            _value.removeAll()
+        }
     }
 
 
     public override func formUnion(_ other: Set<Element>) {
-        if _state.isConnected {
-            _state.begin()
+        if isConnected {
+            beginTransaction()
             let difference = other.subtracting(_value)
             _value.formUnion(difference)
-            _state.send(SetChange(removed: [], inserted: difference))
-            _state.end()
+            sendChange(SetChange(removed: [], inserted: difference))
+            endTransaction()
         }
         else {
             _value.formUnion(other)
@@ -131,12 +128,12 @@ public final class SetVariable<Element: Hashable>: _UpdatableSetBase<Element> {
     }
 
     public override func formIntersection(_ other: Set<Element>) {
-        if _state.isConnected {
-            _state.begin()
+        if isConnected {
+            beginTransaction()
             let difference = _value.subtracting(other)
             _value.subtract(difference)
-            _state.send(SetChange(removed: difference, inserted: []))
-            _state.end()
+            sendChange(SetChange(removed: difference, inserted: []))
+            endTransaction()
         }
         else {
             _value.formIntersection(other)
@@ -144,13 +141,13 @@ public final class SetVariable<Element: Hashable>: _UpdatableSetBase<Element> {
     }
 
     public override func formSymmetricDifference(_ other: Set<Element>) {
-        if _state.isConnected {
-            _state.begin()
+        if isConnected {
+            beginTransaction()
             let intersection = _value.intersection(other)
             let additions = other.subtracting(self.value)
             _value.formSymmetricDifference(other)
-            _state.send(SetChange(removed: intersection, inserted: additions))
-            _state.end()
+            sendChange(SetChange(removed: intersection, inserted: additions))
+            endTransaction()
         }
         else {
             _value.formSymmetricDifference(other)
@@ -158,12 +155,12 @@ public final class SetVariable<Element: Hashable>: _UpdatableSetBase<Element> {
     }
 
     public override func subtract(_ other: Set<Element>) {
-        if _state.isConnected {
-            _state.begin()
+        if isConnected {
+            beginTransaction()
             let intersection = _value.intersection(other)
             _value.subtract(other)
-            _state.send(SetChange(removed: intersection, inserted: []))
-            _state.end()
+            sendChange(SetChange(removed: intersection, inserted: []))
+            endTransaction()
         }
         else {
             _value.subtract(other)
@@ -179,26 +176,17 @@ extension SetVariable: ExpressibleByArrayLiteral {
 
 extension SetVariable {
     public func update(with member: Element) -> Element? {
-        _state.begin()
+        beginTransaction()
         let old = _value.update(with: member)
-        if let old = old {
-            _state.sendIfConnected(SetChange(removed: [old], inserted: [member]))
+        if isConnected {
+            if let old = old {
+                sendChange(SetChange(removed: [old], inserted: [member]))
+            }
+            else {
+                sendChange(SetChange(removed: [], inserted: [member]))
+            }
         }
-        else {
-            _state.sendIfConnected(SetChange(removed: [], inserted: [member]))
-        }
-        _state.end()
+        endTransaction()
         return old
-    }
-}
-
-extension UpdatableSetType {
-    public func modify(_ block: (SetVariable<Element>)->Void) {
-        let set = SetVariable<Self.Element>(self.value)
-        var change = SetChange<Self.Element>()
-        let connection = set.changes.connect { c in change.merge(with: c) }
-        block(set)
-        connection.disconnect()
-        self.apply(change)
     }
 }

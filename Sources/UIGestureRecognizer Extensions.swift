@@ -8,35 +8,40 @@
 
 import UIKit
 
-private var associatedObjectKey: UInt8 = 0
-
-extension UIGestureRecognizer: SourceType {
-    public class func create() -> Self {
-        let target = GestureRecognizerTarget()
-        let result = self.init(target: target, action: #selector(GestureRecognizerTarget.gestureRecognizerDidFire))
-        objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
-        return result
-    }
-
-    public func connect(_ sink: Sink<Void>) -> Connection {
-        return recognizedSource.connect(sink)
-    }
-
-    public var recognizedSource: Source<Void> {
-        if let target = objc_getAssociatedObject(self, &associatedObjectKey) as? GestureRecognizerTarget {
-            return target.signal.source
-        }
-        let target = GestureRecognizerTarget()
-        self.addTarget(target, action: #selector(GestureRecognizerTarget.gestureRecognizerDidFire))
-        objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
-        return target.signal.source
+extension UIGestureRecognizer {
+    public var observableState: AnyObservableValue<UIGestureRecognizerState> {
+        return ObservableGestureRecognizerState(self).anyObservableValue
     }
 }
 
-private class GestureRecognizerTarget: NSObject {
-    var signal = LazySignal<Void>()
+private class ObservableGestureRecognizerState: _BaseObservableValue<UIGestureRecognizerState> {
+    private let _gestureRecognizer: UIGestureRecognizer
+    private var _value: UIGestureRecognizerState? = nil
+
+    init(_ gestureRecognizer: UIGestureRecognizer) {
+        _gestureRecognizer = gestureRecognizer
+    }
+
+    override var value: UIGestureRecognizerState {
+        return _gestureRecognizer.state
+    }
+
+    override func activate() {
+        _value = _gestureRecognizer.state
+        _gestureRecognizer.addTarget(self, action: #selector(ObservableGestureRecognizerState.gestureRecognizerDidFire))
+    }
+
+    override func deactivate() {
+        _gestureRecognizer.removeTarget(self, action: #selector(ObservableGestureRecognizerState.gestureRecognizerDidFire))
+        _value = nil
+    }
 
     @objc func gestureRecognizerDidFire() {
-        signal.send()
+        beginTransaction()
+        let old = _value!
+        _value = _gestureRecognizer.state
+        sendChange(ValueChange(from: old, to: _value!))
+        endTransaction()
     }
 }
+

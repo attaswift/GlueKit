@@ -33,7 +33,7 @@ extension DispatchQueue {
 
 private class AtomicToken {
     // TODO: This should use atomics, which are currently (Xcode 8 beta 5) unavailable in Swift
-    private let lock = NSLock()
+    private let lock = Lock()
     private var token: Int = 0
 
     @discardableResult
@@ -51,18 +51,26 @@ private class AtomicToken {
     }
 }
 
+public typealias TimerSource = _TimerSource<Void>
+
 /// A Source that is firing at customizable intervals. The time of the each firing is determined by a user-supplied closure.
 ///
 /// The timer interval should be relatively large (at least multiple seconds); this is not supposed to be a realtime timer.
 ///
 /// Note that this source will only schedule an actual timer while there are sinks connected to it.
-public final class TimerSource: SourceType, SignalDelegate {
-    public typealias SourceValue = Void
+public final class _TimerSource<Dummy>: SignalerSource<Void> {
 
     private let queue: DispatchQueue
     private let next: (Void) -> Date?
     private var token = AtomicToken()
-    private var signal = OwningSignal<Void>()
+
+    override func activate() {
+        start()
+    }
+
+    override func deactivate() {
+        stop()
+    }
 
     /// Set up a new TimerSource that is scheduled on a given queue at the times determined by the supplied block.
     /// @param queue The queue on which to schedule the timer. 
@@ -77,9 +85,6 @@ public final class TimerSource: SourceType, SignalDelegate {
         self.next = next
     }
 
-    public func connect(_ sink: Sink<Void>) -> Connection {
-        return self.signal.with(self).connect(sink)
-    }
 
     /// Stop the timer. The timer will not fire again until start() is called.
     public func stop() {
@@ -95,13 +100,6 @@ public final class TimerSource: SourceType, SignalDelegate {
         queue.async {
             self.scheduleNext(frozenToken)
         }
-    }
-
-    internal func start(_ signal: Signal<Void>) {
-        self.start()
-    }
-    internal func stop(_ signal: Signal<Void>) {
-        self.stop()
     }
 
     private func scheduleNext(_ frozenToken: Int) {
@@ -136,7 +134,7 @@ private struct PeriodicTimerData {
     }
 }
 
-public extension TimerSource {
+public extension _TimerSource {
     /// Creates a TimerSource that triggers periodically with a specific time interval.
     ///
     /// This source makes an effort to prevent timer drift by scheduling ticks at predetermined absolute time points,

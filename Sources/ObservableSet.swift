@@ -7,7 +7,7 @@
 //
 
 public typealias SetUpdate<Element: Hashable> = Update<SetChange<Element>>
-public typealias SetUpdateSource<Element: Hashable> = Source<SetUpdate<Element>>
+public typealias SetUpdateSource<Element: Hashable> = AnySource<Update<SetChange<Element>>>
 
 public protocol ObservableSetType: ObservableType {
     associatedtype Element: Hashable
@@ -20,13 +20,12 @@ public protocol ObservableSetType: ObservableType {
     func isSubset(of other: Set<Element>) -> Bool
     func isSuperset(of other: Set<Element>) -> Bool
 
-    var updates: SetUpdateSource<Element> { get }
-    var observable: Observable<Base> { get }
-    var observableCount: Observable<Int> { get }
-    var observableSet: ObservableSet<Element> { get }
+    var observableCount: AnyObservableValue<Int> { get }
+    var anyObservableValue: AnyObservableValue<Base> { get }
+    var anyObservableSet: AnyObservableSet<Element> { get }
 }
 
-extension ObservableSetType {
+extension ObservableSetType where Change == SetChange<Element> {
     public var isBuffered: Bool { return false }
     public var count: Int { return value.count }
     public func contains(_ member: Element) -> Bool { return value.contains(member) }
@@ -35,7 +34,7 @@ extension ObservableSetType {
 
     public var isEmpty: Bool { return count == 0 }
 
-    internal var valueUpdates: ValueUpdateSource<Set<Element>> {
+    internal var valueUpdates: AnySource<ValueUpdate<Set<Element>>> {
         var value = self.value
         return self.updates.map { event in
             event.map { change in
@@ -46,11 +45,7 @@ extension ObservableSetType {
         }.buffered()
     }
 
-    public var observable: Observable<Base> {
-        return Observable(getter: { self.value }, updates: { self.valueUpdates })
-    }
-
-    internal var countUpdates: ValueUpdateSource<Int> {
+    internal var countUpdates: AnySource<ValueUpdate<Int>> {
         var count = self.count
         return self.updates.map { update in
             update.map { change in
@@ -61,22 +56,26 @@ extension ObservableSetType {
         }.buffered()
     }
 
-    public var observableCount: Observable<Int> {
-        return Observable(getter: { self.count }, updates: { self.countUpdates })
+    public var observableCount: AnyObservableValue<Int> {
+        return AnyObservableValue(getter: { self.count }, updates: self.countUpdates)
     }
 
-    public var observableSet: ObservableSet<Element> {
-        return ObservableSet(box: ObservableSetBox(self))
+    public var anyObservableValue: AnyObservableValue<Base> {
+        return AnyObservableValue(getter: { self.value }, updates: self.valueUpdates)
+    }
+
+    public var anyObservableSet: AnyObservableSet<Element> {
+        return AnyObservableSet(box: ObservableSetBox(self))
     }
 }
 
-public struct ObservableSet<Element: Hashable>: ObservableSetType {
+public struct AnyObservableSet<Element: Hashable>: ObservableSetType {
     public typealias Base = Set<Element>
     public typealias Change = SetChange<Element>
 
-    let box: _ObservableSetBase<Element>
+    let box: _AbstractObservableSet<Element>
 
-    init(box: _ObservableSetBase<Element>) {
+    init(box: _AbstractObservableSet<Element>) {
         self.box = box
     }
 
@@ -87,24 +86,33 @@ public struct ObservableSet<Element: Hashable>: ObservableSetType {
     public func isSubset(of other: Set<Element>) -> Bool { return box.isSubset(of: other) }
     public func isSuperset(of other: Set<Element>) -> Bool { return box.isSuperset(of: other) }
 
-    public var updates: SetUpdateSource<Element> { return box.updates }
-    public var observable: Observable<Set<Element>> { return box.observable }
-    public var observableCount: Observable<Int> { return box.observableCount }
-
-    func holding(_ connection: Connection) -> ObservableSet<Element> { box.hold(connection); return self }
-}
-
-open class _ObservableSetBase<Element: Hashable>: ObservableSetType {
-    private var connections: [Connection] = []
-
-    deinit {
-        for connection in connections {
-            connection.disconnect()
-        }
+    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        box.add(sink)
     }
 
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return box.remove(sink)
+    }
+
+    public var observableCount: AnyObservableValue<Int> { return box.observableCount }
+    public var anyObservableValue: AnyObservableValue<Set<Element>> { return box.anyObservableValue }
+    public var anyObservableSet: AnyObservableSet<Element> { return self }
+}
+
+open class _AbstractObservableSet<Element: Hashable>: ObservableSetType {
+    public typealias Change = SetChange<Element>
+
     open var value: Set<Element> { abstract() }
-    open var updates: SetUpdateSource<Element> { abstract() }
+
+    open func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<SetChange<Element>> {
+        abstract()
+    }
+
+    @discardableResult
+    open func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<SetChange<Element>> {
+        abstract()
+    }
 
     open var isBuffered: Bool { return false }
     open var count: Int { return value.count }
@@ -112,17 +120,57 @@ open class _ObservableSetBase<Element: Hashable>: ObservableSetType {
     open func isSubset(of other: Set<Element>) -> Bool { return value.isSubset(of: other) }
     open func isSuperset(of other: Set<Element>) -> Bool { return value.isSuperset(of: other) }
 
-    open var observable: Observable<Set<Element>> { return Observable(getter: { self.value }, updates: { self.valueUpdates }) }
-    open var observableCount: Observable<Int> { return Observable(getter: { self.count }, updates: { self.countUpdates }) }
+    open var observableCount: AnyObservableValue<Int> {
+        return AnyObservableValue(getter: { self.count }, updates: self.countUpdates)
+    }
 
-    public final var observableSet: ObservableSet<Element> { return ObservableSet(box: self) }
+    open var anyObservableValue: AnyObservableValue<Set<Element>> {
+        return AnyObservableValue(getter: { self.value }, updates: self.valueUpdates)
+    }
 
-    public final func hold(_ connection: Connection) {
-        connections.append(connection)
+    public final var anyObservableSet: AnyObservableSet<Element> {
+        return AnyObservableSet(box: self)
     }
 }
 
-class ObservableSetBox<Contents: ObservableSetType>: _ObservableSetBase<Contents.Element> {
+open class _BaseObservableSet<Element: Hashable>: _AbstractObservableSet<Element>, SignalDelegate {
+    private var state = TransactionState<SetChange<Element>>()
+
+    public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<SetChange<Element>> {
+        state.add(sink, with: self)
+    }
+
+    @discardableResult
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<SetChange<Element>> {
+        return state.remove(sink)
+    }
+
+    final var isConnected: Bool {
+        return state.isConnected
+    }
+
+    final func beginTransaction() {
+        state.begin()
+    }
+
+    final func endTransaction() {
+        state.end()
+    }
+
+    final func sendChange(_ change: SetChange<Element>) {
+        state.send(change)
+    }
+
+    func activate() {
+        // Do nothing
+    }
+
+    func deactivate() {
+        // Do nothing
+    }
+}
+
+final class ObservableSetBox<Contents: ObservableSetType>: _AbstractObservableSet<Contents.Element> where Contents.Change == SetChange<Contents.Element> {
     typealias Element = Contents.Element
 
     let contents: Contents
@@ -138,12 +186,20 @@ class ObservableSetBox<Contents: ObservableSetType>: _ObservableSetBase<Contents
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
 
-    override var updates: SetUpdateSource<Element> { return contents.updates }
-    override var observable: Observable<Set<Element>> { return contents.observable }
-    override var observableCount: Observable<Int> { return contents.observableCount }
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<SetChange<Element>> {
+        contents.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<SetChange<Element>> {
+        return contents.remove(sink)
+    }
+
+    override var observableCount: AnyObservableValue<Int> { return contents.observableCount }
+    override var anyObservableValue: AnyObservableValue<Set<Element>> { return contents.anyObservableValue }
 }
 
-class ObservableConstantSet<Element: Hashable>: _ObservableSetBase<Element> {
+class ObservableConstantSet<Element: Hashable>: _AbstractObservableSet<Element> {
     let contents: Set<Element>
 
     init(_ contents: Set<Element>) {
@@ -157,17 +213,25 @@ class ObservableConstantSet<Element: Hashable>: _ObservableSetBase<Element> {
     override func isSubset(of other: Set<Element>) -> Bool { return contents.isSubset(of: other) }
     override func isSuperset(of other: Set<Element>) -> Bool { return contents.isSuperset(of: other) }
 
-    override var updates: SetUpdateSource<Element> { return Source.empty() }
-    override var observable: Observable<Set<Element>> { return Observable.constant(contents) }
-    override var observableCount: Observable<Int> { return Observable.constant(contents.count) }
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<SetChange<Element>> {
+        // Do nothing
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<SetChange<Element>> {
+        return sink
+    }
+
+    override var observableCount: AnyObservableValue<Int> { return AnyObservableValue.constant(contents.count) }
+    override var anyObservableValue: AnyObservableValue<Set<Element>> { return AnyObservableValue.constant(contents) }
 }
 
 extension ObservableSetType {
-    public static func constant(_ value: Set<Element>) -> ObservableSet<Element> {
-        return ObservableConstantSet(value).observableSet
+    public static func constant(_ value: Set<Element>) -> AnyObservableSet<Element> {
+        return ObservableConstantSet(value).anyObservableSet
     }
 
-    public static func emptyConstant() -> ObservableSet<Element> {
+    public static func emptyConstant() -> AnyObservableSet<Element> {
         return constant([])
     }
 }

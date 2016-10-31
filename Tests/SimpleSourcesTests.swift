@@ -12,25 +12,42 @@ import GlueKit
 class SimpleSourcesTests: XCTestCase {
     
     func testEmptySource() {
-        let source = Source<Int>.empty()
+        let source = AnySource<Int>.empty()
 
-        var r = [Int]()
-        let connection = source.connect { i in r.append(i) }
+        let sink = MockSink<Int>()
+        source.add(sink)
 
-        XCTAssertEqual(r, []) // Well daaah
+        sink.expectingNothing {
+            // Ah, uhm, not sure what to test here, really
+        }
 
-        connection.disconnect()
+        source.remove(sink)
     }
 
+    func testNeverSource() {
+        let source = AnySource<Int>.never()
+
+        let sink = MockSink<Int>()
+        source.add(sink)
+
+        sink.expectingNothing {
+            // Ah, uhm, not sure what to test here, really
+        }
+
+        source.remove(sink)
+    }
+
+
     func testJustSource() {
-        let source = Source<Int>.just(42)
+        let source = AnySource<Int>.just(42)
 
-        var r = [Int]()
-        let connection = source.connect { i in r.append(i) }
+        let sink = MockSink<Int>()
 
-        XCTAssertEqual(r, [42])
+        _ = sink.expecting(42) {
+            source.add(sink)
+        }
 
-        connection.disconnect()
+        source.remove(sink)
     }
 
 }

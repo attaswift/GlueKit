@@ -6,46 +6,50 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-extension ObservableArrayType {
-    public func buffered() -> ObservableArray<Element> {
+extension ObservableArrayType where Change == ArrayChange<Element> {
+    public func buffered() -> AnyObservableArray<Element> {
         if isBuffered {
-            return observableArray
+            return anyObservableArray
         }
         else {
-            return BufferedObservableArray(self).observableArray
+            return BufferedObservableArray(self).anyObservableArray
         }
     }
 }
 
-internal class BufferedObservableArray<Content: ObservableArrayType>: _ObservableArrayBase<Content.Element> {
+private struct BufferedSink<Content: ObservableArrayType>: UniqueOwnedSink where Content.Change == ArrayChange<Content.Element> {
+    typealias Owner = BufferedObservableArray<Content>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Content.Element>) {
+        owner.applyUpdate(update)
+    }
+}
+
+internal class BufferedObservableArray<Content: ObservableArrayType>: _BaseObservableArray<Content.Element> where Content.Change == ArrayChange<Content.Element>  {
     typealias Element = Content.Element
     typealias Change = ArrayChange<Element>
 
     private let _content: Content
     private var _value: [Element]
-    private var _connection: Connection? = nil
-    private var _state = TransactionState<Change>()
-    private var _valueState = TransactionState<ValueChange<[Element]>>()
     private var _pendingChange: Change? = nil
 
     init(_ content: Content) {
         _content = content
         _value = content.value
         super.init()
-        _connection = content.updates.connect { [unowned self] in self.apply($0) }
+        _content.add(BufferedSink(owner: self))
     }
 
     deinit {
-        _connection!.disconnect()
+        _content.remove(BufferedSink(owner: self))
     }
 
-    private func apply(_ update: ArrayUpdate<Element>) {
+    func applyUpdate(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
-            _state.begin()
-            _valueState.begin()
+            beginTransaction()
         case .change(let change):
             if _pendingChange != nil {
                 _pendingChange!.merge(with: change)
@@ -55,23 +59,11 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: _Observabl
             }
         case .endTransaction:
             if let change = _pendingChange {
-                if _valueState.isConnected {
-                    let old = _value
-                    _value.apply(change)
-                    _pendingChange = nil
-                    let new = _value
-                    _valueState.sendLater(ValueChange(from: old, to: new))
-                    _state.send(change)
-                    _valueState.sendNow()
-                }
-                else {
-                    _value.apply(change)
-                    _pendingChange = nil
-                    _state.send(change)
-                }
+                _value.apply(change)
+                _pendingChange = nil
+                sendChange(change)
             }
-            _state.end()
-            _valueState.end()
+            endTransaction()
         }
     }
 
@@ -93,14 +85,5 @@ internal class BufferedObservableArray<Content: ObservableArrayType>: _Observabl
 
     override var count: Int {
         return _value.count
-    }
-
-    override var updates: Source<Update<Change>> {
-        return _state.source(retaining: self)
-    }
-
-    override var observable: Observable<[Element]> {
-        return Observable(getter: { self.value },
-                          updates: { self._valueState.source(retaining: self) })
     }
 }

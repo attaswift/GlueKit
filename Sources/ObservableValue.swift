@@ -6,10 +6,7 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 public typealias ValueUpdate<Value> = Update<ValueChange<Value>>
-public typealias ValueUpdateSource<Value> = Source<ValueUpdate<Value>>
 
 /// An observable has a value that is readable at any time, and may change in response to certain events.
 /// Interested parties can sign up to receive notifications when the observable's value changes.
@@ -35,90 +32,125 @@ public protocol ObservableValueType: ObservableType, CustomPlaygroundQuickLookab
     /// The current value of this observable.
     var value: Value { get }
 
-    /// A source that delivers change descriptions whenever the value of this observable changes.
-    var updates: ValueUpdateSource<Value> { get }
+    /// Returns the type-erased version of this ObservableValueType.
+    var anyObservableValue: AnyObservableValue<Value> { get }
+}
+
+extension ObservableValueType where Change == ValueChange<Value> {
+    /// Returns the type-erased version of this ObservableValueType.
+    public var anyObservableValue: AnyObservableValue<Value> {
+        return AnyObservableValue(self)
+    }
 
     /// A source that delivers new values whenever this observable changes.
-    var futureValues: Source<Value> { get }
+    public var futureValues: AnySource<Value> { return changes.map { $0.new } }
 
-    /// Returns the type-lifted version of this ObservableValueType.
-    var observable: Observable<Value> { get }
+    /// A source that, for each new sink, immediately sends it the current value, and thereafter delivers updated values,
+    /// like `futureValues`. Implemented in terms of `futureValues` and `value`.
+    public var values: AnySource<Value> {
+        return futureValues.bracketed(hello: { self.value }, goodbye: { nil })
+    }
 }
 
 extension ObservableValueType where Change == ValueChange<Value> {
     public var customPlaygroundQuickLook: PlaygroundQuickLook {
         return PlaygroundQuickLook.text("\(value)")
     }
-
-    /// Returns the type-lifted version of this ObservableValueType.
-    public var observable: Observable<Value> {
-        return Observable(self)
-    }
-
-    public var futureValues: Source<Value> { return changes.map { $0.new } }
-
-    /// A source that, for each new sink, immediately sends it the current value, and thereafter delivers updated values,
-    /// like `futureValues`. Implemented in terms of `futureValues` and `value`.
-    public var values: Source<Value> {
-        return Source<Value> { sink in
-            // We assume connections are not concurrent with updates.
-            // However, reentrant updates from a sink are fully supported -- they are serialized below.
-            var pendingValues: [Value]? = [self.value]
-            let c = self.futureValues.connect { value in
-                if pendingValues != nil {
-                    pendingValues!.append(value)
-                }
-                else {
-                    sink.receive(value)
-                }
-            }
-            while !(pendingValues!.isEmpty) {
-                sink.receive(pendingValues!.removeFirst())
-            }
-            pendingValues = nil
-            return c
-        }
-    }
 }
 
-/// The type lifted representation of an ObservableValueType that contains a single value with simple changes.
-public struct Observable<Value>: ObservableValueType {
-    private let box: _ObservableValueBase<Value>
 
-    init(box: _ObservableValueBase<Value>) {
+/// The type erased representation of an ObservableValueType that contains a single value with simple changes.
+public struct AnyObservableValue<Value>: ObservableValueType {
+    public typealias Change = ValueChange<Value>
+
+    private let box: _AbstractObservableValue<Value>
+
+    init(box: _AbstractObservableValue<Value>) {
         self.box = box
     }
     
     /// Initializes an Observable from the given getter closure and source of future changes.
     /// @param getter A closure that returns the current value of the observable at the time of the call.
     /// @param futureValues A closure that returns a source that triggers whenever the observable changes.
-    public init(getter: @escaping (Void) -> Value, updates: @escaping (Void) -> ValueUpdateSource<Value>) {
+    public init<Updates: SourceType>(getter: @escaping (Void) -> Value, updates: Updates) where Updates.Value == Update<Change> {
         self.box = ObservableClosureBox(getter: getter, updates: updates)
     }
 
-    public init<Base: ObservableValueType>(_ base: Base) where Base.Value == Value {
+    public init<Base: ObservableValueType>(_ base: Base) where Base.Value == Value, Base.Change == Change {
         self.box = ObservableValueBox(base)
     }
 
-    public var value: Value { return box.value }
-    public var updates: ValueUpdateSource<Value> { return box.updates }
-    public var futureValues: Source<Value> { return box.futureValues }
-    public var observable: Observable<Value> { return self }
-}
+    public var value: Value {
+        return box.value
+    }
 
-open class _ObservableValueBase<Value>: ObservableValueType {
-    public typealias Change = ValueChange<Value>
+    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        box.add(sink)
+    }
 
-    open var value: Value { abstract() }
-    open var updates: ValueUpdateSource<Value> { abstract() }
-    open var futureValues: Source<Value> { return changes.map { $0.new } }
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return box.remove(sink)
+    }
 
-    public final var observable: Observable<Value> {
-        return Observable(box: self)
+    public var anyObservableValue: AnyObservableValue<Value> {
+        return self
     }
 }
 
-internal class ObservableValueBox<Base: ObservableValueType>: _ObservableValueBase<Base.Value> {
+open class _AbstractObservableValue<Value>: ObservableValueType {
+    public typealias Change = ValueChange<Value>
+
+    open var value: Value { abstract() }
+
+    open func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> { abstract() }
+
+    @discardableResult
+    open func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> { abstract() }
+
+    public final var anyObservableValue: AnyObservableValue<Value> {
+        return AnyObservableValue(box: self)
+    }
+}
+
+open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, SignalDelegate {
+    private var state = TransactionState<ValueChange<Value>>()
+
+    public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        state.add(sink, with: self)
+    }
+
+    @discardableResult
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return state.remove(sink)
+    }
+
+    final func beginTransaction() {
+        state.begin()
+    }
+
+    final func endTransaction() {
+        state.end()
+    }
+
+    final func sendChange(_ change: Change) {
+        state.send(change)
+    }
+
+    final func send(_ update: Update<Change>) {
+        state.send(update)
+    }
+
+    open func activate() {
+        // Do nothing
+    }
+
+    open func deactivate() {
+        // Do nothing
+    }
+}
+
+internal final class ObservableValueBox<Base: ObservableValueType>: _AbstractObservableValue<Base.Value> where Base.Change == ValueChange<Base.Value> {
     typealias Value = Base.Value
 
     private let base: Base
@@ -127,26 +159,62 @@ internal class ObservableValueBox<Base: ObservableValueType>: _ObservableValueBa
         self.base = base
     }
     override var value: Value { return base.value }
-    override var updates: ValueUpdateSource<Value> { return base.updates }
-    override var futureValues: Source<Value> { return base.futureValues }
+
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        base.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return base.remove(sink)
+    }
 }
 
-private class ObservableClosureBox<Value>: _ObservableValueBase<Value> {
+private final class ObservableClosureBox<Value, Updates: SourceType>: _AbstractObservableValue<Value>
+where Updates.Value == Update<ValueChange<Value>> {
     private let _value: () -> Value
-    private let _updates: () -> ValueUpdateSource<Value>
+    private let _updates: Updates
 
-    public init(getter: @escaping (Void) -> Value, updates: @escaping (Void) -> ValueUpdateSource<Value>) {
+    public init(getter: @escaping (Void) -> Value, updates: Updates) {
         self._value = getter
         self._updates = updates
     }
 
     override var value: Value { return _value() }
-    override var updates: ValueUpdateSource<Value> { return _updates() }
+
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        _updates.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return _updates.remove(sink)
+    }
 }
 
 public extension ObservableValueType {
     /// Creates a constant observable wrapping the given value. The returned observable is not modifiable and it will not ever send updates.
-    public static func constant(_ value: Value) -> Observable<Value> {
-        return Observable(getter: { value }, updates: { Source.empty() })
+    public static func constant(_ value: Value) -> AnyObservableValue<Value> {
+        return ConstantObservable(value).anyObservableValue
     }
 }
+
+private final class ConstantObservable<Value>: _AbstractObservableValue<Value> {
+    private let _value: Value
+
+    init(_ value: Value) { _value = value }
+
+    override var value: Value { return _value }
+
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        // Do nothing
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        // Do nothing
+        return sink
+    }
+}
+
+

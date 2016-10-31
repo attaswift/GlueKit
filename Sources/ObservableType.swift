@@ -6,57 +6,84 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 public protocol ObservableType {
     associatedtype Change: ChangeType
 
     /// The current value of this observable.
     var value: Change.Value { get }
 
-    /// A source that reports update transaction events for this observable.
-    var updates: Source<Update<Change>> { get }
+    func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change>
+
+    @discardableResult
+    func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change>
 }
 
 extension ObservableType {
-    /// A source that reports changes to the value of this observable.
-    /// Changes reported correspond to complete transactions in `self.updates`.
-    public var changes: Source<Change> {
-        return Source { sink in
-            var merged: Change? = nil
-            return self.updates.connect { event in
-                switch event {
-                case .beginTransaction:
-                    assert(merged == nil)
-                case .change(let change):
-                    if merged == nil {
-                        merged = change
-                    }
-                    else {
-                        merged!.merge(with: change)
-                    }
-                case .endTransaction:
-                    if let change = merged {
-                        merged = nil
-                        if !change.isEmpty {
-                            sink.receive(change)
-                        }
-                    }
-                }
-            }
+    /// A source that reports update transaction events for this observable.
+    public var updates: UpdateSource<Self> {
+        return UpdateSource(owner: self)
+    }
+
+}
+
+public struct UpdateSource<Observable: ObservableType>: SourceType {
+    public typealias Value = Update<Observable.Change>
+
+    private let owner: Observable
+
+    init(owner: Observable) {
+        self.owner = owner
+    }
+
+    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+        owner.add(sink)
+    }
+
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
+        return owner.remove(sink)
+    }
+}
+
+public protocol UpdatableType: ObservableType {
+    /// The current value of this observable.
+    ///
+    /// The setter is nonmutating because the value ultimately needs to be stored in a reference type anyway.
+    var value: Change.Value { get nonmutating set }
+
+    func apply(_ update: Update<Change>)
+}
+
+extension UpdatableType {
+    public func withTransaction<Result>(_ body: () -> Result) -> Result {
+        apply(.beginTransaction)
+        defer { apply(.endTransaction) }
+        return body()
+    }
+
+    public func apply(_ change: Change) {
+        if !change.isEmpty {
+            apply(.beginTransaction)
+            apply(.change(change))
+            apply(.endTransaction)
         }
     }
 }
 
-public protocol UpdatableType: ObservableType, SinkType {
-    /// The current value of this observable.
-    var value: Change.Value { get nonmutating set } // Nonmutating because UpdatableType needs to be a class if it holds the value directly.
-
-    func withTransaction<Result>(_ body: () -> Result) -> Result
+extension ObservableType {
+    public func connect<Updatable: UpdatableType>(to updatable: Updatable) -> Connection
+    where Updatable.Change == Change {
+        updatable.apply(.beginTransaction)
+        updatable.apply(.change(Change(from: updatable.value, to: self.value)))
+        let connection = updates.connect { update in updatable.apply(update) }
+        updatable.apply(.endTransaction)
+        return connection
+    }
 }
 
-extension UpdatableType {
-    public func receive(_ value: Change.Value) -> Void {
-        self.value = value
+extension Connector {
+    @discardableResult
+    public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Update<Observable.Change>) -> Void) -> Connection {
+        return observable.updates.connect(sink).putInto(self)
     }
 }

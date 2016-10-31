@@ -6,26 +6,51 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-extension ObservableArrayType {
+extension ObservableArrayType where Change == ArrayChange<Element> {
     /// Return an observable array that consists of the values for the field specified by `key` for each element of this array.
-    public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> ObservableArray<Field.Value> {
-        return ArrayMappingForValueField(parent: self.observableArray, key: key).observableArray
+    public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> AnyObservableArray<Field.Value> where Field.Change == ValueChange<Field.Value> {
+        return ArrayMappingForValueField(parent: self, key: key).anyObservableArray
     }
 }
 
-private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field: ObservableValueType>: _ObservableArrayBase<Field.Value>, SignalDelegate {
+private final class FieldSink<Parent: ObservableArrayType, Field: ObservableValueType>: SinkType, RefListElement where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+    unowned let owner: ArrayMappingForValueField<Parent, Field>
+    let field: Field
+    var refListLink = RefListLink<FieldSink>()
+
+    init(owner: ArrayMappingForValueField<Parent, Field>, field: Field) {
+        self.owner = owner
+        self.field = field
+        field.add(self)
+    }
+
+    func disconnect() {
+        field.remove(self)
+    }
+
+    func receive(_ update: ValueUpdate<Field.Value>) {
+        owner.applyFieldUpdate(update, from: self)
+    }
+}
+
+private struct ParentSink<Parent: ObservableArrayType, Field: ObservableValueType>: UniqueOwnedSink where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+    typealias Owner = ArrayMappingForValueField<Parent, Field>
+
+    unowned let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field: ObservableValueType>: _BaseObservableArray<Field.Value> where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
     typealias Element = Field.Value
-    typealias Base = Array<Element>
     typealias Change = ArrayChange<Element>
 
     private let parent: Parent
     private let key: (Parent.Element) -> Field
 
-    private var state = TransactionState<Change>()
-    private var parentConnection: Connection? = nil
-    private var fieldConnections = RefList<Connection>()
+    private var fieldSinks = RefList<FieldSink<Parent, Field>>()
 
     init(parent: Parent, key: @escaping (Parent.Element) -> Field) {
         self.parent = parent
@@ -48,71 +73,59 @@ private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field
 
     override var count: Int { return parent.count }
 
-    override var updates: ArrayUpdateSource<Element> { return state.source(retainingDelegate: self) }
-
-    func start(_ signal: Signal<Update<Change>>) {
-        assert(parentConnection == nil && fieldConnections.isEmpty)
+    override func activate() {
         let fields = parent.value.map(key)
-        fieldConnections = RefList(fields.lazy.map { field in self.connectField(field) })
-        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.add(ParentSink(owner: self))
+        fieldSinks = RefList(fields.lazy.map { field in FieldSink(owner: self, field: field) })
     }
 
-    func stop(_ signal: Signal<Update<Change>>) {
-        assert(parentConnection != nil)
-        parentConnection?.disconnect()
-        fieldConnections.forEach { $0.disconnect() }
-        parentConnection = nil
-        fieldConnections.removeAll()
+    override func deactivate() {
+        parent.remove(ParentSink(owner: self))
+        fieldSinks.forEach { $0.disconnect() }
+        fieldSinks.removeAll()
     }
 
-    private func connectField(_ field: Field) -> Connection {
-        var connection: Connection? = nil
-        let c = field.updates.connect { [unowned self] update in self.apply(update, from: connection) }
-        connection = c
-        return c
-    }
-
-    private func apply(_ update: ValueUpdate<Element>, from connection: Connection?) {
+    func applyFieldUpdate(_ update: ValueUpdate<Element>, from sink: FieldSink<Parent, Field>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
-            let index = fieldConnections.index(of: connection!)!
-            state.send(ArrayChange(initialCount: fieldConnections.count,
+            let index = fieldSinks.index(of: sink)!
+            sendChange(ArrayChange(initialCount: fieldSinks.count,
                                    modification: .replace(change.old, at: index, with: change.new)))
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
-    private func apply(_ update: ArrayUpdate<Parent.Element>) {
+    func applyParentUpdate(_ update: ArrayUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
-            precondition(fieldConnections.count == change.initialCount)
+            precondition(fieldSinks.count == change.initialCount)
             var newChange = ArrayChange<Element>(initialCount: change.initialCount)
             for mod in change.modifications {
                 let start = mod.startIndex
                 var i = start
                 mod.forEachOldElement { old in
-                    fieldConnections[i].disconnect()
+                    fieldSinks[i].disconnect()
                     i += 1
                 }
-                var cs: [Connection] = []
+                var sinks: [FieldSink<Parent, Field>] = []
                 mod.forEachNewElement { new in
                     let field = key(new)
-                    cs.append(self.connectField(field))
+                    sinks.append(FieldSink(owner: self, field: field))
                 }
-                fieldConnections.replaceSubrange(start ..< i, with: cs)
+                fieldSinks.replaceSubrange(start ..< i, with: sinks)
                 newChange.add(mod.map { self.key($0).value })
             }
-            precondition(fieldConnections.count == change.finalCount)
+            precondition(fieldSinks.count == change.finalCount)
             if !newChange.isEmpty {
-                state.send(newChange)
+                sendChange(newChange)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 }

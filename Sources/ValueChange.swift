@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 /// A simple change description that includes a snapshot of the value before and after the change.
 public struct ValueChange<Value>: ChangeType {
     public var old: Value
@@ -45,6 +43,12 @@ public struct ValueChange<Value>: ChangeType {
 
     public func map<R>(_ transform: (Value) -> R) -> ValueChange<R> {
         return .init(from: transform(old), to: transform(new))
+    }
+}
+
+extension ValueChange: CustomStringConvertible {
+    public var description: String {
+        return "\(old) -> \(new)"
     }
 }
 

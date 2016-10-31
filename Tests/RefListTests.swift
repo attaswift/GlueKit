@@ -25,6 +25,21 @@ class RefListTests: XCTestCase {
         }
     }
 
+
+    func test_emptyInitializer() {
+        let list = RefList<Fixture>()
+        XCTAssertTrue(list.isEmpty)
+        XCTAssertEqual(Array(list).map { $0.value }, [])
+        verify(list)
+    }
+
+    func test_initializerFromSequence() {
+        let list = RefList<Fixture>((0 ..< 1000).map { Fixture($0) })
+        XCTAssertFalse(list.isEmpty)
+        XCTAssertEqual(Array(list).map { $0.value }, Array(0 ..< 1000))
+        verify(list)
+    }
+
     func test_basicOperations() {
         let list = RefList<Fixture>(order: 5)
 
@@ -62,11 +77,73 @@ class RefListTests: XCTestCase {
     }
 
     func test_remove() {
-        for removedIndex in 0 ..< 30 {
+        let c = 30
+        for removedIndex in 0 ..< c {
             let list = RefList<Fixture>(order: 5)
-            list.append(contentsOf: (0 ..< 30).map { Fixture($0) })
+            let elements = (0 ..< c).map { Fixture($0) }
+            list.append(contentsOf: elements)
             XCTAssertEqual(list.remove(at: removedIndex).value, removedIndex)
             verify(list)
+
+            var expected = elements
+            expected.remove(at: removedIndex)
+            XCTAssertTrue(list.elementsEqual(expected, by: ===))
+        }
+    }
+
+    func test_insertCollection() {
+        let c = 30
+        for insertionIndex in 0 ..< c {
+            let list = RefList<Fixture>(order: 5)
+            let origElements = (0 ..< c).map { Fixture($0) }
+            list.append(contentsOf: origElements)
+
+            let insertedElements = (0 ..< 10).map { Fixture(100 + $0) }
+            list.insert(contentsOf: insertedElements, at: insertionIndex)
+            verify(list)
+
+            var expected = origElements
+            expected.insert(contentsOf: insertedElements, at: insertionIndex)
+
+            XCTAssertTrue(list.elementsEqual(expected, by: ===))
+        }
+    }
+
+    func test_removeSubrange() {
+        let c = 30
+        for start in 0 ..< c {
+            for end in start ..< c {
+                let list = RefList<Fixture>(order: 5)
+                let elements = (0 ..< c).map { Fixture($0) }
+                list.append(contentsOf: elements)
+                list.removeSubrange(start ..< end)
+                verify(list)
+
+                var expected = elements
+                expected.removeSubrange(start ..< end)
+                XCTAssertTrue(list.elementsEqual(expected, by: ===))
+            }
+        }
+    }
+
+    func test_replaceSubrange() {
+        let c = 30
+        for start in 0 ..< c {
+            for end in start ..< c {
+                for newRange in [0 ..< 0, 0 ..< 1, 0 ..< 10] {
+                    let list = RefList<Fixture>(order: 5)
+                    let elements = (0 ..< c).map { Fixture($0) }
+                    list.append(contentsOf: elements)
+
+                    let replacement = newRange.map { Fixture(100 + $0) }
+                    list.replaceSubrange(start ..< end, with: replacement)
+                    verify(list)
+
+                    var expected = elements
+                    expected.replaceSubrange(start ..< end, with: replacement)
+                    XCTAssertTrue(list.elementsEqual(expected, by: ===))
+                }
+            }
         }
     }
 

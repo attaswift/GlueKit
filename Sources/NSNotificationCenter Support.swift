@@ -18,30 +18,31 @@ extension NotificationCenter {
     /// - Parameter sender: The sender of the notifications to observe, or nil for any object. This parameter is nil by default.
     /// - Parameter queue: The operation queue on which the source will trigger. If you pass nil, the sinks are run synchronously on the thread that posted the notification. This parameter is nil by default.
     /// - Returns: A Source that triggers when the specified notification is posted.
-    public func source(forName name: NSNotification.Name, sender: AnyObject? = nil, queue: OperationQueue? = nil) -> Source<Notification> {
-        return NotificationSource(center: self, name: name, sender: sender, queue: queue).source
+    public func source(forName name: NSNotification.Name, sender: AnyObject? = nil, queue: OperationQueue? = nil) -> AnySource<Notification> {
+        return NotificationSource(center: self, name: name, sender: sender, queue: queue).anySource
     }
 }
 
-@objc private class NotificationSource: NSObject, SignalDelegate {
-    typealias SourceValue = Notification
-
+private class NotificationSource: SignalerSource<Notification> {
     let center: NotificationCenter
     let name: NSNotification.Name
     let sender: AnyObject?
     let queue: OperationQueue?
-
-    var signal = OwningSignal<Notification>()
 
     init(center: NotificationCenter, name: NSNotification.Name, sender: AnyObject?, queue: OperationQueue?) {
         self.center = center
         self.name = name
         self.sender = sender
         self.queue = queue
+        super.init()
     }
 
-    var source: Source<Notification> {
-        return signal.with(self).source
+    override func activate() {
+        center.addObserver(self, selector: #selector(didReceive(_:)), name: name, object: sender)
+    }
+
+    override func deactivate() {
+        center.removeObserver(self, name: name, object: sender)
     }
 
     @objc private func didReceive(_ notification: Notification) {
@@ -53,13 +54,5 @@ extension NotificationCenter {
         else {
             self.signal.send(notification)
         }
-    }
-
-    func start(_ signal: Signal<Notification>) {
-        center.addObserver(self, selector: #selector(didReceive(_:)), name: name, object: sender)
-    }
-
-    func stop(_ signal: Signal<Notification>) {
-        center.removeObserver(self, name: name, object: sender)
     }
 }

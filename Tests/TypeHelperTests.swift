@@ -28,9 +28,9 @@ class TypeHelperTests: XCTestCase {
     private func check<V: Equatable>(
         type: V.Type = V.self,
         key: String,
-        sourceTx: (Source<Any?>) -> Source<V>,
-        observableTx: (Observable<Any?>) -> Observable<V>,
-        updatableTx: (Updatable<Any?>) -> Updatable<V>,
+        sourceTx: (AnySource<Any?>) -> AnySource<V>,
+        observableTx: (AnyObservableValue<Any?>) -> AnyObservableValue<V>,
+        updatableTx: (AnyUpdatableValue<Any?>) -> AnyUpdatableValue<V>,
         getter: (KVOTest) -> V,
         setter: (KVOTest, V) -> (),
         value0: V,
@@ -48,12 +48,12 @@ class TypeHelperTests: XCTestCase {
         XCTAssertEqual(updatable.value, value0)
 
         let smock = MockSink(source)
-        let omock = MockValueObserver(observable)
-        let umock = MockValueObserver(updatable)
+        let omock = MockValueUpdateSink(observable)
+        let umock = MockValueUpdateSink(updatable)
 
         smock.expecting(value1) {
-            omock.expecting(.init(from: value0, to: value1)) {
-                umock.expecting(.init(from: value0, to: value1)) {
+            omock.expecting(["begin", "\(value0) -> \(value1)", "end"]) {
+                umock.expecting(["begin", "\(value0) -> \(value1)", "end"]) {
                     setter(t, value1)
                 }
             }
@@ -62,8 +62,8 @@ class TypeHelperTests: XCTestCase {
         XCTAssertEqual(updatable.value, value1)
 
         smock.expecting(value2) {
-            omock.expecting(.init(from: value1, to: value2)) {
-                umock.expecting(.init(from: value1, to: value2)) {
+            omock.expecting(["begin", "\(value1) -> \(value2)", "end"]) {
+                umock.expecting(["begin", "\(value1) -> \(value2)", "end"]) {
                     updatable.value = value2
                 }
             }

@@ -6,10 +6,6 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-//MARK: ArrayModification
-
 /// Describes a single modification of an array. The modification can be an insertion, a removal, a replacement or
 /// a generic range replacement. All indices are understood to be based in the original array, before this modification
 /// has taken place.
@@ -383,7 +379,7 @@ public func !=<Element: Equatable>(a: ArrayModification<Element>, b: ArrayModifi
 ///
 /// Array changes may only be applied on arrays that have the same number of elements as the original array.
 ///
-/// - SeeAlso: ArrayModification, ObservableArray, ArrayVariable
+/// - SeeAlso: ArrayModification, AnyObservableArray, ArrayVariable
 public struct ArrayChange<Element>: ChangeType {
     public typealias Value = [Element]
 
@@ -421,7 +417,12 @@ public struct ArrayChange<Element>: ChangeType {
     /// Initializes a change that simply replaces all elements in `previousValue` with the ones in `newValue`.
     public init(from previousValue: Value, to newValue: Value) {
         // Elements aren't necessarily equatable here, so this is the best we can do.
-        self.init(initialCount: previousValue.count, modification: .replaceSlice(previousValue, at: 0, with: newValue))
+        if let mod = ArrayModification(replacing: previousValue, at: 0, with: newValue) {
+            self.init(initialCount: previousValue.count, modification: mod)
+        }
+        else {
+            self.init(initialCount: previousValue.count)
+        }
     }
 
     /// Returns true if this change contains no actual changes to the array.
@@ -513,8 +514,13 @@ public struct ArrayChange<Element>: ChangeType {
     /// - Returns: A new change that applies the same modifications on a range inside a wider array.
     public func widen(startIndex: Int, initialCount: Int) -> ArrayChange<Element> {
         precondition(startIndex + self.initialCount <= initialCount)
-        let mods = modifications.map { $0.shift(startIndex) }
-        return ArrayChange(initialCount: initialCount, modifications: mods)
+        if startIndex > 0 {
+            let mods = modifications.map { $0.shift(startIndex) }
+            return ArrayChange(initialCount: initialCount, modifications: mods)
+        }
+        else {
+            return ArrayChange(initialCount: initialCount, modifications: modifications)
+        }
     }
 }
 

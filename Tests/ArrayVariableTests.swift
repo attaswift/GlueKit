@@ -37,8 +37,8 @@ class ArrayVariableTests: XCTestCase {
         XCTAssertFalse(ArrayVariable([1, 2, 3]).value == [1, 2])
 
         // Equality tests between two different ObservableArrayTypes
-        XCTAssertTrue(ArrayVariable([1, 2, 3]).value == ObservableArray(ArrayVariable([1, 2, 3])).value)
-        XCTAssertFalse(ArrayVariable([1, 2, 3]).value == ObservableArray(ArrayVariable([1, 2])).value)
+        XCTAssertTrue(ArrayVariable([1, 2, 3]).value == AnyObservableArray(ArrayVariable([1, 2, 3])).value)
+        XCTAssertFalse(ArrayVariable([1, 2, 3]).value == AnyObservableArray(ArrayVariable([1, 2])).value)
 
         // Equality tests between an ArrayVariable and an Array
         XCTAssertTrue(ArrayVariable([1, 2, 3]).value == Array([1, 2, 3]))
@@ -96,7 +96,7 @@ class ArrayVariableTests: XCTestCase {
             let c1 = array.changes.connect { changes.append($0) }
             defer { c1.disconnect() }
 
-            let c2 = array.observable.futureValues.connect { values.append($0) }
+            let c2 = array.anyObservableValue.futureValues.connect { values.append($0) }
             defer { c2.disconnect() }
 
             op(array)

@@ -6,82 +6,127 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
+extension ObservableArrayType where Change == ArrayChange<Element> {
+    public func filter<Test: ObservableValueType>(_ isIncluded: @escaping (Element) -> Test) -> AnyObservableArray<Element>
+    where Test.Value == Bool, Test.Change == ValueChange<Test.Value> {
+        return ArrayFilteringOnObservableBool<Self, Test>(parent: self, isIncluded: isIncluded).anyObservableArray
+    }
 
-extension ObservableArrayType {
-    public func filter<Test: ObservableValueType>(test: @escaping (Element) -> Test) -> ObservableArray<Element> where Test.Value == Bool {
-        return ArrayFilteringOnObservableBool<Self, Test>(parent: self, test: test).observableArray
+    public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> AnyObservableArray<Element>
+    where Predicate.Value == (Element) -> Bool, Predicate.Change == ValueChange<Predicate.Value> {
+        return self.filter(isIncluded.map { predicate -> Optional<(Element) -> Bool> in predicate })
+    }
+
+    public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> AnyObservableArray<Element>
+    where Predicate.Value == Optional<(Element) -> Bool>, Predicate.Change == ValueChange<Predicate.Value> {
+        let reference: AnyObservableValue<AnyObservableArray<Element>> = isIncluded.map { predicate in
+            if let predicate: (Element) -> Bool = predicate {
+                return self.filter(predicate).anyObservableArray
+            }
+            else {
+                return self.anyObservableArray
+            }
+        }
+        return reference.unpacked()
     }
 }
 
-private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: _ObservableArrayBase<Parent.Element> where Test.Value == Bool {
-    public typealias Element = Parent.Element
-    public typealias Change = ArrayChange<Element>
+private struct ParentSink<Parent: ObservableArrayType, Test: ObservableValueType>: UniqueOwnedSink
+where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
+    typealias Owner = ArrayFilteringOnObservableBool<Parent, Test>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private final class FieldSink<Parent: ObservableArrayType, Test: ObservableValueType>: SinkType, RefListElement
+where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
+    typealias Owner = ArrayFilteringOnObservableBool<Parent, Test>
+
+    unowned let owner: Owner
+    let field: Test
+    var refListLink = RefListLink<FieldSink<Parent, Test>>()
+
+    init(owner: Owner, field: Test) {
+        self.owner = owner
+        self.field = field
+
+        field.add(self)
+    }
+
+    func disconnect() {
+        field.remove(self)
+    }
+
+    func receive(_ update: ValueUpdate<Bool>) {
+        owner.applyFieldUpdate(update, from: self)
+    }
+}
+
+private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: _BaseObservableArray<Parent.Element>
+where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
+    typealias Element = Parent.Element
+    typealias Change = ArrayChange<Element>
 
     private let parent: Parent
-    private let test: (Element) -> Test
+    private let isIncluded: (Element) -> Test
 
     private var indexMapping: ArrayFilteringIndexmap<Element>
-    private var state = TransactionState<Change>()
-    private var baseConnection: Connection? = nil
-    private var elementConnections = RefList<Connection>()
+    private var elementConnections = RefList<FieldSink<Parent, Test>>()
 
-    init(parent: Parent, test: @escaping (Element) -> Test) {
+    init(parent: Parent, isIncluded: @escaping (Element) -> Test) {
         self.parent = parent
-        self.test = test
+        self.isIncluded = isIncluded
         let elements = parent.value
-        self.indexMapping = ArrayFilteringIndexmap(initialValues: elements, test: { test($0).value })
+        self.indexMapping = ArrayFilteringIndexmap(initialValues: elements, isIncluded: { isIncluded($0).value })
         super.init()
-        self.baseConnection = parent.updates.connect { [unowned self] in self.apply($0) }
-        self.elementConnections = RefList(elements.lazy.map { [unowned self] element in self.connect(to: element) })
+        parent.updates.add(ParentSink(owner: self))
+        self.elementConnections = RefList(elements.lazy.map { FieldSink(owner: self, field: isIncluded($0)) })
     }
 
     deinit {
-        self.baseConnection!.disconnect()
+        parent.updates.remove(ParentSink(owner: self))
         self.elementConnections.forEach { $0.disconnect() }
     }
 
-    private func apply(_ update: ArrayUpdate<Element>) {
+    func applyParentUpdate(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             for mod in change.modifications {
                 let inputRange = mod.inputRange
                 inputRange.forEach { elementConnections[$0].disconnect() }
-                elementConnections.replaceSubrange(inputRange, with: mod.newElements.map { self.connect(to: $0) })
+                elementConnections.replaceSubrange(inputRange, with: mod.newElements.map { FieldSink(owner: self, field: isIncluded($0)) })
             }
             let filteredChange = self.indexMapping.apply(change)
             if !filteredChange.isEmpty {
-                state.send(filteredChange)
+                sendChange(filteredChange)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
-    private func connect(to element: Element) -> Connection {
-        var connection: Connection? = nil
-        connection = test(element).updates.connect { [unowned self] update in self.apply(update, from: connection) }
-        return connection!
-    }
-
-    private func apply(_ update: ValueUpdate<Bool>, from connection: Connection?) {
+    func applyFieldUpdate(_ update: ValueUpdate<Bool>, from sink: FieldSink<Parent, Test>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             if change.old == change.new { return }
-            let index = elementConnections.index(of: connection!)!
+            let index = elementConnections.index(of: sink)!
             let c = indexMapping.matchingIndices.count
             if change.new, let filteredIndex = indexMapping.insert(index) {
-                state.send(ArrayChange(initialCount: c, modification: .insert(parent[index], at: filteredIndex)))
+                sendChange(ArrayChange(initialCount: c, modification: .insert(parent[index], at: filteredIndex)))
             }
             else if !change.new, let filteredIndex = indexMapping.remove(index) {
-                state.send(ArrayChange(initialCount: c, modification: .remove(parent[index], at: filteredIndex)))
+                sendChange(ArrayChange(initialCount: c, modification: .remove(parent[index], at: filteredIndex)))
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
@@ -107,9 +152,5 @@ private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: 
 
     override var count: Int {
         return indexMapping.matchingIndices.count
-    }
-
-    override var updates: ArrayUpdateSource<Base.Element> {
-        return state.source(retaining: self)
     }
 }

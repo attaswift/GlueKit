@@ -6,50 +6,55 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-// MARK: Map
-
-public extension ObservableValueType {
+public extension ObservableValueType where Change == ValueChange<Value> {
     /// Returns an observable that calculates `transform` on all current and future values of this observable.
-    public func map<Output>(_ transform: @escaping (Value) -> Output) -> Observable<Output> {
-        return ValueMappingForValue<Self, Output>(parent: self, transform: transform).observable
+    public func map<Output>(_ transform: @escaping (Value) -> Output) -> AnyObservableValue<Output> {
+        return ValueMappingForValue<Self, Output>(parent: self, transform: transform).anyObservableValue
     }
 }
 
-private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _ObservableValueBase<Value> {
+private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _AbstractObservableValue<Value> where Parent.Change == ValueChange<Parent.Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
+    let sinkTransform: SinkTransformFromMapping<ValueUpdate<Parent.Value>, ValueUpdate<Value>>
 
     init(parent: Parent, transform: @escaping (Parent.Value) -> Value) {
         self.parent = parent
         self.transform = transform
+        self.sinkTransform = SinkTransformFromMapping { u in u.map { c in c.map(transform) } }
     }
 
     override var value: Value {
         return transform(parent.value)
     }
 
-    override var updates: Source<Update<Change>> {
-        return parent.updates.map { update in update.map { $0.map(self.transform) } }
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        parent.add(TransformedSink(sink: sink, transform: sinkTransform))
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return parent.remove(TransformedSink(sink: sink, transform: sinkTransform)).sink
     }
 }
 
 extension UpdatableValueType where Change == ValueChange<Value> {
-    public func map<Output>(_ transform: @escaping (Value) -> Output, inverse: @escaping (Output) -> Value) -> Updatable<Output> {
-        return ValueMappingForUpdatableValue<Self, Output>(parent: self, transform: transform, inverse: inverse).updatable
+    public func map<Output>(_ transform: @escaping (Value) -> Output, inverse: @escaping (Output) -> Value) -> AnyUpdatableValue<Output> {
+        return ValueMappingForUpdatableValue<Self, Output>(parent: self, transform: transform, inverse: inverse).anyUpdatableValue
     }
 }
 
-private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: AbstractUpdatableBase<Value> where Parent.Change == ValueChange<Parent.Value> {
+private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: _AbstractUpdatableValue<Value> where Parent.Change == ValueChange<Parent.Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
     let inverse: (Value) -> Parent.Value
+    let sinkTransform: SinkTransformFromMapping<ValueUpdate<Parent.Value>, ValueUpdate<Value>>
 
     init(parent: Parent, transform: @escaping (Parent.Value) -> Value, inverse: @escaping (Value) -> Parent.Value) {
         self.parent = parent
         self.transform = transform
         self.inverse = inverse
+        self.sinkTransform = SinkTransformFromMapping { u in u.map { c in c.map(transform) } }
     }
 
     override var value: Value {
@@ -61,11 +66,16 @@ private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Va
         }
     }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return parent.withTransaction(body)
+    override func apply(_ update: Update<ValueChange<Value>>) {
+        parent.apply(update.map { change in change.map(inverse) })
     }
 
-    override var updates: Source<Update<Change>> {
-        return parent.updates.map { update in update.map { $0.map(self.transform) } }
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        parent.add(TransformedSink(sink: sink, transform: sinkTransform))
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return parent.remove(TransformedSink(sink: sink, transform: sinkTransform)).sink
     }
 }

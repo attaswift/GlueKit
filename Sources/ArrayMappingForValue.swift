@@ -6,23 +6,23 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-extension ObservableArrayType {
-    public func map<Output>(_ transform: @escaping (Element) -> Output) -> ObservableArray<Output> {
-        return ArrayMappingForValue(input: self, transform: transform).observableArray
+extension ObservableArrayType where Change == ArrayChange<Element> {
+    public func map<Output>(_ transform: @escaping (Element) -> Output) -> AnyObservableArray<Output> {
+        return ArrayMappingForValue(input: self, transform: transform).anyObservableArray
     }
 }
 
-private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: _ObservableArrayBase<Element> {
+private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: _AbstractObservableArray<Element> where Input.Change == ArrayChange<Input.Element> {
     typealias Change = ArrayChange<Element>
 
     let input: Input
     let transform: (Input.Element) -> Element
+    let updateSource: AnySource<ArrayUpdate<Element>>
 
     init(input: Input, transform: @escaping (Input.Element) -> Element) {
         self.input = input
         self.transform = transform
+        self.updateSource = input.updates.map { u in u.map { c in c.map(transform) } }
         super.init()
     }
 
@@ -46,31 +46,45 @@ private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: _
         return input.value.map(transform)
     }
 
-    override var updates: ArrayUpdateSource<Element> {
-        return input.updates.map { $0.map { $0.map(self.transform) } }
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        updateSource.add(sink)
     }
 
-    override var observableCount: Observable<Int> {
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return updateSource.remove(sink)
+    }
+
+    override var observableCount: AnyObservableValue<Int> {
         return input.observableCount
     }
 }
 
 
-extension ObservableArrayType {
-    public func bufferedMap<Output>(_ transform: @escaping (Element) -> Output) -> ObservableArray<Output> {
-        return BufferedArrayMappingForValue(self, transform: transform).observableArray
+extension ObservableArrayType where Change == ArrayChange<Element> {
+    public func bufferedMap<Output>(_ transform: @escaping (Element) -> Output) -> AnyObservableArray<Output> {
+        return BufferedArrayMappingForValue(self, transform: transform).anyObservableArray
     }
 }
 
-private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArrayType>: _ObservableArrayBase<Output> where Content.Element == Input {
+private struct BufferedMapSink<Input, Output, Content: ObservableArrayType>: UniqueOwnedSink where Content.Element == Input, Content.Change == ArrayChange<Content.Element> {
+    typealias Owner = BufferedArrayMappingForValue<Input, Output, Content>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Content.Element>) {
+        owner.apply(update)
+    }
+}
+
+
+private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArrayType>: _BaseObservableArray<Output> where Content.Element == Input, Content.Change == ArrayChange<Content.Element> {
     typealias Element = Output
     typealias Change = ArrayChange<Output>
 
     let content: Content
     let transform: (Input) -> Output
     private var _value: [Output]
-    private var connection: Connection? = nil
-    private var state = TransactionState<Change>()
     private var pendingChange: ArrayChange<Input>? = nil
 
     init(_ content: Content, transform: @escaping (Input) -> Output) {
@@ -78,17 +92,18 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
         self.transform = transform
         self._value = content.value.map(transform)
         super.init()
-        self.connection = content.updates.connect { [unowned self] in self.apply($0) }
+
+        content.add(BufferedMapSink(owner: self))
     }
 
     deinit {
-        connection!.disconnect()
+        content.remove(BufferedMapSink(owner: self))
     }
 
-    private func apply(_ update: Update<ArrayChange<Input>>) {
+    func apply(_ update: Update<ArrayChange<Input>>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             if pendingChange != nil {
                 pendingChange!.merge(with: change)
@@ -99,7 +114,7 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
         case .endTransaction:
             if let change = pendingChange {
                 pendingChange = nil
-                if state.isConnected {
+                if isConnected {
                     var mappedChange = Change(initialCount: value.count)
                     for modification in change.modifications {
                         switch modification {
@@ -123,7 +138,7 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
                             _value.replaceSubrange(range, with: tnew)
                         }
                     }
-                    state.send(mappedChange)
+                    sendChange(mappedChange)
                 }
                 else {
                     for modification in change.modifications {
@@ -140,7 +155,7 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
                     }
                 }
             }
-            state.end()
+            endTransaction()
         }
     }
 
@@ -160,9 +175,5 @@ private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArr
 
     override var count: Int {
         return value.count
-    }
-
-    override var updates: ArrayUpdateSource<Element> {
-        return state.source(retaining: self)
     }
 }

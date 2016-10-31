@@ -6,22 +6,20 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-extension ObservableSetType {
-    public func sorted(by areInIncreasingOrder: @escaping (Element, Element) -> Bool) -> ObservableArray<Element> {
+extension ObservableSetType where Change == SetChange<Element> {
+    public func sorted(by areInIncreasingOrder: @escaping (Element, Element) -> Bool) -> AnyObservableArray<Element> {
         let comparator = Comparator(areInIncreasingOrder)
         return self
-            .sorted(by: { [unowned(unsafe) comparator] in ComparableWrapper($0, comparator) })
+            .sorted(by: { [unowned comparator] in ComparableWrapper($0, comparator) })
             .map { [comparator] in _ = comparator; return $0.element }
     }
 
-    public func sorted<Comparator: ObservableValueType>(by comparator: Comparator) -> ObservableArray<Element> where Comparator.Value == (Element, Element) -> Bool, Comparator.Change == ValueChange<Comparator.Value> {
-        let reference = ObservableArrayReference<Element>()
-        let connection = comparator.values.connect { comparatorValue in
-            reference.retarget(to: self.sorted(by: comparatorValue))
+    public func sorted<Comparator: ObservableValueType>(by comparator: Comparator) -> AnyObservableArray<Element>
+    where Comparator.Value == (Element, Element) -> Bool, Comparator.Change == ValueChange<Comparator.Value> {
+        let reference: AnyObservableValue<AnyObservableArray<Element>> = comparator.map { comparator in
+            self.sorted(by: comparator).anyObservableArray
         }
-        return reference.observableArray.holding(connection)
+        return reference.unpacked()
     }
 }
 

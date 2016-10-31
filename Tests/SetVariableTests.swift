@@ -48,11 +48,11 @@ class SetVariableTests: XCTestCase {
         let mock = MockSetObserver<Foo>(set)
 
         let f2p = Foo(2)
-        let a = mock.expecting("[2]/[2]") { set.update(with: f2p) }
+        let a = mock.expecting(["begin", "[2]/[2]", "end"]) { set.update(with: f2p) }
         XCTAssertTrue(a === f2)
-        let b = mock.expecting("[2]/[2]") { set.update(with: Foo(2)) }
+        let b = mock.expecting(["begin", "[2]/[2]", "end"]) { set.update(with: Foo(2)) }
         XCTAssertTrue(b === f2p)
-        let c = mock.expecting("[]/[4]") { set.update(with: Foo(4)) }
+        let c = mock.expecting(["begin", "[]/[4]", "end"]) { set.update(with: Foo(4)) }
         XCTAssertNil(c)
     }
 }

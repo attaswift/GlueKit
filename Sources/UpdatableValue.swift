@@ -6,40 +6,40 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 /// An observable thing that also includes support for updating its value.
 public protocol UpdatableValueType: ObservableValueType, UpdatableType {
-    /// Returns the type-lifted version of this UpdatableValueType.
-    var updatable: Updatable<Value> { get }
+    /// Returns the type-erased version of this UpdatableValueType.
+    var anyUpdatableValue: AnyUpdatableValue<Value> { get }
 }
 
 extension UpdatableValueType where Change == ValueChange<Value> {
-    /// Returns the type-lifted version of this UpdatableValueType.
-    public var updatable: Updatable<Value> {
-        return Updatable(self)
+    /// Returns the type-erased version of this UpdatableValueType.
+    public var anyUpdatableValue: AnyUpdatableValue<Value> {
+        return AnyUpdatableValue(self)
     }
 }
 
-/// The type lifted representation of an UpdatableValueType.
-public struct Updatable<Value>: UpdatableValueType {
-    public typealias SinkValue = Value
+/// The type erased representation of an UpdatableValueType.
+public struct AnyUpdatableValue<Value>: UpdatableValueType {
     public typealias Change = ValueChange<Value>
 
-    private let box: AbstractUpdatableBase<Value>
+    private let box: _AbstractUpdatableValue<Value>
 
-    init(box: AbstractUpdatableBase<Value>) {
+    init(box: _AbstractUpdatableValue<Value>) {
         self.box = box
     }
 
-    public init(getter: @escaping (Void) -> Value,
-                setter: @escaping (Value) -> Void,
-                transaction: @escaping (() -> Void) -> Void,
-                updates: @escaping (Void) -> ValueUpdateSource<Value>) {
-        self.box = UpdatableClosureBox(getter: getter, setter: setter, transaction: transaction, updates: updates)
+    public init<Updates: SourceType>(getter: @escaping (Void) -> Value,
+                                     apply: @escaping (Update<ValueChange<Value>>) -> Void,
+                                     updates: Updates)
+        where Updates.Value == Update<Change> {
+        self.box = UpdatableClosureBox(getter: getter,
+                                       apply: apply,
+                                       updates: updates)
     }
 
-    public init<Base: UpdatableValueType>(_ base: Base) where Base.Value == Value, Base.Change == ValueChange<Value> {
+    public init<Base: UpdatableValueType>(_ base: Base)
+    where Base.Value == Value, Base.Change == ValueChange<Value> {
         self.box = UpdatableBox(base)
     }
 
@@ -48,44 +48,106 @@ public struct Updatable<Value>: UpdatableValueType {
         nonmutating set { box.value = newValue }
     }
 
-    public func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return box.withTransaction(body)
+    public func apply(_ update: Update<Change>) {
+        box.apply(update)
     }
 
-    public func receive(_ value: Value) {
-        box.receive(value)
+    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        box.add(sink)
     }
 
-    public var updates: ValueUpdateSource<Value> {
-        return box.updates
+    @discardableResult
+    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return box.remove(sink)
     }
 
-    public var futureValues: Source<Value> {
-        return box.futureValues
+    public var anyObservableValue: AnyObservableValue<Value> {
+        return box.anyObservableValue
     }
 
-    public var observable: Observable<Value> {
-        return box.observable
-    }
-
-    public var updatable: Updatable<Value> {
+    public var anyUpdatableValue: AnyUpdatableValue<Value> {
         return self
     }
 }
 
-internal class AbstractUpdatableBase<Value>: _ObservableValueBase<Value>, UpdatableValueType {
-    typealias Change = ValueChange<Value>
+open class _AbstractUpdatableValue<Value>: _AbstractObservableValue<Value>, UpdatableValueType {
+    public typealias Change = ValueChange<Value>
 
-    override var value: Value {
+    open override var value: Value {
         get { abstract() }
         set { abstract() }
     }
-    func withTransaction<Result>(_ body: () -> Result) -> Result { abstract() }
-    func receive(_ value: Value) { self.value = value }
-    final var updatable: Updatable<Value> { return Updatable(box: self) }
+    open func apply(_ update: Update<Change>) { abstract() }
+
+    public final var anyUpdatableValue: AnyUpdatableValue<Value> { return AnyUpdatableValue(box: self) }
 }
 
-internal class UpdatableBox<Base: UpdatableValueType>: AbstractUpdatableBase<Base.Value> where Base.Change == ValueChange<Base.Value> {
+public class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, SignalDelegate {
+    private var state = TransactionState<ValueChange<Value>>()
+
+    func rawGetValue() -> Value { abstract() }
+    func rawSetValue(_ value: Value) { abstract() }
+
+    public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        state.add(sink, with: self)
+    }
+
+    @discardableResult
+    public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return state.remove(sink)
+    }
+
+    public final override var value: Value {
+        get {
+            return rawGetValue()
+        }
+        set {
+            beginTransaction()
+            let old = rawGetValue()
+            rawSetValue(newValue)
+            sendChange(ValueChange(from: old, to: newValue))
+            endTransaction()
+        }
+    }
+
+    public final override func apply(_ update: Update<Change>) {
+        switch update {
+        case .beginTransaction:
+            state.begin()
+        case .change(let change):
+            rawSetValue(change.new)
+            sendChange(change)
+        case .endTransaction:
+            state.end()
+        }
+    }
+
+    final func beginTransaction() {
+        state.begin()
+    }
+
+    final func endTransaction() {
+        state.end()
+    }
+
+    final func sendChange(_ change: Change) {
+        state.send(change)
+    }
+
+    final func send(_ update: Update<Change>) {
+        state.send(update)
+    }
+
+    open func activate() {
+        // Do nothing
+    }
+
+    open func deactivate() {
+        // Do nothing
+    }
+}
+
+internal final class UpdatableBox<Base: UpdatableValueType>: _AbstractUpdatableValue<Base.Value> where Base.Change == ValueChange<Base.Value> {
     typealias Value = Base.Value
     private let base: Base
 
@@ -98,84 +160,55 @@ internal class UpdatableBox<Base: UpdatableValueType>: AbstractUpdatableBase<Bas
         set { base.value = newValue }
     }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return base.withTransaction(body)
+    override func apply(_ update: Update<ValueChange<Value>>) {
+        base.apply(update)
     }
 
-    override var updates: ValueUpdateSource<Value> {
-        return base.updates
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        base.add(sink)
     }
 
-    override var futureValues: Source<Value> {
-        return base.futureValues
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return base.remove(sink)
     }
 }
 
-private class UpdatableClosureBox<Value>: AbstractUpdatableBase<Value> {
+private final class UpdatableClosureBox<Value, Updates: SourceType>: _AbstractUpdatableValue<Value>
+where Updates.Value == Update<ValueChange<Value>> {
     /// The getter closure for the current value of this updatable.
-    private let _getter: (Void) -> Value
-    /// The setter closure for updating the current value of this updatable.
-    private let _setter: (Value) -> Void
-    private let _transaction: (() -> Void) -> Void
+    private let _getter: () -> Value
+    private let _apply: (Update<ValueChange<Value>>) -> Void
     /// A closure returning a source providing the values of future updates to this updatable.
-    private let _updates: (Void) -> ValueUpdateSource<Value>
+    private let _updates: Updates
 
-    public init(getter: @escaping (Void) -> Value,
-                setter: @escaping (Value) -> Void,
-                transaction: @escaping (() -> Void) -> Void,
-                updates: @escaping (Void) -> ValueUpdateSource<Value>) {
+    public init(getter: @escaping () -> Value,
+                apply: @escaping (Update<ValueChange<Value>>) -> Void,
+                updates: Updates) {
         self._getter = getter
-        self._setter = setter
-        self._transaction = transaction
+        self._apply = apply
         self._updates = updates
     }
 
     override var value: Value {
         get { return _getter() }
-        set { _setter(newValue) }
-    }
-
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        var result: Result? = nil
-        _transaction {
-            result = body()
+        set {
+            _apply(.beginTransaction)
+            _apply(.change(ValueChange(from: _getter(), to: newValue)))
+            _apply(.endTransaction)
         }
-        return result!
     }
 
-    override var updates: ValueUpdateSource<Value> {
-        return _updates()
+    override func apply(_ update: Update<ValueChange<Value>>) {
+        _apply(update)
     }
-}
 
-extension UpdatableValueType where Change == ValueChange<Value> {
-    /// Create a two-way binding from self to a target updatable. The target is updated to the current value of self.
-    /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
-    /// To prevent infinite cycles, you must provide an equality test that returns true if two values are to be
-    /// considered equivalent.
-    public func bind<Target: UpdatableValueType>(_ target: Target, equalityTest: @escaping (Value, Value) -> Bool) -> Connection where Target.Value == Value, Target.Change == ValueChange<Value> {
-        let forward = self.futureValues.connect { value in
-            if !equalityTest(value, target.value) {
-                target.value = value
-            }
-        }
-        let back = target.futureValues.connect { value in
-            if !equalityTest(value, self.value) {
-                self.value = value
-            }
-        }
-        forward.addCallback { id in back.disconnect() }
-        target.value = self.value
-        return forward
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        _updates.add(sink)
     }
-}
 
-extension UpdatableValueType where Value: Equatable, Change == ValueChange<Value> {
-    /// Create a two-way binding from self to a target variable. The target is updated to the current value of self.
-    /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
-    /// To prevent infinite cycles, the variables aren't synched when a bound variable is set to a value that is equal
-    /// to the value of its counterpart.
-    public func bind<Target: UpdatableValueType>(_ target: Target) -> Connection where Target.Value == Value, Target.Change == ValueChange<Value> {
-        return self.bind(target, equalityTest: ==)
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return _updates.remove(sink)
     }
 }

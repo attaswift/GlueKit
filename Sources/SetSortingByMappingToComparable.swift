@@ -6,33 +6,42 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
 import BTree
 
-extension ObservableSetType {
+extension ObservableSetType where Change == SetChange<Element> {
     /// Given a transformation into a comparable type, return an observable array containing transformed
     /// versions of elements in this set, in increasing order.
-    public func sorted<Result: Comparable>(by transform: @escaping (Element) -> Result) -> ObservableArray<Result> {
-        return SetSortingByMappingToComparable(parent: self, transform: transform).observableArray
+    public func sorted<Result: Comparable>(by transform: @escaping (Element) -> Result) -> AnyObservableArray<Result> {
+        return SetSortingByMappingToComparable(parent: self, transform: transform).anyObservableArray
     }
 }
 
-extension ObservableSetType where Element: Comparable {
+extension ObservableSetType where Element: Comparable, Change == SetChange<Element> {
     /// Return an observable array containing the members of this set, in increasing order.
-    public func sorted() -> ObservableArray<Element> {
+    public func sorted() -> AnyObservableArray<Element> {
         return self.sorted { $0 }
     }
 }
 
-private final class SetSortingByMappingToComparable<Parent: ObservableSetType, Element: Comparable>: _ObservableArrayBase<Element> {
+private struct SortingSink<Parent: ObservableSetType, Element: Comparable>: UniqueOwnedSink
+where Parent.Change == SetChange<Parent.Element> {
+    typealias Owner = SetSortingByMappingToComparable<Parent, Element>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: SetUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private final class SetSortingByMappingToComparable<Parent: ObservableSetType, Element: Comparable>: _BaseObservableArray<Element>
+where Parent.Change == SetChange<Parent.Element> {
     typealias Change = ArrayChange<Element>
 
     private let parent: Parent
     private let transform: (Parent.Element) -> Element
 
     private var contents: Map<Element, Int> = [:]
-    private var state = TransactionState<Change>()
-    private var baseConnection: Connection? = nil
 
     init(parent: Parent, transform: @escaping (Parent.Element) -> Element) {
         self.parent = parent
@@ -43,17 +52,17 @@ private final class SetSortingByMappingToComparable<Parent: ObservableSetType, E
             let transformed = transform(element)
             contents[transformed] = (contents[transformed] ?? 0) + 1
         }
-        baseConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.add(SortingSink(owner: self))
     }
 
     deinit {
-        baseConnection?.disconnect()
+        parent.remove(SortingSink(owner: self))
     }
 
-    private func apply(_ update: SetUpdate<Parent.Element>) {
+    func applyParentUpdate(_ update: SetUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             var arrayChange = ArrayChange<Element>(initialCount: contents.count)
             for element in change.removed {
@@ -63,7 +72,7 @@ private final class SetSortingByMappingToComparable<Parent: ObservableSetType, E
                 if count == 1 {
                     let offset = contents.offset(of: index)
                     let old = contents.remove(at: index)
-                    if state.isConnected {
+                    if isConnected {
                         arrayChange.add(.remove(old.key, at: offset))
                     }
                 }
@@ -78,17 +87,17 @@ private final class SetSortingByMappingToComparable<Parent: ObservableSetType, E
                 }
                 else {
                     contents[transformed] = 1
-                    if state.isConnected {
+                    if isConnected {
                         let offset = contents.offset(of: transformed)!
                         arrayChange.add(.insert(transformed, at: offset))
                     }
                 }
             }
-            if state.isConnected, !arrayChange.isEmpty {
-                state.send(arrayChange)
+            if isConnected, !arrayChange.isEmpty {
+                sendChange(arrayChange)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
@@ -97,5 +106,4 @@ private final class SetSortingByMappingToComparable<Parent: ObservableSetType, E
     override subscript(bounds: Range<Int>) -> ArraySlice<Element> { return ArraySlice(contents.submap(withOffsets: bounds).lazy.map { $0.0 }) }
     override var value: Array<Element> { return Array(contents.lazy.map { $0.0 }) }
     override var count: Int { return contents.count }
-    override var updates: ArrayUpdateSource<Element> { return state.source(retaining: self) }
 }

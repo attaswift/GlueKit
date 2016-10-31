@@ -6,48 +6,55 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-extension ObservableArrayType {
-    public func filter(test: @escaping (Element) -> Bool) -> ObservableArray<Element> {
-        return ArrayFilteringOnPredicate<Self>(parent: self, test: test).observableArray
+extension ObservableArrayType where Change == ArrayChange<Element> {
+    public func filter(_ isIncluded: @escaping (Element) -> Bool) -> AnyObservableArray<Element> {
+        return ArrayFilteringOnPredicate<Self>(parent: self, isIncluded: isIncluded).anyObservableArray
     }
 }
 
-private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _ObservableArrayBase<Parent.Element> {
+private struct ParentSink<Parent: ObservableArrayType>: UniqueOwnedSink where Parent.Change == ArrayChange<Parent.Element> {
+    typealias Owner = ArrayFilteringOnPredicate<Parent>
+
+    unowned(unsafe) let owner: Owner
+
+    func receive(_ update: ArrayUpdate<Parent.Element>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _BaseObservableArray<Parent.Element>
+where Parent.Change == ArrayChange<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = ArrayChange<Element>
 
     private let parent: Parent
-    private let test: (Element) -> Bool
+    private let isIncluded: (Element) -> Bool
 
     private var indexMapping: ArrayFilteringIndexmap<Element>
-    private var state = TransactionState<Change>()
-    private var connection: Connection? = nil
 
-    init(parent: Parent, test: @escaping (Element) -> Bool) {
+    init(parent: Parent, isIncluded: @escaping (Element) -> Bool) {
         self.parent = parent
-        self.test = test
-        self.indexMapping = ArrayFilteringIndexmap(initialValues: parent.value, test: test)
+        self.isIncluded = isIncluded
+        self.indexMapping = ArrayFilteringIndexmap(initialValues: parent.value, isIncluded: isIncluded)
         super.init()
-        connection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.add(ParentSink(owner: self))
     }
 
     deinit {
-        connection!.disconnect()
+        parent.remove(ParentSink(owner: self))
     }
 
-    private func apply(_ update: ArrayUpdate<Element>) {
+    func applyParentUpdate(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             let filteredChange = self.indexMapping.apply(change)
             if !filteredChange.isEmpty {
-                self.state.send(filteredChange)
+                sendChange(filteredChange)
             }
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
@@ -75,9 +82,5 @@ private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _Obs
 
     override var count: Int {
         return indexMapping.matchingIndices.count
-    }
-
-    override var updates: ArrayUpdateSource<Base.Element> {
-        return state.source(retaining: self)
     }
 }

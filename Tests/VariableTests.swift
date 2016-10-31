@@ -10,7 +10,7 @@ import XCTest
 @testable import GlueKit
 
 class VariableTests: XCTestCase {
-    func testValuesSource() {
+    func test_values() {
         let v = Variable<Int>(0)
 
         var r = [Int]()
@@ -33,13 +33,13 @@ class VariableTests: XCTestCase {
         }
         XCTAssertEqual(r, [0, 1, 2, 2, 3])
 
-        v.sink.receive(4)
+        v.apply(ValueChange(from: 3, to: 4))
         XCTAssertEqual(r, [0, 1, 2, 2, 3, 4])
         
         c.disconnect()
     }
 
-    func testFutureValuesSource() {
+    func test_futureValues() {
         let v = Variable<Int>(0)
 
         var r = [Int]()
@@ -62,13 +62,35 @@ class VariableTests: XCTestCase {
         }
         XCTAssertEqual(r, [1, 2, 2, 3])
 
-        v.sink.receive(4)
+        v.apply(ValueChange(from: 3, to: 4))
         XCTAssertEqual(r, [1, 2, 2, 3, 4])
 
         c.disconnect()
     }
 
-    func testNestedUpdatesWithTheImmediateSource() {
+    func test_updates_NestedUpdates() {
+        let v = Variable<Int>(3)
+
+        var s = ""
+        let c = v.updates.connect { update in
+            s += " (\(describe(update))"
+            if let new = update.change?.new, new > 0 {
+                // This is OK as long as it doesn't lead to infinite updates.
+                // The value is updated immediately, but the source is triggered later, at the end of the outermost update.
+                v.value -= 1
+            }
+            s += ")"
+        }
+        XCTAssertEqual(s, "")
+
+        s = ""
+        v.value = 2
+        XCTAssertEqual(s, " (begin) (3 -> 2) (2 -> 1) (1 -> 0) (end)")
+
+        c.disconnect()
+    }
+
+    func test_values_NestedUpdates() {
         let v = Variable<Int>(3)
 
         var s = ""
@@ -90,7 +112,7 @@ class VariableTests: XCTestCase {
         c.disconnect()
     }
 
-    func testNestedUpdatesWithTheFutureSource() {
+    func test_futureValues_NestedUpdates() {
         let v = Variable<Int>(0)
 
         var s = ""
@@ -117,7 +139,7 @@ class VariableTests: XCTestCase {
     }
 
 
-    func testReentrantSinks() {
+    func test_values_ReentrantSinks() {
         let v = Variable<Int>(0)
 
         var s = String()
@@ -168,12 +190,12 @@ class VariableTests: XCTestCase {
             XCTAssert(eq(v.value, c))
             v.value = a
 
-            let mock = MockValueObserver(v, eq)
-            mock.expecting(.init(from: a, to: b)) {
+            let mock = MockValueUpdateSink(v)
+            mock.expecting(["begin", "\(a) -> \(b)", "end"]) {
                 v.value = b
             }
             XCTAssert(eq(v.value, b))
-            mock.expecting(.init(from: b, to: c)) {
+            mock.expecting(["begin", "\(b) -> \(a)", "\(a) -> \(c)", "end"]) {
                 v.withTransaction {
                     v.value = a
                     v.value = c
@@ -223,6 +245,9 @@ class VariableTests: XCTestCase {
         }
         XCTAssertNil(box)
         XCTAssertNil(variable.value)
+
+        let nilVariable = WeakVariable<Box>()
+        XCTAssertNil(nilVariable.value)
     }
 
 

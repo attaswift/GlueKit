@@ -6,8 +6,6 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 extension ObservableValueType where Change == ValueChange<Value> {
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects a child component (a.k.a "field") of its value that is a source,
@@ -16,48 +14,62 @@ extension ObservableValueType where Change == ValueChange<Value> {
     /// - Parameter key: An accessor function that returns a component of self (a field) that is a SourceType.
     ///
     /// - Returns: A new source that sends the same values as the current source returned by key in the parent.
-    public func map<S: SourceType>(_ key: @escaping (Value) -> S) -> Source<S.SourceValue> {
-        return ValueMappingForSourceField(parent: self, key: key).source
+    public func map<Source: SourceType>(_ key: @escaping (Value) -> Source) -> AnySource<Source.Value> {
+        return ValueMappingForSourceField(parent: self, key: key).anySource
+    }
+}
+
+private struct SourceFieldSink<Parent: ObservableValueType, Field: SourceType>: UniqueOwnedSink where Parent.Change == ValueChange<Parent.Value> {
+    typealias Owner = ValueMappingForSourceField<Parent, Field>
+
+    unowned let owner: Owner
+
+    func receive(_ update: ValueUpdate<Parent.Value>) {
+        owner.applyParentUpdate(update)
     }
 }
 
 /// A source of values for a Source field.
-private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: SignalDelegate, SourceType
+private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: SignalerSource<Field.Value>
 where Parent.Change == ValueChange<Parent.Value> {
 
-    typealias Value = Field.SourceValue
+    typealias Value = Field.Value
 
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    var signal = OwningSignal<Value>()
-    var fieldConnection: Connection? = nil
-    var parentConnection: Connection? = nil
-
-    func connect(_ sink: Sink<Value>) -> Connection { return signal.with(self).connect(sink) }
+    private var _field: Field? = nil
 
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    func start(_ signal: Signal<Value>) {
-        assert(parentConnection == nil)
+    override func activate() {
+        precondition(_field == nil)
         let field = key(parent.value)
-        parentConnection = parent.changes.connect { [unowned self] change in self.apply(change) }
-        fieldConnection = field.connect(signal)
+        _field = field
+        parent.add(SourceFieldSink(owner: self))
+        field.add(signal.asSink)
     }
 
-    func stop(_ signal: Signal<Value>) {
-        fieldConnection!.disconnect()
-        parentConnection!.disconnect()
-        fieldConnection = nil
-        parentConnection = nil
+    override func deactivate() {
+        _field!.remove(signal.asSink)
+        _field = nil
+        parent.remove(SourceFieldSink(owner: self))
     }
 
-    private func apply(_ change: ValueChange<Parent.Value>) {
-        let field = key(change.new)
-        self.fieldConnection!.disconnect()
-        self.fieldConnection = field.connect(signal.with(self))
+    func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
+        switch update {
+        case .beginTransaction:
+            break
+        case .change(let change):
+            let field = key(change.new)
+            _field!.remove(signal.asSink)
+            _field = field
+            field.add(signal.asSink)
+        case .endTransaction:
+            break
+        }
     }
 }

@@ -6,114 +6,69 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
 /// A variable implements `UpdatableValueType` by having internal storage to a value.
 ///
 /// - SeeAlso: UnownedVariable<Value>, WeakVariable<Value>
 ///
-public class Variable<Value>: AbstractUpdatableBase<Value> {
+public class Variable<Value>: _BaseUpdatableValue<Value> {
     public typealias Change = ValueChange<Value>
 
     private var _value: Value
-    private var _state = TransactionState<Change>()
 
     /// Create a new variable with an initial value.
     public init(_ value: Value) {
         _value = value
     }
-
-    /// The current value of the variable.
-    public final override var value: Value {
-        get { return _value }
-        set {
-            let old = _value
-            _state.begin()
-            _value = newValue
-            _state.send(Change(from: old, to: _value))
-            _state.end()
-        }
+    override func rawGetValue() -> Value {
+        return _value
     }
-
-    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
-        return body()
+    override func rawSetValue(_ value: Value) {
+        _value = value
     }
-
-    public final override var updates: ValueUpdateSource<Value> {
-        return _state.source(retaining: self)
-    }
-}
+ }
 
 /// An unowned variable contains an unowned reference to an object that can be read and updated. Updates are observable.
-public class UnownedVariable<Value: AnyObject>: AbstractUpdatableBase<Value> {
+public class UnownedVariable<Value: AnyObject>: _BaseUpdatableValue<Value> {
     public typealias Change = ValueChange<Value>
 
     private unowned var _value: Value
-    private var _state = TransactionState<Change>()
 
     /// Create a new variable with an initial value.
     public init(_ value: Value) {
         _value = value
     }
-
-    /// The current value of the variable.
-    public final override var value: Value {
-        get { return _value }
-        set {
-            let old = _value
-            _state.begin()
-            _value = newValue
-            _state.send(Change(from: old, to: _value))
-            _state.end()
-        }
+    override func rawGetValue() -> Value {
+        return _value
     }
-
-    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
-        return body()
-    }
-
-    public final override var updates: ValueUpdateSource<Value> {
-        return _state.source(retaining: self)
+    override func rawSetValue(_ value: Value) {
+        _value = value
     }
 }
 
 /// A weak variable contains a weak reference to an object that can be read and updated. Updates are observable.
-public class WeakVariable<Object: AnyObject>: AbstractUpdatableBase<Object?> {
+public class WeakVariable<Object: AnyObject>: _BaseUpdatableValue<Object?> {
     public typealias Value = Object?
     public typealias Change = ValueChange<Value>
 
     private weak var _value: Object?
-    private var _state = TransactionState<Change>()
+
+    /// Create a new variable with a `nil` initial value.
+    public override init() {
+        _value = nil
+        super.init()
+    }
 
     /// Create a new variable with an initial value.
     public init(_ value: Value) {
         _value = value
+        super.init()
     }
 
-    /// The current value of the variable.
-    public final override var value: Value {
-        get { return _value }
-        set {
-            let old = _value
-            _state.begin()
-            _value = newValue
-            _state.send(Change(from: old, to: _value))
-            _state.end()
-        }
+    override func rawGetValue() -> Value {
+        return _value
     }
-
-    public final override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
-        return body()
-    }
-
-    public final override var updates: ValueUpdateSource<Value> {
-        return _state.source(retaining: self)
+    override func rawSetValue(_ value: Value) {
+        _value = value
     }
 }
 

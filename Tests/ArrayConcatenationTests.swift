@@ -40,12 +40,12 @@ class ArrayConcatenationTests: XCTestCase {
 
         let mock = MockArrayObserver(c)
 
-        mock.expecting(5, .insert(30, at: 5)) {
+        mock.expecting(["begin", "5.insert(30, at: 5)", "end"]) {
             b.append(30)
         }
         check(a: a.value, b: b.value, c: c)
 
-        mock.expecting(6, .insert(3, at: 3)) {
+        mock.expecting(["begin", "6.insert(3, at: 3)", "end"]) {
             a.append(3)
         }
         check(a: a.value, b: b.value, c: c)

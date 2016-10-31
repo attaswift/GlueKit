@@ -6,9 +6,7 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-import Foundation
-
-extension ObservableValueType {
+extension ObservableValueType where Change == ValueChange<Value> {
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
     /// `map` returns a new observable that can be used to look up and modify the field and observe its changes
@@ -28,7 +26,7 @@ extension ObservableValueType {
     ///     let text: Variable<String>
     /// }
     /// class Room {
-    ///     let latestMessage: Observable<Message>
+    ///     let latestMessage: AnyObservableValue<Message>
     ///     let newMessages: Source<Message>
     ///     let messages: ArrayVariable<Message>
     /// }
@@ -43,84 +41,104 @@ extension ObservableValueType {
     /// message is posted in the current room. The observable can also be used to simply retrieve the latest
     /// message at any time.
     ///
-    public func map<O: ObservableValueType>(_ key: @escaping (Value) -> O) -> Observable<O.Value> {
-        return ValueMappingForValueField(parent: self, key: key).observable
+    public func map<O: ObservableValueType>(_ key: @escaping (Value) -> O) -> AnyObservableValue<O.Value> where O.Change == ValueChange<O.Value> {
+        return ValueMappingForValueField(parent: self, key: key).anyObservableValue
+    }
+}
+
+private struct ParentSink<Parent: ObservableValueType, Field: ObservableValueType>: OwnedSink
+where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
+    typealias Owner = ValueMappingForValueField<Parent, Field>
+
+    unowned let owner: Owner
+    let identifier = 1
+
+    func receive(_ update: ValueUpdate<Parent.Value>) {
+        owner.applyParentUpdate(update)
+    }
+}
+
+private struct FieldSink<Parent: ObservableValueType, Field: ObservableValueType>: OwnedSink
+where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
+    typealias Owner = ValueMappingForValueField<Parent, Field>
+
+    unowned let owner: Owner
+    let identifier = 2
+
+    func receive(_ update: ValueUpdate<Field.Value>) {
+        owner.applyFieldUpdate(update)
     }
 }
 
 /// A source of changes for an Observable field.
-private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: _ObservableValueBase<Field.Value>, SignalDelegate {
+private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: _BaseObservableValue<Field.Value> where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
     typealias Value = Field.Value
     typealias Change = ValueChange<Value>
 
     let parent: Parent
     let key: (Parent.Value) -> Field
 
-    private var state = TransactionState<Change>()
     private var currentValue: Field.Value? = nil
-    private var parentConnection: Connection? = nil
-    private var fieldConnection: Connection? = nil
+    private var field: Field? = nil
 
     override var value: Field.Value {
         if let v = currentValue { return v }
         return key(parent.value).value
     }
 
-    override var updates: ValueUpdateSource<Value> { return state.source(retainingDelegate: self) }
-
     init(parent: Parent, key: @escaping (Parent.Value) -> Field) {
         self.parent = parent
         self.key = key
     }
 
-    func start(_ signal: Signal<Update<Change>>) {
-        precondition(parentConnection == nil)
+    override func activate() {
+        precondition(currentValue == nil)
         let field = key(parent.value)
-        currentValue = field.value
+        self.currentValue = field.value
         connect(to: field)
-        parentConnection = parent.updates.connect { [unowned self] in self.apply($0) }
+        parent.add(ParentSink(owner: self))
     }
 
-    func stop(_ signal: Signal<Update<Change>>) {
-        precondition(parentConnection != nil)
-        fieldConnection?.disconnect()
-        parentConnection?.disconnect()
-        currentValue = nil
-        fieldConnection = nil
-        parentConnection = nil
+    override func deactivate() {
+        precondition(currentValue != nil)
+        self.field!.remove(FieldSink(owner: self))
+        parent.remove(ParentSink(owner: self))
+        self.field = nil
+        self.currentValue = nil
     }
 
     private func connect(to field: Field) {
-        self.fieldConnection?.disconnect()
-        fieldConnection = field.updates.connect { [unowned self] in self.apply($0) }
+        self.field?.remove(FieldSink(owner: self))
+        self.field = field
+        field.add(FieldSink(owner: self))
     }
 
-    private func apply(_ update: ValueUpdate<Parent.Value>) {
+    func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             let field = key(change.new)
             let old = currentValue!
             let new = field.value
             currentValue = new
-            state.send(ValueChange(from: old, to: new))
+            sendChange(ValueChange(from: old, to: new))
             connect(to: field)
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
-    private func apply(_ update: ValueUpdate<Field.Value>) {
+    func applyFieldUpdate(_ update: ValueUpdate<Field.Value>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             let old = currentValue!
             currentValue = change.new
-            state.send(ValueChange(from: old, to: change.new))
+            sendChange(ValueChange(from: old, to: change.new))
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 }
@@ -145,7 +163,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
     ///     let text: Variable<String>
     /// }
     /// class Room {
-    ///     let latestMessage: Observable<Message>
+    ///     let latestMessage: AnyObservableValue<Message>
     ///     let messages: ArrayVariable<Message>
     ///     let newMessages: Source<Message>
     /// }
@@ -161,12 +179,12 @@ extension ObservableValueType where Change == ValueChange<Value> {
     /// author changes their avatar. The updatable can also be used to simply retrieve the avatar at any time,
     /// or to update it.
     ///
-    public func map<U: UpdatableValueType>(_ key: @escaping (Value) -> U) -> Updatable<U.Value> where U.Change == ValueChange<U.Value> {
-        return ValueMappingForUpdatableField<Self, U>(parent: self, key: key).updatable
+    public func map<U: UpdatableValueType>(_ key: @escaping (Value) -> U) -> AnyUpdatableValue<U.Value> where U.Change == ValueChange<U.Value> {
+        return ValueMappingForUpdatableField<Self, U>(parent: self, key: key).anyUpdatableValue
     }
 }
 
-private final class ValueMappingForUpdatableField<Parent: ObservableValueType, Field: UpdatableValueType>: AbstractUpdatableBase<Field.Value> where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
+private final class ValueMappingForUpdatableField<Parent: ObservableValueType, Field: UpdatableValueType>: _AbstractUpdatableValue<Field.Value> where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
     typealias Value = Field.Value
 
     private let _observable: ValueMappingForValueField<Parent, Field>
@@ -184,11 +202,16 @@ private final class ValueMappingForUpdatableField<Parent: ObservableValueType, F
         }
     }
 
-    override func withTransaction<Result>(_ body: () -> Result) -> Result {
-        return _observable.key(_observable.parent.value).withTransaction(body)
+    override func apply(_ update: Update<ValueChange<Field.Value>>) {
+        return _observable.key(_observable.parent.value).apply(update)
     }
 
-    override var updates: Source<Update<Change>> {
-        return _observable.updates
+    override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
+        _observable.add(sink)
+    }
+
+    @discardableResult
+    override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
+        return _observable.remove(sink)
     }
 }
