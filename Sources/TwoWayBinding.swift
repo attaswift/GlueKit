@@ -16,41 +16,95 @@ extension UpdatableValueType where Change == ValueChange<Value> {
     }
 }
 
-class BindSink<Target: UpdatableValueType>: SinkType where Target.Change == ValueChange<Target.Value> {
-    typealias Value = Target.Value
-    let target: Target
-    let areEquivalent: (Value, Value) -> Bool
+private enum  BindOrigin {
+    case source
+    case target
+}
 
-    init(target: Target, by areEquivalent: @escaping (Value, Value) -> Bool) {
-        self.target = target
-        self.areEquivalent = areEquivalent
+private struct BindSink<Source: UpdatableValueType, Target: UpdatableValueType>: OwnedSink
+where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
+    typealias Owner = BindConnection<Source, Target>
+
+    unowned let owner: Owner
+    let origin: BindOrigin
+
+    var identifier: BindOrigin { return origin }
+
+    init(owner: Owner, origin: BindOrigin) {
+        self.owner = owner
+        self.origin = origin
     }
 
-    func receive(_ value: Value) {
-        if !areEquivalent(value, target.value) {
-            target.value = value
+    private func send(_ update: Update<ValueChange<Source.Value>>) {
+        switch origin {
+        case .source:
+            owner.target!.apply(update)
+        case .target:
+            owner.source!.apply(update)
+        }
+    }
+
+    private var destinationValue: Source.Value {
+        switch origin {
+        case .source:
+            return owner.target!.value
+        case .target:
+            return owner.source!.value
+        }
+    }
+
+    func receive(_ update: Update<ValueChange<Source.Value>>) {
+        switch update {
+        case .beginTransaction:
+            switch owner.transactionOrigin {
+            case nil:
+                owner.transactionOrigin = origin
+                send(update)
+            case .some(origin):
+                preconditionFailure("Duplicate transaction")
+            case .some(_):
+                // Ignore
+                break
+            }
+        case .change(let change):
+            if !owner.areEquivalent!(change.new, destinationValue) {
+                send(update)
+            }
+        case .endTransaction:
+            switch owner.transactionOrigin {
+            case nil:
+                preconditionFailure("End received for nonexistent transaction")
+            case .some(origin):
+                send(update)
+                owner.transactionOrigin = nil
+            case .some(_):
+                // Ignore
+                break
+            }
         }
     }
 }
 
-class BindConnection<Source: UpdatableValueType, Target: UpdatableValueType>: Connection
+private final class BindConnection<Source: UpdatableValueType, Target: UpdatableValueType>: Connection
 where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
     typealias Value = Source.Value
 
-    var source: AnySource<Value>?
-    var target: AnySource<Value>?
-
-    var forwardSink: BindSink<Target>?
-    var backwardSink: BindSink<Source>?
+    var areEquivalent: ((Value, Value) -> Bool)?
+    var source: Source?
+    var target: Target?
+    var transactionOrigin: BindOrigin? = nil
 
     init(source: Source, target: Target, by areEquivalent: @escaping (Value, Value) -> Bool) {
-        self.source = source.futureValues
-        self.target = target.futureValues
-        self.forwardSink = BindSink(target: target, by: areEquivalent)
-        self.backwardSink = BindSink(target: source, by: areEquivalent)
+        self.areEquivalent = areEquivalent
+        self.source = source
+        self.target = target
+        super.init()
 
-        self.source!.add(self.forwardSink!)
-        self.target!.add(self.backwardSink!)
+        source.add(BindSink(owner: self, origin: .source))
+        precondition(transactionOrigin == nil, "Binding during an active transaction is not supported")
+        target.add(BindSink(owner: self, origin: .target))
+        precondition(transactionOrigin == nil, "Binding during an active transaction is not supported")
+
         if !areEquivalent(source.value, target.value) {
             target.value = source.value
         }
@@ -61,16 +115,16 @@ where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, 
     }
 
     override func disconnect() {
-        if let source = self.source, let sink = self.forwardSink {
-            source.remove(sink)
+        precondition(transactionOrigin == nil, "Unbinding during an active transaction is not supported")
+        if let source = self.source {
+            source.remove(BindSink(owner: self, origin: .source))
         }
-        if let source = self.target, let sink = self.backwardSink {
-            source.remove(sink)
+        if let source = self.target {
+            source.remove(BindSink(owner: self, origin: .target))
         }
+        self.areEquivalent = nil
         self.source = nil
         self.target = nil
-        self.forwardSink = nil
-        self.backwardSink = nil
     }
 }
 
