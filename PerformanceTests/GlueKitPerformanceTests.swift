@@ -116,31 +116,6 @@ class SignalSubscriptionTests: XCTestCase {
         }
     }
 
-    func test_subscribe_CrossModuleMethodSink() {
-        let count = 100_000
-
-        self.measureDelayed {
-
-            let signal = Signal<Int>()
-            let object = TestSink()
-
-            self.startMeasuring()
-            for i in 0 ..< count {
-                signal.add(StrongMethodSink(owner: object, identifier: i, method: TestSink.receive))
-            }
-            self.stopMeasuring()
-
-            signal.send(1)
-
-            for i in 0 ..< count {
-                signal.remove(StrongMethodSink(owner: object, identifier: i, method: TestSink.receive))
-            }
-
-            XCTAssertFalse(signal.isConnected)
-            XCTAssertEqual(object.count, count)
-        }
-    }
-
     func test_subscribe_LocalMethodSink() {
         let count = 100_000
 
