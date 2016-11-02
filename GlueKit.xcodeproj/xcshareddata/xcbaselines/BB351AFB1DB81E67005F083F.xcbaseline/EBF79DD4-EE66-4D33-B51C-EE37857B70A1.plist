@@ -87,9 +87,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.3069</real>
+					<real>0.3053</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>2016-11-01 15:29:28</string>
+					<string>2016-11-01 15:43:05</string>
 				</dict>
 			</dict>
 			<key>test_subscribe_EmptySink()</key>
@@ -97,9 +97,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.199</real>
+					<real>0.20632</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>2016-11-01 15:29:28</string>
+					<string>2016-11-01 15:43:05</string>
 				</dict>
 			</dict>
 			<key>test_subscribe_HardwiredMethodSink()</key>
@@ -107,9 +107,9 @@
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.22013</real>
+					<real>0.21459</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>2016-11-01 15:29:28</string>
+					<string>2016-11-01 15:43:05</string>
 				</dict>
 			</dict>
 			<key>test_subscribe_LocalMethodSink()</key>
@@ -122,14 +122,34 @@
 					<string>2016-11-01 15:29:28</string>
 				</dict>
 			</dict>
+			<key>test_subscribe_MethodSink()</key>
+			<dict>
+				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
+				<dict>
+					<key>baselineAverage</key>
+					<real>0.31883</real>
+					<key>baselineIntegrationDisplayName</key>
+					<string>2016-11-01 15:43:05</string>
+				</dict>
+			</dict>
+			<key>test_subscribe_PartiallyAppliedMethodSink()</key>
+			<dict>
+				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
+				<dict>
+					<key>baselineAverage</key>
+					<real>0.36757</real>
+					<key>baselineIntegrationDisplayName</key>
+					<string>2016-11-01 15:43:05</string>
+				</dict>
+			</dict>
 			<key>test_subscribe_RefCountingSink()</key>
 			<dict>
 				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
 				<dict>
 					<key>baselineAverage</key>
-					<real>0.22707</real>
+					<real>0.22047</real>
 					<key>baselineIntegrationDisplayName</key>
-					<string>2016-11-01 15:29:28</string>
+					<string>2016-11-01 15:43:05</string>
 				</dict>
 			</dict>
 		</dict>

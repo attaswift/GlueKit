@@ -51,6 +51,19 @@ private struct TestMethodSink: SinkType {
     static func ==(left: TestMethodSink, right: TestMethodSink) -> Bool { return left.object === right.object && left.id == right.id }
 }
 
+private struct TestPartiallyAppliedMethodSink: SinkType {
+    let object: TestSink
+    let method: (Int) -> Void
+    let id: Int
+    func receive(_ value: Int) {
+        method(value)
+    }
+    var hashValue: Int { return ObjectIdentifier(object).hashValue ^ id }
+    static func ==(left: TestPartiallyAppliedMethodSink, right: TestPartiallyAppliedMethodSink) -> Bool {
+        return left.object === right.object && left.id == right.id
+    }
+}
+
 private struct HardwiredMethodSink: SinkType {
     let object: TestSink
     let id: Int
@@ -116,7 +129,7 @@ class SignalSubscriptionTests: XCTestCase {
         }
     }
 
-    func test_subscribe_LocalMethodSink() {
+    func test_subscribe_MethodSink() {
         let count = 100_000
 
         self.measureDelayed {
@@ -140,6 +153,32 @@ class SignalSubscriptionTests: XCTestCase {
             XCTAssertEqual(object.count, count)
         }
     }
+
+    func test_subscribe_PartiallyAppliedMethodSink() {
+        let count = 100_000
+
+        self.measureDelayed {
+
+            let signal = Signal<Int>()
+            let object = TestSink()
+
+            self.startMeasuring()
+            for i in 0 ..< count {
+                signal.add(TestPartiallyAppliedMethodSink(object: object, method: object.receive, id: i))
+            }
+            self.stopMeasuring()
+
+            signal.send(1)
+
+            for i in 0 ..< count {
+                signal.remove(TestPartiallyAppliedMethodSink(object: object, method: object.receive, id: i))
+            }
+
+            XCTAssertFalse(signal.isConnected)
+            XCTAssertEqual(object.count, count)
+        }
+    }
+
 
     func test_subscribe_HardwiredMethodSink() {
         let count = 100_000
