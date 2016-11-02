@@ -218,9 +218,9 @@
 		BB88C40F1DC3A08B00C7EC3C /* ObservableTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C40D1DC3A08B00C7EC3C /* ObservableTypeTests.swift */; };
 		BB88C4101DC3A08B00C7EC3C /* ObservableTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C40D1DC3A08B00C7EC3C /* ObservableTypeTests.swift */; };
 		BB88C4111DC3A84C00C7EC3C /* VariableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BA71C8FCE2C0050DDA9 /* VariableTests.swift */; };
-		BB88C4131DC3B65F00C7EC3C /* BufferedValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C4121DC3B65F00C7EC3C /* BufferedValueTests.swift */; };
-		BB88C4141DC3B65F00C7EC3C /* BufferedValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C4121DC3B65F00C7EC3C /* BufferedValueTests.swift */; };
-		BB88C4151DC3B65F00C7EC3C /* BufferedValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C4121DC3B65F00C7EC3C /* BufferedValueTests.swift */; };
+		BB88C4131DC3B65F00C7EC3C /* ValueBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C4121DC3B65F00C7EC3C /* ValueBufferingTests.swift */; };
+		BB88C4141DC3B65F00C7EC3C /* ValueBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C4121DC3B65F00C7EC3C /* ValueBufferingTests.swift */; };
+		BB88C4151DC3B65F00C7EC3C /* ValueBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88C4121DC3B65F00C7EC3C /* ValueBufferingTests.swift */; };
 		BB8990261D5F84050097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990251D5F84050097F350 /* Foundation.framework */; };
 		BB8990271D5F84150097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990251D5F84050097F350 /* Foundation.framework */; };
 		BB8990291D5F84210097F350 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB8990281D5F84210097F350 /* Foundation.framework */; };
@@ -395,6 +395,16 @@
 		BBBBECA21DCA3AA8000B646D /* DispatchSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECA11DCA3AA8000B646D /* DispatchSourceTests.swift */; };
 		BBBBECA31DCA3AA8000B646D /* DispatchSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECA11DCA3AA8000B646D /* DispatchSourceTests.swift */; };
 		BBBBECA41DCA3AA8000B646D /* DispatchSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECA11DCA3AA8000B646D /* DispatchSourceTests.swift */; };
+		BBBBECA61DCA3FF0000B646D /* BufferedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECA51DCA3FF0000B646D /* BufferedSet.swift */; };
+		BBBBECA71DCA3FF0000B646D /* BufferedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECA51DCA3FF0000B646D /* BufferedSet.swift */; };
+		BBBBECA81DCA3FF0000B646D /* BufferedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECA51DCA3FF0000B646D /* BufferedSet.swift */; };
+		BBBBECA91DCA3FF0000B646D /* BufferedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECA51DCA3FF0000B646D /* BufferedSet.swift */; };
+		BBBBECAB1DCA4168000B646D /* ArrayBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECAA1DCA4168000B646D /* ArrayBufferingTests.swift */; };
+		BBBBECAC1DCA4168000B646D /* ArrayBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECAA1DCA4168000B646D /* ArrayBufferingTests.swift */; };
+		BBBBECAD1DCA4168000B646D /* ArrayBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECAA1DCA4168000B646D /* ArrayBufferingTests.swift */; };
+		BBBBECAF1DCA446A000B646D /* SetBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECAE1DCA446A000B646D /* SetBufferingTests.swift */; };
+		BBBBECB01DCA446A000B646D /* SetBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECAE1DCA446A000B646D /* SetBufferingTests.swift */; };
+		BBBBECB11DCA446A000B646D /* SetBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECAE1DCA446A000B646D /* SetBufferingTests.swift */; };
 		BBC2A8291CBC14C600394D24 /* NSObject extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */; };
 		BBC2A82B1CBC14C600394D24 /* NSObject extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */; };
 		BBC2A82C1CBC14C600394D24 /* NSObject extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */; };
@@ -594,7 +604,7 @@
 		BB82E3E91D9913050035DDAD /* BTree.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BTree.framework; path = "../BTree/build/Debug-watchos/BTree.framework"; sourceTree = "<group>"; };
 		BB82E3EB1D99130C0035DDAD /* BTree.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BTree.framework; path = "../BTree/build/Debug-appletvos/BTree.framework"; sourceTree = "<group>"; };
 		BB88C40D1DC3A08B00C7EC3C /* ObservableTypeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObservableTypeTests.swift; sourceTree = "<group>"; };
-		BB88C4121DC3B65F00C7EC3C /* BufferedValueTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedValueTests.swift; sourceTree = "<group>"; };
+		BB88C4121DC3B65F00C7EC3C /* ValueBufferingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueBufferingTests.swift; sourceTree = "<group>"; };
 		BB8990021D5DF2D20097F350 /* SetChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetChange.swift; sourceTree = "<group>"; };
 		BB8990041D5DF8630097F350 /* Change.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Change.swift; sourceTree = "<group>"; };
 		BB8990091D5DF88C0097F350 /* ObservableSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = ObservableSet.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -682,6 +692,9 @@
 		BBBBEC991DCA223A000B646D /* SetReferenceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetReferenceTests.swift; sourceTree = "<group>"; };
 		BBBBEC9D1DCA2FAB000B646D /* NSUserDefaultsSupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSUserDefaultsSupportTests.swift; sourceTree = "<group>"; };
 		BBBBECA11DCA3AA8000B646D /* DispatchSourceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DispatchSourceTests.swift; sourceTree = "<group>"; };
+		BBBBECA51DCA3FF0000B646D /* BufferedSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedSet.swift; sourceTree = "<group>"; };
+		BBBBECAA1DCA4168000B646D /* ArrayBufferingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayBufferingTests.swift; sourceTree = "<group>"; };
+		BBBBECAE1DCA446A000B646D /* SetBufferingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetBufferingTests.swift; sourceTree = "<group>"; };
 		BBC1F1D01D7EDF4A00A320F5 /* GlueKit.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; path = GlueKit.podspec; sourceTree = "<group>"; };
 		BBC2A8281CBC14C600394D24 /* NSObject extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSObject extensions.swift"; sourceTree = "<group>"; };
 		BBC36AE61DA83E0E00AB3E9D /* ArrayChangeSeparationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayChangeSeparationTests.swift; sourceTree = "<group>"; };
@@ -811,6 +824,7 @@
 				BB8990091D5DF88C0097F350 /* ObservableSet.swift */,
 				BB89901A1D5F6AAE0097F350 /* UpdatableSet.swift */,
 				BB89901F1D5F6F980097F350 /* SetVariable.swift */,
+				BBBBECA51DCA3FF0000B646D /* BufferedSet.swift */,
 				BBF400631DA108E900DA0B2C /* ObservableContains.swift */,
 				BBE4DF5B1DA55DA3005EC162 /* SetMappingBase.swift */,
 				BBE4DF561DA55384005EC162 /* SetMappingForValue.swift */,
@@ -1037,7 +1051,7 @@
 				BBB55BA61C8FCE2C0050DDA9 /* TwoWayBindingTests.swift */,
 				BBB55BA71C8FCE2C0050DDA9 /* VariableTests.swift */,
 				BBB55B9E1C8FCE2C0050DDA9 /* DistinctTests.swift */,
-				BB88C4121DC3B65F00C7EC3C /* BufferedValueTests.swift */,
+				BB88C4121DC3B65F00C7EC3C /* ValueBufferingTests.swift */,
 				BBB55BA01C8FCE2C0050DDA9 /* ValueMappingTests.swift */,
 				BBCD9E311DAAD66500E85FB9 /* CombinedObservableTests.swift */,
 				BBCD9E351DAAD74600E85FB9 /* CombinedUpdatableTests.swift */,
@@ -1056,6 +1070,7 @@
 				BBC36AE61DA83E0E00AB3E9D /* ArrayChangeSeparationTests.swift */,
 				BBCD9E451DABEA5500E85FB9 /* ObservableArrayTests.swift */,
 				BBB55B981C8FCE2C0050DDA9 /* ArrayVariableTests.swift */,
+				BBBBECAA1DCA4168000B646D /* ArrayBufferingTests.swift */,
 				BBB55B9F1C8FCE2C0050DDA9 /* ArrayMappingTests.swift */,
 				BBC4AE4D1D9A829500FF7DE0 /* ArrayFilteringTests.swift */,
 				BBCD9DFD1DAA8F7800E85FB9 /* ArrayFoldingTests.swift */,
@@ -1124,6 +1139,7 @@
 				BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */,
 				BBCD9E411DABD4BE00E85FB9 /* ObservableSetTests.swift */,
 				BBCD9E4D1DABFE8800E85FB9 /* SetVariableTests.swift */,
+				BBBBECAE1DCA446A000B646D /* SetBufferingTests.swift */,
 				BBE4DF611DA5654F005EC162 /* SetMappingTests.swift */,
 				BB568AEE1DA693F700BC4B58 /* SetFilteringTests.swift */,
 				BB471D991DA57FF8002550B0 /* SetSortingTests.swift */,
@@ -1490,6 +1506,7 @@
 				BB9D744A1DBEC82C00E20D67 /* ValueMappingForSetField.swift in Sources */,
 				BBB55B821C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BB1657E71D71D65900094BAC /* ArrayChangeSeparation.swift in Sources */,
+				BBBBECA61DCA3FF0000B646D /* BufferedSet.swift in Sources */,
 				BB69A83B1D6B90F5001D2821 /* ArrayConcatenation.swift in Sources */,
 				BB6CE3B41DC4C21C00295C55 /* TransformedSink.swift in Sources */,
 				BB82E3E11D98F34E0035DDAD /* ArrayFilteringOnPredicate.swift in Sources */,
@@ -1580,7 +1597,7 @@
 				BBE9AACF1DC0F1F6000B3DD0 /* ChangeTests.swift in Sources */,
 				BBB55BBA1C8FCE2C0050DDA9 /* DistinctTests.swift in Sources */,
 				BBB55BAE1C8FCE2C0050DDA9 /* KVOSupportTests.swift in Sources */,
-				BB88C4131DC3B65F00C7EC3C /* BufferedValueTests.swift in Sources */,
+				BB88C4131DC3B65F00C7EC3C /* ValueBufferingTests.swift in Sources */,
 				BBCD9E3A1DABC45000E85FB9 /* TypeHelperTests.swift in Sources */,
 				BBB55BC31C8FCE2C0050DDA9 /* SignalTests.swift in Sources */,
 				BBCD9E0B1DAAB6E700E85FB9 /* MockUpdateSink.swift in Sources */,
@@ -1604,6 +1621,7 @@
 				BBEBFF721DB77D77008AC632 /* MockArrayObserver.swift in Sources */,
 				BBBBEC921DCA1D43000B646D /* ValueReferenceTests.swift in Sources */,
 				BB170F281DC106DE0000443E /* TestChange.swift in Sources */,
+				BBBBECAF1DCA446A000B646D /* SetBufferingTests.swift in Sources */,
 				BB170F301DC10DDB0000443E /* ChangesSourceTests.swift in Sources */,
 				BBBBEC961DCA1FEB000B646D /* ArrayReferenceTests.swift in Sources */,
 				BBCD9E3E1DABC81A00E85FB9 /* MockSink.swift in Sources */,
@@ -1611,6 +1629,7 @@
 				BBCD9E521DAC1B1300E85FB9 /* ConnectorTests.swift in Sources */,
 				BBCD9E321DAAD66500E85FB9 /* CombinedObservableTests.swift in Sources */,
 				BBB55BC61C8FCE2C0050DDA9 /* SimpleSourcesTests.swift in Sources */,
+				BBBBECAB1DCA4168000B646D /* ArrayBufferingTests.swift in Sources */,
 				BBEA2A341DBFC4C300CCCB08 /* AnySourceTests.swift in Sources */,
 				BBEBFF751DB77D77008AC632 /* ArrayChangeSeparationTests.swift in Sources */,
 				BBB55BD21C8FCE2C0050DDA9 /* TwoWayBindingTests.swift in Sources */,
@@ -1646,6 +1665,7 @@
 				BB015F491DC52D3500C8C05A /* DistinctUnion.swift in Sources */,
 				BB6CE3CF1DC4E4B600295C55 /* NSUserDefaults Support.swift in Sources */,
 				BB015F2F1DC4F5C200C8C05A /* UpdatableArray.swift in Sources */,
+				BBBBECA71DCA3FF0000B646D /* BufferedSet.swift in Sources */,
 				BB015F401DC5261900C8C05A /* ArrayFilteringIndexmap.swift in Sources */,
 				BB9D73D01DBB38F900E20D67 /* Sink.swift in Sources */,
 				BB6CE3DA1DC4F2FB00295C55 /* SetChange.swift in Sources */,
@@ -1773,14 +1793,16 @@
 				BB015F3E1DC5147700C8C05A /* ArrayMappingTests.swift in Sources */,
 				BB88C4111DC3A84C00C7EC3C /* VariableTests.swift in Sources */,
 				BBEA2A2C1DBF9E9C00CCCB08 /* AnySinkTests.swift in Sources */,
+				BBBBECB01DCA446A000B646D /* SetBufferingTests.swift in Sources */,
 				BB015F441DC529CF00C8C05A /* ArrayFilteringTests.swift in Sources */,
 				BBBBEC9F1DCA2FAB000B646D /* NSUserDefaultsSupportTests.swift in Sources */,
 				BB015F2E1DC4F5BA00C8C05A /* ObservableSetTests.swift in Sources */,
 				BBEA2A4D1DC0BB4D00CCCB08 /* SourceOperatorTests.swift in Sources */,
 				BBEA2A321DBFC3BB00CCCB08 /* SignalTests.swift in Sources */,
 				BB6CE3D71DC4F18B00295C55 /* ArrayChangeTests.swift in Sources */,
+				BBBBECAC1DCA4168000B646D /* ArrayBufferingTests.swift in Sources */,
 				BB6CE3CC1DC4E48200295C55 /* TypeHelperTests.swift in Sources */,
-				BB88C4141DC3B65F00C7EC3C /* BufferedValueTests.swift in Sources */,
+				BB88C4141DC3B65F00C7EC3C /* ValueBufferingTests.swift in Sources */,
 				BB170F3F1DC221180000443E /* ValueChangeTests.swift in Sources */,
 				BB6CE3CB1DC4DF4800295C55 /* CombinedUpdatableTests.swift in Sources */,
 				BB6CE3D61DC4F18B00295C55 /* ArrayModificationTests.swift in Sources */,
@@ -1797,6 +1819,7 @@
 				BB69A7F91D6B1D83001D2821 /* ArrayChange.swift in Sources */,
 				BBB55B841C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BB7E04D41DA7240C00BE3051 /* SetMappingForSequence.swift in Sources */,
+				BBBBECA81DCA3FF0000B646D /* BufferedSet.swift in Sources */,
 				BB69A81F1D6B71FA001D2821 /* SetChange.swift in Sources */,
 				BB9D74001DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BB69A8061D6B344D001D2821 /* UpdatableArray.swift in Sources */,
@@ -1951,6 +1974,7 @@
 				BB69A81C1D6B6A9B001D2821 /* ArrayReference.swift in Sources */,
 				BB69A8391D6B7F9E001D2821 /* SetFilteringOnPredicate.swift in Sources */,
 				BBB55B4D1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
+				BBBBECA91DCA3FF0000B646D /* BufferedSet.swift in Sources */,
 				BB7E04D01DA723F300BE3051 /* SetMappingForValueField.swift in Sources */,
 				BB69A8241D6B7203001D2821 /* ObservableSet.swift in Sources */,
 				BB69A8291D6B779B001D2821 /* UpdatableSet.swift in Sources */,
@@ -1969,7 +1993,7 @@
 				BBE9AAD11DC0F1F6000B3DD0 /* ChangeTests.swift in Sources */,
 				BBB55BB01C8FCE2C0050DDA9 /* KVOSupportTests.swift in Sources */,
 				BBCD9E3C1DABC45000E85FB9 /* TypeHelperTests.swift in Sources */,
-				BB88C4151DC3B65F00C7EC3C /* BufferedValueTests.swift in Sources */,
+				BB88C4151DC3B65F00C7EC3C /* ValueBufferingTests.swift in Sources */,
 				BBB55BC51C8FCE2C0050DDA9 /* SignalTests.swift in Sources */,
 				BBCD9E0D1DAAB6E700E85FB9 /* MockUpdateSink.swift in Sources */,
 				BBC36AED1DA8453000AB3E9D /* ArrayChangeSeparationTests.swift in Sources */,
@@ -1993,6 +2017,7 @@
 				BBB55BAA1C8FCE2C0050DDA9 /* ArrayVariableTests.swift in Sources */,
 				BBBBEC941DCA1D43000B646D /* ValueReferenceTests.swift in Sources */,
 				BB170F2A1DC106DE0000443E /* TestChange.swift in Sources */,
+				BBBBECB11DCA446A000B646D /* SetBufferingTests.swift in Sources */,
 				BB170F321DC10DDB0000443E /* ChangesSourceTests.swift in Sources */,
 				BBBBEC981DCA1FEB000B646D /* ArrayReferenceTests.swift in Sources */,
 				BBB55BD71C8FCE2C0050DDA9 /* VariableTests.swift in Sources */,
@@ -2000,6 +2025,7 @@
 				BBCD9E341DAAD66500E85FB9 /* CombinedObservableTests.swift in Sources */,
 				BBB55BC81C8FCE2C0050DDA9 /* SimpleSourcesTests.swift in Sources */,
 				BBB55BD41C8FCE2C0050DDA9 /* TwoWayBindingTests.swift in Sources */,
+				BBBBECAD1DCA4168000B646D /* ArrayBufferingTests.swift in Sources */,
 				BBEA2A361DBFC4C300CCCB08 /* AnySourceTests.swift in Sources */,
 				BBCD9E441DABD4BE00E85FB9 /* ObservableSetTests.swift in Sources */,
 				BB568AF11DA693F700BC4B58 /* SetFilteringTests.swift in Sources */,

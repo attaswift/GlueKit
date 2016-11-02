@@ -14,11 +14,12 @@ class BufferedValueTests: XCTestCase {
     func test_connectsImmediately() {
         let observable = TestObservableValue(0)
 
-        let buffered = observable.buffered()
-
-        XCTAssertTrue(observable.isConnected)
-
-        withExtendedLifetime(buffered) {}
+        do {
+            let buffered = observable.buffered()
+            XCTAssertTrue(observable.isConnected)
+            withExtendedLifetime(buffered) {}
+        }
+        XCTAssertFalse(observable.isConnected)
     }
 
     func test_isntRetainedByObservable() {

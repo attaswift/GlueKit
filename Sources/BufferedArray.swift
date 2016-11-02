@@ -11,13 +11,12 @@ extension ObservableArrayType where Change == ArrayChange<Element> {
         if isBuffered {
             return anyObservableArray
         }
-        else {
-            return BufferedObservableArray(self).anyObservableArray
-        }
+        return BufferedObservableArray(self).anyObservableArray
     }
 }
 
-private struct BufferedSink<Content: ObservableArrayType>: UniqueOwnedSink where Content.Change == ArrayChange<Content.Element> {
+private struct BufferedSink<Content: ObservableArrayType>: UniqueOwnedSink
+where Content.Change == ArrayChange<Content.Element> {
     typealias Owner = BufferedObservableArray<Content>
 
     unowned(unsafe) let owner: Owner
@@ -27,7 +26,8 @@ private struct BufferedSink<Content: ObservableArrayType>: UniqueOwnedSink where
     }
 }
 
-internal class BufferedObservableArray<Content: ObservableArrayType>: _BaseObservableArray<Content.Element> where Content.Change == ArrayChange<Content.Element>  {
+internal class BufferedObservableArray<Content: ObservableArrayType>: _BaseObservableArray<Content.Element>
+where Content.Change == ArrayChange<Content.Element>  {
     typealias Element = Content.Element
     typealias Change = ArrayChange<Element>
 

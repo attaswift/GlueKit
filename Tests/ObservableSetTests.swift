@@ -9,9 +9,9 @@
 import XCTest
 @testable import GlueKit
 
-private class TestObservableSet<Element: Hashable>: _AbstractObservableSet<Element>, SignalDelegate {
-    var _state = TransactionState<SetChange<Element>>()
-    var _value: Set<Element>
+class TestObservableSet<Element: Hashable>: _AbstractObservableSet<Element>, SignalDelegate {
+    private var _state = TransactionState<SetChange<Element>>()
+    private var _value: Set<Element>
 
     init(_ value: Set<Element>) {
         self._value = value
@@ -35,6 +35,18 @@ private class TestObservableSet<Element: Hashable>: _AbstractObservableSet<Eleme
         _value.formUnion(change.inserted)
         _state.send(change)
         _state.end()
+    }
+
+    func begin() {
+        _state.begin()
+    }
+
+    func end() {
+        _state.end()
+    }
+
+    var isConnected: Bool {
+        return _state.isConnected
     }
 }
 

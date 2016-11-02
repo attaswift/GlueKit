@@ -9,7 +9,7 @@
 import XCTest
 @testable import GlueKit
 
-private class TestObservableArray<Element>: ObservableArrayType, SignalDelegate {
+class TestObservableArray<Element>: ObservableArrayType, SignalDelegate {
     typealias Change = ArrayChange<Element>
     
     var _state = TransactionState<ArrayChange<Element>>()
@@ -50,6 +50,10 @@ private class TestObservableArray<Element>: ObservableArrayType, SignalDelegate 
         _value.apply(change)
         _state.send(change)
         _state.end()
+    }
+
+    var isConnected: Bool {
+        return _state.isConnected
     }
 }
 
