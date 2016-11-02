@@ -211,8 +211,9 @@ class CombinedObservableTests: XCTestCase {
 
         a.value = 1
 
-        // The observable 'a' occurs twice in the expression above, so the expression will be evaluated twice.
+        // The observable `a` occurs twice in the expression above, so the expression will be evaluated twice.
         // The first evaluation will only apply the new value to one of the sources.
+        // However, the `values` source reports only full transactions, so such partial updates will not appear there.
         XCTAssertEqual(r, [1])
 
         r = []
@@ -275,5 +276,30 @@ class CombinedObservableTests: XCTestCase {
         connection.disconnect()
     }
 
+    func testTransactions() {
+        let a = Variable<Int>(0)
+
+        let sum = a + a
+
+        let sink = MockValueUpdateSink(sum)
+
+        sink.expecting(["begin", "0 -> 1", "1 -> 2", "end"]) {
+            a.value = 1
+        }
+
+        sink.expecting("begin") {
+            a.apply(.beginTransaction)
+        }
+
+        sink.expecting(["2 -> 3", "3 -> 4"]) {
+            a.value = 2
+        }
+
+        sink.expecting("end") {
+            a.apply(.endTransaction)
+        }
+
+        sink.disconnect()
+    }
 }
 

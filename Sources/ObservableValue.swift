@@ -141,6 +141,10 @@ open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, SignalD
         state.send(update)
     }
 
+    final var isConnected: Bool {
+        return state.isConnected
+    }
+
     open func activate() {
         // Do nothing
     }
