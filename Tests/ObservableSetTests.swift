@@ -273,6 +273,13 @@ func checkUpdatableSet<U: UpdatableSetType>(_ make: (Set<Int>) -> U) where U.Ele
             test.subtract([1, 4, 5])
         }
         XCTAssertEqual(test.value, [3])
+
+        let v = test.anyUpdatableValue
+        XCTAssertEqual(v.value, [3])
+
+        mock.expecting(["begin", "[]/[1, 2]", "end"]) {
+            v.value = [1, 2, 3]
+        }
     }
 
     // Try again with no observers.

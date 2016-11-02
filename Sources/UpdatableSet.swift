@@ -195,7 +195,7 @@ open class _AbstractUpdatableSet<Element: Hashable>: _AbstractObservableSet<Elem
             updates: self.valueUpdates)
     }
 
-    public final var updatableSet: AnyUpdatableSet<Element> {
+    public final var anyUpdatableSet: AnyUpdatableSet<Element> {
         return AnyUpdatableSet(box: self)
     }
 }
