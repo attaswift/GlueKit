@@ -163,7 +163,6 @@ class ValueMappingTests: XCTestCase {
         XCTAssertEqual(chapters.value, ["10", "11"])
     }
 
-    #if false
     func test_updatableArrayField() {
         let book = Book("book", chapters: ["1", "2", "3"])
         let v = Variable<Book>(book)
@@ -178,48 +177,47 @@ class ValueMappingTests: XCTestCase {
 
         let mock = MockArrayObserver(chapters)
 
-        mock.expecting(3, .insert("4", at: 3)) {
+        mock.expecting(["begin", "3.insert(4, at: 3)", "end"]) {
             book.chapters.append("4")
         }
         XCTAssertEqual(chapters.value, ["1", "2", "3", "4"])
 
-        mock.expecting(4, .remove("3", at: 2)) {
+        mock.expecting(["begin", "4.remove(3, at: 2)", "end"]) {
             _ = chapters.remove(at: 2)
         }
         XCTAssertEqual(chapters.value, ["1", "2", "4"])
         XCTAssertEqual(book.chapters.value, ["1", "2", "4"])
 
         let book2 = Book("other", chapters: ["10", "11"])
-        mock.expecting(3, .replaceSlice(["1", "2", "4"], at: 0, with: ["10", "11"])) {
+        mock.expecting(["begin", "3.replaceSlice([1, 2, 4], at: 0, with: [10, 11])", "end"]) {
             v.value = book2
         }
         XCTAssertEqual(chapters.value, ["10", "11"])
 
-        mock.expecting(2, .replace("10", at: 0, with: "20")) {
+        mock.expecting(["begin", "2.replace(10, at: 0, with: 20)", "end"]) {
             chapters[0] = "20"
         }
         XCTAssertEqual(chapters.value, ["20", "11"])
         XCTAssertEqual(book2.chapters.value, ["20", "11"])
 
-        mock.expecting(2, .insert("25", at: 1)) {
+        mock.expecting(["begin", "2.insert(25, at: 1)", "end"]) {
             chapters.insert("25", at: 1)
         }
         XCTAssertEqual(chapters.value, ["20", "25", "11"])
         XCTAssertEqual(book2.chapters.value, ["20", "25", "11"])
 
-        mock.expecting(3, .replaceSlice(["25", "11"], at: 1, with: ["21", "22"])) {
+        mock.expecting(["begin", "3.replaceSlice([25, 11], at: 1, with: [21, 22])", "end"]) {
             chapters[1 ..< 3] = ["21", "22"]
         }
         XCTAssertEqual(chapters.value, ["20", "21", "22"])
         XCTAssertEqual(book2.chapters.value, ["20", "21", "22"])
 
-        mock.expecting(3, .replaceSlice(["20", "21", "22"], at: 0, with: ["foo", "bar"])) {
+        mock.expecting(["begin", "3.replaceSlice([20, 21, 22], at: 0, with: [foo, bar])", "end"]) {
             chapters.value = ["foo", "bar"]
         }
         XCTAssertEqual(chapters.value, ["foo", "bar"])
         XCTAssertEqual(book2.chapters.value, ["foo", "bar"])
     }
-    #endif
 
     func test_setField() {
         let book = Book("book", authors: ["a", "b", "c"])
