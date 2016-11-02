@@ -9,29 +9,29 @@
 import Foundation
 
 extension UserDefaults {
-    public func updatable(for key: String) -> AnyUpdatableValue<Any?> {
+    public func updatable(forKey key: String) -> AnyUpdatableValue<Any?> {
         return self.updatable(forKeyPath: key)
     }
 
-    public func updatableBool(for key: String, defaultValue: Bool = false) -> AnyUpdatableValue<Bool> {
+    public func updatableBool(forKey key: String, defaultValue: Bool = false) -> AnyUpdatableValue<Bool> {
         return self.updatable(forKeyPath: key)
             .map({ v in (v as? NSNumber)?.boolValue ?? defaultValue },
                  inverse: { v in v })
     }
 
-    public func updatableInt(for key: String, defaultValue: Int = 0) -> AnyUpdatableValue<Int> {
+    public func updatableInt(forKey key: String, defaultValue: Int = 0) -> AnyUpdatableValue<Int> {
         return self.updatable(forKeyPath: key)
             .map({ v in (v as? NSNumber)?.intValue ?? defaultValue },
                  inverse: { v in v })
     }
 
-    public func updatableDouble(for key: String, defaultValue: Double = 0) -> AnyUpdatableValue<Double> {
+    public func updatableDouble(forKey key: String, defaultValue: Double = 0) -> AnyUpdatableValue<Double> {
         return self.updatable(forKeyPath: key)
             .map({ v in (v as? NSNumber)?.doubleValue ?? defaultValue },
                  inverse: { v in v })
     }
 
-    public func updatableString(for key: String, defaultValue: String? = nil) -> AnyUpdatableValue<String?> {
+    public func updatableString(forKey key: String, defaultValue: String? = nil) -> AnyUpdatableValue<String?> {
         return self.updatable(forKeyPath: key)
             .map({ v in (v as? String) ?? defaultValue },
                  inverse: { v in v })
