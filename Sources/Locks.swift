@@ -23,20 +23,6 @@ extension Lockable {
     }
 }
 
-extension NSLock: Lockable {
-    internal convenience init(name: String) {
-        self.init()
-        self.name = name
-    }
-}
-
-extension NSRecursiveLock: Lockable {
-    internal convenience init(name: String) {
-        self.init()
-        self.name = name
-    }
-}
-
 struct Lock: Lockable {
     private let _lock: LockImplementation
 
@@ -83,40 +69,27 @@ private final class PosixMutex: LockImplementation {
 
     override init() {
         let result = pthread_mutex_init(&mutex, nil)
-        if result != 0 {
-            preconditionFailure("pthread_mutex_init returned \(result)")
-        }
+        precondition(result == 0)
     }
 
     deinit {
         let result = pthread_mutex_destroy(&mutex)
-        if result != 0 {
-            preconditionFailure("pthread_mutex_destroy returned \(result)")
-        }
+        precondition(result == 0)
     }
 
     override func lock() {
         let result = pthread_mutex_lock(&mutex)
-        if result != 0 {
-            preconditionFailure("pthread_mutex_lock returned \(result)")
-        }
+        precondition(result == 0)
     }
 
     override func unlock() {
         let result = pthread_mutex_unlock(&mutex)
-        if result != 0 {
-            preconditionFailure("pthread_mutex_unlock returned \(result)")
-        }
+        precondition(result == 0)
     }
 
     override func tryLock() -> Bool {
         let result = pthread_mutex_trylock(&mutex)
-        switch result {
-        case 0: return true
-        case EBUSY: return false
-        default:
-            preconditionFailure("pthread_mutex_trylock returned \(result)")
-        }
-        return true
+        precondition(result == 0 || result == EBUSY)
+        return result == 0
     }
 }
