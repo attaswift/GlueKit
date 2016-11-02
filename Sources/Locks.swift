@@ -11,7 +11,6 @@ import Foundation
 internal protocol Lockable {
     func lock()
     func unlock()
-    func tryLock() -> Bool
     func withLock<Result>(_ block: (Void) -> Result) -> Result
 }
 
@@ -36,7 +35,6 @@ struct Lock: Lockable {
     }
     func lock() { _lock.lock() }
     func unlock() { _lock.unlock() }
-    func tryLock() -> Bool { return _lock.tryLock() }
 }
 
 private class LockImplementation: Lockable {
@@ -44,7 +42,6 @@ private class LockImplementation: Lockable {
 
     func lock() {}
     func unlock() {}
-    func tryLock() -> Bool { return true }
 }
 
 @available(macOS 10.12, iOS 10, watchOS 3.0, tvOS 10.0, *)
@@ -57,10 +54,6 @@ private final class UnfairLock: LockImplementation {
 
     override func unlock() {
         os_unfair_lock_unlock(&_lock)
-    }
-
-    override func tryLock() -> Bool {
-        return os_unfair_lock_trylock(&_lock)
     }
 }
 
@@ -85,11 +78,5 @@ private final class PosixMutex: LockImplementation {
     override func unlock() {
         let result = pthread_mutex_unlock(&mutex)
         precondition(result == 0)
-    }
-
-    override func tryLock() -> Bool {
-        let result = pthread_mutex_trylock(&mutex)
-        precondition(result == 0 || result == EBUSY)
-        return result == 0
     }
 }
