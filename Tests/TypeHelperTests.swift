@@ -42,7 +42,7 @@ class TypeHelperTests: XCTestCase {
 
         let source = sourceTx(t.observable(forKeyPath: key).futureValues)
         let observable = observableTx(t.observable(forKeyPath: key))
-        let updatable = updatableTx(t.updatable(forKeyPath: key))
+        let updatable = updatableTx(t.updatable(forKey: key))
 
         XCTAssertEqual(observable.value, value0)
         XCTAssertEqual(updatable.value, value0)

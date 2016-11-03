@@ -10,9 +10,27 @@ import XCTest
 import GlueKit
 
 private class Fixture: NSObject {
-    dynamic var name: String = ""
-    dynamic var count: Int = 0
-    dynamic var optional: String? = nil
+    var _name: String = ""
+    var _count: Int = 0
+    var _optional: String? = nil
+    var _next: Fixture? = nil
+
+    dynamic var name: String {
+        get { return _name }
+        set { _name = newValue }
+    }
+    dynamic var count: Int {
+        get { return _count }
+        set { _count = newValue }
+    }
+    dynamic var optional: String? {
+        get { return _optional }
+        set { _optional = newValue }
+    }
+    dynamic var next: Fixture? {
+        get { return _next }
+        set { _next = newValue }
+    }
 }
 
 private class RawKVOObserver: NSObject {
@@ -55,7 +73,7 @@ private class RawKVOObserver: NSObject {
 
 class KVOSupportTests: XCTestCase {
 
-    func testBasicKVOWithIntegers() {
+    func test_changes_BasicKVOWithIntegers() {
         let object = Fixture()
 
         let count = object.observable(forKeyPath: "count", as: Int.self)
@@ -72,7 +90,7 @@ class KVOSupportTests: XCTestCase {
         XCTAssertEqual(r, [1, 2, 3])
     }
 
-    func testBasicKVOWithStrings() {
+    func test_changes_BasicKVOWithStrings() {
         let object = Fixture()
 
         var r = [String]()
@@ -89,7 +107,7 @@ class KVOSupportTests: XCTestCase {
         XCTAssertEqual(r, ["Alice", "Bob", "Charlie"])
     }
 
-    func testBasicKVOWithOptionals() {
+    func test_changes_BasicKVOWithOptionals() {
         let object = Fixture()
 
         var r = [String?]()
@@ -111,7 +129,7 @@ class KVOSupportTests: XCTestCase {
     }
 
 
-    func testDisconnectActuallyDisconnects() {
+    func test_changes_DisconnectActuallyDisconnects() {
         let object = Fixture()
 
         let count = object.observable(forKeyPath: "count", as: Int.self)
@@ -129,7 +147,7 @@ class KVOSupportTests: XCTestCase {
         XCTAssertEqual(r, [1])
     }
 
-    func testSourceRetainsObject() {
+    func test_changes_SourceRetainsObject() {
         var source: AnySource<ValueChange<Int>>? = nil
         weak var weakObject: NSObject? = nil
 
@@ -147,7 +165,7 @@ class KVOSupportTests: XCTestCase {
         noop(source)
     }
 
-    func testConnectionRetainsObject() {
+    func test_changes_ConnectionRetainsObject() {
         var c: Connection? = nil
         weak var weakObject: NSObject? = nil
 
@@ -165,7 +183,7 @@ class KVOSupportTests: XCTestCase {
 
     //MARK: Reentrant observers
 
-    func testReentrantUpdatesInRawKVO() {
+    func test_rawKVO_ReentrantUpdates() {
         // KVO supports reentrant updates, but it performs them synchronously, always sending the most up to date value.
 
         let object = Fixture()
@@ -188,7 +206,7 @@ class KVOSupportTests: XCTestCase {
         observer.disconnect()
     }
 
-    func testReentrantUpdatesWithSinks() {
+    func test_changes_ReentrantUpdates() {
         // KVO supports reentrant updates, but it performs them synchronously, always sending the most up to date value.
         // However, our source will serialize reentrant sends so that this is not noticeable.
 
@@ -214,7 +232,7 @@ class KVOSupportTests: XCTestCase {
     }
     
 
-    func testReentrantUpdatesInRawKVO2() {
+    func test_rawKVO_MutuallyReentrantUpdates() {
         // KVO supports reentrant updates, but it performs them synchronously, always sending the most up to date value.
 
         let object = Fixture()
@@ -247,7 +265,7 @@ class KVOSupportTests: XCTestCase {
     }
 
 
-    func testReentrantUpdatesWithSinks2() {
+    func test_changes_MutuallyReentrantUpdates() {
         // KVO supports reentrant updates, but it performs them synchronously, always sending the most up to date value.
         // However, our source will serialize reentrant sends so that this is not noticeable.
 
@@ -281,4 +299,255 @@ class KVOSupportTests: XCTestCase {
         c1.disconnect()
         c2.disconnect()
     }
+
+    func test_updates_WillChangeStartsATransaction() {
+        let object = Fixture()
+
+        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let sink = MockValueUpdateSink<Int>(count)
+
+        sink.expecting("begin") {
+            object.willChangeValue(forKey: "count")
+        }
+
+        sink.expectingNothing {
+            object._count += 1
+        }
+
+        sink.expecting(["0 -> 1", "end"]) {
+            object.didChangeValue(forKey: "count")
+        }
+        
+        sink.disconnect()
+    }
+
+    func test_updates_WillChangeStartsATransaction2() {
+        let object = Fixture()
+
+        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let sink = MockValueUpdateSink<Int>(count)
+
+        sink.expecting("begin") {
+            object.willChangeValue(forKey: "count")
+        }
+
+        sink.expectingNothing {
+            object._count += 1
+        }
+
+        sink.expectingNothing {
+            object.willChangeValue(forKey: "count")
+        }
+
+        sink.expectingNothing {
+            object._count += 1
+        }
+
+        sink.expectingNothing {
+            object.didChangeValue(forKey: "count")
+        }
+
+        sink.expecting(["0 -> 2", "end"]) {
+            object.didChangeValue(forKey: "count")
+        }
+
+        sink.disconnect()
+    }
+
+
+    func test_updates_SubscribingAfterWillChange() {
+        let object = Fixture()
+
+        object.willChangeValue(forKey: "count")
+
+        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let sink = MockValueUpdateSink<Int>()
+
+        // The change that was pending at the time of subscription isn't reported.
+        sink.expectingNothing {
+            count.add(sink)
+            object._count += 1
+            object.didChangeValue(forKey: "count")
+        }
+
+        sink.expecting("begin") {
+            object.willChangeValue(forKey: "count")
+        }
+
+        sink.expectingNothing {
+            object._count += 1
+        }
+
+        sink.expecting(["1 -> 2", "end"]) {
+            object.didChangeValue(forKey: "count")
+        }
+
+        count.remove(sink)
+    }
+
+    func test_updates_UnsubscribingBeforeDidChange() {
+        let object = Fixture()
+
+        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let sink = MockValueUpdateSink<Int>()
+
+        count.add(sink)
+
+        sink.expecting("begin") {
+            object.willChangeValue(forKey: "count")
+        }
+
+        sink.expectingNothing {
+            object._count += 1
+        }
+
+        // We get "end" due to TransactionState's bracketing, but the change itself isn't reported.
+        sink.expecting("end") {
+            count.remove(sink)
+        }
+        
+        object.didChangeValue(forKey: "count")
+
+        withExtendedLifetime(count) {}
+    }
+
+    func test_updatable_IntegerKey() {
+        let object = Fixture()
+
+        let count = object.updatable(forKey: "count", as: Int.self)
+        let sink = MockValueUpdateSink<Int>(count)
+
+        sink.expecting(["begin", "0 -> 1", "end"]) {
+            count.value = 1
+        }
+
+        // Our KVO-adaptor updatables behave as if they were buffered
+        sink.expecting("begin") {
+            count.apply(.beginTransaction)
+        }
+        sink.expectingNothing {
+            count.apply(ValueChange(from: 1, to: 2))
+            count.apply(ValueChange(from: 2, to: 3))
+        }
+        sink.expecting(["1 -> 3", "end"]) {
+            count.apply(.endTransaction)
+        }
+
+        // will/didChange gets translated into begin/endTransaction
+        sink.expecting("begin") {
+            object.willChangeValue(forKey: "count")
+        }
+        sink.expectingNothing {
+            object._count = 4
+        }
+        sink.expecting(["3 -> 4", "end"]) {
+            object.didChangeValue(forKey: "count")
+        }
+
+        sink.disconnect()
+    }
+
+    func test_updatable_OptionalKey() {
+        let object = Fixture()
+
+        let updatable = object.updatable(forKey: "optional", as: (String?).self)
+        let sink = MockValueUpdateSink<String?>(updatable)
+
+        sink.expecting(["begin", "nil -> Optional(\"foo\")", "end"]) {
+            updatable.value = "foo"
+        }
+
+        // Our KVO-adaptor updatables behave as if they were buffered
+        sink.expecting("begin") {
+            updatable.apply(.beginTransaction)
+        }
+        sink.expectingNothing {
+            updatable.apply(ValueChange(from: "foo", to: nil))
+            updatable.apply(ValueChange(from: nil, to: "bar"))
+        }
+        sink.expecting(["Optional(\"foo\") -> Optional(\"bar\")", "end"]) {
+            updatable.apply(.endTransaction)
+        }
+
+        sink.disconnect()
+    }
+
+    func test_observable_keyPath() {
+        let object = Fixture()
+        let next = Fixture()
+        object.next = next
+
+        let count = object.observable(forKeyPath: "next.count", as: Int.self)
+
+        let sink = MockValueUpdateSink<Int>(count)
+
+        sink.expecting(["begin", "0 -> 1", "end"]) {
+            next.count = 1
+        }
+
+        sink.expecting(["begin", "1 -> 2", "end"]) {
+            object.setValue(2, forKeyPath: "next.count")
+        }
+
+        sink.expecting("begin") {
+            next.willChangeValue(forKey: "count")
+        }
+        sink.expectingNothing {
+            next._count = 3
+        }
+        sink.expecting(["2 -> 3", "end"]) {
+            next.didChangeValue(forKey: "count")
+        }
+
+        let next2 = Fixture()
+        next2.count = 4
+
+        sink.expecting("begin") {
+            object.willChangeValue(forKey: "next")
+        }
+        sink.expectingNothing {
+            object._next = next2
+        }
+        sink.expecting(["3 -> 4", "end"]) {
+            object.didChangeValue(forKey: "next")
+        }
+
+        sink.disconnect()
+    }
+
+    func test_observable_keyPathNestedTransactions() {
+        let object = Fixture()
+        let next = Fixture()
+        next.count = 1
+
+        object.next = next
+
+        let next2 = Fixture()
+        next2.count = 2
+
+        let count = object.observable(forKeyPath: "next.count", as: Int.self)
+
+        let sink = MockValueUpdateSink<Int>(count)
+
+        sink.expecting("begin") {
+            object.willChangeValue(forKey: "next")
+        }
+        sink.expectingNothing {
+            next2.willChangeValue(forKey: "count")
+            object._next = next2
+            next2._count = 3
+        }
+
+        sink.expecting(["1 -> 3", "end"]) {
+            object.didChangeValue(forKey: "next")
+        }
+        sink.expectingNothing {
+            next2._count = 4 // Unfortunately, this change never gets reported.
+            next2.didChangeValue(forKey: "count")
+        }
+
+        sink.disconnect()
+    }
+
+
 }

@@ -79,6 +79,7 @@ internal struct TransactionState<Change: ChangeType> {
     var isChanging: Bool { return _transactionCount > 0 }
     var isConnected: Bool { return _signal?.isConnected ?? false }
     var isActive: Bool { return isChanging || isConnected }
+    var isInOuterMostTransaction: Bool { return _transactionCount == 1 } // Used by KVO
 
     mutating func begin() {
         _transactionCount += 1
