@@ -15,7 +15,7 @@ This document lists a couple of potential improvements to the Swift language and
   - [Allowing subclasses to override requirements satisfied by defaults](#allowing-subclasses-to-override-requirements-satisfied-by-defaults)
 - [Abstract Methods](#abstract-methods)
 - [Relaxed Superclass Visibility Requirements](#relaxed-superclass-visibility-requirements)
-- [Closure Contexts With Inline Storage](#closure-contexts-with-inline-storage)
+- [Closure Contexts With Inline Storage (Related issue: [SR-3106])](#closure-contexts-with-inline-storage-related-issue-sr-3106)
 - [Assorted Bugfixes](#assorted-bugfixes)
   - [Generic subclass cannot override methos in non-generic superclass, and vice versa ([SR-2427])](#generic-subclass-cannot-override-methos-in-non-generic-superclass-and-vice-versa-sr-2427)
 
