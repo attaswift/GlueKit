@@ -220,12 +220,13 @@ Swift currently requires the superclasses of public classes to be also exposed a
 
 This restriction is not consistently enforced by the compiler, but breaking it can lead to misleading errors and/or strange behavior at runtime. (I can't remember which.)
 
-## Closure Contexts With Inline Storage
+## Closure Contexts With Inline Storage (Related issue: [SR-3106])
+
+[SR-3106]: https://bugs.swift.org/browse/SR-3106
 
 In the current version of Swift, a variable of a function type has storage for just two machine words, which is enough to hold function pointer and a single-word context containing the values captured by the closure.
-This means that the context of most escaping closures needs to be heap-allocated, even if they capture only a couple of constants.
 
-However, this means that each time we crate a closure, we incur the cost of a heap allocation. The compiler may be able to optimize this away if the closure is non-escaping, but if we need to store the closure for later execution, the context needs to be on the heap.
+This means that the context of most escaping closures needs to be heap-allocated, even if they capture only a couple of constants. The compiler may be able to optimize away the allocation if the closure is non-escaping, but if we need to store the closure for later execution, the context needs to be on the heap.
 
 Closures that capture only a single-word constant may at some point store that value directly in the context word. This isn't currently implemented, though. (Note that the captured value may or may not need to be reference counted. `self` is refcounted, but a captured `Float` wouldn't be. Some bits need to be reserved somewhere to keep track of this.)
 
