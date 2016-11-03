@@ -13,7 +13,8 @@ extension ObservableArrayType where Change == ArrayChange<Element> {
     }
 }
 
-private final class FieldSink<Parent: ObservableArrayType, Field: ObservableValueType>: SinkType, RefListElement where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+private final class FieldSink<Parent: ObservableArrayType, Field: ObservableValueType>: SinkType, RefListElement
+where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
     unowned let owner: ArrayMappingForValueField<Parent, Field>
     let field: Field
     var refListLink = RefListLink<FieldSink>()
@@ -33,7 +34,8 @@ private final class FieldSink<Parent: ObservableArrayType, Field: ObservableValu
     }
 }
 
-private struct ParentSink<Parent: ObservableArrayType, Field: ObservableValueType>: UniqueOwnedSink where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+private struct ParentSink<Parent: ObservableArrayType, Field: ObservableValueType>: UniqueOwnedSink
+where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
     typealias Owner = ArrayMappingForValueField<Parent, Field>
 
     unowned let owner: Owner
@@ -43,7 +45,8 @@ private struct ParentSink<Parent: ObservableArrayType, Field: ObservableValueTyp
     }
 }
 
-private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field: ObservableValueType>: _BaseObservableArray<Field.Value> where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field: ObservableValueType>: _BaseObservableArray<Field.Value>
+where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
     typealias Element = Field.Value
     typealias Change = ArrayChange<Element>
 
