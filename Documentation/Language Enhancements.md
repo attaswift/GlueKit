@@ -127,6 +127,8 @@ However, the need for `Any*` cannot be entirely eliminated. For example, `Signal
 subscribers in a collection, which is only possible with some form of type erasure. (The current `Source` API
 also needs `Signal` to be able to reify type-erased values, getting the original type back. This is similar to [opening a generalized existential][gm-open].)
 
+Doing type erasure by subclass polymorphism implies that GlueKit's `Any*` types always need to heap-allocate a box. On the other hand, Swift's protocol existentials include some space to store small value types inline, which makes them work without allocation in a lot of cases. This optimization is hard (even impossible?) to emulate in Swift code, but it would be very much desirable to have it for e.g. `AnySink`.
+
 [gm-open]: https://github.com/apple/swift/blob/master/docs/GenericsManifesto.md#opening-existentials
 
 ### Permitting `where` clauses to constrain associated types ([SE-0142])
