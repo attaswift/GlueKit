@@ -29,7 +29,7 @@ This document lists a couple of potential improvements to the Swift language and
 
 To declare observable properties in GlueKit, you currently need to declare them with a  `Variable` type, and you have to access their values through an inconvenient `value` property:
 
-```
+```swift
 class Book {
     let title: Variable<String>
     let pageCount: Variable<Int>
@@ -42,7 +42,7 @@ let c = book.pageCount.futureValues.connect { print("Page count is now \($0)" }
 
 It is possible to make this a little less painful by judicious use of computed properties:
 
-```
+```swift
 class Book {
 	let observableTitle: Variable<String>
     var title: String {
@@ -67,7 +67,7 @@ This makes usage of these properties nicer, but it adds extra boilerplate to the
 If the [proposal for Property Behaviors][SE-0030] would be implemented, we could
 eliminate this boilerplate and have observable properties that approach (or arguably even exceed) the readability of Cocoa:
 
-```
+```swift
 class Book {
 	var [observable] title: String
     var [observable] pageCount: Int
@@ -144,7 +144,7 @@ The proposal to implement this improvement has been accepted, so presumably it'l
 Meanwhile, we can mostly work around the issue by having the child protocol include
 property requirements that specialize on the requirements of the parent:
 
-``` swift
+```swift
  protocol ObservableType { // Not the real definition
      associatedtype Change: ChangeType 
  
