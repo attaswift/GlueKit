@@ -2,8 +2,8 @@ language: objective-c
 osx_image: xcode8
 script:
 - xcrun xcodebuild -workspace GlueKit.xcworkspace -scheme GlueKit-macOS test
-- xcrun xcodebuild -workspace GlueKit.xcworkspace -scheme GlueKit-iOS test
-- xcrun xcodebuild -workspace GlueKit.xcworkspace -scheme GlueKit-watchOS test
-- xcrun xcodebuild -workspace GlueKit.xcworkspace -scheme GlueKit-tvOS test
+- xcrun xcodebuild -workspace GlueKit.xcworkspace -scheme GlueKit-iOS
+- xcrun xcodebuild -workspace GlueKit.xcworkspace -scheme GlueKit-watchOS
+- xcrun xcodebuild -workspace GlueKit.xcworkspace -scheme GlueKit-tvOS
 - swift test
 after_success: bash <(curl -s https://codecov.io/bash)
