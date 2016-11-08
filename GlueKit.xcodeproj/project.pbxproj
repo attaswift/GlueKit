@@ -207,6 +207,21 @@
 		BB7E04E61DA725A500BE3051 /* ArrayFilteringOnObservableBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7E04E51DA725A500BE3051 /* ArrayFilteringOnObservableBool.swift */; };
 		BB7E04E81DA725A500BE3051 /* ArrayFilteringOnObservableBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7E04E51DA725A500BE3051 /* ArrayFilteringOnObservableBool.swift */; };
 		BB7E04E91DA725A500BE3051 /* ArrayFilteringOnObservableBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7E04E51DA725A500BE3051 /* ArrayFilteringOnObservableBool.swift */; };
+		BB8195B21DD256B700644668 /* UIControl Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */; };
+		BB8195B31DD256B700644668 /* UIBarButtonItem Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */; };
+		BB8195B41DD256B700644668 /* UIDevice Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */; };
+		BB8195B51DD256B700644668 /* UIGestureRecognizer Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */; };
+		BB8195B61DD256B700644668 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
+		BB8195B71DD256B800644668 /* UIControl Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */; };
+		BB8195B81DD256B800644668 /* UIBarButtonItem Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */; };
+		BB8195B91DD256B800644668 /* UIDevice Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */; };
+		BB8195BA1DD256B800644668 /* UIGestureRecognizer Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */; };
+		BB8195BB1DD256B800644668 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
+		BB8195BC1DD256B900644668 /* UIControl Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC3C84D1C93164200E10D59 /* UIControl Extensions.swift */; };
+		BB8195BD1DD256B900644668 /* UIBarButtonItem Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */; };
+		BB8195BE1DD256B900644668 /* UIDevice Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4F2511C9594A9002532CC /* UIDevice Extensions.swift */; };
+		BB8195BF1DD256B900644668 /* UIGestureRecognizer Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Extensions.swift */; };
+		BB8195C01DD257A300644668 /* ConnectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E511DAC1B1300E85FB9 /* ConnectorTests.swift */; };
 		BB82E3E11D98F34E0035DDAD /* ArrayFilteringOnPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB82E3E01D98F34E0035DDAD /* ArrayFilteringOnPredicate.swift */; };
 		BB82E3E31D98F34E0035DDAD /* ArrayFilteringOnPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB82E3E01D98F34E0035DDAD /* ArrayFilteringOnPredicate.swift */; };
 		BB82E3E41D98F34E0035DDAD /* ArrayFilteringOnPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB82E3E01D98F34E0035DDAD /* ArrayFilteringOnPredicate.swift */; };
@@ -956,7 +971,8 @@
 				BBEA2A4C1DBFE60500CCCB08 /* Foundation Extensions */,
 				BB8D366C1DA116AA000D44C5 /* Examples */,
 			);
-			path = Tests;
+			name = Tests;
+			path = Tests/GlueKitTests;
 			sourceTree = "<group>";
 		};
 		BBB55B921C8FCCD40050DDA9 /* Tools */ = {
@@ -978,8 +994,8 @@
 				BB6CE3B31DC4C21C00295C55 /* TransformedSink.swift */,
 				BB9D73FD1DBE061D00E20D67 /* OwnedSink.swift */,
 				BBB55B301C8FCC810050DDA9 /* Source.swift */,
-				BB9D73C81DBB2EB400E20D67 /* Connect.swift */,
 				BBB55B221C8FCC810050DDA9 /* Connector.swift */,
+				BB9D73C81DBB2EB400E20D67 /* Connect.swift */,
 				BBB55B2E1C8FCC810050DDA9 /* Signal.swift */,
 				BBB55B2F1C8FCC810050DDA9 /* SimpleSources.swift */,
 				BBB55B261C8FCC810050DDA9 /* MergedSource.swift */,
@@ -1096,7 +1112,8 @@
 				BBB55BEA1C8FD25F0050DDA9 /* GlueKitPerformanceTests.swift */,
 				BBB55BE61C8FD1C60050DDA9 /* Info.plist */,
 			);
-			path = PerformanceTests;
+			name = PerformanceTests;
+			path = Tests/PerformanceTests;
 			sourceTree = "<group>";
 		};
 		BBC3C84F1C93164700E10D59 /* UIKit Extensions */ = {
@@ -1660,6 +1677,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB6CE3C01DC4CD7200295C55 /* TwoWayBinding.swift in Sources */,
+				BB8195B31DD256B700644668 /* UIBarButtonItem Extensions.swift in Sources */,
 				BBF3EB0F1D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BB015F421DC526BF00C8C05A /* ArrayFilteringOnObservableBool.swift in Sources */,
 				BB015F491DC52D3500C8C05A /* DistinctUnion.swift in Sources */,
@@ -1695,6 +1713,7 @@
 				BB9D73CA1DBB2EB400E20D67 /* Connect.swift in Sources */,
 				BB015F3C1DC5106B00C8C05A /* ArrayMappingForValueField.swift in Sources */,
 				BB015F331DC4FC3700C8C05A /* ArrayVariable.swift in Sources */,
+				BB8195B61DD256B700644668 /* CADisplayLink Extensions.swift in Sources */,
 				BB9D73DC1DBB612600E20D67 /* Connector.swift in Sources */,
 				BB6CE3B91DC4CD3B00295C55 /* Update.swift in Sources */,
 				BB6CE3C21DC4CD7A00295C55 /* BufferedValue.swift in Sources */,
@@ -1711,6 +1730,7 @@
 				BB015F3A1DC50B1200C8C05A /* ArrayMappingForValue.swift in Sources */,
 				BB015F411DC5262400C8C05A /* ArrayFilteringOnPredicate.swift in Sources */,
 				BB015F5D1DC686CD00C8C05A /* SetSortingByMappingToObservableComparable.swift in Sources */,
+				BB8195B21DD256B700644668 /* UIControl Extensions.swift in Sources */,
 				BB015F321DC4FC3100C8C05A /* SetVariable.swift in Sources */,
 				BB6CE3BB1DC4CD4800295C55 /* ChangesSource.swift in Sources */,
 				BB6CE3C41DC4CD8300295C55 /* CompositeObservable.swift in Sources */,
@@ -1725,9 +1745,11 @@
 				BB9D73D31DBB3DEA00E20D67 /* Signal.swift in Sources */,
 				BBBBEC8E1DCA1AEB000B646D /* ValueReference.swift in Sources */,
 				BB015F4F1DC677A900C8C05A /* SetMappingForValueField.swift in Sources */,
+				BB8195B41DD256B700644668 /* UIDevice Extensions.swift in Sources */,
 				BB6CE3BE1DC4CD6B00295C55 /* ObservableValue.swift in Sources */,
 				BB015F5C1DC6868F00C8C05A /* SetSortingByMappingToComparable.swift in Sources */,
 				BB015F341DC4FDCE00C8C05A /* SetMappingBase.swift in Sources */,
+				BB8195B51DD256B700644668 /* UIGestureRecognizer Extensions.swift in Sources */,
 				BB015F5A1DC684E200C8C05A /* SetFolding.swift in Sources */,
 				BBEA2A3B1DBFE37B00CCCB08 /* BracketingSource.swift in Sources */,
 				BBB55B4F1C8FCC820050DDA9 /* Locks.swift in Sources */,
@@ -1764,6 +1786,7 @@
 				BBE9AAD01DC0F1F6000B3DD0 /* ChangeTests.swift in Sources */,
 				BBCD9DF61DA9104A00E85FB9 /* RefListTests.swift in Sources */,
 				BBBBEC9B1DCA223A000B646D /* SetReferenceTests.swift in Sources */,
+				BB8195C01DD257A300644668 /* ConnectorTests.swift in Sources */,
 				BB015F531DC67A6400C8C05A /* SetVariableTests.swift in Sources */,
 				BB015F3B1DC50C6700C8C05A /* MockArrayObserver.swift in Sources */,
 				BB170F391DC1545E0000443E /* TransactionStateTests.swift in Sources */,
@@ -1814,6 +1837,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BBCD9E251DAAD26200E85FB9 /* CompositeObservable.swift in Sources */,
+				BB8195B81DD256B800644668 /* UIBarButtonItem Extensions.swift in Sources */,
 				BB69A81B1D6B6A9A001D2821 /* ArrayReference.swift in Sources */,
 				BBB55B601C8FCC820050DDA9 /* ObservableValue.swift in Sources */,
 				BB69A7F91D6B1D83001D2821 /* ArrayChange.swift in Sources */,
@@ -1849,6 +1873,7 @@
 				BB69A8341D6B7F12001D2821 /* SetReference.swift in Sources */,
 				BB7E04CF1DA723F300BE3051 /* SetMappingForValueField.swift in Sources */,
 				BBB55B681C8FCC820050DDA9 /* Reference.swift in Sources */,
+				BB8195BB1DD256B800644668 /* CADisplayLink Extensions.swift in Sources */,
 				BB69A7FD1D6B1D95001D2821 /* ObservableArray.swift in Sources */,
 				BBA0335E1DA7276200E83AC1 /* SetSortingByComparator.swift in Sources */,
 				BB7E04E81DA725A500BE3051 /* ArrayFilteringOnObservableBool.swift in Sources */,
@@ -1865,6 +1890,7 @@
 				BBB55B901C8FCC820050DDA9 /* Variable.swift in Sources */,
 				BB7E04D91DA7242F00BE3051 /* SetMappingForSetField.swift in Sources */,
 				BBCD9E2F1DAAD4BC00E85FB9 /* CompositeUpdatable.swift in Sources */,
+				BB8195B71DD256B800644668 /* UIControl Extensions.swift in Sources */,
 				BBB55B581C8FCC820050DDA9 /* NSNotificationCenter Support.swift in Sources */,
 				BB1657E91D71D65900094BAC /* ArrayChangeSeparation.swift in Sources */,
 				BB69A8381D6B7F9D001D2821 /* SetFilteringOnPredicate.swift in Sources */,
@@ -1879,9 +1905,11 @@
 				BB69A8021D6B2377001D2821 /* BufferedArray.swift in Sources */,
 				BBBBEC8F1DCA1AEB000B646D /* ValueReference.swift in Sources */,
 				BBE4DF591DA55384005EC162 /* SetMappingForValue.swift in Sources */,
+				BB8195B91DD256B800644668 /* UIDevice Extensions.swift in Sources */,
 				BB69A8421D6B9A7E001D2821 /* ArrayMappingForValue.swift in Sources */,
 				BBB55B441C8FCC820050DDA9 /* Connector.swift in Sources */,
 				BB69A7F51D6B1D7C001D2821 /* Change.swift in Sources */,
+				BB8195BA1DD256B800644668 /* UIGestureRecognizer Extensions.swift in Sources */,
 				BBE4DF5E1DA55DA3005EC162 /* SetMappingBase.swift in Sources */,
 				BBCD9E041DAA910500E85FB9 /* SetFolding.swift in Sources */,
 				BB7E04DE1DA7244A00BE3051 /* SetMappingForArrayField.swift in Sources */,
@@ -1909,6 +1937,7 @@
 				BB69A7F61D6B1D7C001D2821 /* Change.swift in Sources */,
 				BBCD9E211DAAC7E600E85FB9 /* ValueMappingForSetField.swift in Sources */,
 				BB69A80B1D6B442D001D2821 /* ArrayVariable.swift in Sources */,
+				BB8195BE1DD256B900644668 /* UIDevice Extensions.swift in Sources */,
 				BB9D74011DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BB69A8311D6B7E37001D2821 /* SetSortingByMappingToComparable.swift in Sources */,
 				BBEA2A3D1DBFE37B00CCCB08 /* BracketingSource.swift in Sources */,
@@ -1931,6 +1960,7 @@
 				BB7E04E41DA7255D00BE3051 /* ArrayFilteringIndexmap.swift in Sources */,
 				BB69A7FA1D6B1D83001D2821 /* ArrayChange.swift in Sources */,
 				BBEA2A421DBFE38F00CCCB08 /* BufferedSource.swift in Sources */,
+				BB8195BC1DD256B900644668 /* UIControl Extensions.swift in Sources */,
 				BBB55B751C8FCC820050DDA9 /* Signal.swift in Sources */,
 				BBCD9E261DAAD26200E85FB9 /* CompositeObservable.swift in Sources */,
 				BBCD9E121DAAC33700E85FB9 /* ValueMappingForValue.swift in Sources */,
@@ -1940,6 +1970,7 @@
 				BBCD9E051DAA910500E85FB9 /* SetFolding.swift in Sources */,
 				BB69A7FE1D6B1D95001D2821 /* ObservableArray.swift in Sources */,
 				BBF3EB111D99ACDE006AC7CD /* RefList.swift in Sources */,
+				BB8195BD1DD256B900644668 /* UIBarButtonItem Extensions.swift in Sources */,
 				BBF400671DA108E900DA0B2C /* ObservableContains.swift in Sources */,
 				BB6CE3B71DC4C21C00295C55 /* TransformedSink.swift in Sources */,
 				BB7E04E91DA725A500BE3051 /* ArrayFilteringOnObservableBool.swift in Sources */,
@@ -1976,6 +2007,7 @@
 				BBB55B4D1C8FCC820050DDA9 /* KVO Support.swift in Sources */,
 				BBBBECA91DCA3FF0000B646D /* BufferedSet.swift in Sources */,
 				BB7E04D01DA723F300BE3051 /* SetMappingForValueField.swift in Sources */,
+				BB8195BF1DD256B900644668 /* UIGestureRecognizer Extensions.swift in Sources */,
 				BB69A8241D6B7203001D2821 /* ObservableSet.swift in Sources */,
 				BB69A8291D6B779B001D2821 /* UpdatableSet.swift in Sources */,
 				BB82E3E41D98F34E0035DDAD /* ArrayFilteringOnPredicate.swift in Sources */,
@@ -2085,7 +2117,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = PerformanceTests/Info.plist;
+				INFOPLIST_FILE = Tests/PerformanceTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = hu.lorentey.GlueKit.PerformanceTests;
@@ -2104,7 +2136,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = PerformanceTests/Info.plist;
+				INFOPLIST_FILE = Tests/PerformanceTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = hu.lorentey.GlueKit.PerformanceTests;
@@ -2254,7 +2286,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
-				INFOPLIST_FILE = Tests/Info.plist;
+				INFOPLIST_FILE = Tests/GlueKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER_BASE).Tests";
 				PRODUCT_NAME = "$(PROJECT_NAME)-Test";
@@ -2269,7 +2301,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
-				INFOPLIST_FILE = Tests/Info.plist;
+				INFOPLIST_FILE = Tests/GlueKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER_BASE).Tests";
 				PRODUCT_NAME = "$(PROJECT_NAME)-Test";
@@ -2325,7 +2357,7 @@
 				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = Tests/Info.plist;
+				INFOPLIST_FILE = Tests/GlueKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER_BASE).Tests";
 				PRODUCT_NAME = "$(PROJECT_NAME)-Test";
@@ -2341,7 +2373,7 @@
 				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = Tests/Info.plist;
+				INFOPLIST_FILE = Tests/GlueKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER_BASE).Tests";
 				PRODUCT_NAME = "$(PROJECT_NAME)-Test";
@@ -2433,7 +2465,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = "";
-				INFOPLIST_FILE = Tests/Info.plist;
+				INFOPLIST_FILE = Tests/GlueKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER_BASE).Tests";
 				PRODUCT_NAME = "$(PROJECT_NAME)-Test";
@@ -2450,7 +2482,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = "";
-				INFOPLIST_FILE = Tests/Info.plist;
+				INFOPLIST_FILE = Tests/GlueKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_IDENTIFIER_BASE).Tests";
 				PRODUCT_NAME = "$(PROJECT_NAME)-Test";
