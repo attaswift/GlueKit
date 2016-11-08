@@ -15,6 +15,16 @@ extension UIDevice {
     }
 }
 
+private struct DeviceOrientationSink: UniqueOwnedSink {
+    typealias Owner = ObservableDeviceOrientation
+
+    unowned let owner: Owner
+
+    func receive(_ notification: Notification) {
+        owner.receive(notification)
+    }
+}
+
 private final class ObservableDeviceOrientation: _BaseObservableValue<UIDeviceOrientation> {
     let device: UIDevice
     var orientation: UIDeviceOrientation? = nil
@@ -27,13 +37,7 @@ private final class ObservableDeviceOrientation: _BaseObservableValue<UIDeviceOr
         return device.orientation
     }
 
-    var notificationSource: AnySource<Notification> {
-        return NotificationCenter.default.source(forName: .UIDeviceOrientationDidChange, sender: device, queue: OperationQueue.main)
-    }
-
-    var sink: AnySink<Notification> {
-        return StrongMethodSink(owner: self, identifier: 0, method: ObservableDeviceOrientation.receive).anySink
-    }
+    lazy var notificationSource: AnySource<Notification> = NotificationCenter.default.source(forName: .UIDeviceOrientationDidChange, sender: self.device, queue: OperationQueue.main)
 
     func receive(_ notification: Notification) {
         beginTransaction()
@@ -47,11 +51,11 @@ private final class ObservableDeviceOrientation: _BaseObservableValue<UIDeviceOr
     override func activate() {
         device.beginGeneratingDeviceOrientationNotifications()
         orientation = device.orientation
-        notificationSource.add(sink)
+        notificationSource.add(DeviceOrientationSink(owner: self))
     }
 
     override func deactivate() {
-        notificationSource.remove(sink)
+        notificationSource.remove(DeviceOrientationSink(owner: self))
         device.endGeneratingDeviceOrientationNotifications()
         orientation = nil
     }
@@ -68,6 +72,16 @@ extension UIDevice {
     }
 }
 
+private struct BatteryStateSink: UniqueOwnedSink {
+    typealias Owner = ObservableBatteryState
+
+    unowned let owner: Owner
+
+    func receive(_ notification: Notification) {
+        owner.receive(notification)
+    }
+}
+
 private var batteryKey: UInt8 = 0
 
 private final class ObservableBatteryState: _BaseObservableValue<(UIDeviceBatteryState, Float)> {
@@ -77,23 +91,15 @@ private final class ObservableBatteryState: _BaseObservableValue<(UIDeviceBatter
     var state: Value? = nil
     var didEnableBatteryMonitoring = false
 
+    lazy var batteryStateSource: AnySource<Notification> = NotificationCenter.default.source(forName: .UIDeviceBatteryStateDidChange, sender: self.device, queue: OperationQueue.main)
+    lazy var batteryLevelSource: AnySource<Notification> = NotificationCenter.default.source(forName: .UIDeviceBatteryLevelDidChange, sender: self.device, queue: OperationQueue.main)
+
     init(_ device: UIDevice) {
         self.device = device
     }
 
     override var value: Value {
         return (device.batteryState, device.batteryLevel)
-    }
-
-    var batteryStateSource: AnySource<Notification> {
-        return NotificationCenter.default.source(forName: .UIDeviceBatteryStateDidChange, sender: device, queue: OperationQueue.main)
-    }
-    var batteryLevelSource: AnySource<Notification> {
-        return NotificationCenter.default.source(forName: .UIDeviceBatteryLevelDidChange, sender: device, queue: OperationQueue.main)
-    }
-
-    var sink: AnySink<Notification> {
-        return StrongMethodSink(owner: self, identifier: 0, method: ObservableBatteryState.receive).anySink
     }
 
     func receive(_ notification: Notification) {
@@ -113,13 +119,13 @@ private final class ObservableBatteryState: _BaseObservableValue<(UIDeviceBatter
             didEnableBatteryMonitoring = true
         }
         state = (device.batteryState, device.batteryLevel)
-        batteryStateSource.add(sink)
-        batteryLevelSource.add(sink)
+        batteryStateSource.add(BatteryStateSink(owner: self))
+        batteryLevelSource.add(BatteryStateSink(owner: self))
     }
 
     override func deactivate() {
-        batteryStateSource.remove(sink)
-        batteryLevelSource.remove(sink)
+        batteryStateSource.remove(BatteryStateSink(owner: self))
+        batteryLevelSource.remove(BatteryStateSink(owner: self))
         if didEnableBatteryMonitoring {
             device.isBatteryMonitoringEnabled = false
             didEnableBatteryMonitoring = false
@@ -139,6 +145,16 @@ extension UIDevice {
     }
 }
 
+private struct DeviceProximitySink: UniqueOwnedSink {
+    typealias Owner = ObservableDeviceProximity
+
+    unowned let owner: Owner
+
+    func receive(_ notification: Notification) {
+        owner.receive(notification)
+    }
+}
+
 private var proximityKey: UInt8 = 0
 
 private final class ObservableDeviceProximity: _BaseObservableValue<Bool> {
@@ -147,20 +163,14 @@ private final class ObservableDeviceProximity: _BaseObservableValue<Bool> {
     var state: Bool? = nil
     var didEnableProximityMonitoring = false
 
+    lazy var notificationSource: AnySource<Notification> = NotificationCenter.default.source(forName: .UIDeviceProximityStateDidChange, sender: self.device, queue: OperationQueue.main)
+
     init(_ device: UIDevice) {
         self.device = device
     }
 
     override var value: Bool {
         return device.proximityState
-    }
-
-    var notificationSource: AnySource<Notification> {
-        return NotificationCenter.default.source(forName: .UIDeviceProximityStateDidChange, sender: device, queue: OperationQueue.main)
-    }
-
-    var sink: AnySink<Notification> {
-        return StrongMethodSink(owner: self, identifier: 0, method: ObservableDeviceProximity.receive).anySink
     }
 
     func receive(_ notification: Notification) {
@@ -178,11 +188,11 @@ private final class ObservableDeviceProximity: _BaseObservableValue<Bool> {
             didEnableProximityMonitoring = true
         }
         state = device.proximityState
-        notificationSource.add(sink)
+        notificationSource.add(DeviceProximitySink(owner: self))
     }
 
     override func deactivate() {
-        notificationSource.remove(sink)
+        notificationSource.remove(DeviceProximitySink(owner: self))
         if didEnableProximityMonitoring {
             device.isProximityMonitoringEnabled = false
             didEnableProximityMonitoring = false

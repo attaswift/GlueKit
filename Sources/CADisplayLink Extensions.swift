@@ -21,7 +21,7 @@ public class CADisplayLinkSource: SignalerSource<CADisplayLink> {
         super.init()
     }
 
-    func activate() {
+    override func activate() {
         displayLink = CADisplayLink(target: self, selector: #selector(CADisplayLinkSource.tick(_:)))
         precondition(self.runLoop == nil)
         let runLoop = RunLoop.current
@@ -29,7 +29,7 @@ public class CADisplayLinkSource: SignalerSource<CADisplayLink> {
         displayLink!.add(to: runLoop, forMode: RunLoopMode.commonModes)
     }
 
-    func deactivate() {
+    override func deactivate() {
         precondition(runLoop != nil)
         displayLink!.remove(from: runLoop!, forMode: RunLoopMode.commonModes)
         displayLink = nil
