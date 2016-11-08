@@ -9,6 +9,24 @@
 import XCTest
 @testable import GlueKit
 
+class TestConnection: Connection {
+    var callback: (() -> ())?
+
+    init(_ callback: @escaping () -> ()) {
+        self.callback = callback
+        super.init()
+    }
+
+    deinit {
+        disconnect()
+    }
+
+    override func disconnect() {
+        guard let callback = self.callback else { return }
+        self.callback = nil
+        callback()
+    }
+}
 class ConnectorTests: XCTestCase {
     
     func test_EmptyConnector() {
@@ -17,56 +35,52 @@ class ConnectorTests: XCTestCase {
     }
 
     func test_ReleasingTheConnectorDisconnectsItsConnections() {
-        var actual: [ConnectionID] = []
-        var expected: [ConnectionID] = []
-
+        var actual: [Int] = []
         do {
             let connector = Connector()
-            let c = Connection { id in actual.append(id) }
+            let c = TestConnection { id in actual.append(1) }
             c.putInto(connector)
 
-            XCTAssertEqual(actual, expected)
-
-            expected.append(c.connectionID)
+            XCTAssertEqual(actual, [])
         }
-        XCTAssertEqual(actual, expected)
+        XCTAssertEqual(actual, [1])
     }
 
     func test_DisconnectingTheConnectorDisconnectsItsConnections() {
-        var actual: [ConnectionID] = []
-        var expected: [ConnectionID] = []
+        var actual: [Int] = []
 
-        let connector = Connector()
-        let c = Connection { id in actual.append(id) }
-        c.putInto(connector)
-        XCTAssertEqual(actual, expected)
-        expected.append(c.connectionID)
-        connector.disconnect()
-        XCTAssertEqual(actual, expected)
-
-        withExtendedLifetime(connector) {}
+        do {
+            let connector = Connector()
+            let c = TestConnection { actual.append(1) }
+            c.putInto(connector)
+            XCTAssertEqual(actual, [])
+            connector.disconnect()
+            XCTAssertEqual(actual, [1])
+            withExtendedLifetime(connector) {}
+        }
+        XCTAssertEqual(actual, [1])
     }
 
     func test_ConnectorsCanBeRestarted() {
-        var actual: [ConnectionID] = []
-        var expected: [ConnectionID] = []
+        var actual: [Int] = []
 
-        let connector = Connector()
-        let c1 = Connection { id in actual.append(id) }
-        c1.putInto(connector)
-        XCTAssertEqual(actual, expected)
-        expected.append(c1.connectionID)
-        connector.disconnect()
-        XCTAssertEqual(actual, expected)
+        do {
+            let connector = Connector()
+            let c1 = TestConnection { actual.append(1) }
+            c1.putInto(connector)
+            XCTAssertEqual(actual, [])
+            connector.disconnect()
+            XCTAssertEqual(actual, [1])
 
-        let c2 = Connection { id in actual.append(id) }
-        c2.putInto(connector)
-        XCTAssertEqual(actual, expected)
-        expected.append(c2.connectionID)
-        connector.disconnect()
-        XCTAssertEqual(actual, expected)
-
-        withExtendedLifetime(connector) {}
+            let c2 = TestConnection { actual.append(2) }
+            c2.putInto(connector)
+            XCTAssertEqual(actual, [1])
+            connector.disconnect()
+            XCTAssertEqual(actual, [1, 2])
+            
+            withExtendedLifetime(connector) {}
+        }
+        XCTAssertEqual(actual, [1, 2])
     }
 
     func test_ConnectingASourceToAClosure() {
@@ -90,22 +104,6 @@ class ConnectorTests: XCTestCase {
         withExtendedLifetime(connector) {}
     }
 
-    func test_ConnectingASourceToASink() {
-        let signal = Signal<Int>()
-        let connector = Connector()
-        let variable = IntVariable(0)
-
-        connector.connect(signal, to: variable)
-
-        XCTAssertEqual(variable.value, 0)
-        signal.send(42)
-        XCTAssertEqual(variable.value, 42)
-        connector.disconnect()
-        signal.send(23)
-        XCTAssertEqual(variable.value, 42)
-        withExtendedLifetime(connector) {}
-    }
-
     func test_ConnectingAnObservableToAChangeClosure() {
         let variable = Variable<Int>(0)
         let connector = Connector()
@@ -126,82 +124,6 @@ class ConnectorTests: XCTestCase {
         variable.value = 23
 
         XCTAssertTrue(actual.elementsEqual(expected, by: ==))
-
-        withExtendedLifetime(connector) {}
-    }
-
-    func test_ConnectingAnObservableToAChangeSink() {
-        let variable = Variable<Int>(0)
-        let connector = Connector()
-
-        var expected: [ValueChange<Int>] = []
-        var actual: [ValueChange<Int>] = []
-
-        connector.connect(variable, to: Sink({ change in actual.append(change) }))
-
-        XCTAssertTrue(actual.elementsEqual(expected, by: ==))
-
-        expected.append(.init(from: 0, to: 42))
-        variable.value = 42
-
-        XCTAssertTrue(actual.elementsEqual(expected, by: ==))
-
-        connector.disconnect()
-        variable.value = 23
-
-        XCTAssertTrue(actual.elementsEqual(expected, by: ==))
-        
-        withExtendedLifetime(connector) {}
-    }
-
-    func test_Bind() {
-        let source = Variable<Int>(0)
-        let target = Variable<Int>(1)
-
-        let connector = Connector()
-
-        XCTAssertEqual(source.value, 0)
-        XCTAssertEqual(target.value, 1)
-
-        connector.bind(source, to: target) { $0 == $1 }
-        XCTAssertEqual(source.value, 0)
-        XCTAssertEqual(target.value, 0)
-
-        source.value = 2
-        XCTAssertEqual(source.value, 2)
-        XCTAssertEqual(target.value, 2)
-
-        connector.disconnect()
-
-        source.value = 3
-        XCTAssertEqual(source.value, 3)
-        XCTAssertEqual(target.value, 2)
-
-        withExtendedLifetime(connector) {}
-    }
-
-    func test_Bind_DefaultEqualityTest() {
-        let source = Variable<Int>(0)
-        let target = Variable<Int>(1)
-
-        let connector = Connector()
-
-        XCTAssertEqual(source.value, 0)
-        XCTAssertEqual(target.value, 1)
-
-        connector.bind(source, to: target)
-        XCTAssertEqual(source.value, 0)
-        XCTAssertEqual(target.value, 0)
-
-        source.value = 2
-        XCTAssertEqual(source.value, 2)
-        XCTAssertEqual(target.value, 2)
-
-        connector.disconnect()
-
-        source.value = 3
-        XCTAssertEqual(source.value, 3)
-        XCTAssertEqual(target.value, 2)
 
         withExtendedLifetime(connector) {}
     }

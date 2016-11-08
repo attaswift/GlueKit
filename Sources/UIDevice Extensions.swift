@@ -6,6 +6,7 @@
 //  Copyright © 2016 Károly Lőrentey. All rights reserved.
 //
 
+#if os(iOS)
 import UIKit
 
 extension UIDevice {
@@ -189,4 +190,4 @@ private final class ObservableDeviceProximity: _BaseObservableValue<Bool> {
         state = nil
     }
 }
-
+#endif

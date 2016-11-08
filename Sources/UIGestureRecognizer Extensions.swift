@@ -6,6 +6,7 @@
 //  Copyright © 2016 Károly Lőrentey. All rights reserved.
 //
 
+#if os(iOS)
 import UIKit
 
 extension UIGestureRecognizer {
@@ -44,4 +45,4 @@ private class ObservableGestureRecognizerState: _BaseObservableValue<UIGestureRe
         endTransaction()
     }
 }
-
+#endif

@@ -96,3 +96,10 @@ internal struct ClosureSink<Value>: SinkType {
         return left.identifier == right.identifier
     }
 }
+
+extension Connector {
+    @discardableResult
+    public func connect<Source: SourceType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
+        return source.connect(sink).putInto(self)
+    }
+}

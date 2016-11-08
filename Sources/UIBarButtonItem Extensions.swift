@@ -6,6 +6,7 @@
 //  Copyright © 2016 Károly Lőrentey. All rights reserved.
 //
 
+#if os(iOS)
 import UIKit
 
 private var associatedObjectKey: UInt8 = 0
@@ -72,3 +73,4 @@ private class TargetActionListener: NSObject {
         signal.send()
     }
 }
+#endif

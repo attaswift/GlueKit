@@ -6,6 +6,7 @@
 //  Copyright © 2016 Károly Lőrentey. All rights reserved.
 //
 
+#if os(iOS)
 import UIKit
 
 extension UIControl {
@@ -74,3 +75,4 @@ internal final class ControlEventsObserverRegistry {
         signal.send(event)
     }
 }
+#endif

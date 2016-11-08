@@ -6,6 +6,7 @@
 //  Copyright © 2016 Károly Lőrentey.
 //
 
+#if os(iOS)
 import QuartzCore
 
 private var associatedTargetKey: UInt8 = 0
@@ -39,3 +40,4 @@ public class CADisplayLinkSource: SignalerSource<CADisplayLink> {
         signal.send(displayLink)
     }
 }
+#endif

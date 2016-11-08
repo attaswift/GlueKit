@@ -37,9 +37,4 @@ public class Connector {
             c.disconnect()
         }
     }
-
-    @discardableResult
-    public func connect<Source: SourceType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
-        return source.connect(sink).putInto(self)
-    }
 }
