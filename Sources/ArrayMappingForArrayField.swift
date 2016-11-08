@@ -30,7 +30,7 @@ private struct Indexmap {
     var postcount: Int { return postindices.last! }
 
     func preindex(for postindex: Int) -> (preindex: Int, offset: Int) {
-        let p = postindices.highestIndex(notAbove: postindex)!
+        let p = postindices.indexOfLastElement(notAfter: postindex)!
         let start = postindices[p]
         let preindex = postindices.offset(of: p)
         return (preindex, postindex - start)
