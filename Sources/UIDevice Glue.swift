@@ -1,5 +1,5 @@
 //
-//  UIDevice Extensions.swift
+//  UIDevice Glue.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-03-13.
@@ -10,9 +10,22 @@
 import UIKit
 
 extension UIDevice {
-    public var observableOrientation: AnyObservableValue<UIDeviceOrientation> {
-        return ObservableDeviceOrientation(self).anyObservableValue
+    public override var glue: GlueForUIDevice {
+        return getOrCreateGlue()
     }
+}
+
+public class GlueForUIDevice: GlueForNSObject {
+    private var object: UIDevice { return owner as! UIDevice }
+
+    public lazy var orientation: AnyObservableValue<UIDeviceOrientation>
+        = ObservableDeviceOrientation(self.object).anyObservableValue
+
+    public lazy var batteryState: AnyObservableValue<(UIDeviceBatteryState, Float)>
+        = ObservableBatteryState(self.object).anyObservableValue
+
+    public lazy var proximityState: AnyObservableValue<Bool>
+        = ObservableDeviceProximity(self.object).anyObservableValue
 }
 
 private struct DeviceOrientationSink: UniqueOwnedSink {
@@ -26,7 +39,7 @@ private struct DeviceOrientationSink: UniqueOwnedSink {
 }
 
 private final class ObservableDeviceOrientation: _BaseObservableValue<UIDeviceOrientation> {
-    let device: UIDevice
+    unowned let device: UIDevice
     var orientation: UIDeviceOrientation? = nil
 
     init(_ device: UIDevice) {
@@ -37,7 +50,7 @@ private final class ObservableDeviceOrientation: _BaseObservableValue<UIDeviceOr
         return device.orientation
     }
 
-    lazy var notificationSource: AnySource<Notification> = NotificationCenter.default.source(forName: .UIDeviceOrientationDidChange, sender: self.device, queue: OperationQueue.main)
+    lazy var notificationSource: AnySource<Notification> = NotificationCenter.default.glue.source(forName: .UIDeviceOrientationDidChange, sender: self.device, queue: OperationQueue.main)
 
     func receive(_ notification: Notification) {
         beginTransaction()
@@ -61,17 +74,6 @@ private final class ObservableDeviceOrientation: _BaseObservableValue<UIDeviceOr
     }
 }
 
-extension UIDevice {
-    public var observableBatteryState: AnyObservableValue<(UIDeviceBatteryState, Float)> {
-        if let observable = objc_getAssociatedObject(self, &batteryKey) as? ObservableBatteryState {
-            return observable.anyObservableValue
-        }
-        let observable = ObservableBatteryState(self)
-        objc_setAssociatedObject(self, &batteryKey, observable, .OBJC_ASSOCIATION_RETAIN)
-        return observable.anyObservableValue
-    }
-}
-
 private struct BatteryStateSink: UniqueOwnedSink {
     typealias Owner = ObservableBatteryState
 
@@ -91,8 +93,8 @@ private final class ObservableBatteryState: _BaseObservableValue<(UIDeviceBatter
     var state: Value? = nil
     var didEnableBatteryMonitoring = false
 
-    lazy var batteryStateSource: AnySource<Notification> = NotificationCenter.default.source(forName: .UIDeviceBatteryStateDidChange, sender: self.device, queue: OperationQueue.main)
-    lazy var batteryLevelSource: AnySource<Notification> = NotificationCenter.default.source(forName: .UIDeviceBatteryLevelDidChange, sender: self.device, queue: OperationQueue.main)
+    lazy var batteryStateSource: AnySource<Notification> = NotificationCenter.default.glue.source(forName: .UIDeviceBatteryStateDidChange, sender: self.device, queue: OperationQueue.main)
+    lazy var batteryLevelSource: AnySource<Notification> = NotificationCenter.default.glue.source(forName: .UIDeviceBatteryLevelDidChange, sender: self.device, queue: OperationQueue.main)
 
     init(_ device: UIDevice) {
         self.device = device
@@ -134,17 +136,6 @@ private final class ObservableBatteryState: _BaseObservableValue<(UIDeviceBatter
     }
 }
 
-extension UIDevice {
-    public var observableProximityState: AnyObservableValue<Bool> {
-        if let observable = objc_getAssociatedObject(self, &proximityKey) as? ObservableDeviceProximity {
-            return observable.anyObservableValue
-        }
-        let observable = ObservableDeviceProximity(self)
-        objc_setAssociatedObject(self, &proximityKey, observable, .OBJC_ASSOCIATION_RETAIN)
-        return observable.anyObservableValue
-    }
-}
-
 private struct DeviceProximitySink: UniqueOwnedSink {
     typealias Owner = ObservableDeviceProximity
 
@@ -163,7 +154,7 @@ private final class ObservableDeviceProximity: _BaseObservableValue<Bool> {
     var state: Bool? = nil
     var didEnableProximityMonitoring = false
 
-    lazy var notificationSource: AnySource<Notification> = NotificationCenter.default.source(forName: .UIDeviceProximityStateDidChange, sender: self.device, queue: OperationQueue.main)
+    lazy var notificationSource: AnySource<Notification> = NotificationCenter.default.glue.source(forName: .UIDeviceProximityStateDidChange, sender: self.device, queue: OperationQueue.main)
 
     init(_ device: UIDevice) {
         self.device = device

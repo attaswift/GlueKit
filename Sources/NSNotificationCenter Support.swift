@@ -9,6 +9,14 @@
 import Foundation
 
 extension NotificationCenter {
+    public override var glue: GlueForNotificationCenter {
+        return getOrCreateGlue()
+    }
+}
+
+public class GlueForNotificationCenter: GlueForNSObject {
+    private var object: NotificationCenter { return owner as! NotificationCenter }
+
     /// Creates a Source that observes the specified notifications and forwards it to its connected sinks.
     ///
     /// The returned source holds strong references to the notification center and the sender (if any).
@@ -19,7 +27,7 @@ extension NotificationCenter {
     /// - Parameter queue: The operation queue on which the source will trigger. If you pass nil, the sinks are run synchronously on the thread that posted the notification. This parameter is nil by default.
     /// - Returns: A Source that triggers when the specified notification is posted.
     public func source(forName name: NSNotification.Name, sender: AnyObject? = nil, queue: OperationQueue? = nil) -> AnySource<Notification> {
-        return NotificationSource(center: self, name: name, sender: sender, queue: queue).anySource
+        return NotificationSource(center: object, name: name, sender: sender, queue: queue).anySource
     }
 }
 

@@ -25,7 +25,7 @@ public class Variable<Value>: _BaseUpdatableValue<Value> {
     override func rawSetValue(_ value: Value) {
         _value = value
     }
- }
+}
 
 /// An unowned variable contains an unowned reference to an object that can be read and updated. Updates are observable.
 public class UnownedVariable<Value: AnyObject>: _BaseUpdatableValue<Value> {

@@ -75,10 +75,20 @@ private func toCGAffineTransform(_ value: Any?) -> CGAffineTransform {
     #endif
 }
 
+
+
 public extension SourceType where Value == Any? {
     /// Casts all values to Type using an unsafe cast. Signals a fatal error if a value isn't a Type.
     func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> AnySource<T> {
         return self.map { $0 as! T }
+    }
+
+    func casted<T>(to type: T.Type = T.self) -> AnySource<T?> {
+        return self.map { $0 as? T }
+    }
+
+    func casted<T>(to type: T.Type = T.self, defaultValue: T) -> AnySource<T> {
+        return self.map { ($0 as? T) ?? defaultValue }
     }
 
     /// Casts all values to String via NSString. Signals a fatal error if a value isn't an NSString.
@@ -114,8 +124,16 @@ public extension SourceType where Value == Any? {
 
 public extension ObservableValueType where Value == Any?, Change == ValueChange<Value> {
     /// Casts all values to Type using a forced cast. Traps if a value can't be casted to the specified type.
-    func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> AnyObservableValue<T> {
+    func forceCasted<T>(to type: T.Type = T.self) -> AnyObservableValue<T> {
         return self.map { $0 as! T }
+    }
+
+    func casted<T>(to type: T.Type = T.self) -> AnyObservableValue<T?> {
+        return self.map { $0 as? T }
+    }
+
+    func casted<T>(to type: T.Type = T.self, defaultValue: T) -> AnyObservableValue<T> {
+        return self.map { ($0 as? T) ?? defaultValue }
     }
 
     /// Casts all values to String via NSString. Signals a fatal error if a value isn't an NSString.
@@ -151,8 +169,16 @@ public extension ObservableValueType where Value == Any?, Change == ValueChange<
 
 public extension UpdatableValueType where Value == Any?, Change == ValueChange<Value> {
     /// Casts all values to Type using a forced cast. Traps if a value can't be casted to the specified type.
-    func forceCasted<T: AnyObject>(to type: T.Type = T.self) -> AnyUpdatableValue<T> {
+    func forceCasted<T>(to type: T.Type = T.self) -> AnyUpdatableValue<T> {
         return self.map({ $0 as! T }, inverse: { $0 as Any? })
+    }
+
+    func casted<T>(to type: T.Type = T.self) -> AnyUpdatableValue<T?> {
+        return self.map({ $0 as? T }, inverse: { $0 as Any? })
+    }
+
+    func casted<T>(to type: T.Type = T.self, defaultValue: T) -> AnyUpdatableValue<T> {
+        return self.map({ ($0 as? T) ?? defaultValue }, inverse: { $0 as Any? })
     }
 
     /// Casts all values to String via NSString. Signals a fatal error if a value isn't an NSString.

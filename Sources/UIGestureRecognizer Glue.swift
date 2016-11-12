@@ -1,5 +1,5 @@
 //
-//  UIGestureRecognizer Extensions.swift
+//  UIGestureRecognizer Glue.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-03-16.
@@ -10,13 +10,20 @@
 import UIKit
 
 extension UIGestureRecognizer {
-    public var observableState: AnyObservableValue<UIGestureRecognizerState> {
-        return ObservableGestureRecognizerState(self).anyObservableValue
+    public override var glue: GlueForUIGestureRecognizer {
+        return getOrCreateGlue()
     }
 }
 
+public class GlueForUIGestureRecognizer: GlueForNSObject {
+    private var object: UIGestureRecognizer { return owner as! UIGestureRecognizer }
+
+    public lazy var state: AnyObservableValue<UIGestureRecognizerState>
+        = ObservableGestureRecognizerState(self.object).anyObservableValue
+}
+
 private class ObservableGestureRecognizerState: _BaseObservableValue<UIGestureRecognizerState> {
-    private let _gestureRecognizer: UIGestureRecognizer
+    private unowned let _gestureRecognizer: UIGestureRecognizer
     private var _value: UIGestureRecognizerState? = nil
 
     init(_ gestureRecognizer: UIGestureRecognizer) {

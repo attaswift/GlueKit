@@ -31,7 +31,7 @@ extension UIBarButtonItem {
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
 
         if let actionBlock = actionBlock {
-            self.connector.connect(target.signal, to: actionBlock)
+            self.glue.connector.connect(target.signal, to: actionBlock)
         }
     }
 
@@ -41,7 +41,7 @@ extension UIBarButtonItem {
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
 
         if let actionBlock = actionBlock {
-            self.connector.connect(target.signal, to: actionBlock)
+            self.glue.connector.connect(target.signal, to: actionBlock)
         }
     }
 
@@ -51,7 +51,7 @@ extension UIBarButtonItem {
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
 
         if let actionBlock = actionBlock {
-            self.connector.connect(target.signal, to: actionBlock)
+            self.glue.connector.connect(target.signal, to: actionBlock)
         }
     }
 
@@ -61,7 +61,7 @@ extension UIBarButtonItem {
         objc_setAssociatedObject(self, &associatedObjectKey, target, .OBJC_ASSOCIATION_RETAIN)
 
         if let actionBlock = actionBlock {
-            self.connector.connect(target.signal, to: actionBlock)
+            self.glue.connector.connect(target.signal, to: actionBlock)
         }
     }
 }

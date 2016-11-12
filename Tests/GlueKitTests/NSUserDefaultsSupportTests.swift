@@ -23,7 +23,7 @@ class NSUserDefaultsSupportTests: XCTestCase {
     }
 
     func testAny() {
-        let updatable = defaults.updatable(forKey: key)
+        let updatable = defaults.glue.updatable(forKey: key)
         XCTAssertNil(updatable.value)
 
         updatable.value = 42
@@ -50,7 +50,7 @@ class NSUserDefaultsSupportTests: XCTestCase {
     }
 
     func testBool() {
-        let updatable = defaults.updatableBool(forKey: key)
+        let updatable = defaults.glue.updatable(forKey: key, defaultValue: false)
         XCTAssertFalse(updatable.value)
 
         updatable.value = true
@@ -82,7 +82,7 @@ class NSUserDefaultsSupportTests: XCTestCase {
     }
 
     func testInt() {
-        let updatable = defaults.updatableInt(forKey: key)
+        let updatable = defaults.glue.updatable(forKey: key, defaultValue: 0)
         XCTAssertEqual(updatable.value, 0)
 
         updatable.value = 1
@@ -98,7 +98,7 @@ class NSUserDefaultsSupportTests: XCTestCase {
         XCTAssertEqual(updatable.value, 42)
 
         defaults.set(true, forKey: key)
-        XCTAssertEqual(updatable.value, 1)
+        XCTAssertEqual(updatable.value, 0) // kCFBooleanTrue is not directly convertible to Int
 
         defaults.set(42.5, forKey: key)
         XCTAssertEqual(updatable.value, 42)
@@ -120,7 +120,7 @@ class NSUserDefaultsSupportTests: XCTestCase {
     }
 
     func testDouble() {
-        let updatable = defaults.updatableDouble(forKey: key)
+        let updatable = defaults.glue.updatable(forKey: key, defaultValue: 0.0)
         XCTAssertEqual(updatable.value, 0)
 
         updatable.value = 1
@@ -136,7 +136,7 @@ class NSUserDefaultsSupportTests: XCTestCase {
         XCTAssertEqual(updatable.value, 42)
 
         defaults.set(true, forKey: key)
-        XCTAssertEqual(updatable.value, 1)
+        XCTAssertEqual(updatable.value, 0.0) // kCFBooleanTrue is not directly convertible to Int
 
         defaults.set(42.5, forKey: key)
         XCTAssertEqual(updatable.value, 42.5)
@@ -158,7 +158,7 @@ class NSUserDefaultsSupportTests: XCTestCase {
     }
 
     func testString() {
-        let updatable = defaults.updatableString(forKey: key)
+        let updatable = defaults.glue.updatable(forKey: key, as: (String?).self)
         XCTAssertEqual(updatable.value, nil)
 
         updatable.value = "Foo"

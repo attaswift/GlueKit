@@ -76,7 +76,7 @@ class KVOSupportTests: XCTestCase {
     func test_changes_BasicKVOWithIntegers() {
         let object = Fixture()
 
-        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let count = object.glue.observable(forKeyPath: "count", as: Int.self)
 
         var r = [Int]()
         let c = count.changes.connect { r.append($0.new) }
@@ -94,7 +94,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String]()
-        let c = object.observable(forKeyPath: "name", as: String.self).changes.connect { r.append($0.new) }
+        let c = object.glue.observable(forKeyPath: "name", as: String.self).changes.connect { r.append($0.new) }
 
         object.name = "Alice"
         object.name = "Bob"
@@ -111,7 +111,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String?]()
-        let c = object.observable(forKeyPath: "optional", as: (String?).self).changes.connect { r.append($0.new) }
+        let c = object.glue.observable(forKeyPath: "optional", as: (String?).self).changes.connect { r.append($0.new) }
 
         object.optional = "Alice"
         object.optional = nil
@@ -132,7 +132,7 @@ class KVOSupportTests: XCTestCase {
     func test_changes_DisconnectActuallyDisconnects() {
         let object = Fixture()
 
-        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let count = object.glue.observable(forKeyPath: "count", as: Int.self)
 
         var r = [Int]()
         let c = count.changes.connect { r.append($0.new) }
@@ -155,7 +155,7 @@ class KVOSupportTests: XCTestCase {
             let object = Fixture()
             weakObject = object
 
-            source = object.observable(forKeyPath: "count", as: Int.self).changes
+            source = object.glue.observable(forKeyPath: "count", as: Int.self).changes
         }
 
         XCTAssertNotNil(weakObject)
@@ -173,7 +173,7 @@ class KVOSupportTests: XCTestCase {
             let object = Fixture()
             weakObject = object
 
-            c = object.observable(forKeyPath: "count", as: Int.self).changes.connect { _ in }
+            c = object.glue.observable(forKeyPath: "count", as: Int.self).changes.connect { _ in }
         }
 
         XCTAssertNotNil(weakObject)
@@ -212,21 +212,30 @@ class KVOSupportTests: XCTestCase {
 
         let object = Fixture()
 
-        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let count = object.glue.observable(forKeyPath: "count", as: Int.self)
 
         var s = ""
-        let c = count.futureValues.connect { i in
-            s += " (\(i)"
-            if i > 0 {
-                object.count = i - 1
+        let c = count.updates.connect { update in
+            switch update {
+            case .beginTransaction:
+                s += "(<)"
+            case .change(let change):
+                s += "(\(change))"
+            case .endTransaction:
+                s += "(>"
+                if count.value > 0 {
+                    object.count = count.value - 1
+                }
+                s += ")"
             }
-            s += ")"
         }
 
         object.count = 3
 
+        XCTAssertEqual(object.count, 0)
+
         // Contrast this with the previous test.
-        XCTAssertEqual(s, " (3) (2) (1) (0)")
+        XCTAssertEqual(s, "(<)(0 -> 3)(>)(<)(3 -> 2)(>)(<)(2 -> 1)(>)(<)(1 -> 0)(>)")
         
         c.disconnect()
     }
@@ -271,7 +280,7 @@ class KVOSupportTests: XCTestCase {
 
         let object = Fixture()
 
-        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let count = object.glue.observable(forKeyPath: "count", as: Int.self)
 
         var s = ""
         let c1 = count.changes.connect { c in
@@ -303,7 +312,7 @@ class KVOSupportTests: XCTestCase {
     func test_updates_WillChangeStartsATransaction() {
         let object = Fixture()
 
-        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let count = object.glue.observable(forKeyPath: "count", as: Int.self)
         let sink = MockValueUpdateSink<Int>(count)
 
         sink.expecting("begin") {
@@ -324,7 +333,7 @@ class KVOSupportTests: XCTestCase {
     func test_updates_WillChangeStartsATransaction2() {
         let object = Fixture()
 
-        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let count = object.glue.observable(forKeyPath: "count", as: Int.self)
         let sink = MockValueUpdateSink<Int>(count)
 
         sink.expecting("begin") {
@@ -360,7 +369,7 @@ class KVOSupportTests: XCTestCase {
 
         object.willChangeValue(forKey: "count")
 
-        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let count = object.glue.observable(forKeyPath: "count", as: Int.self)
         let sink = MockValueUpdateSink<Int>()
 
         // The change that was pending at the time of subscription isn't reported.
@@ -388,7 +397,7 @@ class KVOSupportTests: XCTestCase {
     func test_updates_UnsubscribingBeforeDidChange() {
         let object = Fixture()
 
-        let count = object.observable(forKeyPath: "count", as: Int.self)
+        let count = object.glue.observable(forKeyPath: "count", as: Int.self)
         let sink = MockValueUpdateSink<Int>()
 
         count.add(sink)
@@ -414,7 +423,7 @@ class KVOSupportTests: XCTestCase {
     func test_updatable_IntegerKey() {
         let object = Fixture()
 
-        let count = object.updatable(forKey: "count", as: Int.self)
+        let count = object.glue.updatable(forKey: "count", as: Int.self)
         let sink = MockValueUpdateSink<Int>(count)
 
         sink.expecting(["begin", "0 -> 1", "end"]) {
@@ -450,7 +459,7 @@ class KVOSupportTests: XCTestCase {
     func test_updatable_OptionalKey() {
         let object = Fixture()
 
-        let updatable = object.updatable(forKey: "optional", as: (String?).self)
+        let updatable = object.glue.updatable(forKey: "optional", as: (String?).self)
         let sink = MockValueUpdateSink<String?>(updatable)
 
         sink.expecting(["begin", "nil -> Optional(\"foo\")", "end"]) {
@@ -477,7 +486,7 @@ class KVOSupportTests: XCTestCase {
         let next = Fixture()
         object.next = next
 
-        let count = object.observable(forKeyPath: "next.count", as: Int.self)
+        let count = object.glue.observable(forKeyPath: "next.count", as: Int.self)
 
         let sink = MockValueUpdateSink<Int>(count)
 
@@ -525,7 +534,7 @@ class KVOSupportTests: XCTestCase {
         let next2 = Fixture()
         next2.count = 2
 
-        let count = object.observable(forKeyPath: "next.count", as: Int.self)
+        let count = object.glue.observable(forKeyPath: "next.count", as: Int.self)
 
         let sink = MockValueUpdateSink<Int>(count)
 
