@@ -8,6 +8,7 @@
 
 #if os(iOS)
 import UIKit
+import SipHash
 
 private var associatedObjectKey: Int8 = 0
 
@@ -42,12 +43,13 @@ public class GlueForUIControl: GlueForNSObject {
     }
 }
 
-private struct ControlEventsTargetKey: Hashable {
+private struct ControlEventsTargetKey: SipHashable {
     let sink: AnySink<UIEvent>
     let events: UIControlEvents
 
-    var hashValue: Int {
-        return Int.baseHash.mixed(with: sink).mixed(with: events.rawValue)
+    func appendHashes(to hasher: inout SipHasher) {
+        hasher.append(sink)
+        hasher.append(events.rawValue)
     }
 
     static func ==(left: ControlEventsTargetKey, right: ControlEventsTargetKey) -> Bool {
