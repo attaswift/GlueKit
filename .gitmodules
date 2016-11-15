@@ -1,3 +1,6 @@
 [submodule "Carthage/Checkouts/BTree"]
 	path = Carthage/Checkouts/BTree
 	url = https://github.com/lorentey/BTree.git
+[submodule "Carthage/Checkouts/SipHash"]
+	path = Carthage/Checkouts/SipHash
+	url = https://github.com/lorentey/SipHash.git

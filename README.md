@@ -70,8 +70,6 @@ Károly gave a talk on GlueKit during [Functional Swift Conference 2016][FunSwif
 If you use CocoaPods, you can start using GlueKit by including it as a dependency in your  `Podfile`:
 
 ```
-platform :ios, '8.0'
-use_frameworks!
 pod 'GlueKit', :git => 'https://github.com/lorentey/GlueKit.git'
 ```
 
@@ -97,17 +95,25 @@ For Swift Package Manager, add the following entry to the dependencies list insi
 
 ### Standalone Development
 
-If you don't use CocoaPods, Carthage or SPM, you simply need to add `GlueKit.xcodeproj` and `BTree.xcodeproj` (from a clone of [BTree][btree]) to your project's `xcworkspace`. You can put the clones of GlueKit and BTree wherever you like on disk, but it is a good idea to set them up as submodules of your application's top-level Git repository.
+If you don't use CocoaPods, Carthage or SPM, you need to clone GlueKit, [BTree][btree] and [SipHash][siphash], 
+and add references to their `xcodeproj` files to your project's workspace. You may put the clones wherever you like,
+but if you use Git for your app development, it is a good idea to set them up as submodules of your app's top-level 
+Git repository.
 
 [btree]: https://github.com/lorentey/BTree
+[siphash]: https://github.com/lorentey/SipHash
 
-To link your application binary with GlueKit, just add `GlueKit.framework` from the GlueKit project and `BTree.framework` from the BTree project to the Embedded Binaries section of your app target's General page in Xcode. As long as the GlueKit and BTree project files are referenced in your workspace, these frameworks will be listed in the "Choose items to add" sheet that opens when you click on the "+" button of your target's Embedded Binaries list.
+To link your application binary with GlueKit, just add `GlueKit.framework`, `BTree.framework` and `SipHash.framework`
+from the BTree project to the Embedded Binaries section of your app target's General page in Xcode.
+As long as the GlueKit and BTree project files are referenced in your workspace, these frameworks will be listed in 
+the "Choose items to add" sheet that opens when you click on the "+" button of your target's Embedded Binaries list.
 
 There is no need to do any additional setup beyond adding the framework targets to Embedded Binaries.
 
 ### Working on GlueKit Itself
 
-If you want to do some work on GlueKit on its own, without embedding it in an application, simply clone this repo with the `--recursive` option, open `GlueKit.xcworkspace`, and start hacking.
+If you want to do some work on GlueKit on its own, without embedding it in an application, 
+simply clone this repo with the `--recursive` option, open `GlueKit.xcworkspace`, and start hacking.
 
 ```
 git clone --recursive https://github.com/lorentey/GlueKit.git GlueKit

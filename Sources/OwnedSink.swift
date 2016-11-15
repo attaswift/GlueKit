@@ -6,6 +6,8 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
+import SipHash
+
 protocol UniqueOwnedSink: SinkType {
     associatedtype Owner: AnyObject
 
@@ -22,7 +24,7 @@ extension UniqueOwnedSink {
     }
 }
 
-protocol OwnedSink: SinkType {
+protocol OwnedSink: SinkType, SipHashable {
     associatedtype Owner: AnyObject
     associatedtype Identifier: Hashable
 
@@ -31,8 +33,9 @@ protocol OwnedSink: SinkType {
 }
 
 extension OwnedSink {
-    var hashValue: Int {
-        return Int.baseHash.mixed(with: ObjectIdentifier(owner)).mixed(with: identifier)
+    func appendHashes(to hasher: inout SipHasher) {
+        hasher.append(ObjectIdentifier(owner))
+        hasher.append(identifier)
     }
 
     static func ==(left: Self, right: Self) -> Bool {

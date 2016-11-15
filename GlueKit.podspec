@@ -14,4 +14,5 @@ Pod::Spec.new do |spec|
   spec.social_media_url = 'https://twitter.com/lorentey'
   #spec.documentation_url = 'http://lorentey.github.io/GlueKit/api/'
   spec.dependency   = 'BTree', '~> 4.0'
+  spec.dependency   = 'SipHash', '~> 1.0'
 end

@@ -6,6 +6,8 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
+import SipHash
+
 private class DistinctSinkState<V> {
     typealias Value = ValueUpdate<V>
 
@@ -38,7 +40,7 @@ private class DistinctSinkState<V> {
     }
 }
 
-private struct DistinctSink<V, Sink: SinkType>: SinkType where Sink.Value == ValueUpdate<V> {
+private struct DistinctSink<V, Sink: SinkType>: SinkType, SipHashable where Sink.Value == ValueUpdate<V> {
     typealias Value = ValueUpdate<V>
 
     let owner: AnyObject
@@ -49,8 +51,9 @@ private struct DistinctSink<V, Sink: SinkType>: SinkType where Sink.Value == Val
         state?.applyUpdate(update, sink)
     }
 
-    var hashValue: Int {
-        return Int.baseHash.mixed(with: ObjectIdentifier(owner)).mixed(with: sink)
+    func appendHashes(to hasher: inout SipHasher) {
+        hasher.append(ObjectIdentifier(owner))
+        hasher.append(sink)
     }
 
     static func ==(left: DistinctSink, right: DistinctSink) -> Bool {

@@ -6,6 +6,8 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
+import SipHash
+
 public protocol SinkTransform: Hashable {
     associatedtype Input
     associatedtype Output
@@ -24,7 +26,7 @@ extension SinkType {
     }
 }
 
-public struct TransformedSink<Sink: SinkType, Transform: SinkTransform>: SinkType where Transform.Output == Sink.Value {
+public struct TransformedSink<Sink: SinkType, Transform: SinkTransform>: SinkType, SipHashable where Transform.Output == Sink.Value {
     public let sink: Sink
     public let transform: Transform
 
@@ -32,8 +34,9 @@ public struct TransformedSink<Sink: SinkType, Transform: SinkTransform>: SinkTyp
         transform.apply(value, sink)
     }
 
-    public var hashValue: Int {
-        return Int.baseHash.mixed(with: sink).mixed(with: transform)
+    public func appendHashes(to hasher: inout SipHasher) {
+        hasher.append(sink)
+        hasher.append(transform)
     }
 
     public static func ==(left: TransformedSink, right: TransformedSink) -> Bool {

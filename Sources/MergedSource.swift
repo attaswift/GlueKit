@@ -6,6 +6,8 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
+import SipHash
+
 extension SourceType {
     /// Returns a source that merges self with `source`. The returned source will forward all values sent by either
     /// of its two input sources to its own connected sinks.
@@ -61,7 +63,7 @@ public final class MergedSource<Value>: SignalerSource<Value> {
     }
 }
 
-private struct MergedSink<Value>: SinkType {
+private struct MergedSink<Value>: SinkType, SipHashable {
     let source: MergedSource<Value>
     let index: Int
 
@@ -69,8 +71,9 @@ private struct MergedSink<Value>: SinkType {
         source.receive(value, from: index)
     }
 
-    var hashValue: Int {
-        return Int.baseHash.mixed(with: ObjectIdentifier(source)).mixed(withHash: index)
+    func appendHashes(to hasher: inout SipHasher) {
+        hasher.append(ObjectIdentifier(source))
+        hasher.append(index)
     }
 
     static func ==(left: MergedSink, right: MergedSink) -> Bool {
