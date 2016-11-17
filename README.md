@@ -10,6 +10,10 @@
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg)](https://github.com/Carthage/Carthage)
 [![CocoaPod Version](https://img.shields.io/cocoapods/v/GlueKit.svg)](http://cocoapods.org/pods/GlueKit)
 
+> :warning: **WARNING** :warning: This project is in a _prerelease_ state. There
+> is active work going on that will result in API changes that can/will break
+> code while things are finished. Use with caution.
+
 GlueKit is a Swift framework for creating observables and manipulating them in interesting and useful ways.
 It is called GlueKit because it lets you stick stuff together. 
 
