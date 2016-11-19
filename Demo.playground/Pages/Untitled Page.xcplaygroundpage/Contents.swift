@@ -28,7 +28,7 @@ class Book: Hashable, CustomStringConvertible {
 
     init(title: String, authors: Set<Author>, publicationYear: Int, pages: Int) {
         self.title = .init(title)
-        self.authors = SetVariable(authors)
+        self.authors = .init(authors)
         self.publicationYear = .init(pages)
         self.pages = .init(pages)
     }
@@ -90,7 +90,7 @@ allAuthors.value
 let booksByStephenson = shelves.flatMap{$0.books}.filter { book in book.authors.observableContains(stephenson) }
 booksByStephenson.value
 
-// Let's imagine Stephenson was a co-author of The TeXBook, and it him to its author list.
+// Let's imagine Stephenson was a co-author of The TeXBook, and add him to its author list.
 texBook.authors.insert(stephenson)
 
 // `booksByStephenson` automatically updates to reflect the change.
