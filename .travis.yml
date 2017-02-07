@@ -1,5 +1,5 @@
 language: objective-c
-osx_image: xcode8.1sneakpeek
+osx_image: xcode8.2
 script:
 - xcrun xcodebuild -workspace GlueKit.xcworkspace -scheme GlueKit-macOS test
 - xcrun xcodebuild -quiet -workspace GlueKit.xcworkspace -scheme GlueKit-iOS
