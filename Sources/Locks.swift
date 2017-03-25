@@ -11,14 +11,14 @@ import Foundation
 internal protocol Lockable {
     func lock()
     func unlock()
-    func withLock<Result>(_ block: (Void) -> Result) -> Result
+    func withLock<Result>(_ block: (Void) throws -> Result) rethrows -> Result
 }
 
 extension Lockable {
-    func withLock<Result>(_ block: (Void) -> Result) -> Result {
+    func withLock<Result>(_ block: (Void) throws -> Result) rethrows -> Result {
         lock()
         defer { unlock() }
-        return block()
+        return try block()
     }
 }
 
