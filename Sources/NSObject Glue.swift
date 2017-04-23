@@ -11,7 +11,7 @@ import Foundation
 private var associatedObjectKeyForGlue: UInt8 = 0
 
 extension NSObjectProtocol where Self: NSObject {
-    internal func getOrCreateGlue<Glue: GlueForNSObject>() -> Glue {
+    public func _glue<Glue: GlueForNSObject>() -> Glue {
         if let glue = objc_getAssociatedObject(self, &associatedObjectKeyForGlue) {
             return glue as! Glue
         }
@@ -23,7 +23,7 @@ extension NSObjectProtocol where Self: NSObject {
 
 extension NSObject {
     public dynamic var glue: GlueForNSObject {
-        return getOrCreateGlue()
+        return _glue()
     }
 }
 

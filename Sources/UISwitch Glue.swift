@@ -11,7 +11,7 @@ import UIKit
 
 extension UISwitch {
     public override var glue: GlueForUISwitch {
-        return getOrCreateGlue()
+        return _glue()
     }
 }
 

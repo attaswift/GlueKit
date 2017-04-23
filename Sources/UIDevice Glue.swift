@@ -11,7 +11,7 @@ import UIKit
 
 extension UIDevice {
     public override var glue: GlueForUIDevice {
-        return getOrCreateGlue()
+        return _glue()
     }
 }
 

@@ -14,7 +14,7 @@ private var associatedObjectKey: Int8 = 0
 
 extension UIControl {
     public override var glue: GlueForUIControl {
-        return getOrCreateGlue()
+        return _glue()
     }
 }
 

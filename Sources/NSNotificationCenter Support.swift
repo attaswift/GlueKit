@@ -10,7 +10,7 @@ import Foundation
 
 extension NotificationCenter {
     public override var glue: GlueForNotificationCenter {
-        return getOrCreateGlue()
+        return _glue()
     }
 }
 

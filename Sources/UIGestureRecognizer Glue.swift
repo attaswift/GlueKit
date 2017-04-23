@@ -11,7 +11,7 @@ import UIKit
 
 extension UIGestureRecognizer {
     public override var glue: GlueForUIGestureRecognizer {
-        return getOrCreateGlue()
+        return _glue()
     }
 }
 
