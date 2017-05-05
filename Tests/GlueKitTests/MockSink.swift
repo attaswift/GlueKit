@@ -99,9 +99,9 @@ extension MockSinkProtocol {
     }
 
 
-    func connect<Source: SourceType>(to source: Source) where Source.Value == Value {
+    func subscribe<Source: SourceType>(to source: Source) where Source.Value == Value {
         precondition(state.connection == nil)
-        state.connection = source.connect { [unowned self] (input: Value) -> Void in self.receive(input) }
+        state.connection = source.subscribe { [unowned self] (input: Value) -> Void in self.receive(input) }
     }
 
     func disconnect() {
@@ -119,7 +119,7 @@ class TransformedMockSink<Value, Output: Equatable>: MockSinkProtocol {
 
     init<Source: SourceType>(_ source: Source, _ transform: @escaping (Value) -> Output) where Source.Value == Value {
         self.state = .init(transform)
-        self.connect(to: source)
+        self.subscribe(to: source)
     }
 
     func receive(_ input: Value) {
@@ -136,7 +136,7 @@ class MockSink<Value: Equatable>: MockSinkProtocol {
 
     init<Source: SourceType>(_ source: Source) where Source.Value == Value {
         self.state = .init({ $0 })
-        self.connect(to: source)
+        self.subscribe(to: source)
     }
 
     func receive(_ input: Value) {

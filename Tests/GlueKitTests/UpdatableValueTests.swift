@@ -20,11 +20,11 @@ class UpdatableValueTests: XCTestCase {
         let updateSink = MockValueUpdateSink<Int>(any.updates)
 
         let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old) -> \($0.new)" })
-        changeSink.connect(to: any.changes)
+        changeSink.subscribe(to: any.changes)
 
         let valuesSink = MockSink<Int>()
         valuesSink.expecting(0) {
-            valuesSink.connect(to: any.values)
+            valuesSink.subscribe(to: any.values)
         }
 
         let futureValuesSink = MockSink<Int>(any.futureValues)
@@ -111,11 +111,11 @@ class UpdatableValueTests: XCTestCase {
         let updateSink = MockValueUpdateSink<Int>(any.updates)
 
         let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old) -> \($0.new)" })
-        changeSink.connect(to: any.changes)
+        changeSink.subscribe(to: any.changes)
 
         let valuesSink = MockSink<Int>()
         valuesSink.expecting(0) {
-            valuesSink.connect(to: any.values)
+            valuesSink.subscribe(to: any.values)
         }
 
         let futureValuesSink = MockSink<Int>(any.futureValues)

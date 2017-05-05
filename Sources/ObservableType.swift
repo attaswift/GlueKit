@@ -71,11 +71,11 @@ extension UpdatableType {
 }
 
 extension ObservableType {
-    public func connect<Updatable: UpdatableType>(to updatable: Updatable) -> Connection
+    public func subscribe<Updatable: UpdatableType>(to updatable: Updatable) -> Connection
     where Updatable.Change == Change {
         updatable.apply(.beginTransaction)
         updatable.apply(.change(Change(from: updatable.value, to: self.value)))
-        let connection = updates.connect { update in updatable.apply(update) }
+        let connection = updates.subscribe { update in updatable.apply(update) }
         updatable.apply(.endTransaction)
         return connection
     }
@@ -83,7 +83,7 @@ extension ObservableType {
 
 extension Connector {
     @discardableResult
-    public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Update<Observable.Change>) -> Void) -> Connection {
-        return observable.updates.connect(sink).putInto(self)
+    public func subscribe<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Update<Observable.Change>) -> Void) -> Connection {
+        return observable.updates.subscribe(sink).putInto(self)
     }
 }

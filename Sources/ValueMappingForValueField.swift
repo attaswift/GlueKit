@@ -95,7 +95,7 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
         precondition(currentValue == nil)
         let field = key(parent.value)
         self.currentValue = field.value
-        connect(to: field)
+        subscribe(to: field)
         parent.add(ParentSink(owner: self))
     }
 
@@ -107,7 +107,7 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
         self.currentValue = nil
     }
 
-    private func connect(to field: Field) {
+    private func subscribe(to field: Field) {
         self.field?.remove(FieldSink(owner: self))
         self.field = field
         field.add(FieldSink(owner: self))
@@ -123,7 +123,7 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
             let new = field.value
             currentValue = new
             sendChange(ValueChange(from: old, to: new))
-            connect(to: field)
+            subscribe(to: field)
         case .endTransaction:
             endTransaction()
         }

@@ -20,11 +20,11 @@ class ObservableValueTests: XCTestCase {
         let updateSink = MockValueUpdateSink<Int>(any.updates)
 
         let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old) -> \($0.new)" })
-        changeSink.connect(to: any.changes)
+        changeSink.subscribe(to: any.changes)
 
         let valuesSink = MockSink<Int>()
         valuesSink.expecting(0) {
-            valuesSink.connect(to: any.values)
+            valuesSink.subscribe(to: any.values)
         }
 
         let futureValuesSink = MockSink<Int>(any.futureValues)
@@ -58,14 +58,14 @@ class ObservableValueTests: XCTestCase {
         XCTAssertEqual(any.value, 0)
 
         let updateSink = MockValueUpdateSink<Int>()
-        updateSink.connect(to: any.updates)
+        updateSink.subscribe(to: any.updates)
 
         let changeSink = TransformedMockSink<ValueChange<Int>, String>({ "\($0.old) -> \($0.new)" })
-        changeSink.connect(to: any.changes)
+        changeSink.subscribe(to: any.changes)
 
         let valuesSink = MockSink<Int>()
         valuesSink.expecting(0) {
-            valuesSink.connect(to: any.values)
+            valuesSink.subscribe(to: any.values)
         }
 
         let futureValuesSink = MockSink<Int>(any.futureValues)
@@ -94,7 +94,7 @@ class ObservableValueTests: XCTestCase {
 
         var res = [Int]()
 
-        let connection = test.values.connect { res.append($0) }
+        let connection = test.values.subscribe { res.append($0) }
         XCTAssertEqual(res, [0])
         test.value = 1
         test.value = 2
@@ -108,14 +108,14 @@ class ObservableValueTests: XCTestCase {
         let test = TestObservableValue(0)
         var s = ""
 
-        let c1 = test.values.connect { i in
+        let c1 = test.values.subscribe { i in
             s += " (\(i)"
             if i > 0 {
                 test.value = i - 1
             }
             s += ")"
         }
-        let c2 = test.values.connect { i in
+        let c2 = test.values.subscribe { i in
             s += " (\(i)"
             if i > 0 {
                 test.value = i - 1

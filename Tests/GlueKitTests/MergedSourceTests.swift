@@ -54,7 +54,7 @@ class MergedSourceTests: XCTestCase {
         let source = s1.merged(with: s2)
 
         var s = ""
-        let c = source.connect { i in
+        let c = source.subscribe { i in
             s += " (\(i)"
             if i > 0 {
                 s2.send(i - 1)

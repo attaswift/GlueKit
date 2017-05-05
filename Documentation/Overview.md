@@ -18,7 +18,7 @@ In GlueKit, the `SourceType` protocol models a thing that you can subscribe to r
 ```Swift
 protocol SourceType {
     typealias Value
-    func connect(sink: Value->Void) -> Connection
+    func subscribe(sink: Value->Void) -> Connection
 }
 ```
 
@@ -31,7 +31,7 @@ and run some code whenever midnight passes:
 let center = NSNotificationCenter.defaultCenter()
 let midnightSource = center.source(forName: NSCalendarDayChangedNotification)
 
-let connection = midnightSource.connect { notification in 
+let connection = midnightSource.subscribe { notification in 
     print("Ding dong!") 
 }
 ```
@@ -57,8 +57,8 @@ class ClockViewController: UIViewController {
     
     override func viewWillAppear() {
         super.viewWillAppear()
-        tickSource.connect(self.onTick).putInto(connectionsWhileVisible)
-        midnightSource.connect { _ in self.onMidnight() }.putInto(connectionsWhileVisible)
+        tickSource.subscribe(self.onTick).putInto(connectionsWhileVisible)
+        midnightSource.subscribe { _ in self.onMidnight() }.putInto(connectionsWhileVisible)
     }
     
     override func viewDidDisappear() {
@@ -86,7 +86,7 @@ let signal = Signal<Int>()
 
 signal.send(42) // Does nothing, no subscribers
 
-let connection = signal.connect { i in print("Got \(i\)!") }
+let connection = signal.subscribe { i in print("Got \(i\)!") }
 
 signal.send(23) // Prints "Got 23!"
 signal.send(7)  // Prints "Got 7!"
@@ -142,10 +142,10 @@ Once you have an observable value, you can start observing it:
 
 ```Swift
 
-let connection = fred.name.connect { name in print("Fred's name is \(name)") }
+let connection = fred.name.subscribe { name in print("Fred's name is \(name)") }
 ```
 
 This will immediately print `Fred's name is Fred` to the console, because by default variables 
-send their current values to each new observer. If you don't want this, you can connect to the
+send their current values to each new observer. If you don't want this, you can subscribe to the
 variable's `futureValues` property instead.
 

@@ -217,7 +217,7 @@ class SignalSubscriptionTests: XCTestCase {
 
             self.startMeasuring()
             for _ in 0 ..< count {
-                let c = signal.connect { _ in received += 1 }
+                let c = signal.subscribe { _ in received += 1 }
                 connections.append(c)
             }
             self.stopMeasuring()
@@ -284,7 +284,7 @@ class SignalSendTests: XCTestCase {
         self.measureDelayed {
             var count = 0
             let signal = Signal<Int>()
-            let c = signal.connect { i in count += 1 }
+            let c = signal.subscribe { i in count += 1 }
 
             self.startMeasuring()
             for i in 1...iterations {
@@ -304,7 +304,7 @@ class SignalSendTests: XCTestCase {
         self.measureDelayed {
             var count = 0
             let signal = Signal<Int>()
-            let c = signal.connect { i in count += 1 }
+            let c = signal.subscribe { i in count += 1 }
 
             let queues = (1...queueCount).map { i in DispatchQueue(label: "com.github.lorentey.GlueKit.testQueue \(i)") }
 
@@ -332,7 +332,7 @@ class SignalSendTests: XCTestCase {
         var end = start
         (1...1000).forEach { _ in
             let new = Signal<Int>()
-            connections.append(end.connect(new.send))
+            connections.append(end.subscribe(new.send))
             end = new
         }
 
@@ -340,7 +340,7 @@ class SignalSendTests: XCTestCase {
         self.measureDelayed {
             var r = [Int]()
             r.reserveCapacity(1000)
-            let c = end.connect { i in r.append(i) }
+            let c = end.subscribe { i in r.append(i) }
 
             for i in 1...10 {
                 start.send(i)

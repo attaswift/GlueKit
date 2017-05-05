@@ -79,7 +79,7 @@ class KVOSupportTests: XCTestCase {
         let count = object.glue.observable(forKeyPath: "count", as: Int.self)
 
         var r = [Int]()
-        let c = count.changes.connect { r.append($0.new) }
+        let c = count.changes.subscribe { r.append($0.new) }
 
         object.count = 1
         object.count = 2
@@ -94,7 +94,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String]()
-        let c = object.glue.observable(forKeyPath: "name", as: String.self).changes.connect { r.append($0.new) }
+        let c = object.glue.observable(forKeyPath: "name", as: String.self).changes.subscribe { r.append($0.new) }
 
         object.name = "Alice"
         object.name = "Bob"
@@ -111,7 +111,7 @@ class KVOSupportTests: XCTestCase {
         let object = Fixture()
 
         var r = [String?]()
-        let c = object.glue.observable(forKeyPath: "optional", as: (String?).self).changes.connect { r.append($0.new) }
+        let c = object.glue.observable(forKeyPath: "optional", as: (String?).self).changes.subscribe { r.append($0.new) }
 
         object.optional = "Alice"
         object.optional = nil
@@ -135,7 +135,7 @@ class KVOSupportTests: XCTestCase {
         let count = object.glue.observable(forKeyPath: "count", as: Int.self)
 
         var r = [Int]()
-        let c = count.changes.connect { r.append($0.new) }
+        let c = count.changes.subscribe { r.append($0.new) }
 
         object.count = 1
 
@@ -173,7 +173,7 @@ class KVOSupportTests: XCTestCase {
             let object = Fixture()
             weakObject = object
 
-            c = object.glue.observable(forKeyPath: "count", as: Int.self).changes.connect { _ in }
+            c = object.glue.observable(forKeyPath: "count", as: Int.self).changes.subscribe { _ in }
         }
 
         XCTAssertNotNil(weakObject)
@@ -215,7 +215,7 @@ class KVOSupportTests: XCTestCase {
         let count = object.glue.observable(forKeyPath: "count", as: Int.self)
 
         var s = ""
-        let c = count.updates.connect { update in
+        let c = count.updates.subscribe { update in
             switch update {
             case .beginTransaction:
                 s += "(<)"
@@ -283,7 +283,7 @@ class KVOSupportTests: XCTestCase {
         let count = object.glue.observable(forKeyPath: "count", as: Int.self)
 
         var s = ""
-        let c1 = count.changes.connect { c in
+        let c1 = count.changes.subscribe { c in
             let i = c.new
             s += " (\(i)"
             if i > 0 {
@@ -291,7 +291,7 @@ class KVOSupportTests: XCTestCase {
             }
             s += ")"
         }
-        let c2 = count.changes.connect { c in
+        let c2 = count.changes.subscribe { c in
             let i = c.new
             s += " (\(i)"
             if i > 0 {

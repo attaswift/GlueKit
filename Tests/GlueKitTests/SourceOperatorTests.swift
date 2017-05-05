@@ -20,8 +20,8 @@ class SourceOperatorTests: XCTestCase {
         }
         XCTAssertEqual(count, 0)
 
-        let c1 = source.connect { _ in }
-        let c2 = source.connect { _ in }
+        let c1 = source.subscribe { _ in }
+        let c2 = source.subscribe { _ in }
         XCTAssertEqual(count, 0)
 
         signal.send(10)

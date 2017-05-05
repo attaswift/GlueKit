@@ -267,7 +267,7 @@ More interestingly, you can ask to be notified whenever a key path changes its v
 
 ```Swift
 // GlueKit
-let c = document.projects.flatMap{$0.issues}.flatMap{$0.owner}.map{$0.name}.connect { emails in 
+let c = document.projects.flatMap{$0.issues}.flatMap{$0.owner}.map{$0.name}.subscribe { emails in 
     print("Owners' email addresses are: \(emails)")
 }
 // Call c.disconnect() when you get bored of getting so many emails.
@@ -389,7 +389,7 @@ GlueKit does this in a surprisingly efficient manner---for example, closing an i
 a project will simply decrement a counter inside `openIssueCount`; it won't recalculate the issue
 count from scratch. (Obviously, if the user switches to a new project, that change will trigger a recalculation of that project's issue counts from scratch.) Observables aren't actually calculating anything until and unless they have subscribers.
 
-Once you have this view model, the view controller can simply connect its observables to various
+Once you have this view model, the view controller can simply subscribe its observables to various
 labels displayed in the view hierarchy:
 
 ```Swift
@@ -403,13 +403,13 @@ class ProjectSummaryViewController: UIViewController {
         super.viewWillAppear()
         
 	    viewModel.projectName.values
-	        .connect { name in
+	        .subscribe { name in
 	            self.titleLabel.text = name
 	        }
 	        .putInto(visibleConnections)
 	     
 	    viewModel.localizedIssueCountString.values
-	        .connect { text in
+	        .subscribe { text in
 	            self.subtitleLabel.text = text
 	        }
 	        .putInto(visibleConnections)

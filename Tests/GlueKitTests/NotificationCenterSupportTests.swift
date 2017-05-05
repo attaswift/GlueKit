@@ -23,7 +23,7 @@ class NotificationCenterSupportTests: XCTestCase {
         var r = [Int]()
 
         post(1)
-        let c = center.glue.source(forName: testNotification).connect { notification in
+        let c = center.glue.source(forName: testNotification).subscribe { notification in
             r.append((notification as NSNotification).userInfo!["Value"] as! Int)
         }
 
@@ -59,7 +59,7 @@ class NotificationCenterSupportTests: XCTestCase {
 
     func testReentrancyInGlueKit() {
         var s = ""
-        let c = center.glue.source(forName: testNotification).connect { notification in
+        let c = center.glue.source(forName: testNotification).subscribe { notification in
             let value = (notification as NSNotification).userInfo!["Value"] as! Int
             s += " (\(value)"
             if value > 0 {
@@ -128,8 +128,8 @@ class NotificationCenterSupportTests: XCTestCase {
 
         let source = center.glue.source(forName: testNotification)
 
-        let c1 = source.connect(block(0))
-        let c2 = source.connect(block(1))
+        let c1 = source.subscribe(block(0))
+        let c2 = source.subscribe(block(1))
 
         post(2)
 

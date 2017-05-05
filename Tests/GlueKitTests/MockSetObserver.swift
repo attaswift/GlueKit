@@ -34,7 +34,7 @@ class MockSetObserver<Element: Hashable & Comparable>: MockSinkProtocol {
 
     init<Source: SourceType>(_ source: Source) where Source.Value == Update<Change> {
         state = .init({ describe($0) })
-        self.connect(to: source)
+        self.subscribe(to: source)
     }
 
     convenience init<Observable: ObservableSetType>(_ observable: Observable) where Observable.Change == Change {

@@ -12,7 +12,7 @@ extension SourceType {
     ///
     /// In GlueKit, a connection holds strong references to both its source and sink; thus sources (and sinks) are kept
     /// alive at least as long as they have an active connection.
-    public func connect(_ sink: @escaping (Value) -> Void) -> Connection {
+    public func subscribe(_ sink: @escaping (Value) -> Void) -> Connection {
         return ConcreteConnection(source: self, sink: sink)
     }
 }
@@ -100,6 +100,6 @@ internal struct ClosureSink<Value>: SinkType {
 extension Connector {
     @discardableResult
     public func connect<Source: SourceType>(_ source: Source, to sink: @escaping (Source.Value) -> Void) -> Connection {
-        return source.connect(sink).putInto(self)
+        return source.subscribe(sink).putInto(self)
     }
 }

@@ -9,7 +9,7 @@
 extension ObservableValueType where Change == ValueChange<Value> {
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects a child component (a.k.a "field") of its value that is a source,
-    /// `map` returns a new source that can be used connect to the field indirectly through the parent.
+    /// `map` returns a new source that can be used subscribe to the field indirectly through the parent.
     ///
     /// - Parameter key: An accessor function that returns a component of self (a field) that is a SourceType.
     ///

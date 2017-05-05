@@ -34,7 +34,7 @@ class MockArrayObserver<Element>: MockSinkProtocol {
 
     init<Source: SourceType>(_ source: Source) where Source.Value == Update<Change> {
         state = .init({ describe($0) })
-        self.connect(to: source)
+        self.subscribe(to: source)
     }
 
     convenience init<Observable: ObservableArrayType>(_ observable: Observable) where Observable.Change == Change {

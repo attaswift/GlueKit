@@ -29,7 +29,7 @@ class BufferedValueTests: XCTestCase {
             let buffered = observable.buffered()
             let sink = MockValueUpdateSink<Int>()
             weakSink = sink
-            sink.connect(to: buffered.updates)
+            sink.subscribe(to: buffered.updates)
             withExtendedLifetime(buffered) {}
         }
         // If the sink is still alive, the buffered observable wasn't deallocated.

@@ -44,7 +44,7 @@ where Base.Change == ArrayChange<Base.Element> {
         self.remove = remove
         super.init()
 
-        connection = base.updates.connect { [unowned self] in self.apply($0) }
+        connection = base.updates.subscribe { [unowned self] in self.apply($0) }
     }
 
     deinit {

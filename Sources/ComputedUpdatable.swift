@@ -6,22 +6,20 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-private struct ComputedUpdatableSink<V>: UniqueOwnedSink {
-    typealias Owner = ComputedUpdatable<V>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ value: Void) {
-        owner.refresh()
-    }
-}
-
 public final class ComputedUpdatable<Value>: _BaseUpdatableValue<Value> {
     public let getter: () -> Value
     public let setter: (Value) -> ()
     public let refreshSource: AnySource<Void>?
 
     private var _value: Value
+
+    private struct Sink<V>: UniqueOwnedSink {
+        typealias Owner = ComputedUpdatable<V>
+        unowned(unsafe) let owner: Owner
+        func receive(_ value: Void) {
+            owner.refresh()
+        }
+    }
 
     public init(getter: @escaping () -> Value,
                 setter: @escaping (Value) -> (),
@@ -31,11 +29,11 @@ public final class ComputedUpdatable<Value>: _BaseUpdatableValue<Value> {
         self.refreshSource = refreshSource
         self._value = getter()
         super.init()
-        refreshSource?.add(ComputedUpdatableSink(owner: self))
+        refreshSource?.add(Sink(owner: self))
     }
 
     deinit {
-        refreshSource?.remove(ComputedUpdatableSink(owner: self))
+        refreshSource?.remove(Sink(owner: self))
     }
 
     override func rawGetValue() -> Value {

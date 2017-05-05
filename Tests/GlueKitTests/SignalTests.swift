@@ -55,14 +55,14 @@ class SignalTests: XCTestCase {
         XCTAssertNil(weakSink)
     }
 
-    //MARK: Test connect API
+    //MARK: Test subscribe API
 
     func test_Connect_DisconnectingTheConnection() {
         let signal = Signal<Int>()
 
         var received = [Int]()
 
-        let c = signal.connect { received.append($0) }
+        let c = signal.subscribe { received.append($0) }
 
         signal.send(1)
         c.disconnect()
@@ -76,7 +76,7 @@ class SignalTests: XCTestCase {
         let signal = Signal<Int>()
         var values = [Int]()
 
-        var c: Connection? = signal.connect { values.append($0) }
+        var c: Connection? = signal.subscribe { values.append($0) }
         signal.send(1)
         c = nil
         signal.send(2)
@@ -88,7 +88,7 @@ class SignalTests: XCTestCase {
     func test_Connect_DuplicateDisconnect() {
         let signal = Signal<Int>()
 
-        let c = signal.connect { i in }
+        let c = signal.subscribe { i in }
 
         // It is OK to call disconnect twice.
         c.disconnect()
@@ -101,12 +101,12 @@ class SignalTests: XCTestCase {
         signal.send(1)
 
         var a = [Int]()
-        let c1 = signal.connect { i in a.append(i) }
+        let c1 = signal.subscribe { i in a.append(i) }
 
         signal.send(2)
 
         var b = [Int]()
-        let c2 = signal.connect { i in b.append(i) }
+        let c2 = signal.subscribe { i in b.append(i) }
 
         signal.send(3)
 
@@ -131,7 +131,7 @@ class SignalTests: XCTestCase {
             do {
                 let signal = Signal<Int>()
                 weakSignal = signal
-                connection = signal.connect { i in values.append(i) }
+                connection = signal.subscribe { i in values.append(i) }
                 weakConnection = .some(connection)
 
                 signal.send(1)
@@ -158,7 +158,7 @@ class SignalTests: XCTestCase {
             let resource = NSMutableArray()
             weakResource = resource
 
-            connection = signal.connect { i in
+            connection = signal.subscribe { i in
                 resource.add(i)
             }
             signal.send(1)
@@ -180,7 +180,7 @@ class SignalTests: XCTestCase {
         weak var weakConnection: Connection? = nil
         let signal = Signal<Int>()
         do {
-            let connection = signal.connect { values.append($0) }
+            let connection = signal.subscribe { values.append($0) }
             weakConnection = connection
 
             signal.send(1)
@@ -206,10 +206,10 @@ class SignalTests: XCTestCase {
 
         signal.send(1)
 
-        c1 = signal.connect { i in
+        c1 = signal.subscribe { i in
             v1.append(i)
             if c2 == nil {
-                c2 = signal.connect { v2.append($0) }
+                c2 = signal.subscribe { v2.append($0) }
             }
         }
 
@@ -238,7 +238,7 @@ class SignalTests: XCTestCase {
         var r = [Int]()
 
         var c: Connection? = nil
-        c = signal.connect { i in
+        c = signal.subscribe { i in
             r.append(i)
             c?.disconnect()
         }
@@ -263,13 +263,13 @@ class SignalTests: XCTestCase {
         // We don't know which connection fires first.
         // After disconnect() returns, the connection must not fire any more -- even if disconnect is called by a sink.
 
-        c1 = signal.connect { i in
+        c1 = signal.subscribe { i in
             r.append(i)
             c2?.disconnect()
             c2 = nil
         }
 
-        c2 = signal.connect { i in
+        c2 = signal.subscribe { i in
             r.append(i)
             c1?.disconnect()
             c1 = nil
@@ -289,7 +289,7 @@ class SignalTests: XCTestCase {
 
 
     func test_Connect_RemovingAndReaddingConnectionsAlternately() {
-        // This is a weaker test of the semantics of connect/disconnect nested in sinks.
+        // This is a weaker test of the semantics of subscribe/disconnect nested in sinks.
         let signal = Signal<Int>()
 
         var r1 = [Int]()
@@ -304,16 +304,16 @@ class SignalTests: XCTestCase {
         sink1 = { i in
             r1.append(i)
             c1?.disconnect()
-            c2 = signal.connect(sink2)
+            c2 = signal.subscribe(sink2)
         }
 
         sink2 = { i in
             r2.append(i)
             c2?.disconnect()
-            c1 = signal.connect(sink1)
+            c1 = signal.subscribe(sink1)
         }
 
-        c1 = signal.connect(sink1)
+        c1 = signal.subscribe(sink1)
         for i in 1...6 {
             signal.send(i)
         }
@@ -323,7 +323,7 @@ class SignalTests: XCTestCase {
     }
 
     func test_Connect_SinkDisconnectingThenReconnectingItself() {
-        // This is a weaker test of the semantics of connect/disconnect nested in sinks.
+        // This is a weaker test of the semantics of subscribe/disconnect nested in sinks.
         let signal = Signal<Int>()
 
         var r = [Int]()
@@ -333,9 +333,9 @@ class SignalTests: XCTestCase {
         sink = { i in
             r.append(i)
             c?.disconnect()
-            c = signal.connect(sink)
+            c = signal.subscribe(sink)
         }
-        c = signal.connect(sink)
+        c = signal.subscribe(sink)
         
         for i in 1...6 {
             signal.send(i)
@@ -353,7 +353,7 @@ class SignalTests: XCTestCase {
 
         var s = ""
 
-        let c = signal.connect { i in
+        let c = signal.subscribe { i in
             s += " (\(i)"
             if i > 0 {
                 signal.send(i - 1) // This send is asynchronous. The value is sent at the end of the outermost send.
@@ -373,7 +373,7 @@ class SignalTests: XCTestCase {
 
         // Let's do an exponential cascade of decrements with two sinks:
         var values1 = [Int]()
-        let c1 = signal.connect { i in
+        let c1 = signal.subscribe { i in
             values1.append(i)
             s += " (\(i)"
             if i > 0 {
@@ -383,7 +383,7 @@ class SignalTests: XCTestCase {
         }
 
         var values2 = [Int]()
-        let c2 = signal.connect { i in
+        let c2 = signal.subscribe { i in
             values2.append(i)
             s += " (\(i)"
             if i > 0 {
@@ -410,11 +410,11 @@ class SignalTests: XCTestCase {
         var values2 = [Int]()
 
         var c2: Connection? = nil
-        let c1 = signal.connect { i in
+        let c1 = signal.subscribe { i in
             values1.append(i)
             if i == 3 && c2 == nil {
                 signal.send(0) // This should not reach c2
-                c2 = signal.connect { i in
+                c2 = signal.subscribe { i in
                     values2.append(i)
                 }
             }
@@ -438,7 +438,7 @@ class SignalTests: XCTestCase {
         let signal = Signal<Int>()
 
         var r = [Int]()
-        let c = signal.connect { r.append($0) }
+        let c = signal.subscribe { r.append($0) }
 
         signal.sendLater(0)
         signal.sendLater(1)
@@ -461,7 +461,7 @@ class SignalTests: XCTestCase {
         signal.sendLater(2)
 
         var r = [Int]()
-        let c = signal.connect { r.append($0) }
+        let c = signal.subscribe { r.append($0) }
 
         signal.sendLater(3)
         signal.sendLater(4)
@@ -479,14 +479,14 @@ class SignalTests: XCTestCase {
         let signal = Signal<Int>()
 
         var r1 = [Int]()
-        let c1 = signal.connect { r1.append($0) }
+        let c1 = signal.subscribe { r1.append($0) }
 
         signal.sendLater(0)
         signal.sendLater(1)
         signal.sendLater(2)
 
         var r2 = [Int]()
-        let c2 = signal.connect { r2.append($0) }
+        let c2 = signal.subscribe { r2.append($0) }
 
         signal.sendLater(3)
         signal.sendLater(4)
@@ -508,7 +508,7 @@ class SignalTests: XCTestCase {
         let counter = Counter()
 
         var s = ""
-        let c = counter.connect { value in
+        let c = counter.subscribe { value in
             s += " (\(value)"
             if value < 5 {
                 counter.increment()

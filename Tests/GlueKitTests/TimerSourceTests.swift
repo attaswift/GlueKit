@@ -27,7 +27,7 @@ class TimerSourceTests: XCTestCase {
 
         var sinkTimes = [Date]()
         let sinkSemaphore = DispatchSemaphore(value: 0)
-        let connection = source.connect {
+        let connection = source.subscribe {
             sinkTimes.append(Date())
             sinkSemaphore.signal()
         }
@@ -66,7 +66,7 @@ class TimerSourceTests: XCTestCase {
         XCTAssertEqual(timerTimes, [])
 
         var sinkTimes = [Date]()
-        let connection = source.connect {
+        let connection = source.subscribe {
             sinkTimes.append(Date())
         }
         // Timer should have returned nil -> No firing yet
@@ -83,7 +83,7 @@ class TimerSourceTests: XCTestCase {
 
         XCTAssertEqual(.success, timerSemaphore.wait(timeout: DispatchTime.now() + 3.0))
 
-        XCTAssertEqual(timerTimes.count, 3) // 1: connect, 2: start, 3: after first firing
+        XCTAssertEqual(timerTimes.count, 3) // 1: subscribe, 2: start, 3: after first firing
         XCTAssertEqual(sinkTimes.count, 1) // Should fire only once
 
         connection.disconnect()
@@ -99,7 +99,7 @@ class TimerSourceTests: XCTestCase {
         var ticks = [TimeInterval]()
         var count = 0
         let sem = DispatchSemaphore(value: 0)
-        let connection = source.connect { i in
+        let connection = source.subscribe { i in
             let elapsed = Date().timeIntervalSince(start)
             ticks.append(elapsed)
             NSLog("tick \(count) at \(elapsed)")

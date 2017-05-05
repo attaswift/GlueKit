@@ -19,7 +19,7 @@ class DispatchSourceTests: XCTestCase {
         let semaphore = DispatchSemaphore(value: 1)
         var r: [Int] = []
 
-        let connection = signal.dispatch(on: queue).connect { value in
+        let connection = signal.dispatch(on: queue).subscribe { value in
             semaphore.wait()
             r.append(value)
             semaphore.signal()
@@ -44,7 +44,7 @@ class DispatchSourceTests: XCTestCase {
         let semaphore = DispatchSemaphore(value: 1)
         var r: [Int] = []
 
-        let connection = signal.dispatch(on: queue).connect { value in
+        let connection = signal.dispatch(on: queue).subscribe { value in
             XCTAssertEqual(OperationQueue.current, queue)
             semaphore.wait()
             r.append(value)

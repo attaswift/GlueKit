@@ -57,7 +57,7 @@ class SetSortingTests: XCTestCase {
 
         var actualChanges: [String] = []
         var expectedChanges: [String] = []
-        let connection = sortedSet.changes.connect { change in
+        let connection = sortedSet.changes.subscribe { change in
             actualChanges.append(change.dumped())
         }
 
@@ -87,7 +87,7 @@ class SetSortingTests: XCTestCase {
 
         var actualChanges: [String] = []
         var expectedChanges: [String] = []
-        let connection = sortedSet.changes.connect { change in
+        let connection = sortedSet.changes.subscribe { change in
             actualChanges.append(change.dumped())
         }
 
@@ -118,7 +118,7 @@ class SetSortingTests: XCTestCase {
 
         var actualChanges: [String] = []
         var expectedChanges: [String] = []
-        let connection = sortedSet.changes.connect { change in
+        let connection = sortedSet.changes.subscribe { change in
             actualChanges.append(change.dumped())
         }
 
@@ -155,7 +155,7 @@ class SetSortingTests: XCTestCase {
 
         var actualChanges: [String] = []
         var expectedChanges: [String] = []
-        let connection = sortedTitles.changes.connect { change in
+        let connection = sortedTitles.changes.subscribe { change in
             actualChanges.append(change.dumped())
         }
 

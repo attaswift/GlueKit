@@ -91,7 +91,7 @@ internal class ChangesSource<Observable: ObservableType>: _AbstractSource<Observ
 
 extension Connector {
     @discardableResult
-    public func connect<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Observable.Change) -> Void) -> Connection {
-        return observable.changes.connect(sink).putInto(self)
+    public func subscribe<Observable: ObservableType>(_ observable: Observable, to sink: @escaping (Observable.Change) -> Void) -> Connection {
+        return observable.changes.subscribe(sink).putInto(self)
     }
 }

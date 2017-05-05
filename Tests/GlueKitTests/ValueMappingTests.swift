@@ -66,7 +66,7 @@ class ValueMappingTests: XCTestCase {
 
         var expected: [ValueChange<String>] = []
         var actual: [ValueChange<String>] = []
-        let connection = titleChanges.connect { change in actual.append(change) }
+        let connection = titleChanges.subscribe { change in actual.append(change) }
         func expect(_ change: ValueChange<String>? = nil, file: StaticString = #file, line: UInt = #line, body: () -> ()) {
             if let change = change {
                 expected.append(change)

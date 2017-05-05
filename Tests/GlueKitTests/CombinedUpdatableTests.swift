@@ -51,7 +51,7 @@ class CombinedUpdatableTests: XCTestCase {
         let combined = a.combined(b)
 
         var r = ""
-        let c = combined.values.connect { av, bv in
+        let c = combined.values.subscribe { av, bv in
             r += " (\(av)-\(bv)"
             if av > 0 {
                 a.value = av - 1

@@ -37,7 +37,7 @@ class Book {
 
 let book: Book = ...
 book.title.value = "The Colour of Magic"
-let c = book.pageCount.futureValues.connect { print("Page count is now \($0)" }
+let c = book.pageCount.futureValues.subscribe { print("Page count is now \($0)" }
 ```
 
 It is possible to make this a little less painful by judicious use of computed properties:
@@ -59,7 +59,7 @@ class Book {
 
 let book: Book = ...
 book.title = "The Colour of Magic"
-let c = book.observablePageCount.futureValues.connect { print("Page count is now \($0)" }
+let c = book.observablePageCount.futureValues.subscribe { print("Page count is now \($0)" }
 ```
 
 This makes usage of these properties nicer, but it adds extra boilerplate to the definition of your model classes.
@@ -75,7 +75,7 @@ class Book {
 
 let book: Book = ...
 book.title = "The Colour of Magic"
-let c = book.pageCount.[observable].connect { print("Page count is now \($0)" }
+let c = book.pageCount.[observable].subscribe { print("Page count is now \($0)" }
 ```
 
 Property Behaviors also allow storage for the Signals associated with these 

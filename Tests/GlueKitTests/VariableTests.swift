@@ -14,7 +14,7 @@ class VariableTests: XCTestCase {
         let v = Variable<Int>(0)
 
         var r = [Int]()
-        let c = v.values.connect { value in r.append(value) }
+        let c = v.values.subscribe { value in r.append(value) }
 
         XCTAssertEqual(r, [0], "The values source should trigger immediately with the current value of the variable")
 
@@ -43,7 +43,7 @@ class VariableTests: XCTestCase {
         let v = Variable<Int>(0)
 
         var r = [Int]()
-        let c = v.futureValues.connect { value in r.append(value) }
+        let c = v.futureValues.subscribe { value in r.append(value) }
 
         XCTAssertEqual(r, [], "The future values source should not trigger with the current value of the variable")
 
@@ -72,7 +72,7 @@ class VariableTests: XCTestCase {
         let v = Variable<Int>(3)
 
         var s = ""
-        let c = v.updates.connect { update in
+        let c = v.updates.subscribe { update in
             s += " (\(describe(update))"
             if let new = update.change?.new, new > 0 {
                 // This is OK as long as it doesn't lead to infinite updates.
@@ -94,7 +94,7 @@ class VariableTests: XCTestCase {
         let v = Variable<Int>(3)
 
         var s = ""
-        let c = v.values.connect { i in
+        let c = v.values.subscribe { i in
             s += " (\(i)"
             if i > 0 {
                 // This is OK as long as it doesn't lead to infinite updates.
@@ -116,7 +116,7 @@ class VariableTests: XCTestCase {
         let v = Variable<Int>(0)
 
         var s = ""
-        let c = v.futureValues.connect { i in
+        let c = v.futureValues.subscribe { i in
             s += " (\(i)"
             if i > 0 {
                 // This is OK as long as it doesn't lead to infinite updates.
@@ -143,14 +143,14 @@ class VariableTests: XCTestCase {
         let v = Variable<Int>(0)
 
         var s = String()
-        let c1 = v.values.connect { i in
+        let c1 = v.values.subscribe { i in
             s += " (\(i)"
             if i > 0 {
                 v.value = i - 1
             }
             s += ")"
         }
-        let c2 = v.values.connect { i in
+        let c2 = v.values.subscribe { i in
             s += " (\(i)"
             if i > 0 {
                 v.value = i - 1

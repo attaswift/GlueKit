@@ -76,7 +76,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Fiel
         _field = nil
     }
 
-    private func connect(to field: Field) {
+    private func subscribe(to field: Field) {
         _field!.remove(FieldSink(owner: self))
         _field = field
         field.add(FieldSink(owner: self))
@@ -89,7 +89,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Fiel
         case .change(let change):
             let oldValue = self._field!.value
             let field = self.key(change.new)
-            self.connect(to: field)
+            self.subscribe(to: field)
             state.send(SetChange(removed: oldValue, inserted: field.value))
         case .endTransaction:
             state.end()

@@ -93,10 +93,10 @@ class ArrayVariableTests: XCTestCase {
             var changes = [ArrayChange<Int>]()
             var values = [[Int]]()
 
-            let c1 = array.changes.connect { changes.append($0) }
+            let c1 = array.changes.subscribe { changes.append($0) }
             defer { c1.disconnect() }
 
-            let c2 = array.anyObservableValue.futureValues.connect { values.append($0) }
+            let c2 = array.anyObservableValue.futureValues.subscribe { values.append($0) }
             defer { c2.disconnect() }
 
             op(array)

@@ -11,7 +11,7 @@
 /// (see NSObject.sourceForKeyPath), a notification (see NSNotificationCenter.sourceForNotification), 
 /// a timer (see TimerSource), etc. etc.
 ///
-/// Sources implement the `SourceType` protocol. It only has a single method, `connect`; it can be used to subscribe
+/// Sources implement the `SourceType` protocol. It only has a single method, `subscribe`; it can be used to subscribe
 /// new sinks to values produced by this source.
 ///
 /// `SourceType` is a protocol with an associated value, which can be sometimes inconvenient to work with. 
@@ -31,7 +31,7 @@ public protocol SourceType {
     /// whenever this source produces a value. 
     /// The subscription remains active until `remove` is called with an identical sink.
     ///
-    /// - SeeAlso: `connect`, `remove`
+    /// - SeeAlso: `subscribe`, `remove`
     func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value
 
     /// Remove `sink`'s subscription to this source, i.e., stop calling the sink's `receive` function and release it.
@@ -39,7 +39,7 @@ public protocol SourceType {
     ///
     /// - Returns: The sink that was previously added to the sink. 
     ///     This may be distinguishable by the input parameter by identity comparison or some other means.
-    /// - SeeAlso: `connect`, `add`
+    /// - SeeAlso: `subscribe`, `add`
     @discardableResult
     func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value
 
@@ -59,7 +59,7 @@ extension SourceType {
 /// (see NSObject.sourceForKeyPath), a notification (see NSNotificationCenter.sourceForNotification),
 /// a timer (see TimerSource), etc. etc.
 ///
-/// Sources implement the `SourceType` protocol. It only has a single method, `connect`; it can be used to subscribe
+/// Sources implement the `SourceType` protocol. It only has a single method, `subscribe`; it can be used to subscribe
 /// new sinks to values produced by this source.
 ///
 /// `SourceType` is a protocol with an associated value, which is sometimes inconvenient to work with. GlueKit

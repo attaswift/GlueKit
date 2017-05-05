@@ -15,7 +15,7 @@ class UpdatableTests: XCTestCase {
         let master = Variable<Int>(0)
         let slave = Variable<Int>(100)
 
-        let c = master.connect(to: slave)
+        let c = master.subscribe(to: slave)
 
         XCTAssertEqual(slave.value, 0)
 

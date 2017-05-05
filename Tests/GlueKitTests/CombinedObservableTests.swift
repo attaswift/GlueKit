@@ -38,7 +38,7 @@ class CombinedObservableTests: XCTestCase {
         let combined = a.combined(b) { a, b in (a, b) }.distinct(==)
 
         var r = ""
-        let c = combined.values.connect { av, bv in
+        let c = combined.values.subscribe { av, bv in
             r += " (\(av)-\(bv)"
             if av > 0 {
                 a.value = av - 1
@@ -204,7 +204,7 @@ class CombinedObservableTests: XCTestCase {
         let expression = e1 + e2 - c
 
         var r = [Int]()
-        let connection = expression.values.connect { r.append($0) }
+        let connection = expression.values.subscribe { r.append($0) }
 
         XCTAssertEqual(r, [0])
         r = []
@@ -247,7 +247,7 @@ class CombinedObservableTests: XCTestCase {
         XCTAssertEqual(expression.value, 0)
 
         var r: [Double] = []
-        let connection = expression.values.connect { r.append($0) }
+        let connection = expression.values.subscribe { r.append($0) }
 
         XCTAssertEqual(r, [0])
         r = []
