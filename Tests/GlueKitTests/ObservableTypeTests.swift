@@ -57,6 +57,7 @@ class ObservableTypeTests: XCTestCase {
         test.updates.remove(sink)
     }
 
+    #if false // TODO Compiler crash in Xcode 8.3.2
     func test_Connector_connectObservableToUpdateSink() {
         let observable = TestObservable(0)
 
@@ -76,7 +77,9 @@ class ObservableTypeTests: XCTestCase {
 
         XCTAssertEqual(received.map { "\($0)" }, [])
     }
+    #endif
 
+    #if false // TODO Compiler crash in Xcode 8.3.2
     func test_Connector_connectObservableToChangeSink() {
         let observable = TestObservable(0)
 
@@ -96,4 +99,5 @@ class ObservableTypeTests: XCTestCase {
 
         XCTAssertEqual(received.map { "\($0)" }, [])
     }
+    #endif
 }
