@@ -540,6 +540,10 @@
 		BBF3EB111D99ACDE006AC7CD /* RefList.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */; };
 		BBF400661DA108E900DA0B2C /* ObservableContains.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF400631DA108E900DA0B2C /* ObservableContains.swift */; };
 		BBF400671DA108E900DA0B2C /* ObservableContains.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF400631DA108E900DA0B2C /* ObservableContains.swift */; };
+		BBF7B9541EACEB0100073DF8 /* AccumulatedSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B9531EACEB0100073DF8 /* AccumulatedSource.swift */; };
+		BBF7B9551EACEB0100073DF8 /* AccumulatedSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B9531EACEB0100073DF8 /* AccumulatedSource.swift */; };
+		BBF7B9561EACEB0100073DF8 /* AccumulatedSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B9531EACEB0100073DF8 /* AccumulatedSource.swift */; };
+		BBF7B9571EACEB0100073DF8 /* AccumulatedSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B9531EACEB0100073DF8 /* AccumulatedSource.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -574,7 +578,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		BB015F4E1DC624FB00C8C05A /* Language Enhancements.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Language Enhancements.md"; sourceTree = "<group>"; };
+		BB015F4E1DC624FB00C8C05A /* Language Enhancements.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; lineEnding = 0; path = "Language Enhancements.md"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.markdown; };
 		BB1657E61D71D65900094BAC /* ArrayChangeSeparation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayChangeSeparation.swift; sourceTree = "<group>"; };
 		BB170F231DC1066D0000443E /* UpdateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdateTests.swift; sourceTree = "<group>"; };
 		BB170F271DC106DE0000443E /* TestChange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestChange.swift; sourceTree = "<group>"; };
@@ -677,7 +681,7 @@
 		BBB55B2D1C8FCC810050DDA9 /* ArrayMappingForValueField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayMappingForValueField.swift; sourceTree = "<group>"; };
 		BBB55B2E1C8FCC810050DDA9 /* Signal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signal.swift; sourceTree = "<group>"; };
 		BBB55B2F1C8FCC810050DDA9 /* SimpleSources.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleSources.swift; sourceTree = "<group>"; };
-		BBB55B301C8FCC810050DDA9 /* Source.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Source.swift; sourceTree = "<group>"; };
+		BBB55B301C8FCC810050DDA9 /* Source.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Source.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		BBB55B311C8FCC810050DDA9 /* TransformedSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransformedSource.swift; sourceTree = "<group>"; };
 		BBB55B321C8FCC820050DDA9 /* TimerSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimerSource.swift; sourceTree = "<group>"; };
 		BBB55B331C8FCC820050DDA9 /* UpdatableValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdatableValue.swift; sourceTree = "<group>"; };
@@ -755,6 +759,7 @@
 		BBEA2A3E1DBFE38F00CCCB08 /* BufferedSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedSource.swift; sourceTree = "<group>"; };
 		BBF3EB0D1D99ACDE006AC7CD /* RefList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RefList.swift; sourceTree = "<group>"; };
 		BBF400631DA108E900DA0B2C /* ObservableContains.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = ObservableContains.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		BBF7B9531EACEB0100073DF8 /* AccumulatedSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccumulatedSource.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -997,6 +1002,7 @@
 				BBB55B311C8FCC810050DDA9 /* TransformedSource.swift */,
 				BBEA2A3E1DBFE38F00CCCB08 /* BufferedSource.swift */,
 				BBEA2A391DBFE37A00CCCB08 /* BracketingSource.swift */,
+				BBF7B9531EACEB0100073DF8 /* AccumulatedSource.swift */,
 			);
 			name = "Sources and Signals";
 			sourceTree = "<group>";
@@ -1584,6 +1590,7 @@
 				BB9D74341DBE7B3B00E20D67 /* SetFolding.swift in Sources */,
 				BBB4F26F1C99E6CC002532CC /* UIGestureRecognizer Glue.swift in Sources */,
 				BBE9AACA1DC0F0A5000B3DD0 /* Update.swift in Sources */,
+				BBF7B9541EACEB0100073DF8 /* AccumulatedSource.swift in Sources */,
 				BB9D74281DBE7B3B00E20D67 /* ObservableContains.swift in Sources */,
 				BBE4DF401DA3A88C005EC162 /* ObservableType.swift in Sources */,
 				BB9D74241DBE7B3700E20D67 /* ObservableSet.swift in Sources */,
@@ -1738,6 +1745,7 @@
 				BB9D74201DBE654600E20D67 /* NSObject Glue.swift in Sources */,
 				BB9D73D31DBB3DEA00E20D67 /* Signal.swift in Sources */,
 				BBBBEC8E1DCA1AEB000B646D /* ValueReference.swift in Sources */,
+				BBF7B9551EACEB0100073DF8 /* AccumulatedSource.swift in Sources */,
 				BB015F4F1DC677A900C8C05A /* SetMappingForValueField.swift in Sources */,
 				BB8195B41DD256B700644668 /* UIDevice Glue.swift in Sources */,
 				BB6CE3BE1DC4CD6B00295C55 /* ObservableValue.swift in Sources */,
@@ -1896,6 +1904,7 @@
 				BBAA827F1C91D43700586903 /* Type Helpers.swift in Sources */,
 				BB69A8141D6B539A001D2821 /* ValueMappingForValueField.swift in Sources */,
 				BB69A8021D6B2377001D2821 /* BufferedArray.swift in Sources */,
+				BBF7B9561EACEB0100073DF8 /* AccumulatedSource.swift in Sources */,
 				BBBBEC8F1DCA1AEB000B646D /* ValueReference.swift in Sources */,
 				BBE4DF591DA55384005EC162 /* SetMappingForValue.swift in Sources */,
 				BB8195B91DD256B800644668 /* UIDevice Glue.swift in Sources */,
@@ -1931,6 +1940,7 @@
 				BBCD9E211DAAC7E600E85FB9 /* ValueMappingForSetField.swift in Sources */,
 				BB69A80B1D6B442D001D2821 /* ArrayVariable.swift in Sources */,
 				BB8195BE1DD256B900644668 /* UIDevice Glue.swift in Sources */,
+				BBF7B9631EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift in Sources */,
 				BB9D74011DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BB69A8311D6B7E37001D2821 /* SetSortingByMappingToComparable.swift in Sources */,
 				BBEA2A3D1DBFE37B00CCCB08 /* BracketingSource.swift in Sources */,
@@ -1986,6 +1996,7 @@
 				BB9D73E31DBB61C100E20D67 /* TransactionState.swift in Sources */,
 				BB69A8201D6B71FB001D2821 /* SetChange.swift in Sources */,
 				BBBBEC901DCA1AEB000B646D /* ValueReference.swift in Sources */,
+				BBF7B9571EACEB0100073DF8 /* AccumulatedSource.swift in Sources */,
 				BB7E04DF1DA7244A00BE3051 /* SetMappingForArrayField.swift in Sources */,
 				BB69A8131D6B539A001D2821 /* ValueMappingForValueField.swift in Sources */,
 				BBA0335A1DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift in Sources */,
