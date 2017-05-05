@@ -549,6 +549,10 @@
 		BBF7B95A1EACFC3B00073DF8 /* DependentValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B9581EACFC3B00073DF8 /* DependentValue.swift */; };
 		BBF7B95B1EACFC3B00073DF8 /* DependentValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B9581EACFC3B00073DF8 /* DependentValue.swift */; };
 		BBF7B95C1EACFC3B00073DF8 /* DependentValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B9581EACFC3B00073DF8 /* DependentValue.swift */; };
+		BBF7B9601EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B95F1EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift */; };
+		BBF7B9611EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B95F1EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift */; };
+		BBF7B9621EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B95F1EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift */; };
+		BBF7B9631EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF7B95F1EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -767,6 +771,7 @@
 		BBF7B9511EACE69B00073DF8 /* UILabel Glue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UILabel Glue.swift"; sourceTree = "<group>"; };
 		BBF7B9531EACEB0100073DF8 /* AccumulatedSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccumulatedSource.swift; sourceTree = "<group>"; };
 		BBF7B9581EACFC3B00073DF8 /* DependentValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DependentValue.swift; sourceTree = "<group>"; };
+		BBF7B95F1EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayBasedTableViewDataSource.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1132,6 +1137,7 @@
 				BB948BC01DD720FE00B0734C /* UISwitch Glue.swift */,
 				BBF7B9511EACE69B00073DF8 /* UILabel Glue.swift */,
 				BBB4F2511C9594A9002532CC /* UIDevice Glue.swift */,
+				BBF7B95F1EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift */,
 				BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Glue.swift */,
 				BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */,
 				BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */,
@@ -1540,6 +1546,7 @@
 				BB69A83B1D6B90F5001D2821 /* ArrayConcatenation.swift in Sources */,
 				BB6CE3B41DC4C21C00295C55 /* TransformedSink.swift in Sources */,
 				BB82E3E11D98F34E0035DDAD /* ArrayFilteringOnPredicate.swift in Sources */,
+				BBF7B9601EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift in Sources */,
 				BB9D742E1DBE7B3B00E20D67 /* SetMappingForArrayField.swift in Sources */,
 				BB9D74301DBE7B3B00E20D67 /* SetFilteringOnObservableBool.swift in Sources */,
 				BBB55B761C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
@@ -1701,6 +1708,7 @@
 				BB9D73D01DBB38F900E20D67 /* Sink.swift in Sources */,
 				BB6CE3DA1DC4F2FB00295C55 /* SetChange.swift in Sources */,
 				BB6CE3DB1DC4F2FB00295C55 /* ObservableSet.swift in Sources */,
+				BBF7B9611EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift in Sources */,
 				BB015F391DC509D000C8C05A /* SetMappingForValue.swift in Sources */,
 				BB015F361DC5004F00C8C05A /* ValueMappingForSetField.swift in Sources */,
 				BB6CE3C11DC4CD7600295C55 /* Variable.swift in Sources */,
@@ -1861,6 +1869,7 @@
 				BB69A81F1D6B71FA001D2821 /* SetChange.swift in Sources */,
 				BB9D74001DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BB69A8061D6B344D001D2821 /* UpdatableArray.swift in Sources */,
+				BBF7B9621EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift in Sources */,
 				BB9D73F61DBE03EB00E20D67 /* DispatchSource.swift in Sources */,
 				BB9D73E81DBB727300E20D67 /* ChangesSource.swift in Sources */,
 				BBEA2A411DBFE38F00CCCB08 /* BufferedSource.swift in Sources */,
