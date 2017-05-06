@@ -422,6 +422,10 @@
 		BBBBECAF1DCA446A000B646D /* SetBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECAE1DCA446A000B646D /* SetBufferingTests.swift */; };
 		BBBBECB01DCA446A000B646D /* SetBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECAE1DCA446A000B646D /* SetBufferingTests.swift */; };
 		BBBBECB11DCA446A000B646D /* SetBufferingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBECAE1DCA446A000B646D /* SetBufferingTests.swift */; };
+		BBBFD14B1EBE673200EC9814 /* SetSortingByComparableField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBFD14A1EBE673200EC9814 /* SetSortingByComparableField.swift */; };
+		BBBFD14C1EBE673200EC9814 /* SetSortingByComparableField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBFD14A1EBE673200EC9814 /* SetSortingByComparableField.swift */; };
+		BBBFD14D1EBE673200EC9814 /* SetSortingByComparableField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBFD14A1EBE673200EC9814 /* SetSortingByComparableField.swift */; };
+		BBBFD14E1EBE673200EC9814 /* SetSortingByComparableField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBFD14A1EBE673200EC9814 /* SetSortingByComparableField.swift */; };
 		BBC2A8291CBC14C600394D24 /* NSObject Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject Glue.swift */; };
 		BBC2A82B1CBC14C600394D24 /* NSObject Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject Glue.swift */; };
 		BBC2A82C1CBC14C600394D24 /* NSObject Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC2A8281CBC14C600394D24 /* NSObject Glue.swift */; };
@@ -724,6 +728,7 @@
 		BBBBECA51DCA3FF0000B646D /* BufferedSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedSet.swift; sourceTree = "<group>"; };
 		BBBBECAA1DCA4168000B646D /* ArrayBufferingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayBufferingTests.swift; sourceTree = "<group>"; };
 		BBBBECAE1DCA446A000B646D /* SetBufferingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetBufferingTests.swift; sourceTree = "<group>"; };
+		BBBFD14A1EBE673200EC9814 /* SetSortingByComparableField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetSortingByComparableField.swift; sourceTree = "<group>"; };
 		BBC1F1D01D7EDF4A00A320F5 /* GlueKit.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; path = GlueKit.podspec; sourceTree = "<group>"; };
 		BBC2A8281CBC14C600394D24 /* NSObject Glue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSObject Glue.swift"; sourceTree = "<group>"; };
 		BBC36AE61DA83E0E00AB3E9D /* ArrayChangeSeparationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayChangeSeparationTests.swift; sourceTree = "<group>"; };
@@ -892,6 +897,7 @@
 				BBA0335B1DA7276200E83AC1 /* SetSortingByComparator.swift */,
 				BB1E4D691D61EA5200F1831F /* SetSortingByMappingToComparable.swift */,
 				BBA033601DA7278C00E83AC1 /* SetSortingByMappingToObservableComparable.swift */,
+				BBBFD14A1EBE673200EC9814 /* SetSortingByComparableField.swift */,
 				BBCD9E011DAA910500E85FB9 /* SetFolding.swift */,
 				BB3D92951D647E83003BEDBF /* SetReference.swift */,
 			);
@@ -1583,6 +1589,7 @@
 				BB318F6B1CB992300086EE83 /* UIBarButtonItem Extensions.swift in Sources */,
 				BB9D742B1DBE7B3B00E20D67 /* SetMappingForSequence.swift in Sources */,
 				BB9D74291DBE7B3B00E20D67 /* SetMappingBase.swift in Sources */,
+				BBBFD14B1EBE673200EC9814 /* SetSortingByComparableField.swift in Sources */,
 				BBB55B561C8FCC820050DDA9 /* NSNotificationCenter Support.swift in Sources */,
 				BBAA827D1C91D43700586903 /* Type Helpers.swift in Sources */,
 				BB9D742A1DBE7B3B00E20D67 /* SetMappingForValue.swift in Sources */,
@@ -1734,6 +1741,7 @@
 				BB015F331DC4FC3700C8C05A /* ArrayVariable.swift in Sources */,
 				BB8195B61DD256B700644668 /* CADisplayLink Extensions.swift in Sources */,
 				BB9D73DC1DBB612600E20D67 /* Connector.swift in Sources */,
+				BBBFD14C1EBE673200EC9814 /* SetSortingByComparableField.swift in Sources */,
 				BB6CE3B91DC4CD3B00295C55 /* Update.swift in Sources */,
 				BB6CE3C21DC4CD7A00295C55 /* BufferedValue.swift in Sources */,
 				BB015F511DC679F000C8C05A /* SetMappingForArrayField.swift in Sources */,
@@ -1895,6 +1903,7 @@
 				BB69A8341D6B7F12001D2821 /* SetReference.swift in Sources */,
 				BB7E04CF1DA723F300BE3051 /* SetMappingForValueField.swift in Sources */,
 				BBB55B681C8FCC820050DDA9 /* Reference.swift in Sources */,
+				BBBFD14D1EBE673200EC9814 /* SetSortingByComparableField.swift in Sources */,
 				BB8195BB1DD256B800644668 /* CADisplayLink Extensions.swift in Sources */,
 				BB69A7FD1D6B1D95001D2821 /* ObservableArray.swift in Sources */,
 				BBA0335E1DA7276200E83AC1 /* SetSortingByComparator.swift in Sources */,
@@ -1988,6 +1997,7 @@
 				BBCD9E261DAAD26200E85FB9 /* CompositeObservable.swift in Sources */,
 				BBCD9E121DAAC33700E85FB9 /* ValueMappingForValue.swift in Sources */,
 				BB69A8431D6B9A7E001D2821 /* ArrayMappingForValue.swift in Sources */,
+				BBBFD14E1EBE673200EC9814 /* SetSortingByComparableField.swift in Sources */,
 				BBB55B5D1C8FCC820050DDA9 /* BufferedValue.swift in Sources */,
 				BB9D73D21DBB38F900E20D67 /* Sink.swift in Sources */,
 				BBCD9E051DAA910500E85FB9 /* SetFolding.swift in Sources */,
