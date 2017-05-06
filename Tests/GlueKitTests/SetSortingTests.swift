@@ -112,7 +112,7 @@ class SetSortingTests: XCTestCase {
 
     func test_sortedSetUsingNoninjectiveTransform() {
         let set = SetVariable<Int>([0, 2, 3, 4, 8, 9])
-        let sortedSet = set.sorted { $0 / 2 }
+        let sortedSet = set.sortedMap { $0 / 2 }
 
         XCTAssertEqual(sortedSet.value, [0, 1, 2, 4])
 
@@ -144,7 +144,7 @@ class SetSortingTests: XCTestCase {
         let b3 = Book("baz")
         let b4 = Book("fred")
         let books = SetVariable<Book>([b1, b2, b3])
-        let sortedTitles = books.sorted{$0.title}
+        let sortedTitles = books.sortedMap {$0.title}
 
         XCTAssertEqual(sortedTitles.isBuffered, false)
         XCTAssertEqual(sortedTitles.value, ["bar", "baz", "foo"])
