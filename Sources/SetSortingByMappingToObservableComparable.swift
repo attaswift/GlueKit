@@ -17,48 +17,47 @@ extension ObservableSetType where Element: AnyObject, Change == SetChange<Elemen
     }
 }
 
-private struct ParentSink<Parent: ObservableSetType, Field: ObservableValueType>: UniqueOwnedSink
-where Parent.Element: AnyObject, Field.Value: Comparable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
-    typealias Owner = SetSortingByMappingToObservableComparable<Parent, Field>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: SetUpdate<Parent.Element>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
-private struct FieldSink<Parent: ObservableSetType, Field: ObservableValueType>: SinkType, SipHashable
-where Parent.Element: AnyObject, Field.Value: Comparable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
-    typealias Owner = SetSortingByMappingToObservableComparable<Parent, Field>
-
-    unowned(unsafe) let owner: Owner
-    let element: Parent.Element
-
-    func receive(_ update: ValueUpdate<Field.Value>) {
-        owner.applyFieldUpdate(update, from: element)
-    }
-
-    func appendHashes(to hasher: inout SipHasher) {
-        hasher.append(ObjectIdentifier(owner))
-        hasher.append(element)
-    }
-
-    static func ==(left: FieldSink, right: FieldSink) -> Bool {
-        return left.owner === right.owner && left.element == right.element
-    }
-}
-
 private class SetSortingByMappingToObservableComparable<Parent: ObservableSetType, Field: ObservableValueType>: _BaseObservableArray<Field.Value>
 where Parent.Element: AnyObject, Field.Value: Comparable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
     typealias Element = Field.Value
     typealias Change = ArrayChange<Element>
 
+    private struct ParentSink: UniqueOwnedSink {
+        typealias Owner = SetSortingByMappingToObservableComparable<Parent, Field>
+
+        unowned(unsafe) let owner: Owner
+
+        func receive(_ update: SetUpdate<Parent.Element>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+
+    private struct FieldSink: SinkType, SipHashable {
+        typealias Owner = SetSortingByMappingToObservableComparable<Parent, Field>
+
+        unowned(unsafe) let owner: Owner
+        let element: Parent.Element
+
+        func receive(_ update: ValueUpdate<Field.Value>) {
+            owner.applyFieldUpdate(update, from: element)
+        }
+
+        func appendHashes(to hasher: inout SipHasher) {
+            hasher.append(ObjectIdentifier(owner))
+            hasher.append(element)
+        }
+
+        static func ==(left: FieldSink, right: FieldSink) -> Bool {
+            return left.owner === right.owner && left.element == right.element
+        }
+    }
+    
+
     private let parent: Parent
     private let transform: (Parent.Element) -> Field
 
     private var contents: Map<Element, Int> = [:]
-    private var fields: Dictionary<FieldSink<Parent, Field>, Field> = [:]
+    private var fields: Dictionary<FieldSink, Field> = [:]
 
     init(parent: Parent, transform: @escaping (Parent.Element) -> Field) {
         self.parent = parent
