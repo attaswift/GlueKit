@@ -46,34 +46,33 @@ extension ObservableValueType where Change == ValueChange<Value> {
     }
 }
 
-private struct ParentSink<Parent: ObservableValueType, Field: ObservableValueType>: OwnedSink
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
-    typealias Owner = ValueMappingForValueField<Parent, Field>
-
-    unowned let owner: Owner
-    let identifier = 1
-
-    func receive(_ update: ValueUpdate<Parent.Value>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
-private struct FieldSink<Parent: ObservableValueType, Field: ObservableValueType>: OwnedSink
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
-    typealias Owner = ValueMappingForValueField<Parent, Field>
-
-    unowned let owner: Owner
-    let identifier = 2
-
-    func receive(_ update: ValueUpdate<Field.Value>) {
-        owner.applyFieldUpdate(update)
-    }
-}
 
 /// A source of changes for an Observable field.
 private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: _BaseObservableValue<Field.Value> where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
     typealias Value = Field.Value
     typealias Change = ValueChange<Value>
+
+    struct ParentSink: OwnedSink {
+        typealias Owner = ValueMappingForValueField<Parent, Field>
+
+        unowned let owner: Owner
+        let identifier = 1
+
+        func receive(_ update: ValueUpdate<Parent.Value>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+
+    struct FieldSink: OwnedSink {
+        typealias Owner = ValueMappingForValueField<Parent, Field>
+
+        unowned let owner: Owner
+        let identifier = 2
+
+        func receive(_ update: ValueUpdate<Field.Value>) {
+            owner.applyFieldUpdate(update)
+        }
+    }
 
     let parent: Parent
     let key: (Parent.Value) -> Field
@@ -135,6 +134,116 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
             beginTransaction()
         case .change(let change):
             let old = currentValue!
+            currentValue = change.new
+            sendChange(ValueChange(from: old, to: change.new))
+        case .endTransaction:
+            endTransaction()
+        }
+    }
+}
+
+extension ObservableValueType where Change == ValueChange<Value> {
+    public func flatMap<O: ObservableValueType>(_ key: @escaping (Value) -> O?) -> AnyObservableValue<O.Value?> where O.Change == ValueChange<O.Value> {
+        return ValueMappingForOptionalValueField(parent: self, key: key).anyObservableValue
+    }
+}
+
+private final class ValueMappingForOptionalValueField<Parent: ObservableValueType, Field: ObservableValueType>: _BaseObservableValue<Field.Value?>
+where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
+    typealias Value = Field.Value?
+    typealias Change = ValueChange<Value>
+
+    struct ParentSink: OwnedSink {
+        typealias Owner = ValueMappingForOptionalValueField<Parent, Field>
+
+        unowned let owner: Owner
+        let identifier = 1
+
+        func receive(_ update: ValueUpdate<Parent.Value>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+
+    struct FieldSink: OwnedSink {
+        typealias Owner = ValueMappingForOptionalValueField<Parent, Field>
+
+        unowned let owner: Owner
+        let identifier = 2
+
+        func receive(_ update: ValueUpdate<Field.Value>) {
+            owner.applyFieldUpdate(update)
+        }
+    }
+
+    let parent: Parent
+    let key: (Parent.Value) -> Field?
+
+    private var activated = false
+    private var currentValue: Field.Value? = nil
+    private var field: Field? = nil
+
+    override var value: Value {
+        if activated { return currentValue }
+        return key(parent.value)?.value
+    }
+
+    init(parent: Parent, key: @escaping (Parent.Value) -> Field?) {
+        self.parent = parent
+        self.key = key
+    }
+
+    override func activate() {
+        precondition(!activated)
+        activated = true
+        if let field = key(parent.value) {
+            self.currentValue = field.value
+            subscribe(to: field)
+        }
+        else {
+            self.currentValue = nil
+        }
+        parent.add(ParentSink(owner: self))
+    }
+
+    override func deactivate() {
+        precondition(activated)
+        self.field?.remove(FieldSink(owner: self))
+        parent.remove(ParentSink(owner: self))
+        self.field = nil
+        self.currentValue = nil
+        activated = false
+    }
+
+    private func subscribe(to field: Field) {
+        self.field?.remove(FieldSink(owner: self))
+        self.field = field
+        field.add(FieldSink(owner: self))
+    }
+
+    func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
+        switch update {
+        case .beginTransaction:
+            beginTransaction()
+        case .change(let change):
+            let field = key(change.new)
+            let old = currentValue
+            let new = field?.value
+            currentValue = new
+            sendChange(ValueChange(from: old, to: new))
+            if let field = field {
+                subscribe(to: field)
+            }
+        case .endTransaction:
+            endTransaction()
+        }
+    }
+
+    func applyFieldUpdate(_ update: ValueUpdate<Field.Value>) {
+        switch update {
+        case .beginTransaction:
+            beginTransaction()
+        case .change(let change):
+            let old = currentValue
             currentValue = change.new
             sendChange(ValueChange(from: old, to: change.new))
         case .endTransaction:
