@@ -263,6 +263,12 @@ where A.Value == Value, B.Value == Value, A.Change == ValueChange<A.Value>, B.Ch
 
 //MARK: Operations with floating point values
 
+extension ObservableValueType where Value: FloatingPoint, Change == ValueChange<Value> {
+    public func squareRoot() -> AnyObservableValue<Value> {
+        return self.map { $0.squareRoot() }
+    }
+}
+
 public func + <A: ObservableValueType, B: ObservableValueType, Value: FloatingPoint>(a: A, b: B) -> AnyObservableValue<Value>
 where A.Value == Value, B.Value == Value, A.Change == ValueChange<A.Value>, B.Change == ValueChange<B.Value> {
     return a.combined(b, by: +)
