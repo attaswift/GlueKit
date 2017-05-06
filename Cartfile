@@ -1,2 +1,2 @@
 github "lorentey/BTree" ~> 4.0
-github "lorentey/SipHash" ~> 1.0
+github "lorentey/SipHash" ~> 1.1

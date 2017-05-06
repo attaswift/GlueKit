@@ -9,6 +9,6 @@ let package = Package(
     ],
     dependencies: [
         .Package(url: "https://github.com/lorentey/BTree", majorVersion: 4, minor: 0),
-        .Package(url: "https://github.com/lorentey/SipHash", majorVersion: 1, minor: 0)
+        .Package(url: "https://github.com/lorentey/SipHash", majorVersion: 1, minor: 1)
     ]
 )
