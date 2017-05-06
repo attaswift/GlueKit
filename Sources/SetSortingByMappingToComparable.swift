@@ -11,7 +11,7 @@ import BTree
 extension ObservableSetType where Change == SetChange<Element> {
     /// Given a transformation into a comparable type, return an observable array containing transformed
     /// versions of elements in this set, in increasing order.
-    public func sorted<Result: Comparable>(by transform: @escaping (Element) -> Result) -> AnyObservableArray<Result> {
+    public func sortedMap<Result: Comparable>(by transform: @escaping (Element) -> Result) -> AnyObservableArray<Result> {
         return SetSortingByMappingToComparable(parent: self, transform: transform).anyObservableArray
     }
 }
@@ -19,7 +19,7 @@ extension ObservableSetType where Change == SetChange<Element> {
 extension ObservableSetType where Element: Comparable, Change == SetChange<Element> {
     /// Return an observable array containing the members of this set, in increasing order.
     public func sorted() -> AnyObservableArray<Element> {
-        return self.sorted { $0 }
+        return self.sortedMap { $0 }
     }
 }
 

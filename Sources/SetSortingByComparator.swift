@@ -10,7 +10,7 @@ extension ObservableSetType where Change == SetChange<Element> {
     public func sorted(by areInIncreasingOrder: @escaping (Element, Element) -> Bool) -> AnyObservableArray<Element> {
         let comparator = Comparator(areInIncreasingOrder)
         return self
-            .sorted(by: { [unowned comparator] in ComparableWrapper($0, comparator) })
+            .sortedMap(by: { [unowned comparator] in ComparableWrapper($0, comparator) })
             .map { [comparator] in _ = comparator; return $0.element }
     }
 
