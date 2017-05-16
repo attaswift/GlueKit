@@ -49,4 +49,12 @@ extension SourceType {
     public func flatMap<S: Sequence>(_ transform: @escaping (Value) -> S) -> AnySource<S.Iterator.Element> {
         return TransformedSource(input: self, transform: SinkTransformFromSequence(transform)).anySource
     }
+
+    public func mapToVoid() -> AnySource<Void> {
+        return TransformedSource(input: self, transform: SinkTransformToConstant()).anySource
+    }
+
+    public func mapToConstant<C>(_ value: C) -> AnySource<C> {
+        return TransformedSource(input: self, transform: SinkTransformToConstant(value)).anySource
+    }
 }

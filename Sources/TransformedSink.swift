@@ -59,6 +59,21 @@ class SinkTransformFromClosure<I, O>: SinkTransform {
     }
 }
 
+class SinkTransformToConstant<I, O>: SinkTransform {
+    typealias Input = I
+    typealias Output = O
+
+    let constant: O
+
+    init(_ constant: O) {
+        self.constant = constant
+    }
+
+    func apply<Sink: SinkType>(_ input: Input, _ sink: Sink) where Sink.Value == Output {
+        sink.receive(constant)
+    }
+}
+
 class SinkTransformFromMapping<I, O>: SinkTransform {
     typealias Input = I
     typealias Output = O
