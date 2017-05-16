@@ -14,6 +14,10 @@ extension ObservableSetType where Change == SetChange<Element> {
             .map { [comparator] in _ = comparator; return $0.element }
     }
 
+    public func sorted<Key: Comparable>(by key: @escaping (Element) -> Key) -> AnyObservableArray<Element> {
+        return self.sorted { a, b in key(a) < key(b) }
+    }
+
     public func sorted<Comparator: ObservableValueType>(by comparator: Comparator) -> AnyObservableArray<Element>
     where Comparator.Value == (Element, Element) -> Bool, Comparator.Change == ValueChange<Comparator.Value> {
         let reference: AnyObservableValue<AnyObservableArray<Element>> = comparator.map { comparator in
@@ -21,6 +25,15 @@ extension ObservableSetType where Change == SetChange<Element> {
         }
         return reference.unpacked()
     }
+
+    public func sorted<Key: Comparable, ObservableKey: ObservableValueType>(by key: ObservableKey) -> AnyObservableArray<Element>
+        where ObservableKey.Value == (Element) -> Key, ObservableKey.Change == ValueChange<ObservableKey.Value> {
+            let reference: AnyObservableValue<AnyObservableArray<Element>> = key.map { key in
+                self.sorted(by: key).anyObservableArray
+            }
+            return reference.unpacked()
+    }
+
 }
 
 private final class Comparator<Element: Equatable> {
