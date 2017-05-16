@@ -21,7 +21,7 @@ public class GlueForUISwitch: GlueForUIControl {
     public lazy var isOn: ComputedUpdatable<Bool>
         = ComputedUpdatable(getter: { [unowned self] in self.object.isOn },
                             setter: { [unowned self] in self.object.isOn = $0 },
-                            refreshSource: self.object.glue.source(for: .valueChanged).map { _ in })
+                            refreshSource: self.source(for: .valueChanged).mapToVoid())
 }
 
 #endif
