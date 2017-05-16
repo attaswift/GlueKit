@@ -83,6 +83,7 @@ where Parent.Change == SetChange<Parent.Element> {
             for element in change.inserted {
                 let transformed = transform(element)
                 if let count = contents[transformed] {
+                    precondition(count > 0)
                     contents[transformed] = count + 1
                 }
                 else {
