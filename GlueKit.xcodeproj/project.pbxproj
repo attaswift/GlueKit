@@ -89,6 +89,10 @@
 		BB318F6B1CB992300086EE83 /* UIBarButtonItem Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */; };
 		BB351B011DB81E67005F083F /* GlueKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBB55AD41C8F88F20050DDA9 /* GlueKit.framework */; };
 		BB351B071DB81EE1005F083F /* GlueKitPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55BEA1C8FD25F0050DDA9 /* GlueKitPerformanceTests.swift */; };
+		BB3982ED1EC109C4000CDCB5 /* UISearchBar Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3982EC1EC109C4000CDCB5 /* UISearchBar Glue.swift */; };
+		BB3982EE1EC109C7000CDCB5 /* UISearchBar Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3982EC1EC109C4000CDCB5 /* UISearchBar Glue.swift */; };
+		BB3982EF1EC109C8000CDCB5 /* UISearchBar Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3982EC1EC109C4000CDCB5 /* UISearchBar Glue.swift */; };
+		BB3982F01EC109C8000CDCB5 /* UISearchBar Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3982EC1EC109C4000CDCB5 /* UISearchBar Glue.swift */; };
 		BB3D12B21E49FC5A00097510 /* BTree.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB3D12B11E49FC5A00097510 /* BTree.framework */; };
 		BB3D12B41E49FC5E00097510 /* SipHash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB3D12B31E49FC5E00097510 /* SipHash.framework */; };
 		BB3D12B71E49FC7600097510 /* BTree.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB3D12B51E49FC7600097510 /* BTree.framework */; };
@@ -604,6 +608,7 @@
 		BB1E4D691D61EA5200F1831F /* SetSortingByMappingToComparable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetSortingByMappingToComparable.swift; sourceTree = "<group>"; };
 		BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = "UIBarButtonItem Extensions.swift"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		BB351AFC1DB81E67005F083F /* PerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB3982EC1EC109C4000CDCB5 /* UISearchBar Glue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UISearchBar Glue.swift"; sourceTree = "<group>"; };
 		BB3D12AF1E49FBF500097510 /* SipHash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SipHash.framework; path = "../../Library/Developer/Xcode/DerivedData/GlueKit-gstdcmlxjxkcnggtlmasijktewlg/Build/Products/Debug/SipHash.framework"; sourceTree = "<group>"; };
 		BB3D12B11E49FC5A00097510 /* BTree.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BTree.framework; path = Carthage/Build/iOS/BTree.framework; sourceTree = "<group>"; };
 		BB3D12B31E49FC5E00097510 /* SipHash.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SipHash.framework; path = Carthage/Build/iOS/SipHash.framework; sourceTree = "<group>"; };
@@ -1143,6 +1148,7 @@
 				BB948BC01DD720FE00B0734C /* UISwitch Glue.swift */,
 				BBF7B9511EACE69B00073DF8 /* UILabel Glue.swift */,
 				BBB4F2511C9594A9002532CC /* UIDevice Glue.swift */,
+				BB3982EC1EC109C4000CDCB5 /* UISearchBar Glue.swift */,
 				BBF7B95F1EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift */,
 				BBB4F26E1C99E6CB002532CC /* UIGestureRecognizer Glue.swift */,
 				BB318F6A1CB9922F0086EE83 /* UIBarButtonItem Extensions.swift */,
@@ -1625,6 +1631,7 @@
 				BB69A8041D6B344C001D2821 /* UpdatableArray.swift in Sources */,
 				BBB4F2521C9594A9002532CC /* UIDevice Glue.swift in Sources */,
 				BBF7B9521EACE69B00073DF8 /* UILabel Glue.swift in Sources */,
+				BB3982ED1EC109C4000CDCB5 /* UISearchBar Glue.swift in Sources */,
 				BB9D73FE1DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BBCD9E191DAAC50900E85FB9 /* ValueMappingForSourceField.swift in Sources */,
 				BB9D74321DBE7B3B00E20D67 /* SetSortingByMappingToComparable.swift in Sources */,
@@ -1774,6 +1781,7 @@
 				BB9D73D31DBB3DEA00E20D67 /* Signal.swift in Sources */,
 				BBBBEC8E1DCA1AEB000B646D /* ValueReference.swift in Sources */,
 				BBF7B9551EACEB0100073DF8 /* AccumulatedSource.swift in Sources */,
+				BB3982EE1EC109C7000CDCB5 /* UISearchBar Glue.swift in Sources */,
 				BB015F4F1DC677A900C8C05A /* SetMappingForValueField.swift in Sources */,
 				BB8195B41DD256B700644668 /* UIDevice Glue.swift in Sources */,
 				BB6CE3BE1DC4CD6B00295C55 /* ObservableValue.swift in Sources */,
@@ -1936,6 +1944,7 @@
 				BB69A8141D6B539A001D2821 /* ValueMappingForValueField.swift in Sources */,
 				BB69A8021D6B2377001D2821 /* BufferedArray.swift in Sources */,
 				BBF7B9561EACEB0100073DF8 /* AccumulatedSource.swift in Sources */,
+				BB3982EF1EC109C8000CDCB5 /* UISearchBar Glue.swift in Sources */,
 				BBBBEC8F1DCA1AEB000B646D /* ValueReference.swift in Sources */,
 				BBE4DF591DA55384005EC162 /* SetMappingForValue.swift in Sources */,
 				BB8195B91DD256B800644668 /* UIDevice Glue.swift in Sources */,
@@ -2030,6 +2039,7 @@
 				BB69A8201D6B71FB001D2821 /* SetChange.swift in Sources */,
 				BBBBEC901DCA1AEB000B646D /* ValueReference.swift in Sources */,
 				BBF7B9571EACEB0100073DF8 /* AccumulatedSource.swift in Sources */,
+				BB3982F01EC109C8000CDCB5 /* UISearchBar Glue.swift in Sources */,
 				BB7E04DF1DA7244A00BE3051 /* SetMappingForArrayField.swift in Sources */,
 				BB69A8131D6B539A001D2821 /* ValueMappingForValueField.swift in Sources */,
 				BBA0335A1DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift in Sources */,
