@@ -43,7 +43,7 @@ private struct ComparableWrapper<Element: Equatable>: Comparable {
         self.element = element
     }
     static func ==(a: ComparableWrapper<Element>, b: ComparableWrapper<Element>) -> Bool {
-        return a.element == b.element
+        return !(a < b) && !(b < a)
     }
     static func <(a: ComparableWrapper<Element>, b: ComparableWrapper<Element>) -> Bool {
         return a.comparator.compare(a.element, b.element)
