@@ -1,3 +1,4 @@
 .build
 /Carthage/Build
 /Packages
+xcuserdata
