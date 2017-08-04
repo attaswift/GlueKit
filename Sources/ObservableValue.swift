@@ -72,7 +72,7 @@ public struct AnyObservableValue<Value>: ObservableValueType {
     /// Initializes an Observable from the given getter closure and source of future changes.
     /// @param getter A closure that returns the current value of the observable at the time of the call.
     /// @param futureValues A closure that returns a source that triggers whenever the observable changes.
-    public init<Updates: SourceType>(getter: @escaping (Void) -> Value, updates: Updates) where Updates.Value == Update<Change> {
+    public init<Updates: SourceType>(getter: @escaping () -> Value, updates: Updates) where Updates.Value == Update<Change> {
         self.box = ObservableClosureBox(getter: getter, updates: updates)
     }
 
@@ -179,7 +179,7 @@ where Updates.Value == Update<ValueChange<Value>> {
     private let _value: () -> Value
     private let _updates: Updates
 
-    public init(getter: @escaping (Void) -> Value, updates: Updates) {
+    public init(getter: @escaping () -> Value, updates: Updates) {
         self._value = getter
         self._updates = updates
     }

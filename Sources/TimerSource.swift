@@ -61,7 +61,7 @@ public typealias TimerSource = _TimerSource<Void>
 public final class _TimerSource<Dummy>: SignalerSource<Void> {
 
     private let queue: DispatchQueue
-    private let next: (Void) -> Date?
+    private let next: () -> Date?
     private var token = AtomicToken()
 
     override func activate() {
@@ -80,7 +80,7 @@ public final class _TimerSource<Dummy>: SignalerSource<Void> {
     ///
     /// Note that the `next` closure will not be called immediately; the source waits for the first connection 
     /// before establishing a timer.
-    public init(queue: DispatchQueue = DispatchQueue.main, next: @escaping (Void) -> Date?) {
+    public init(queue: DispatchQueue = DispatchQueue.main, next: @escaping () -> Date?) {
         self.queue = queue
         self.next = next
     }

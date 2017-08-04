@@ -29,7 +29,7 @@ public struct AnyUpdatableValue<Value>: UpdatableValueType {
         self.box = box
     }
 
-    public init<Updates: SourceType>(getter: @escaping (Void) -> Value,
+    public init<Updates: SourceType>(getter: @escaping () -> Value,
                                      apply: @escaping (Update<ValueChange<Value>>) -> Void,
                                      updates: Updates)
         where Updates.Value == Update<Change> {
