@@ -10,7 +10,7 @@ import Foundation
 import XCTest
 import GlueKit
 
-func describe<Element: Hashable & Comparable>(_ update: SetUpdate<Element>) -> String {
+func describe<Element: Comparable>(_ update: SetUpdate<Element>) -> String {
     switch update {
     case .beginTransaction:
         return "begin"

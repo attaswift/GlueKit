@@ -23,7 +23,7 @@ extension ObservableSetType where Change == SetChange<Element> {
     }
 }
 
-extension ObservableSetType where Element: IntegerArithmetic & ExpressibleByIntegerLiteral, Change == SetChange<Element> {
+extension ObservableSetType where Element: BinaryInteger, Change == SetChange<Element> {
     /// Return the (observable) sum of the elements contained in this set.
     public func sum() -> AnyObservableValue<Element> {
         return reduce(0, add: +, remove: -)

@@ -22,7 +22,7 @@ extension NSObjectProtocol where Self: NSObject {
 }
 
 extension NSObject {
-    public dynamic var glue: GlueForNSObject {
+    @objc public dynamic var glue: GlueForNSObject {
         return _glue()
     }
 }

@@ -565,7 +565,7 @@ public func !=<Element: Equatable>(a: ArrayChange<Element>, b: ArrayChange<Eleme
 extension RangeReplaceableCollection where Index == Int, IndexDistance == Int {
     /// Apply `change` to this array. The count of self must be the same as the initial count of `change`, or
     /// the operation will report a fatal error.
-    public mutating func apply(_ change: ArrayChange<Generator.Element>) {
+    public mutating func apply(_ change: ArrayChange<Element>) {
         precondition(self.count == change.initialCount)
         for modification in change.modifications {
             self.apply(modification)

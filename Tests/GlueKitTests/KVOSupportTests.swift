@@ -15,19 +15,19 @@ private class Fixture: NSObject {
     var _optional: String? = nil
     var _next: Fixture? = nil
 
-    dynamic var name: String {
+    @objc dynamic var name: String {
         get { return _name }
         set { _name = newValue }
     }
-    dynamic var count: Int {
+    @objc dynamic var count: Int {
         get { return _count }
         set { _count = newValue }
     }
-    dynamic var optional: String? {
+    @objc dynamic var optional: String? {
         get { return _optional }
         set { _optional = newValue }
     }
-    dynamic var next: Fixture? {
+    @objc dynamic var next: Fixture? {
         get { return _next }
         set { _next = newValue }
     }

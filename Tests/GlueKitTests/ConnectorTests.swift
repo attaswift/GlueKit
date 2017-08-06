@@ -38,7 +38,7 @@ class ConnectorTests: XCTestCase {
         var actual: [Int] = []
         do {
             let connector = Connector()
-            let c = TestConnection { id in actual.append(1) }
+            let c = TestConnection { actual.append(1) }
             c.putInto(connector)
 
             XCTAssertEqual(actual, [])

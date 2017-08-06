@@ -96,7 +96,7 @@ where Parent.Element: AnyObject, Field.Value: Comparable, Parent.Change == SetCh
     private func insert(_ key: Field.Value, _ element: Element) -> ArrayModification<Element> {
         return contents.withCursor(onKey: key, choosing: .after) { cursor in
             let offset = cursor.offset
-            cursor.insert(key, element)
+            cursor.insert((key, element))
             return .insert(element, at: offset)
         }
     }

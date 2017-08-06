@@ -21,7 +21,7 @@ extension SinkTransform where Self: AnyObject {
 }
 
 extension SinkType {
-    func transform<Transform: SinkTransform>(_ transform: Transform) -> TransformedSink<Self, Transform> where Transform.Output == Value {
+    func transform<Transform: SinkTransform>(_ transform: Transform) -> TransformedSink<Self, Transform> {
         return TransformedSink(sink: self, transform: transform)
     }
 }

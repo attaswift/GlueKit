@@ -232,31 +232,31 @@ where A.Value == Bool, B.Value == Bool, A.Change == ValueChange<A.Value>, B.Chan
 
 //MARK: Operations with observables of integer arithmetic values
 
-public prefix func - <O: ObservableValueType>(v: O) -> AnyObservableValue<O.Value> where O.Value: SignedNumber, O.Change == ValueChange<O.Value> {
+public prefix func - <O: ObservableValueType>(v: O) -> AnyObservableValue<O.Value> where O.Value: SignedNumeric, O.Change == ValueChange<O.Value> {
     return v.map { -$0 }
 }
 
-public func + <A: ObservableValueType, B: ObservableValueType, Value: IntegerArithmetic>(a: A, b: B) -> AnyObservableValue<Value>
+public func + <A: ObservableValueType, B: ObservableValueType, Value: Numeric>(a: A, b: B) -> AnyObservableValue<Value>
 where A.Value == Value, B.Value == Value, A.Change == ValueChange<A.Value>, B.Change == ValueChange<B.Value> {
     return a.combined(b, by: +)
 }
 
-public func - <A: ObservableValueType, B: ObservableValueType, Value: IntegerArithmetic>(a: A, b: B) -> AnyObservableValue<Value>
+public func - <A: ObservableValueType, B: ObservableValueType, Value: Numeric>(a: A, b: B) -> AnyObservableValue<Value>
 where A.Value == Value, B.Value == Value, A.Change == ValueChange<A.Value>, B.Change == ValueChange<B.Value> {
     return a.combined(b, by: -)
 }
 
-public func * <A: ObservableValueType, B: ObservableValueType, Value: IntegerArithmetic>(a: A, b: B) -> AnyObservableValue<Value>
+public func * <A: ObservableValueType, B: ObservableValueType, Value: Numeric>(a: A, b: B) -> AnyObservableValue<Value>
 where A.Value == Value, B.Value == Value, A.Change == ValueChange<A.Value>, B.Change == ValueChange<B.Value> {
     return a.combined(b, by: *)
 }
 
-public func / <A: ObservableValueType, B: ObservableValueType, Value: IntegerArithmetic>(a: A, b: B) -> AnyObservableValue<Value>
+public func / <A: ObservableValueType, B: ObservableValueType, Value: BinaryInteger>(a: A, b: B) -> AnyObservableValue<Value>
 where A.Value == Value, B.Value == Value, A.Change == ValueChange<A.Value>, B.Change == ValueChange<B.Value> {
     return a.combined(b, by: /)
 }
 
-public func % <A: ObservableValueType, B: ObservableValueType, Value: IntegerArithmetic>(a: A, b: B) -> AnyObservableValue<Value>
+public func % <A: ObservableValueType, B: ObservableValueType, Value: BinaryInteger>(a: A, b: B) -> AnyObservableValue<Value>
 where A.Value == Value, B.Value == Value, A.Change == ValueChange<A.Value>, B.Change == ValueChange<B.Value> {
     return a.combined(b, by: %)
 }

@@ -23,7 +23,7 @@ extension ObservableArrayType where Change == ArrayChange<Element> {
     }
 }
 
-extension ObservableArrayType where Element: IntegerArithmetic & ExpressibleByIntegerLiteral, Change == ArrayChange<Element> {
+extension ObservableArrayType where Element: BinaryInteger, Change == ArrayChange<Element> {
     /// Return the (observable) sum of the elements contained in this array.
     public func sum() -> AnyObservableValue<Element> {
         return reduce(0, add: +, remove: -)

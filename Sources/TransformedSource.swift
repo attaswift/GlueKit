@@ -51,7 +51,7 @@ extension SourceType {
     }
 
     public func mapToVoid() -> AnySource<Void> {
-        return TransformedSource(input: self, transform: SinkTransformToConstant()).anySource
+        return TransformedSource(input: self, transform: SinkTransformToConstant(())).anySource
     }
 
     public func mapToConstant<C>(_ value: C) -> AnySource<C> {

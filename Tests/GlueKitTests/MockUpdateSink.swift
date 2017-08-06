@@ -9,7 +9,7 @@
 import XCTest
 import GlueKit
 
-internal func describe<Change: ChangeType>(_ update: Update<Change>?) -> String {
+internal func describe<Change>(_ update: Update<Change>?) -> String {
     guard let update = update else { return "nil" }
     switch update {
     case .beginTransaction: return "begin"

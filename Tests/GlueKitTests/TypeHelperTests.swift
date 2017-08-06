@@ -11,16 +11,16 @@ import XCTest
 import GlueKit
 
 private class KVOTest: NSObject {
-    dynamic var string: String = ""
-    dynamic var bool: Bool = false
-    dynamic var int: Int = 0
-    dynamic var float: Float = 0
-    dynamic var double: Double = 0
-    dynamic var cgFloat: CGFloat = 0
-    dynamic var point: CGPoint = .init(x: 0, y: 0)
-    dynamic var size: CGSize = .init(width: 0, height: 0)
-    dynamic var rect: CGRect = .init(x: 0, y: 0, width: 0, height: 0)
-    dynamic var transform: CGAffineTransform = .identity
+    @objc dynamic var string: String = ""
+    @objc dynamic var bool: Bool = false
+    @objc dynamic var int: Int = 0
+    @objc dynamic var float: Float = 0
+    @objc dynamic var double: Double = 0
+    @objc dynamic var cgFloat: CGFloat = 0
+    @objc dynamic var point: CGPoint = .init(x: 0, y: 0)
+    @objc dynamic var size: CGSize = .init(width: 0, height: 0)
+    @objc dynamic var rect: CGRect = .init(x: 0, y: 0, width: 0, height: 0)
+    @objc dynamic var transform: CGAffineTransform = .identity
 }
 
 class TypeHelperTests: XCTestCase {

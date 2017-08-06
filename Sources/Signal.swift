@@ -251,6 +251,12 @@ extension Signal {
     public var asSink: AnySink<Value> { return SignalSink(self).anySink }
 }
 
+extension Signal where Value == Void {
+    public func send() {
+        self.send(())
+    }
+}
+
 private struct SignalSink<Value>: SinkType {
     private let signal: Signal<Value>
 
