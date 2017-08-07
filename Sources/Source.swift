@@ -3,7 +3,7 @@
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2015-11-30.
-//  Copyright © 2015 Károly Lőrentey. All rights reserved.
+//  Copyright © 2015–2017 Károly Lőrentey.
 //
 
 /// A Source is an entity that is able to produce values to other entities (called Sinks) that are connected to it.

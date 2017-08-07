@@ -3,7 +3,7 @@
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-10-04.
-//  Copyright © 2016. Károly Lőrentey. All rights reserved.
+//  Copyright © 2015–2017 Károly Lőrentey.
 //
 
 /// A simple change description that includes a snapshot of the value before and after the change.

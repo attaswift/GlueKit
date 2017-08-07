@@ -3,7 +3,7 @@
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-10-24.
-//  Copyright © 2016. Károly Lőrentey. All rights reserved.
+//  Copyright © 2015–2017 Károly Lőrentey.
 //
 
 extension UpdatableValueType {

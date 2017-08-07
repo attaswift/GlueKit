@@ -3,7 +3,7 @@
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-09-26.
-//  Copyright © 2016. Károly Lőrentey. All rights reserved.
+//  Copyright © 2015–2017 Károly Lőrentey.
 //
 
 extension ObservableArrayType {

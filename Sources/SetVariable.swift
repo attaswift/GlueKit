@@ -3,7 +3,7 @@
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-08-13.
-//  Copyright © 2016. Károly Lőrentey. All rights reserved.
+//  Copyright © 2015–2017 Károly Lőrentey.
 //
 
 public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {

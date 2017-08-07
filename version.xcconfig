@@ -2,7 +2,7 @@
 //  version.xcconfig
 //
 //  Created by Károly Lőrentey on 2016-03-08.
-//  Copyright © 2016 Károly Lőrentey.
+//  Copyright © 2015–2017 Károly Lőrentey.
 //
 
 // Increment the build number whenever you modify the version string.
