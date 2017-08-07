@@ -21,7 +21,7 @@ public typealias ArrayUpdateSource<Element> = AnySource<Update<ArrayChange<Eleme
 /// For a concrete observable array, see `ArrayVariable`.
 ///
 /// - SeeAlso: ObservableValueType, AnyObservableArray, UpdatableArrayType, ArrayVariable
-public protocol ObservableArrayType: ObservableType, CustomReflectable {
+public protocol ObservableArrayType: ObservableType, CustomReflectable where Change == ArrayChange<Element> {
     associatedtype Element
 
     // Required methods
@@ -52,7 +52,7 @@ extension ObservableArrayType {
     }
 }
 
-extension ObservableArrayType where Change == ArrayChange<Element> {
+extension ObservableArrayType {
     internal var valueUpdates: AnySource<ValueUpdate<[Element]>> {
         var value = self.value
         return self.updates.map { event in
@@ -212,7 +212,7 @@ open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, Sig
     }
 }
 
-internal final class ObservableArrayBox<Contents: ObservableArrayType>: _AbstractObservableArray<Contents.Element> where Contents.Change == ArrayChange<Contents.Element> {
+internal final class ObservableArrayBox<Contents: ObservableArrayType>: _AbstractObservableArray<Contents.Element> {
     typealias Element = Contents.Element
 
     let contents: Contents

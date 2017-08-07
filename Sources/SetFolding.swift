@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     /// Returns an observable whose value is always equal to `self.value.reduce(initial, add)`.
     ///
     /// - Parameter initial: The accumulation starts with this initial value.
@@ -23,15 +23,14 @@ extension ObservableSetType where Change == SetChange<Element> {
     }
 }
 
-extension ObservableSetType where Element: BinaryInteger, Change == SetChange<Element> {
+extension ObservableSetType where Element: BinaryInteger {
     /// Return the (observable) sum of the elements contained in this set.
     public func sum() -> AnyObservableValue<Element> {
         return reduce(0, add: +, remove: -)
     }
 }
 
-private struct FoldingSink<Parent: ObservableSetType, Value>: UniqueOwnedSink
-where Parent.Change == SetChange<Parent.Element> {
+private struct FoldingSink<Parent: ObservableSetType, Value>: UniqueOwnedSink {
     typealias Owner = SetFoldingByTwoWayFunction<Parent, Value>
 
     unowned(unsafe) let owner: Owner
@@ -41,8 +40,7 @@ where Parent.Change == SetChange<Parent.Element> {
     }
 }
 
-private class SetFoldingByTwoWayFunction<Parent: ObservableSetType, Value>: _BaseObservableValue<Value>
-where Parent.Change == SetChange<Parent.Element> {
+private class SetFoldingByTwoWayFunction<Parent: ObservableSetType, Value>: _BaseObservableValue<Value> {
     let parent: Parent
     let add: (Value, Parent.Element) -> Value
     let remove: (Value, Parent.Element) -> Value

@@ -23,7 +23,7 @@ public protocol UpdatableSetType: ObservableSetType, UpdatableType {
     var anyUpdatableSet: AnyUpdatableSet<Element> { get }
 }
 
-extension UpdatableSetType where Change == SetChange<Element> {
+extension UpdatableSetType {
     public func remove(_ member: Element) {
         // Note: This should be kept in sync with the same member in _AbstractUpdatableSet.
         if contains(member) {
@@ -253,7 +253,7 @@ public class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element
     }
 }
 
-final class UpdatableSetBox<Contents: UpdatableSetType>: _AbstractUpdatableSet<Contents.Element> where Contents.Change == SetChange<Contents.Element> {
+final class UpdatableSetBox<Contents: UpdatableSetType>: _AbstractUpdatableSet<Contents.Element> {
     typealias Element = Contents.Element
     typealias Change = SetChange<Element>
 

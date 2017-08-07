@@ -6,14 +6,14 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableValueType where Value: ObservableSetType, Change == ValueChange<Value>, Value.Change == SetChange<Value.Element> {
+extension ObservableValueType where Value: ObservableSetType {
     public func unpacked() -> AnyObservableSet<Value.Element> {
         return UnpackedObservableSetReference(self).anyObservableSet
     }
 }
 
 private struct ReferenceSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableSetType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == SetChange<Reference.Value.Element> {
+where Reference.Value: ObservableSetType {
     typealias Owner = UnpackedObservableSetReference<Reference>
 
     unowned(unsafe) let owner: Owner
@@ -24,7 +24,7 @@ where Reference.Value: ObservableSetType, Reference.Change == ValueChange<Refere
 }
 
 private struct TargetSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableSetType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == SetChange<Reference.Value.Element> {
+where Reference.Value: ObservableSetType {
     typealias Owner = UnpackedObservableSetReference<Reference>
 
     unowned(unsafe) let owner: Owner
@@ -38,7 +38,7 @@ where Reference.Value: ObservableSetType, Reference.Change == ValueChange<Refere
 /// A mutable reference to an `AnyObservableSet` that's also an observable set.
 /// You can switch to another target set without having to re-register subscribers.
 private final class UnpackedObservableSetReference<Reference: ObservableValueType>: _BaseObservableSet<Reference.Value.Element>
-where Reference.Value: ObservableSetType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == SetChange<Reference.Value.Element> {
+where Reference.Value: ObservableSetType {
     typealias Target = Reference.Value
     typealias Element = Target.Element
     typealias Change = SetChange<Element>

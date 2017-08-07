@@ -6,14 +6,14 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType where Change == SetChange<Element> {
-    public func flatMap<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> AnyObservableSet<Field.Element> where Field.Element: Hashable, Field.Change == ArrayChange<Field.Element> {
+extension ObservableSetType {
+    public func flatMap<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> AnyObservableSet<Field.Element> where Field.Element: Hashable {
         return SetMappingForArrayField<Self, Field>(parent: self, key: key).anyObservableSet
     }
 }
 
 private struct ParentSink<Parent: ObservableSetType, Field: ObservableArrayType>: UniqueOwnedSink
-where Field.Element: Hashable, Parent.Change == SetChange<Parent.Element>, Field.Change == ArrayChange<Field.Element> {
+where Field.Element: Hashable {
     typealias Owner = SetMappingForArrayField<Parent, Field>
 
     unowned(unsafe) let owner: Owner
@@ -24,7 +24,7 @@ where Field.Element: Hashable, Parent.Change == SetChange<Parent.Element>, Field
 }
 
 private struct FieldSink<Parent: ObservableSetType, Field: ObservableArrayType>: UniqueOwnedSink
-where Field.Element: Hashable, Parent.Change == SetChange<Parent.Element>, Field.Change == ArrayChange<Field.Element> {
+where Field.Element: Hashable {
     typealias Owner = SetMappingForArrayField<Parent, Field>
 
     unowned(unsafe) let owner: Owner
@@ -35,7 +35,7 @@ where Field.Element: Hashable, Parent.Change == SetChange<Parent.Element>, Field
 }
 
 class SetMappingForArrayField<Parent: ObservableSetType, Field: ObservableArrayType>: SetMappingBase<Field.Element>
-where Field.Element: Hashable, Parent.Change == SetChange<Parent.Element>, Field.Change == ArrayChange<Field.Element> {
+where Field.Element: Hashable {
     let parent: Parent
     let key: (Parent.Element) -> Field
 

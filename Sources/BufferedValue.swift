@@ -6,13 +6,13 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableValueType where Change == ValueChange<Value> {
+extension ObservableValueType {
     public func buffered() -> AnyObservableValue<Value> {
         return BufferedObservableValue(self).anyObservableValue
     }
 }
 
-private struct BufferedObservableSink<Base: ObservableValueType>: UniqueOwnedSink where Base.Change == ValueChange<Base.Value> {
+private struct BufferedObservableSink<Base: ObservableValueType>: UniqueOwnedSink {
     typealias Owner = BufferedObservableValue<Base>
 
     unowned(unsafe) let owner: Owner
@@ -22,8 +22,7 @@ private struct BufferedObservableSink<Base: ObservableValueType>: UniqueOwnedSin
     }
 }
 
-private class BufferedObservableValue<Base: ObservableValueType>: _BaseObservableValue<Base.Value>
-where Base.Change == ValueChange<Base.Value> {
+private class BufferedObservableValue<Base: ObservableValueType>: _BaseObservableValue<Base.Value> {
     typealias Value = Base.Value
 
     private var _base: Base

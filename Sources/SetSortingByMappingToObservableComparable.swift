@@ -9,16 +9,16 @@
 import SipHash
 import BTree
 
-extension ObservableSetType where Element: AnyObject, Change == SetChange<Element> {
+extension ObservableSetType where Element: AnyObject {
     /// Given a transformation into an observable of a comparable type, return an observable array
     /// containing transformed versions of elements in this set, in increasing order.
-    public func sortedMap<Field: ObservableValueType>(by transform: @escaping (Element) -> Field) -> AnyObservableArray<Field.Value> where Field.Value: Comparable, Field.Change == ValueChange<Field.Value> {
+    public func sortedMap<Field: ObservableValueType>(by transform: @escaping (Element) -> Field) -> AnyObservableArray<Field.Value> where Field.Value: Comparable {
         return SetSortingByMappingToObservableComparable(parent: self, transform: transform).anyObservableArray
     }
 }
 
 private class SetSortingByMappingToObservableComparable<Parent: ObservableSetType, Field: ObservableValueType>: _BaseObservableArray<Field.Value>
-where Parent.Element: AnyObject, Field.Value: Comparable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+where Parent.Element: AnyObject, Field.Value: Comparable {
     typealias Element = Field.Value
     typealias Change = ArrayChange<Element>
 

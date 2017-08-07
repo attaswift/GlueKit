@@ -12,7 +12,7 @@ public protocol UpdatableValueType: ObservableValueType, UpdatableType {
     var anyUpdatableValue: AnyUpdatableValue<Value> { get }
 }
 
-extension UpdatableValueType where Change == ValueChange<Value> {
+extension UpdatableValueType {
     /// Returns the type-erased version of this UpdatableValueType.
     public var anyUpdatableValue: AnyUpdatableValue<Value> {
         return AnyUpdatableValue(self)
@@ -38,8 +38,7 @@ public struct AnyUpdatableValue<Value>: UpdatableValueType {
                                        updates: updates)
     }
 
-    public init<Base: UpdatableValueType>(_ base: Base)
-    where Base.Value == Value, Base.Change == ValueChange<Value> {
+    public init<Base: UpdatableValueType>(_ base: Base) where Base.Value == Value {
         self.box = UpdatableBox(base)
     }
 
@@ -147,7 +146,7 @@ public class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, SignalD
     }
 }
 
-internal final class UpdatableBox<Base: UpdatableValueType>: _AbstractUpdatableValue<Base.Value> where Base.Change == ValueChange<Base.Value> {
+internal final class UpdatableBox<Base: UpdatableValueType>: _AbstractUpdatableValue<Base.Value> {
     typealias Value = Base.Value
     private let base: Base
 

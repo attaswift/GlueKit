@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType where Change == ArrayChange<Element> {
+extension ObservableArrayType {
     /// Returns an observable whose value is always equal to `self.value.reduce(initial, add)`.
     ///
     /// - Parameter initial: The accumulation starts with this initial value.
@@ -23,15 +23,14 @@ extension ObservableArrayType where Change == ArrayChange<Element> {
     }
 }
 
-extension ObservableArrayType where Element: BinaryInteger, Change == ArrayChange<Element> {
+extension ObservableArrayType where Element: BinaryInteger {
     /// Return the (observable) sum of the elements contained in this array.
     public func sum() -> AnyObservableValue<Element> {
         return reduce(0, add: +, remove: -)
     }
 }
 
-private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: _BaseObservableValue<Value>
-where Base.Change == ArrayChange<Base.Element> {
+private class ArrayFoldingByTwoWayFunction<Base: ObservableArrayType, Value>: _BaseObservableValue<Value> {
     private var _value: Value
 
     let add: (Value, Base.Element) -> Value

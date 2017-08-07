@@ -6,14 +6,13 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType where Change == SetChange<Element> {
-    public func flatMap<Field: ObservableSetType>(_ key: @escaping (Element) -> Field) -> AnyObservableSet<Field.Element> where Field.Change == SetChange<Field.Element> {
+extension ObservableSetType {
+    public func flatMap<Field: ObservableSetType>(_ key: @escaping (Element) -> Field) -> AnyObservableSet<Field.Element> {
         return SetMappingForSetField<Self, Field>(parent: self, key: key).anyObservableSet
     }
 }
 
-private struct ParentSink<Parent: ObservableSetType, Field: ObservableSetType>: UniqueOwnedSink
-where Parent.Change == SetChange<Parent.Element>, Field.Change == SetChange<Field.Element> {
+private struct ParentSink<Parent: ObservableSetType, Field: ObservableSetType>: UniqueOwnedSink {
     typealias Owner = SetMappingForSetField<Parent, Field>
 
     unowned(unsafe) let owner: Owner
@@ -23,8 +22,7 @@ where Parent.Change == SetChange<Parent.Element>, Field.Change == SetChange<Fiel
     }
 }
 
-private struct FieldSink<Parent: ObservableSetType, Field: ObservableSetType>: UniqueOwnedSink
-where Parent.Change == SetChange<Parent.Element>, Field.Change == SetChange<Field.Element> {
+private struct FieldSink<Parent: ObservableSetType, Field: ObservableSetType>: UniqueOwnedSink {
     typealias Owner = SetMappingForSetField<Parent, Field>
 
     unowned(unsafe) let owner: Owner
@@ -34,8 +32,7 @@ where Parent.Change == SetChange<Parent.Element>, Field.Change == SetChange<Fiel
     }
 }
 
-class SetMappingForSetField<Parent: ObservableSetType, Field: ObservableSetType>: SetMappingBase<Field.Element>
-where Parent.Change == SetChange<Parent.Element>, Field.Change == SetChange<Field.Element> {
+class SetMappingForSetField<Parent: ObservableSetType, Field: ObservableSetType>: SetMappingBase<Field.Element> {
     let parent: Parent
     let key: (Parent.Element) -> Field
 

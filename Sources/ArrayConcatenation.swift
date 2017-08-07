@@ -6,20 +6,20 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType where Change == ArrayChange<Element> {
+extension ObservableArrayType {
     public func concatenate<A: ObservableArrayType>(with other: A) -> AnyObservableArray<Element>
-    where A.Element == Element, A.Change == ArrayChange<A.Element> {
+    where A.Element == Element {
         return ArrayConcatenation(first: self, second: other).anyObservableArray
     }
 }
 
 public func +<A: ObservableArrayType, B: ObservableArrayType>(a: A, b: B) -> AnyObservableArray<A.Element>
-where A.Element == B.Element, A.Change == ArrayChange<A.Element>, B.Change == ArrayChange<B.Element> {
+where A.Element == B.Element {
     return a.concatenate(with: b)
 }
 
 private struct FirstSink<First: ObservableArrayType, Second: ObservableArrayType>: UniqueOwnedSink
-where First.Element == Second.Element, First.Change == ArrayChange<First.Element>, Second.Change == ArrayChange<Second.Element> {
+where First.Element == Second.Element {
     typealias Owner = ArrayConcatenation<First, Second>
 
     unowned(unsafe) let owner: Owner
@@ -30,7 +30,7 @@ where First.Element == Second.Element, First.Change == ArrayChange<First.Element
 }
 
 private struct SecondSink<First: ObservableArrayType, Second: ObservableArrayType>: UniqueOwnedSink
-where First.Element == Second.Element, First.Change == ArrayChange<First.Element>, Second.Change == ArrayChange<Second.Element> {
+where First.Element == Second.Element {
     typealias Owner = ArrayConcatenation<First, Second>
 
     unowned(unsafe) let owner: Owner
@@ -41,7 +41,7 @@ where First.Element == Second.Element, First.Change == ArrayChange<First.Element
 }
 
 final class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArrayType>: _BaseObservableArray<First.Element>
-where First.Element == Second.Element, First.Change == ArrayChange<First.Element>, Second.Change == ArrayChange<Second.Element> {
+where First.Element == Second.Element {
     typealias Element = First.Element
     typealias Change = ArrayChange<Element>
 

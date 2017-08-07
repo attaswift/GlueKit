@@ -6,14 +6,14 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableValueType where Value: ObservableValueType, Change == ValueChange<Value>, Value.Change == ValueChange<Value.Value> {
+extension ObservableValueType where Value: ObservableValueType {
     public func unpacked() -> AnyObservableValue<Value.Value> {
         return UnpackedObservableValueReference(self).anyObservableValue
     }
 }
 
 private struct ReferenceSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableValueType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == ValueChange<Reference.Value.Value> {
+where Reference.Value: ObservableValueType {
     typealias Owner = UnpackedObservableValueReference<Reference>
 
     unowned(unsafe) let owner: Owner
@@ -24,7 +24,7 @@ where Reference.Value: ObservableValueType, Reference.Change == ValueChange<Refe
 }
 
 private struct TargetSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableValueType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == ValueChange<Reference.Value.Value> {
+where Reference.Value: ObservableValueType {
     typealias Owner = UnpackedObservableValueReference<Reference>
 
     unowned(unsafe) let owner: Owner
@@ -35,7 +35,7 @@ where Reference.Value: ObservableValueType, Reference.Change == ValueChange<Refe
 }
 
 private final class UnpackedObservableValueReference<Reference: ObservableValueType>: _BaseObservableValue<Reference.Value.Value>
-where Reference.Value: ObservableValueType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == ValueChange<Reference.Value.Value> {
+where Reference.Value: ObservableValueType {
     typealias Target = Reference.Value
     typealias Value = Target.Value
     typealias Change = ValueChange<Value>

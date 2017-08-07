@@ -6,14 +6,14 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableValueType where Value: ObservableArrayType, Change == ValueChange<Value>, Value.Change == ArrayChange<Value.Element> {
+extension ObservableValueType where Value: ObservableArrayType{
     public func unpacked() -> AnyObservableArray<Value.Element> {
         return UnpackedObservableArrayReference(self).anyObservableArray
     }
 }
 
 private struct ReferenceSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableArrayType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == ArrayChange<Reference.Value.Element> {
+where Reference.Value: ObservableArrayType {
     typealias Owner = UnpackedObservableArrayReference<Reference>
 
     unowned(unsafe) let owner: Owner
@@ -24,7 +24,7 @@ where Reference.Value: ObservableArrayType, Reference.Change == ValueChange<Refe
 }
 
 private struct TargetSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableArrayType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == ArrayChange<Reference.Value.Element> {
+where Reference.Value: ObservableArrayType {
     typealias Owner = UnpackedObservableArrayReference<Reference>
 
     unowned(unsafe) let owner: Owner
@@ -37,7 +37,7 @@ where Reference.Value: ObservableArrayType, Reference.Change == ValueChange<Refe
 /// A mutable reference to an `AnyObservableArray` that's also an observable array.
 /// You can switch to another target array without having to re-register subscribers.
 private final class UnpackedObservableArrayReference<Reference: ObservableValueType>: _BaseObservableArray<Reference.Value.Element>
-where Reference.Value: ObservableArrayType, Reference.Change == ValueChange<Reference.Value>, Reference.Value.Change == ArrayChange<Reference.Value.Element> {
+where Reference.Value: ObservableArrayType {
     typealias Target = Reference.Value
     typealias Element = Target.Element
     typealias Change = ArrayChange<Element>

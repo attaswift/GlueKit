@@ -8,7 +8,7 @@
 
 import BTree
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     /// Given a transformation into a comparable type, return an observable array containing transformed
     /// versions of elements in this set, in increasing order.
     public func sortedMap<Result: Comparable>(by transform: @escaping (Element) -> Result) -> AnyObservableArray<Result> {
@@ -16,15 +16,14 @@ extension ObservableSetType where Change == SetChange<Element> {
     }
 }
 
-extension ObservableSetType where Element: Comparable, Change == SetChange<Element> {
+extension ObservableSetType where Element: Comparable {
     /// Return an observable array containing the members of this set, in increasing order.
     public func sorted() -> AnyObservableArray<Element> {
         return self.sortedMap { $0 }
     }
 }
 
-private struct SortingSink<Parent: ObservableSetType, Element: Comparable>: UniqueOwnedSink
-where Parent.Change == SetChange<Parent.Element> {
+private struct SortingSink<Parent: ObservableSetType, Element: Comparable>: UniqueOwnedSink {
     typealias Owner = SetSortingByMappingToComparable<Parent, Element>
 
     unowned(unsafe) let owner: Owner
@@ -34,8 +33,7 @@ where Parent.Change == SetChange<Parent.Element> {
     }
 }
 
-private final class SetSortingByMappingToComparable<Parent: ObservableSetType, Element: Comparable>: _BaseObservableArray<Element>
-where Parent.Change == SetChange<Parent.Element> {
+private final class SetSortingByMappingToComparable<Parent: ObservableSetType, Element: Comparable>: _BaseObservableArray<Element> {
     typealias Change = ArrayChange<Element>
 
     private let parent: Parent

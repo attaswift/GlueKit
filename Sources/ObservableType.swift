@@ -7,10 +7,11 @@
 //
 
 public protocol ObservableType {
-    associatedtype Change: ChangeType
+    associatedtype Value
+    associatedtype Change: ChangeType where Change.Value == Value
 
     /// The current value of this observable.
-    var value: Change.Value { get }
+    var value: Value { get }
 
     func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change>
 
@@ -49,7 +50,7 @@ public protocol UpdatableType: ObservableType {
     /// The current value of this observable.
     ///
     /// The setter is nonmutating because the value ultimately needs to be stored in a reference type anyway.
-    var value: Change.Value { get nonmutating set }
+    var value: Value { get nonmutating set }
 
     func apply(_ update: Update<Change>)
 }

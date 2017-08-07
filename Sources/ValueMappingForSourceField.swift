@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableValueType where Change == ValueChange<Value> {
+extension ObservableValueType {
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects a child component (a.k.a "field") of its value that is a source,
     /// `map` returns a new source that can be used subscribe to the field indirectly through the parent.
@@ -19,7 +19,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
     }
 }
 
-private struct SourceFieldSink<Parent: ObservableValueType, Field: SourceType>: UniqueOwnedSink where Parent.Change == ValueChange<Parent.Value> {
+private struct SourceFieldSink<Parent: ObservableValueType, Field: SourceType>: UniqueOwnedSink {
     typealias Owner = ValueMappingForSourceField<Parent, Field>
 
     unowned let owner: Owner
@@ -30,8 +30,7 @@ private struct SourceFieldSink<Parent: ObservableValueType, Field: SourceType>: 
 }
 
 /// A source of values for a Source field.
-private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: SignalerSource<Field.Value>
-where Parent.Change == ValueChange<Parent.Value> {
+private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: SignalerSource<Field.Value> {
 
     typealias Value = Field.Value
 

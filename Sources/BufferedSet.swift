@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     public func buffered() -> AnyObservableSet<Element> {
         if isBuffered {
             return anyObservableSet
@@ -15,8 +15,7 @@ extension ObservableSetType where Change == SetChange<Element> {
     }
 }
 
-private struct BufferedSink<Content: ObservableSetType>: UniqueOwnedSink
-where Content.Change == SetChange<Content.Element> {
+private struct BufferedSink<Content: ObservableSetType>: UniqueOwnedSink {
     typealias Owner = BufferedObservableSet<Content>
 
     unowned(unsafe) let owner: Owner
@@ -26,8 +25,7 @@ where Content.Change == SetChange<Content.Element> {
     }
 }
 
-internal class BufferedObservableSet<Content: ObservableSetType>: _BaseObservableSet<Content.Element>
-where Content.Change == SetChange<Content.Element>  {
+internal class BufferedObservableSet<Content: ObservableSetType>: _BaseObservableSet<Content.Element> {
     typealias Element = Content.Element
     typealias Change = SetChange<Element>
 

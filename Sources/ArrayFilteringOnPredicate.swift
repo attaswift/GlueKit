@@ -6,13 +6,13 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType where Change == ArrayChange<Element> {
+extension ObservableArrayType {
     public func filter(_ isIncluded: @escaping (Element) -> Bool) -> AnyObservableArray<Element> {
         return ArrayFilteringOnPredicate<Self>(parent: self, isIncluded: isIncluded).anyObservableArray
     }
 }
 
-private struct ParentSink<Parent: ObservableArrayType>: UniqueOwnedSink where Parent.Change == ArrayChange<Parent.Element> {
+private struct ParentSink<Parent: ObservableArrayType>: UniqueOwnedSink {
     typealias Owner = ArrayFilteringOnPredicate<Parent>
 
     unowned(unsafe) let owner: Owner
@@ -22,8 +22,7 @@ private struct ParentSink<Parent: ObservableArrayType>: UniqueOwnedSink where Pa
     }
 }
 
-private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _BaseObservableArray<Parent.Element>
-where Parent.Change == ArrayChange<Parent.Element> {
+private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _BaseObservableArray<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = ArrayChange<Element>
 

@@ -6,7 +6,7 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableValueType where Change == ValueChange<Value> {
+extension ObservableValueType {
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
     /// `map` returns a new observable that can be used to look up and modify the field and observe its changes
@@ -41,14 +41,14 @@ extension ObservableValueType where Change == ValueChange<Value> {
     /// message is posted in the current room. The observable can also be used to simply retrieve the latest
     /// message at any time.
     ///
-    public func map<O: ObservableValueType>(_ key: @escaping (Value) -> O) -> AnyObservableValue<O.Value> where O.Change == ValueChange<O.Value> {
+    public func map<O: ObservableValueType>(_ key: @escaping (Value) -> O) -> AnyObservableValue<O.Value> {
         return ValueMappingForValueField(parent: self, key: key).anyObservableValue
     }
 }
 
 
 /// A source of changes for an Observable field.
-private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: _BaseObservableValue<Field.Value> where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
+private final class ValueMappingForValueField<Parent: ObservableValueType, Field: ObservableValueType>: _BaseObservableValue<Field.Value> {
     typealias Value = Field.Value
     typealias Change = ValueChange<Value>
 
@@ -142,14 +142,13 @@ private final class ValueMappingForValueField<Parent: ObservableValueType, Field
     }
 }
 
-extension ObservableValueType where Change == ValueChange<Value> {
-    public func flatMap<O: ObservableValueType>(_ key: @escaping (Value) -> O?) -> AnyObservableValue<O.Value?> where O.Change == ValueChange<O.Value> {
+extension ObservableValueType {
+    public func flatMap<O: ObservableValueType>(_ key: @escaping (Value) -> O?) -> AnyObservableValue<O.Value?> {
         return ValueMappingForOptionalValueField(parent: self, key: key).anyObservableValue
     }
 }
 
-private final class ValueMappingForOptionalValueField<Parent: ObservableValueType, Field: ObservableValueType>: _BaseObservableValue<Field.Value?>
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
+private final class ValueMappingForOptionalValueField<Parent: ObservableValueType, Field: ObservableValueType>: _BaseObservableValue<Field.Value?> {
     typealias Value = Field.Value?
     typealias Change = ValueChange<Value>
 
@@ -252,7 +251,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Fi
     }
 }
 
-extension ObservableValueType where Change == ValueChange<Value> {
+extension ObservableValueType {
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
     /// `map` returns a new observable that can be used to look up and modify the field and observe its changes
@@ -288,12 +287,12 @@ extension ObservableValueType where Change == ValueChange<Value> {
     /// author changes their avatar. The updatable can also be used to simply retrieve the avatar at any time,
     /// or to update it.
     ///
-    public func map<U: UpdatableValueType>(_ key: @escaping (Value) -> U) -> AnyUpdatableValue<U.Value> where U.Change == ValueChange<U.Value> {
+    public func map<U: UpdatableValueType>(_ key: @escaping (Value) -> U) -> AnyUpdatableValue<U.Value> {
         return ValueMappingForUpdatableField<Self, U>(parent: self, key: key).anyUpdatableValue
     }
 }
 
-private final class ValueMappingForUpdatableField<Parent: ObservableValueType, Field: UpdatableValueType>: _AbstractUpdatableValue<Field.Value> where Parent.Change == ValueChange<Parent.Value>, Field.Change == ValueChange<Field.Value> {
+private final class ValueMappingForUpdatableField<Parent: ObservableValueType, Field: UpdatableValueType>: _AbstractUpdatableValue<Field.Value> {
     typealias Value = Field.Value
 
     private let _observable: ValueMappingForValueField<Parent, Field>

@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     /// Return an observable set that contains the results of injectively mapping the given closure over the elements of this set.
     ///
     /// - Parameter transform: A mapping closure. `transform` must be an injection; if it maps two nonequal elements into
@@ -18,7 +18,7 @@ extension ObservableSetType where Change == SetChange<Element> {
     }
 }
 
-private struct InjectiveSink<Parent: ObservableSetType, Element: Hashable>: UniqueOwnedSink where Parent.Change == SetChange<Parent.Element> {
+private struct InjectiveSink<Parent: ObservableSetType, Element: Hashable>: UniqueOwnedSink {
     typealias Owner = InjectiveSetMappingForValue<Parent, Element>
 
     unowned(unsafe) let owner: Owner
@@ -28,7 +28,7 @@ private struct InjectiveSink<Parent: ObservableSetType, Element: Hashable>: Uniq
     }
 }
 
-private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Element: Hashable>: _BaseObservableSet<Element>where Parent.Change == SetChange<Parent.Element> {
+private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Element: Hashable>: _BaseObservableSet<Element> {
     typealias Change = SetChange<Element>
 
     let parent: Parent
@@ -75,7 +75,7 @@ private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Eleme
     override func isSuperset(of other: Set<Element>) -> Bool { return _value.isSuperset(of: other) }
 }
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     /// Return an observable set that contains the results of mapping the given closure over the elements of this set.
     ///
     /// - Parameter transform: A mapping closure. `transform` does not need to be an injection; elements where
@@ -87,7 +87,7 @@ extension ObservableSetType where Change == SetChange<Element> {
     }
 }
 
-private struct MapSink<Parent: ObservableSetType, Element: Hashable>: UniqueOwnedSink where Parent.Change == SetChange<Parent.Element> {
+private struct MapSink<Parent: ObservableSetType, Element: Hashable>: UniqueOwnedSink {
     typealias Owner = SetMappingForValue<Parent, Element>
 
     unowned(unsafe) let owner: Owner
@@ -97,7 +97,7 @@ private struct MapSink<Parent: ObservableSetType, Element: Hashable>: UniqueOwne
     }
 }
 
-private final class SetMappingForValue<Parent: ObservableSetType, Element: Hashable>: SetMappingBase<Element> where Parent.Change == SetChange<Parent.Element> {
+private final class SetMappingForValue<Parent: ObservableSetType, Element: Hashable>: SetMappingBase<Element> {
     typealias Change = SetChange<Element>
 
     let parent: Parent

@@ -6,14 +6,14 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-public extension ObservableValueType where Change == ValueChange<Value> {
+public extension ObservableValueType {
     /// Returns an observable that calculates `transform` on all current and future values of this observable.
     public func map<Output>(_ transform: @escaping (Value) -> Output) -> AnyObservableValue<Output> {
         return ValueMappingForValue<Self, Output>(parent: self, transform: transform).anyObservableValue
     }
 }
 
-private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _AbstractObservableValue<Value> where Parent.Change == ValueChange<Parent.Value> {
+private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _AbstractObservableValue<Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
     let sinkTransform: SinkTransformFromMapping<ValueUpdate<Parent.Value>, ValueUpdate<Value>>
@@ -38,13 +38,13 @@ private final class ValueMappingForValue<Parent: ObservableValueType, Value>: _A
     }
 }
 
-extension UpdatableValueType where Change == ValueChange<Value> {
+extension UpdatableValueType {
     public func map<Output>(_ transform: @escaping (Value) -> Output, inverse: @escaping (Output) -> Value) -> AnyUpdatableValue<Output> {
         return ValueMappingForUpdatableValue<Self, Output>(parent: self, transform: transform, inverse: inverse).anyUpdatableValue
     }
 }
 
-private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: _AbstractUpdatableValue<Value> where Parent.Change == ValueChange<Parent.Value> {
+private final class ValueMappingForUpdatableValue<Parent: UpdatableValueType, Value>: _AbstractUpdatableValue<Value> {
     let parent: Parent
     let transform: (Parent.Value) -> Value
     let inverse: (Value) -> Parent.Value

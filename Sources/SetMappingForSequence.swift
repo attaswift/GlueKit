@@ -6,14 +6,14 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     public func flatMap<Result: Sequence>(_ key: @escaping (Element) -> Result) -> AnyObservableSet<Result.Iterator.Element> where Result.Iterator.Element: Hashable {
         return SetMappingForSequence<Self, Result>(parent: self, key: key).anyObservableSet
     }
 }
 
 private struct ParentSink<Parent: ObservableSetType, Result: Sequence>: UniqueOwnedSink
-where Result.Iterator.Element: Hashable, Parent.Change == SetChange<Parent.Element> {
+where Result.Iterator.Element: Hashable {
     typealias Owner = SetMappingForSequence<Parent, Result>
 
     unowned(unsafe) let owner: Owner
@@ -24,7 +24,7 @@ where Result.Iterator.Element: Hashable, Parent.Change == SetChange<Parent.Eleme
 }
 
 class SetMappingForSequence<Parent: ObservableSetType, Result: Sequence>: SetMappingBase<Result.Iterator.Element>
-where Result.Iterator.Element: Hashable, Parent.Change == SetChange<Parent.Element> {
+where Result.Iterator.Element: Hashable {
     typealias Element = Result.Iterator.Element
     let parent: Parent
     let key: (Parent.Element) -> Result

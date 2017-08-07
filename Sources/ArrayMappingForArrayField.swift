@@ -8,8 +8,8 @@
 
 import BTree
 
-extension ObservableArrayType where Change == ArrayChange<Element> {
-    public func flatMap<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> AnyObservableArray<Field.Element> where Field.Change == ArrayChange<Field.Element> {
+extension ObservableArrayType {
+    public func flatMap<Field: ObservableArrayType>(_ key: @escaping (Element) -> Field) -> AnyObservableArray<Field.Element> {
         return ArrayMappingForArrayField<Self, Field>(parent: self, key: key).anyObservableArray
     }
 }
@@ -68,8 +68,7 @@ private struct Indexmap {
     }
 }
 
-private final class FieldSink<Parent: ObservableArrayType, Field: ObservableArrayType>: SinkType, RefListElement
-where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ArrayChange<Field.Element> {
+private final class FieldSink<Parent: ObservableArrayType, Field: ObservableArrayType>: SinkType, RefListElement {
     typealias Owner = ArrayMappingForArrayField<Parent, Field>
 
     unowned let owner: Owner
@@ -91,8 +90,7 @@ where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ArrayChange<
     }
 }
 
-private struct ParentSink<Parent: ObservableArrayType, Field: ObservableArrayType>: UniqueOwnedSink
-where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ArrayChange<Field.Element> {
+private struct ParentSink<Parent: ObservableArrayType, Field: ObservableArrayType>: UniqueOwnedSink {
     typealias Owner = ArrayMappingForArrayField<Parent, Field>
 
     unowned(unsafe) let owner: Owner
@@ -102,8 +100,7 @@ where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ArrayChange<
     }
 }
 
-private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: _BaseObservableArray<Field.Element>
-where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ArrayChange<Field.Element> {
+private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: _BaseObservableArray<Field.Element> {
     typealias Element = Field.Element
 
     private let parent: Parent

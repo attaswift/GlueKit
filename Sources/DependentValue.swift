@@ -42,7 +42,7 @@ public class DependentValue<Value> {
         self.origin = nil
     }
 
-    public init<Origin: ObservableValueType>(origin: Origin, setter: @escaping (Value) -> ()) where Origin.Value == Value, Origin.Change == ValueChange<Value> {
+    public init<Origin: ObservableValueType>(origin: Origin, setter: @escaping (Value) -> ()) where Origin.Value == Value {
         self.setter = setter
         self.origin = origin.anyObservableValue
         origin.add(Sink<Value>(owner: self))

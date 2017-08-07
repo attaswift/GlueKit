@@ -94,7 +94,7 @@ private class TestUpdatableArray<Element>: TestObservableArray<Element>, Updatab
 
 class ObservableArrayTests: XCTestCase {
     func testDefaultImplementations() {
-        func check<T, A: ObservableArrayType>(isBuffered: Bool = false, make: ([Int]) -> T, convert: (T) -> A, apply: @escaping (T, ArrayChange<Int>) -> Void) where A.Element == Int, A.Change == ArrayChange<Int> {
+        func check<T, A: ObservableArrayType>(isBuffered: Bool = false, make: ([Int]) -> T, convert: (T) -> A, apply: @escaping (T, ArrayChange<Int>) -> Void) where A.Element == Int {
             let t = make([1, 2, 3])
             let test = convert(t)
 
@@ -182,7 +182,7 @@ class ObservableArrayTests: XCTestCase {
     }
 
     func testUpdatable() {
-        func check<A: UpdatableArrayType>(make: ([Int]) -> A) where A.Element == Int, A.Change == ArrayChange<Int> {
+        func check<A: UpdatableArrayType>(make: ([Int]) -> A) where A.Element == Int {
             let test = make([1, 2, 3])
 
             let mock = MockArrayObserver(test)

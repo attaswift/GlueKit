@@ -6,18 +6,18 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     /// Given an observable set and a closure that extracts an observable value from each element,
     /// return an observable set that contains the extracted field values contained in this set.
     ///
     /// - Parameter key: A mapping closure, extracting an observable value from an element of this set.
-    public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> AnyObservableSet<Field.Value> where Field.Value: Hashable, Field.Change == ValueChange<Field.Value> {
+    public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> AnyObservableSet<Field.Value> where Field.Value: Hashable {
         return SetMappingForValueField<Self, Field>(parent: self, key: key).anyObservableSet
     }
 }
 
 private struct ParentSink<Parent: ObservableSetType, Field: ObservableValueType>: UniqueOwnedSink
-where Field.Value: Hashable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+where Field.Value: Hashable {
     typealias Owner = SetMappingForValueField<Parent, Field>
 
     unowned(unsafe) let owner: Owner
@@ -28,7 +28,7 @@ where Field.Value: Hashable, Parent.Change == SetChange<Parent.Element>, Field.C
 }
 
 private struct FieldSink<Parent: ObservableSetType, Field: ObservableValueType>: UniqueOwnedSink
-where Field.Value: Hashable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+where Field.Value: Hashable {
     typealias Owner = SetMappingForValueField<Parent, Field>
 
     unowned(unsafe) let owner: Owner
@@ -39,7 +39,7 @@ where Field.Value: Hashable, Parent.Change == SetChange<Parent.Element>, Field.C
 }
 
 class SetMappingForValueField<Parent: ObservableSetType, Field: ObservableValueType>: SetMappingBase<Field.Value>
-where Field.Value: Hashable, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+where Field.Value: Hashable {
     let parent: Parent
     let key: (Parent.Element) -> Field
 

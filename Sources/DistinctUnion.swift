@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType where Element: Hashable, Change == ArrayChange<Element> {
+extension ObservableArrayType where Element: Hashable {
     /// Returns an observable set that contains the same elements as this array.
     public func distinctUnion() -> AnyObservableSet<Element> {
         return DistinctUnion<Self>(self).anyObservableSet
@@ -14,7 +14,7 @@ extension ObservableArrayType where Element: Hashable, Change == ArrayChange<Ele
 }
 
 private struct DistinctSink<Input: ObservableArrayType>: UniqueOwnedSink
-where Input.Element: Hashable, Input.Change == ArrayChange<Input.Element> {
+where Input.Element: Hashable {
     typealias Owner = DistinctUnion<Input>
 
     unowned(unsafe) let owner: Owner
@@ -25,7 +25,7 @@ where Input.Element: Hashable, Input.Change == ArrayChange<Input.Element> {
 }
 
 private class DistinctUnion<Input: ObservableArrayType>: _BaseObservableSet<Input.Element>
-where Input.Element: Hashable, Input.Change == ArrayChange<Input.Element> {
+where Input.Element: Hashable {
     typealias Element = Input.Element
     typealias Change = SetChange<Element>
 

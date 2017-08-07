@@ -8,14 +8,14 @@
 
 import SipHash
 
-extension ObservableSetType where Change == SetChange<Element> {
-    public func filter<Field: ObservableValueType>(_ isIncluded: @escaping (Element) -> Field) -> AnyObservableSet<Element> where Field.Value == Bool, Field.Change == ValueChange<Field.Value> {
+extension ObservableSetType {
+    public func filter<Field: ObservableValueType>(_ isIncluded: @escaping (Element) -> Field) -> AnyObservableSet<Element> where Field.Value == Bool {
         return SetFilteringOnObservableBool<Self, Field>(parent: self, isIncluded: isIncluded).anyObservableSet
     }
 }
 
 private struct ParentSink<Parent: ObservableSetType, Field: ObservableValueType>: UniqueOwnedSink
-where Field.Value == Bool, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+where Field.Value == Bool {
     typealias Owner = SetFilteringOnObservableBool<Parent, Field>
 
     unowned(unsafe) let owner: Owner
@@ -26,7 +26,7 @@ where Field.Value == Bool, Parent.Change == SetChange<Parent.Element>, Field.Cha
 }
 
 private struct FieldSink<Parent: ObservableSetType, Field: ObservableValueType>: SinkType, SipHashable
-where Field.Value == Bool, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+where Field.Value == Bool {
     typealias Owner = SetFilteringOnObservableBool<Parent, Field>
 
     unowned(unsafe) let owner: Owner
@@ -47,7 +47,7 @@ where Field.Value == Bool, Parent.Change == SetChange<Parent.Element>, Field.Cha
 }
 
 private class SetFilteringOnObservableBool<Parent: ObservableSetType, Field: ObservableValueType>: _BaseObservableSet<Parent.Element>
-where Field.Value == Bool, Parent.Change == SetChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+where Field.Value == Bool {
     typealias Element = Parent.Element
     typealias Change = SetChange<Element>
 

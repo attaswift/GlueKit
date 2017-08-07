@@ -20,6 +20,8 @@
 ///
 /// Note that is perfectly legal for a transaction to include no actual changes.
 public enum Update<Change: ChangeType> {
+    public typealias Value = Change.Value
+
     /// Hang on, I feel a change coming up.
     case beginTransaction
     /// Here is one change, but I think there might be more coming.

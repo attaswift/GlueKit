@@ -176,7 +176,7 @@ private func describe(_ update: ValueUpdate<Set<Int>>) -> String {
     }
 }
 
-func checkObservableSet<T, S: ObservableSetType>(isBuffered: Bool = false, make: (Set<S.Element>) -> T, convert: (T) -> S, apply: @escaping (T, SetChange<S.Element>) -> Void) where S.Element == Int, S.Change == SetChange<Int> {
+func checkObservableSet<T, S: ObservableSetType>(isBuffered: Bool = false, make: (Set<S.Element>) -> T, convert: (T) -> S, apply: @escaping (T, SetChange<S.Element>) -> Void) where S.Element == Int {
     let t = make([1, 2, 3])
     let test = convert(t)
     XCTAssertEqual(test.value, [1, 2, 3])
@@ -220,7 +220,7 @@ func checkObservableSet<T, S: ObservableSetType>(isBuffered: Bool = false, make:
     XCTAssertEqual(test.value, [1, 2, 3, 4])
 }
 
-func checkUpdatableSet<U: UpdatableSetType>(_ make: (Set<Int>) -> U) where U.Element == Int, U.Change == SetChange<Int> {
+func checkUpdatableSet<U: UpdatableSetType>(_ make: (Set<Int>) -> U) where U.Element == Int {
     do {
         let test = make([1, 2, 3])
 

@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     public func sorted(by areInIncreasingOrder: @escaping (Element, Element) -> Bool) -> AnyObservableArray<Element> {
         let comparator = Comparator(areInIncreasingOrder)
         return self
@@ -19,7 +19,7 @@ extension ObservableSetType where Change == SetChange<Element> {
     }
 
     public func sorted<Comparator: ObservableValueType>(by comparator: Comparator) -> AnyObservableArray<Element>
-    where Comparator.Value == (Element, Element) -> Bool, Comparator.Change == ValueChange<Comparator.Value> {
+    where Comparator.Value == (Element, Element) -> Bool {
         let reference: AnyObservableValue<AnyObservableArray<Element>> = comparator.map { comparator in
             self.sorted(by: comparator).anyObservableArray
         }
@@ -27,7 +27,7 @@ extension ObservableSetType where Change == SetChange<Element> {
     }
 
     public func sorted<Key: Comparable, ObservableKey: ObservableValueType>(by key: ObservableKey) -> AnyObservableArray<Element>
-        where ObservableKey.Value == (Element) -> Key, ObservableKey.Change == ValueChange<ObservableKey.Value> {
+        where ObservableKey.Value == (Element) -> Key {
             let reference: AnyObservableValue<AnyObservableArray<Element>> = key.map { key in
                 self.sorted(by: key).anyObservableArray
             }

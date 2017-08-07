@@ -171,12 +171,11 @@ class VariableTests: XCTestCase {
 
     func testExerciseVariables() {
         func check<V: UpdatableValueType>(_ v: V, _ a: V.Value, _ b: V.Value, _ c: V.Value)
-        where V.Value: Equatable, V.Change == ValueChange<V.Value> {
+        where V.Value: Equatable {
             check(v, a, b, c, ==)
         }
 
-        func check<V: UpdatableValueType>(_ v: V, _ a: V.Value, _ b: V.Value, _ c: V.Value, _ eq: @escaping (V.Value, V.Value) -> Bool)
-        where V.Change == ValueChange<V.Value> {
+        func check<V: UpdatableValueType>(_ v: V, _ a: V.Value, _ b: V.Value, _ c: V.Value, _ eq: @escaping (V.Value, V.Value) -> Bool) {
 
             XCTAssert(eq(v.value, a))
             v.value = a

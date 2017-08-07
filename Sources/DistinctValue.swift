@@ -61,19 +61,19 @@ private struct DistinctSink<V, Sink: SinkType>: SinkType, SipHashable where Sink
     }
 }
 
-public extension ObservableValueType where Change == ValueChange<Value> {
+public extension ObservableValueType {
     public func distinct(_ areEquivalent: @escaping (Value, Value) -> Bool) -> AnyObservableValue<Value> {
         return DistinctObservableValue(self, by: areEquivalent).anyObservableValue
     }
 }
 
-public extension ObservableValueType where Change == ValueChange<Value>, Value: Equatable {
+public extension ObservableValueType where Value: Equatable {
     public func distinct() -> AnyObservableValue<Value> {
         return distinct(==)
     }
 }
 
-private class DistinctObservableValue<Input: ObservableValueType>: _AbstractObservableValue<Input.Value> where Input.Change == ValueChange<Input.Value> {
+private class DistinctObservableValue<Input: ObservableValueType>: _AbstractObservableValue<Input.Value> {
     typealias Value = Input.Value
 
     private let input: Input
@@ -99,19 +99,19 @@ private class DistinctObservableValue<Input: ObservableValueType>: _AbstractObse
     }
 }
 
-public extension UpdatableValueType where Change == ValueChange<Value> {
+public extension UpdatableValueType {
     public func distinct(_ areEquivalent: @escaping (Value, Value) -> Bool) -> AnyUpdatableValue<Value> {
         return DistinctUpdatableValue(self, by: areEquivalent).anyUpdatableValue
     }
 }
 
-public extension UpdatableValueType where Change == ValueChange<Value>, Value: Equatable {
+public extension UpdatableValueType where Value: Equatable {
     public func distinct() -> AnyUpdatableValue<Value> {
         return distinct(==)
     }
 }
 
-private class DistinctUpdatableValue<Input: UpdatableValueType>: _AbstractUpdatableValue<Input.Value> where Input.Change == ValueChange<Input.Value> {
+private class DistinctUpdatableValue<Input: UpdatableValueType>: _AbstractUpdatableValue<Input.Value> {
     typealias Value = Input.Value
 
     private let input: Input

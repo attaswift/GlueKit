@@ -6,7 +6,7 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableValueType where Change == ValueChange<Value> {
+extension ObservableValueType {
 
     /// Map is an operator that implements key path coding and observing.
     /// Given an observable parent and a key that selects an observable child component (a.k.a "field") of its value,
@@ -42,17 +42,16 @@ extension ObservableValueType where Change == ValueChange<Value> {
     /// messages is updated in the current room.  The observable can also be used to simply retrieve the list of messages
     /// at any time.
     ///
-    public func map<Field: ObservableArrayType>(_ key: @escaping (Value) -> Field) -> AnyObservableArray<Field.Element> where Field.Change == ArrayChange<Field.Element> {
+    public func map<Field: ObservableArrayType>(_ key: @escaping (Value) -> Field) -> AnyObservableArray<Field.Element> {
         return ValueMappingForArrayField(parent: self, key: key).anyObservableArray
     }
 
-    public func map<Field: UpdatableArrayType>(_ key: @escaping (Value) -> Field) -> AnyUpdatableArray<Field.Element> where Field.Change == ArrayChange<Field.Element> {
+    public func map<Field: UpdatableArrayType>(_ key: @escaping (Value) -> Field) -> AnyUpdatableArray<Field.Element> {
         return ValueMappingForUpdatableArrayField(parent: self, key: key).anyUpdatableArray
     }
 }
 
-private struct ParentSink<Parent: ObservableValueType, Field: ObservableArrayType>: OwnedSink
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Field.Element> {
+private struct ParentSink<Parent: ObservableValueType, Field: ObservableArrayType>: OwnedSink {
     typealias Owner = UpdateSourceForArrayField<Parent, Field>
 
     unowned let owner: Owner
@@ -63,8 +62,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Fi
     }
 }
 
-private struct FieldSink<Parent: ObservableValueType, Field: ObservableArrayType>: OwnedSink
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Field.Element> {
+private struct FieldSink<Parent: ObservableValueType, Field: ObservableArrayType>: OwnedSink {
     typealias Owner = UpdateSourceForArrayField<Parent, Field>
 
     unowned let owner: Owner
@@ -77,8 +75,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Fi
 
 /// A source of changes for an AnyObservableArray field.
 private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>
-: TransactionalSource<ArrayChange<Field.Element>>
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Field.Element> {
+: TransactionalSource<ArrayChange<Field.Element>> {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
@@ -127,8 +124,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Fi
     }
 }
 
-private final class ValueMappingForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>: _AbstractObservableArray<Field.Element>
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Field.Element> {
+private final class ValueMappingForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>: _AbstractObservableArray<Field.Element> {
     typealias Element = Field.Element
     typealias Change = ArrayChange<Element>
 
@@ -158,8 +154,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Fi
     }
 }
 
-private final class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Field: UpdatableArrayType>: _AbstractUpdatableArray<Field.Element>
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == ArrayChange<Field.Element> {
+private final class ValueMappingForUpdatableArrayField<Parent: ObservableValueType, Field: UpdatableArrayType>: _AbstractUpdatableArray<Field.Element> {
     typealias Element = Field.Element
     typealias Change = ArrayChange<Element>
 

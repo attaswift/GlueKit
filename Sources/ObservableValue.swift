@@ -26,17 +26,13 @@ public typealias ValueUpdate<Value> = Update<ValueChange<Value>>
 /// Types implementing `ObservableValueType` are generally not type-safe; you must serialize all accesses to them
 /// (including connecting to any of their sources).
 ///
-public protocol ObservableValueType: ObservableType, CustomPlaygroundQuickLookable {
-    associatedtype Value
-
-    /// The current value of this observable.
-    var value: Value { get }
-
+public protocol ObservableValueType: ObservableType, CustomPlaygroundQuickLookable
+where Change == ValueChange<Value> {
     /// Returns the type-erased version of this ObservableValueType.
     var anyObservableValue: AnyObservableValue<Value> { get }
 }
 
-extension ObservableValueType where Change == ValueChange<Value> {
+extension ObservableValueType {
     /// Returns the type-erased version of this ObservableValueType.
     public var anyObservableValue: AnyObservableValue<Value> {
         return AnyObservableValue(self)
@@ -52,7 +48,7 @@ extension ObservableValueType where Change == ValueChange<Value> {
     }
 }
 
-extension ObservableValueType where Change == ValueChange<Value> {
+extension ObservableValueType {
     public var customPlaygroundQuickLook: PlaygroundQuickLook {
         return PlaygroundQuickLook.text("\(value)")
     }
@@ -76,7 +72,7 @@ public struct AnyObservableValue<Value>: ObservableValueType {
         self.box = ObservableClosureBox(getter: getter, updates: updates)
     }
 
-    public init<Base: ObservableValueType>(_ base: Base) where Base.Value == Value, Base.Change == Change {
+    public init<Base: ObservableValueType>(_ base: Base) where Base.Value == Value {
         self.box = ObservableValueBox(base)
     }
 
@@ -154,7 +150,7 @@ open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, SignalD
     }
 }
 
-internal final class ObservableValueBox<Base: ObservableValueType>: _AbstractObservableValue<Base.Value> where Base.Change == ValueChange<Base.Value> {
+internal final class ObservableValueBox<Base: ObservableValueType>: _AbstractObservableValue<Base.Value> {
     typealias Value = Base.Value
 
     private let base: Base

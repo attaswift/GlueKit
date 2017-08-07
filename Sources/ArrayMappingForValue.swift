@@ -6,13 +6,13 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType where Change == ArrayChange<Element> {
+extension ObservableArrayType {
     public func map<Output>(_ transform: @escaping (Element) -> Output) -> AnyObservableArray<Output> {
         return ArrayMappingForValue(input: self, transform: transform).anyObservableArray
     }
 }
 
-private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: _AbstractObservableArray<Element> where Input.Change == ArrayChange<Input.Element> {
+private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: _AbstractObservableArray<Element> {
     typealias Change = ArrayChange<Element>
 
     let input: Input
@@ -61,13 +61,13 @@ private final class ArrayMappingForValue<Element, Input: ObservableArrayType>: _
 }
 
 
-extension ObservableArrayType where Change == ArrayChange<Element> {
+extension ObservableArrayType {
     public func bufferedMap<Output>(_ transform: @escaping (Element) -> Output) -> AnyObservableArray<Output> {
         return BufferedArrayMappingForValue(self, transform: transform).anyObservableArray
     }
 }
 
-private struct BufferedMapSink<Input, Output, Content: ObservableArrayType>: UniqueOwnedSink where Content.Element == Input, Content.Change == ArrayChange<Content.Element> {
+private struct BufferedMapSink<Input, Output, Content: ObservableArrayType>: UniqueOwnedSink where Content.Element == Input {
     typealias Owner = BufferedArrayMappingForValue<Input, Output, Content>
 
     unowned(unsafe) let owner: Owner
@@ -78,7 +78,7 @@ private struct BufferedMapSink<Input, Output, Content: ObservableArrayType>: Uni
 }
 
 
-private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArrayType>: _BaseObservableArray<Output> where Content.Element == Input, Content.Change == ArrayChange<Content.Element> {
+private class BufferedArrayMappingForValue<Input, Output, Content: ObservableArrayType>: _BaseObservableArray<Output> where Content.Element == Input {
     typealias Element = Output
     typealias Change = ArrayChange<Output>
 

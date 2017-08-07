@@ -6,12 +6,12 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension UpdatableValueType where Change == ValueChange<Value> {
+extension UpdatableValueType {
     /// Create a two-way binding from self to a target updatable. The target is updated to the current value of self.
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, you must provide an equality test that returns true if two values are to be
     /// considered equivalent.
-    public func bind<Target: UpdatableValueType>(to target: Target, by areEquivalent: @escaping (Value, Value) -> Bool) -> Connection where Target.Value == Value, Target.Change == ValueChange<Value> {
+    public func bind<Target: UpdatableValueType>(to target: Target, by areEquivalent: @escaping (Value, Value) -> Bool) -> Connection where Target.Value == Value {
         return BindConnection(source: self, target: target, by: areEquivalent)
     }
 }
@@ -22,7 +22,7 @@ private enum  BindOrigin {
 }
 
 private struct BindSink<Source: UpdatableValueType, Target: UpdatableValueType>: OwnedSink
-where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
+where Source.Value == Target.Value {
     typealias Owner = BindConnection<Source, Target>
 
     unowned let owner: Owner
@@ -86,7 +86,7 @@ where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, 
 }
 
 private final class BindConnection<Source: UpdatableValueType, Target: UpdatableValueType>: Connection
-where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
+where Source.Value == Target.Value {
     typealias Value = Source.Value
 
     var areEquivalent: ((Value, Value) -> Bool)?
@@ -128,12 +128,12 @@ where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, 
     }
 }
 
-extension UpdatableValueType where Value: Equatable, Change == ValueChange<Value> {
+extension UpdatableValueType where Value: Equatable {
     /// Create a two-way binding from self to a target variable. The target is updated to the current value of self.
     /// All future updates will be synchronized between the two variables until the returned connection is disconnected.
     /// To prevent infinite cycles, the variables aren't synched when a bound variable is set to a value that is equal
     /// to the value of its counterpart.
-    public func bind<Target: UpdatableValueType>(to target: Target) -> Connection where Target.Value == Value, Target.Change == ValueChange<Value> {
+    public func bind<Target: UpdatableValueType>(to target: Target) -> Connection where Target.Value == Value {
         return self.bind(to: target, by: ==)
     }
 }
@@ -141,13 +141,13 @@ extension UpdatableValueType where Value: Equatable, Change == ValueChange<Value
 extension Connector {
     @discardableResult
     public func bind<Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target, by areEquivalent: @escaping (Source.Value, Source.Value) -> Bool) -> Connection
-        where Source.Value == Target.Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
+        where Source.Value == Target.Value {
             return source.bind(to: target, by: areEquivalent).putInto(self)
     }
 
     @discardableResult
     public func bind<Value: Equatable, Source: UpdatableValueType, Target: UpdatableValueType>(_ source: Source, to target: Target) -> Connection
-        where Source.Value == Value, Target.Value == Value, Source.Change == ValueChange<Source.Value>, Target.Change == ValueChange<Target.Value> {
+        where Source.Value == Value, Target.Value == Value {
             return self.bind(source, to: target, by: ==)
     }
 }

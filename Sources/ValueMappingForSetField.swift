@@ -6,20 +6,17 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableValueType where Change == ValueChange<Value> {
-    public func map<Field: ObservableSetType>(_ key: @escaping (Value) -> Field) -> AnyObservableSet<Field.Element>
-    where Field.Change == SetChange<Field.Element> {
+extension ObservableValueType {
+    public func map<Field: ObservableSetType>(_ key: @escaping (Value) -> Field) -> AnyObservableSet<Field.Element> {
         return ValueMappingForSetField<Self, Field>(parent: self, key: key).anyObservableSet
     }
 
-    public func map<Field: UpdatableSetType>(_ key: @escaping (Value) -> Field) -> AnyUpdatableSet<Field.Element>
-    where Field.Change == SetChange<Field.Element> {
+    public func map<Field: UpdatableSetType>(_ key: @escaping (Value) -> Field) -> AnyUpdatableSet<Field.Element> {
         return ValueMappingForUpdatableSetField<Self, Field>(parent: self, key: key).anyUpdatableSet
     }
 }
 
-private struct ParentSink<Parent: ObservableValueType, Field: ObservableSetType>: OwnedSink
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Field.Element> {
+private struct ParentSink<Parent: ObservableValueType, Field: ObservableSetType>: OwnedSink {
     typealias Owner = UpdateSourceForSetField<Parent, Field>
 
     unowned let owner: Owner
@@ -30,8 +27,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Fiel
     }
 }
 
-private struct FieldSink<Parent: ObservableValueType, Field: ObservableSetType>: OwnedSink
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Field.Element> {
+private struct FieldSink<Parent: ObservableValueType, Field: ObservableSetType>: OwnedSink {
     typealias Owner = UpdateSourceForSetField<Parent, Field>
 
     unowned let owner: Owner
@@ -42,8 +38,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Fiel
     }
 }
 
-private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: ObservableSetType>: TransactionalSource<SetChange<Field.Element>>
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Field.Element> {
+private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: ObservableSetType>: TransactionalSource<SetChange<Field.Element>> {
     typealias Element = Field.Element
     typealias Change = SetChange<Element>
     typealias Value = Update<Change>
@@ -101,8 +96,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Fiel
     }
 }
 
-private final class ValueMappingForSetField<Parent: ObservableValueType, Field: ObservableSetType>: _AbstractObservableSet<Field.Element>
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Field.Element> {
+private final class ValueMappingForSetField<Parent: ObservableValueType, Field: ObservableSetType>: _AbstractObservableSet<Field.Element> {
     typealias Element = Field.Element
 
     private let updateSource: UpdateSourceForSetField<Parent, Field>
@@ -130,8 +124,7 @@ where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Fiel
     }
 }
 
-private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType, Field: UpdatableSetType>: _AbstractUpdatableSet<Field.Element>
-where Parent.Change == ValueChange<Parent.Value>, Field.Change == SetChange<Field.Element> {
+private final class ValueMappingForUpdatableSetField<Parent: ObservableValueType, Field: UpdatableSetType>: _AbstractUpdatableSet<Field.Element> {
     typealias Element = Field.Element
 
     private let updateSource: UpdateSourceForSetField<Parent, Field>

@@ -6,15 +6,14 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType where Change == ArrayChange<Element> {
+extension ObservableArrayType {
     /// Return an observable array that consists of the values for the field specified by `key` for each element of this array.
-    public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> AnyObservableArray<Field.Value> where Field.Change == ValueChange<Field.Value> {
+    public func map<Field: ObservableValueType>(_ key: @escaping (Element) -> Field) -> AnyObservableArray<Field.Value> {
         return ArrayMappingForValueField(parent: self, key: key).anyObservableArray
     }
 }
 
-private final class FieldSink<Parent: ObservableArrayType, Field: ObservableValueType>: SinkType, RefListElement
-where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+private final class FieldSink<Parent: ObservableArrayType, Field: ObservableValueType>: SinkType, RefListElement {
     unowned let owner: ArrayMappingForValueField<Parent, Field>
     let field: Field
     var refListLink = RefListLink<FieldSink>()
@@ -34,8 +33,7 @@ where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<
     }
 }
 
-private struct ParentSink<Parent: ObservableArrayType, Field: ObservableValueType>: UniqueOwnedSink
-where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+private struct ParentSink<Parent: ObservableArrayType, Field: ObservableValueType>: UniqueOwnedSink {
     typealias Owner = ArrayMappingForValueField<Parent, Field>
 
     unowned let owner: Owner
@@ -45,8 +43,7 @@ where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<
     }
 }
 
-private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field: ObservableValueType>: _BaseObservableArray<Field.Value>
-where Parent.Change == ArrayChange<Parent.Element>, Field.Change == ValueChange<Field.Value> {
+private final class ArrayMappingForValueField<Parent: ObservableArrayType, Field: ObservableValueType>: _BaseObservableArray<Field.Value> {
     typealias Element = Field.Value
     typealias Change = ArrayChange<Element>
 

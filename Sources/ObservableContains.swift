@@ -6,13 +6,13 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     public func observableContains(_ member: Element) -> AnyObservableValue<Bool> {
         return ObservableContains(input: self, member: member).anyObservableValue
     }
 }
 
-private final class ObservableContains<Input: ObservableSetType>: _AbstractObservableValue<Bool> where Input.Change == SetChange<Input.Element> {
+private final class ObservableContains<Input: ObservableSetType>: _AbstractObservableValue<Bool> {
     let input: Input
     let member: Input.Element
     let _updates: AnySource<ValueUpdate<Bool>>

@@ -32,7 +32,7 @@ public protocol UpdatableArrayType: ObservableArrayType, UpdatableType {
     var anyUpdatableArray: AnyUpdatableArray<Element> { get }
 }
 
-extension UpdatableArrayType where Change == ArrayChange<Element> {
+extension UpdatableArrayType {
     public func apply(_ update: Update<ValueChange<[Element]>>) {
         self.apply(update.map { change in ArrayChange(from: change.old, to: change.new) })
     }
@@ -127,7 +127,6 @@ extension UpdatableArrayType where Change == ArrayChange<Element> {
 
 public struct AnyUpdatableArray<Element>: UpdatableArrayType {
     public typealias Value = [Element]
-    public typealias Base = [Element]
     public typealias Change = ArrayChange<Element>
 
     let box: _AbstractUpdatableArray<Element>
@@ -136,7 +135,7 @@ public struct AnyUpdatableArray<Element>: UpdatableArrayType {
         self.box = box
     }
 
-    public init<Updatable: UpdatableArrayType>(_ base: Updatable) where Updatable.Element == Element, Updatable.Change == ArrayChange<Element> {
+    public init<Updatable: UpdatableArrayType>(_ base: Updatable) where Updatable.Element == Element {
         self = base.anyUpdatableArray
     }
 
@@ -257,7 +256,7 @@ public class _BaseUpdatableArray<Element>: _AbstractUpdatableArray<Element>, Sig
     }
 }
 
-internal final class UpdatableArrayBox<Contents: UpdatableArrayType>: _AbstractUpdatableArray<Contents.Element> where Contents.Change == ArrayChange<Contents.Element> {
+internal final class UpdatableArrayBox<Contents: UpdatableArrayType>: _AbstractUpdatableArray<Contents.Element> {
     typealias Element = Contents.Element
 
     var contents: Contents

@@ -9,8 +9,9 @@
 public typealias SetUpdate<Element: Hashable> = Update<SetChange<Element>>
 public typealias SetUpdateSource<Element: Hashable> = AnySource<Update<SetChange<Element>>>
 
-public protocol ObservableSetType: ObservableType {
-    associatedtype Element: Hashable
+public protocol ObservableSetType: ObservableType where Change == SetChange<Element> {
+    associatedtype Element
+
     typealias Base = Set<Element>
 
     var isBuffered: Bool { get }
@@ -25,7 +26,7 @@ public protocol ObservableSetType: ObservableType {
     var anyObservableSet: AnyObservableSet<Element> { get }
 }
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     public var isBuffered: Bool { return false }
     public var count: Int { return value.count }
     public func contains(_ member: Element) -> Bool { return value.contains(member) }
@@ -170,7 +171,7 @@ open class _BaseObservableSet<Element: Hashable>: _AbstractObservableSet<Element
     }
 }
 
-final class ObservableSetBox<Contents: ObservableSetType>: _AbstractObservableSet<Contents.Element> where Contents.Change == SetChange<Contents.Element> {
+final class ObservableSetBox<Contents: ObservableSetType>: _AbstractObservableSet<Contents.Element> {
     typealias Element = Contents.Element
 
     let contents: Contents

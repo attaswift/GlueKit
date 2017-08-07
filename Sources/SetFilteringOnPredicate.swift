@@ -6,18 +6,18 @@
 //  Copyright © 2015 Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableSetType where Change == SetChange<Element> {
+extension ObservableSetType {
     public func filter(_ isIncluded: @escaping (Element) -> Bool) -> AnyObservableSet<Element> {
         return SetFilteringOnPredicate<Self>(parent: self, test: isIncluded).anyObservableSet
     }
 
     public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> AnyObservableSet<Element>
-    where Predicate.Value == (Element) -> Bool, Predicate.Change == ValueChange<Predicate.Value> {
+    where Predicate.Value == (Element) -> Bool {
         return self.filter(isIncluded.map { predicate -> Optional<(Element) -> Bool> in predicate })
     }
 
     public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> AnyObservableSet<Element>
-    where Predicate.Value == Optional<(Element) -> Bool>, Predicate.Change == ValueChange<Predicate.Value> {
+    where Predicate.Value == Optional<(Element) -> Bool> {
         let reference: AnyObservableValue<AnyObservableSet<Element>> = isIncluded.map { predicate in
             if let predicate: (Element) -> Bool = predicate {
                 return self.filter(predicate).anyObservableSet
@@ -30,8 +30,7 @@ extension ObservableSetType where Change == SetChange<Element> {
     }
 }
 
-private struct FilteringSink<Parent: ObservableSetType>: UniqueOwnedSink
-where Parent.Change == SetChange<Parent.Element> {
+private struct FilteringSink<Parent: ObservableSetType>: UniqueOwnedSink {
     typealias Owner = SetFilteringOnPredicate<Parent>
 
     unowned let owner: Owner
@@ -41,8 +40,7 @@ where Parent.Change == SetChange<Parent.Element> {
     }
 }
 
-private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _BaseObservableSet<Parent.Element>
-where Parent.Change == SetChange<Parent.Element> {
+private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _BaseObservableSet<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = SetChange<Element>
 

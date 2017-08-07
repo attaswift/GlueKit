@@ -6,19 +6,19 @@
 //  Copyright © 2016. Károly Lőrentey. All rights reserved.
 //
 
-extension ObservableArrayType where Change == ArrayChange<Element> {
+extension ObservableArrayType {
     public func filter<Test: ObservableValueType>(_ isIncluded: @escaping (Element) -> Test) -> AnyObservableArray<Element>
-    where Test.Value == Bool, Test.Change == ValueChange<Test.Value> {
+    where Test.Value == Bool {
         return ArrayFilteringOnObservableBool<Self, Test>(parent: self, isIncluded: isIncluded).anyObservableArray
     }
 
     public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> AnyObservableArray<Element>
-    where Predicate.Value == (Element) -> Bool, Predicate.Change == ValueChange<Predicate.Value> {
+    where Predicate.Value == (Element) -> Bool {
         return self.filter(isIncluded.map { predicate -> Optional<(Element) -> Bool> in predicate })
     }
 
     public func filter<Predicate: ObservableValueType>(_ isIncluded: Predicate) -> AnyObservableArray<Element>
-    where Predicate.Value == Optional<(Element) -> Bool>, Predicate.Change == ValueChange<Predicate.Value> {
+    where Predicate.Value == Optional<(Element) -> Bool> {
         let reference: AnyObservableValue<AnyObservableArray<Element>> = isIncluded.map { predicate in
             if let predicate: (Element) -> Bool = predicate {
                 return self.filter(predicate).anyObservableArray
@@ -32,7 +32,7 @@ extension ObservableArrayType where Change == ArrayChange<Element> {
 }
 
 private struct ParentSink<Parent: ObservableArrayType, Test: ObservableValueType>: UniqueOwnedSink
-where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
+where Test.Value == Bool {
     typealias Owner = ArrayFilteringOnObservableBool<Parent, Test>
 
     unowned(unsafe) let owner: Owner
@@ -43,7 +43,7 @@ where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Cha
 }
 
 private final class FieldSink<Parent: ObservableArrayType, Test: ObservableValueType>: SinkType, RefListElement
-where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
+where Test.Value == Bool {
     typealias Owner = ArrayFilteringOnObservableBool<Parent, Test>
 
     unowned let owner: Owner
@@ -67,7 +67,7 @@ where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Cha
 }
 
 private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: _BaseObservableArray<Parent.Element>
-where Test.Value == Bool, Parent.Change == ArrayChange<Parent.Element>, Test.Change == ValueChange<Test.Value> {
+where Test.Value == Bool {
     typealias Element = Parent.Element
     typealias Change = ArrayChange<Element>
 
