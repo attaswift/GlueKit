@@ -1,14 +1,19 @@
+// swift-tools-version:4.0
 import PackageDescription
 
 let package = Package(
     name: "GlueKit",
-    targets: [
-        // Test targets
-        Target(name: "GlueKitTests", dependencies: ["GlueKit"]),
-        Target(name: "PerformanceTests", dependencies: ["GlueKit"]),
+    products: [
+        .library(name: "GlueKit", type: .dynamic, targets: ["GlueKit"])
     ],
     dependencies: [
-        .Package(url: "https://github.com/lorentey/BTree", majorVersion: 4, minor: 0),
-        .Package(url: "https://github.com/lorentey/SipHash", majorVersion: 1, minor: 1)
-    ]
+        .package(url: "https://github.com/lorentey/SipHash", .branch("swift4")),
+        .package(url: "https://github.com/lorentey/BTree", .branch("5.x"))
+    ],
+    targets: [
+        .target(name: "GlueKit", dependencies: ["BTree", "SipHash"], path: "Sources"),
+        .testTarget(name: "GlueKitTests", dependencies: ["GlueKit"], path: "Tests/GlueKitTests"),
+        .testTarget(name: "PerformanceTests", dependencies: ["GlueKit"], path: "Tests/PerformanceTests")
+    ],
+    swiftLanguageVersions: [4]
 )
