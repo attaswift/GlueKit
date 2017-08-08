@@ -18,33 +18,31 @@ where A.Element == B.Element {
     return a.concatenate(with: b)
 }
 
-private struct FirstSink<First: ObservableArrayType, Second: ObservableArrayType>: UniqueOwnedSink
-where First.Element == Second.Element {
-    typealias Owner = ArrayConcatenation<First, Second>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ArrayUpdate<First.Element>) {
-        owner.applyFirst(update)
-    }
-}
-
-private struct SecondSink<First: ObservableArrayType, Second: ObservableArrayType>: UniqueOwnedSink
-where First.Element == Second.Element {
-    typealias Owner = ArrayConcatenation<First, Second>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ArrayUpdate<Second.Element>) {
-        owner.applySecond(update)
-    }
-}
-
 final class ArrayConcatenation<First: ObservableArrayType, Second: ObservableArrayType>: _BaseObservableArray<First.Element>
 where First.Element == Second.Element {
     typealias Element = First.Element
     typealias Change = ArrayChange<Element>
 
+    private struct FirstSink: UniqueOwnedSink {
+        typealias Owner = ArrayConcatenation
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: ArrayUpdate<First.Element>) {
+            owner.applyFirst(update)
+        }
+    }
+    
+    private struct SecondSink: UniqueOwnedSink {
+        typealias Owner = ArrayConcatenation
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: ArrayUpdate<Second.Element>) {
+            owner.applySecond(update)
+        }
+    }
+    
     let first: First
     let second: Second
 

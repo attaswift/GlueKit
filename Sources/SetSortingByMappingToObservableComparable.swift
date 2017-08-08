@@ -23,7 +23,7 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
     typealias Change = ArrayChange<Element>
 
     private struct ParentSink: UniqueOwnedSink {
-        typealias Owner = SetSortingByMappingToObservableComparable<Parent, Field>
+        typealias Owner = SetSortingByMappingToObservableComparable
 
         unowned(unsafe) let owner: Owner
 
@@ -33,7 +33,7 @@ where Parent.Element: AnyObject, Field.Value: Comparable {
     }
 
     private struct FieldSink: SinkType, SipHashable {
-        typealias Owner = SetSortingByMappingToObservableComparable<Parent, Field>
+        typealias Owner = SetSortingByMappingToObservableComparable
 
         unowned(unsafe) let owner: Owner
         let element: Parent.Element

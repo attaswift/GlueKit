@@ -15,20 +15,20 @@ extension ObservableSetType {
     }
 }
 
-private struct BufferedSink<Content: ObservableSetType>: UniqueOwnedSink {
-    typealias Owner = BufferedObservableSet<Content>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: SetUpdate<Content.Element>) {
-        owner.applyUpdate(update)
-    }
-}
-
 internal class BufferedObservableSet<Content: ObservableSetType>: _BaseObservableSet<Content.Element> {
     typealias Element = Content.Element
     typealias Change = SetChange<Element>
 
+    private struct BufferedSink: UniqueOwnedSink {
+        typealias Owner = BufferedObservableSet
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: SetUpdate<Content.Element>) {
+            owner.applyUpdate(update)
+        }
+    }
+    
     private let _content: Content
     private var _value: Set<Element>
     private var _pendingChange: Change? = nil

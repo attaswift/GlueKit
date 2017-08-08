@@ -12,20 +12,20 @@ extension ObservableArrayType {
     }
 }
 
-private struct ParentSink<Parent: ObservableArrayType>: UniqueOwnedSink {
-    typealias Owner = ArrayFilteringOnPredicate<Parent>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ArrayUpdate<Parent.Element>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
 private final class ArrayFilteringOnPredicate<Parent: ObservableArrayType>: _BaseObservableArray<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = ArrayChange<Element>
 
+    private struct ParentSink: UniqueOwnedSink {
+        typealias Owner = ArrayFilteringOnPredicate
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: ArrayUpdate<Parent.Element>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+    
     private let parent: Parent
     private let isIncluded: (Element) -> Bool
 

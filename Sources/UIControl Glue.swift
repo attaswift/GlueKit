@@ -19,9 +19,53 @@ extension UIControl {
 }
 
 public class GlueForUIControl: GlueForNSObject {
+    private struct ControlEventsTargetKey: SipHashable {
+        let sink: AnySink<UIEvent>
+        let events: UIControlEvents
+        
+        func appendHashes(to hasher: inout SipHasher) {
+            hasher.append(sink)
+            hasher.append(events.rawValue)
+        }
+        
+        static func ==(left: ControlEventsTargetKey, right: ControlEventsTargetKey) -> Bool {
+            return left.sink == right.sink && left.events == right.events
+        }
+    }
+    
+    private final class ControlEventsTarget: NSObject {
+        let sink: AnySink<UIEvent>
+        
+        init(sink: AnySink<UIEvent>) {
+            self.sink = sink
+        }
+        
+        @objc func eventDidTrigger(_ sender: AnyObject, forEvent event: UIEvent) {
+            sink.receive(event)
+        }
+    }
+    
+    public struct ControlEventsSource: SourceType {
+        public typealias Value = UIEvent
+        
+        public let control: UIControl
+        public let events: UIControlEvents
+        
+        public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
+            let target = control.glue.add(sink.anySink, for: events)
+            control.addTarget(target, action: #selector(ControlEventsTarget.eventDidTrigger(_:forEvent:)), for: events)
+        }
+        
+        public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
+            let target = control.glue.remove(sink.anySink, for: events)
+            control.removeTarget(target, action: #selector(ControlEventsTarget.eventDidTrigger(_:forEvent:)), for: events)
+            return target.sink.opened()!
+        }
+    }
+    
     private var object: UIControl { return owner as! UIControl }
 
-    private var targets: [ControlEventsTargetKey: ControlEventsTarget] = [:]
+    private var targets: [ControlEventsControlEventsTargetKey: ControlEventsTarget] = [:]
 
     public func source(for events: UIControlEvents = .primaryActionTriggered) -> ControlEventsSource {
         return ControlEventsSource(control: object, events: events)
@@ -29,7 +73,7 @@ public class GlueForUIControl: GlueForNSObject {
 
     fileprivate func add(_ sink: AnySink<UIEvent>, for events: UIControlEvents) -> ControlEventsTarget {
         let target = ControlEventsTarget(sink: sink)
-        let key = ControlEventsTargetKey(sink: sink, events: events)
+        let key = ControlEventsControlEventsTargetKey(sink: sink, events: events)
         precondition(targets[key] == nil)
         targets[key] = target
         return target
@@ -40,50 +84,6 @@ public class GlueForUIControl: GlueForNSObject {
         let target = targets[key]!
         targets[key] = nil
         return target
-    }
-}
-
-private struct ControlEventsTargetKey: SipHashable {
-    let sink: AnySink<UIEvent>
-    let events: UIControlEvents
-
-    func appendHashes(to hasher: inout SipHasher) {
-        hasher.append(sink)
-        hasher.append(events.rawValue)
-    }
-
-    static func ==(left: ControlEventsTargetKey, right: ControlEventsTargetKey) -> Bool {
-        return left.sink == right.sink && left.events == right.events
-    }
-}
-
-public struct ControlEventsSource: SourceType {
-    public typealias Value = UIEvent
-
-    public let control: UIControl
-    public let events: UIControlEvents
-
-    public func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Value {
-        let target = control.glue.add(sink.anySink, for: events)
-        control.addTarget(target, action: #selector(ControlEventsTarget.eventDidTrigger(_:forEvent:)), for: events)
-    }
-
-    public func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Value {
-        let target = control.glue.remove(sink.anySink, for: events)
-        control.removeTarget(target, action: #selector(ControlEventsTarget.eventDidTrigger(_:forEvent:)), for: events)
-        return target.sink.opened()!
-    }
-}
-
-private final class ControlEventsTarget: NSObject {
-    let sink: AnySink<UIEvent>
-
-    init(sink: AnySink<UIEvent>) {
-        self.sink = sink
-    }
-
-    @objc func eventDidTrigger(_ sender: AnyObject, forEvent event: UIEvent) {
-        sink.receive(event)
     }
 }
 #endif

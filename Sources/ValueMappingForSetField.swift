@@ -16,32 +16,33 @@ extension ObservableValueType {
     }
 }
 
-private struct ParentSink<Parent: ObservableValueType, Field: ObservableSetType>: OwnedSink {
-    typealias Owner = UpdateSourceForSetField<Parent, Field>
-
-    unowned let owner: Owner
-    let identifier = 1
-
-    func receive(_ update: ValueUpdate<Parent.Value>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
-private struct FieldSink<Parent: ObservableValueType, Field: ObservableSetType>: OwnedSink {
-    typealias Owner = UpdateSourceForSetField<Parent, Field>
-
-    unowned let owner: Owner
-    let identifier = 2
-
-    func receive(_ update: SetUpdate<Field.Element>) {
-        owner.applyFieldUpdate(update)
-    }
-}
-
 private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: ObservableSetType>: TransactionalSource<SetChange<Field.Element>> {
     typealias Element = Field.Element
     typealias Change = SetChange<Element>
     typealias Value = Update<Change>
+
+    private struct ParentSink: OwnedSink {
+        typealias Owner = UpdateSourceForSetField
+
+        unowned let owner: Owner
+        let identifier = 1
+
+        func receive(_ update: ValueUpdate<Parent.Value>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+
+    private struct FieldSink: OwnedSink {
+        typealias Owner = UpdateSourceForSetField
+
+        unowned let owner: Owner
+        let identifier = 2
+
+        func receive(_ update: SetUpdate<Field.Element>) {
+            owner.applyFieldUpdate(update)
+        }
+    }
+
 
     let parent: Parent
     let key: (Parent.Value) -> Field

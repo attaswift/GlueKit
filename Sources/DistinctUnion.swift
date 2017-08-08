@@ -13,22 +13,21 @@ extension ObservableArrayType where Element: Hashable {
     }
 }
 
-private struct DistinctSink<Input: ObservableArrayType>: UniqueOwnedSink
-where Input.Element: Hashable {
-    typealias Owner = DistinctUnion<Input>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ArrayUpdate<Input.Element>) {
-        owner.apply(update)
-    }
-}
-
 private class DistinctUnion<Input: ObservableArrayType>: _BaseObservableSet<Input.Element>
 where Input.Element: Hashable {
     typealias Element = Input.Element
     typealias Change = SetChange<Element>
 
+    private struct DistinctSink: UniqueOwnedSink {
+        typealias Owner = DistinctUnion
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: ArrayUpdate<Input.Element>) {
+            owner.apply(update)
+        }
+    }
+    
     private let input: Input
     private var members = Dictionary<Element, Int>()
 

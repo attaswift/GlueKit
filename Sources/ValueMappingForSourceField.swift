@@ -19,20 +19,19 @@ extension ObservableValueType {
     }
 }
 
-private struct SourceFieldSink<Parent: ObservableValueType, Field: SourceType>: UniqueOwnedSink {
-    typealias Owner = ValueMappingForSourceField<Parent, Field>
-
-    unowned let owner: Owner
-
-    func receive(_ update: ValueUpdate<Parent.Value>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
 /// A source of values for a Source field.
 private final class ValueMappingForSourceField<Parent: ObservableValueType, Field: SourceType>: SignalerSource<Field.Value> {
-
     typealias Value = Field.Value
+
+    private struct SourceFieldSink: UniqueOwnedSink {
+        typealias Owner = ValueMappingForSourceField
+
+        unowned let owner: Owner
+
+        func receive(_ update: ValueUpdate<Parent.Value>) {
+            owner.applyParentUpdate(update)
+        }
+    }
 
     let parent: Parent
     let key: (Parent.Value) -> Field

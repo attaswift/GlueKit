@@ -12,28 +12,6 @@ extension ObservableValueType where Value: ObservableArrayType{
     }
 }
 
-private struct ReferenceSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableArrayType {
-    typealias Owner = UnpackedObservableArrayReference<Reference>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ValueUpdate<Reference.Value>) {
-        owner.applyReferenceUpdate(update)
-    }
-}
-
-private struct TargetSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableArrayType {
-    typealias Owner = UnpackedObservableArrayReference<Reference>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ArrayUpdate<Reference.Value.Element>) {
-        owner.applyTargetUpdate(update)
-    }
-}
-
 /// A mutable reference to an `AnyObservableArray` that's also an observable array.
 /// You can switch to another target array without having to re-register subscribers.
 private final class UnpackedObservableArrayReference<Reference: ObservableValueType>: _BaseObservableArray<Reference.Value.Element>
@@ -42,6 +20,26 @@ where Reference.Value: ObservableArrayType {
     typealias Element = Target.Element
     typealias Change = ArrayChange<Element>
 
+    private struct ReferenceSink: UniqueOwnedSink {
+        typealias Owner = UnpackedObservableArrayReference
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: ValueUpdate<Reference.Value>) {
+            owner.applyReferenceUpdate(update)
+        }
+    }
+    
+    private struct TargetSink: UniqueOwnedSink {
+        typealias Owner = UnpackedObservableArrayReference
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: ArrayUpdate<Reference.Value.Element>) {
+            owner.applyTargetUpdate(update)
+        }
+    }
+    
     private var _reference: Reference
     private var _target: Reference.Value? = nil // Retained to make sure we keep it alive
 

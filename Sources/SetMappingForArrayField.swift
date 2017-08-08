@@ -12,30 +12,28 @@ extension ObservableSetType {
     }
 }
 
-private struct ParentSink<Parent: ObservableSetType, Field: ObservableArrayType>: UniqueOwnedSink
-where Field.Element: Hashable {
-    typealias Owner = SetMappingForArrayField<Parent, Field>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: SetUpdate<Parent.Element>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
-private struct FieldSink<Parent: ObservableSetType, Field: ObservableArrayType>: UniqueOwnedSink
-where Field.Element: Hashable {
-    typealias Owner = SetMappingForArrayField<Parent, Field>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ArrayUpdate<Field.Element>) {
-        owner.applyFieldUpdate(update)
-    }
-}
-
 class SetMappingForArrayField<Parent: ObservableSetType, Field: ObservableArrayType>: SetMappingBase<Field.Element>
 where Field.Element: Hashable {
+    private struct ParentSink: UniqueOwnedSink {
+        typealias Owner = SetMappingForArrayField
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: SetUpdate<Parent.Element>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+    
+    private struct FieldSink: UniqueOwnedSink {
+        typealias Owner = SetMappingForArrayField
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: ArrayUpdate<Field.Element>) {
+            owner.applyFieldUpdate(update)
+        }
+    }
+    
     let parent: Parent
     let key: (Parent.Element) -> Field
 

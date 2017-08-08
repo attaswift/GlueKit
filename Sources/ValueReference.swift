@@ -12,33 +12,31 @@ extension ObservableValueType where Value: ObservableValueType {
     }
 }
 
-private struct ReferenceSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableValueType {
-    typealias Owner = UnpackedObservableValueReference<Reference>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ValueUpdate<Reference.Value>) {
-        owner.applyReferenceUpdate(update)
-    }
-}
-
-private struct TargetSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableValueType {
-    typealias Owner = UnpackedObservableValueReference<Reference>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ValueUpdate<Reference.Value.Value>) {
-        owner.applyTargetUpdate(update)
-    }
-}
-
 private final class UnpackedObservableValueReference<Reference: ObservableValueType>: _BaseObservableValue<Reference.Value.Value>
 where Reference.Value: ObservableValueType {
     typealias Target = Reference.Value
     typealias Value = Target.Value
     typealias Change = ValueChange<Value>
+
+    private struct ReferenceSink: UniqueOwnedSink {
+        typealias Owner = UnpackedObservableValueReference
+
+        unowned(unsafe) let owner: Owner
+
+        func receive(_ update: ValueUpdate<Reference.Value>) {
+            owner.applyReferenceUpdate(update)
+        }
+    }
+
+    private struct TargetSink: UniqueOwnedSink {
+        typealias Owner = UnpackedObservableValueReference
+
+        unowned(unsafe) let owner: Owner
+
+        func receive(_ update: ValueUpdate<Reference.Value.Value>) {
+            owner.applyTargetUpdate(update)
+        }
+    }
 
     private var _reference: Reference
     private var _target: Reference.Value? = nil // Retained to make sure we keep it alive

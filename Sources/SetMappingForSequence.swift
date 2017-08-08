@@ -12,20 +12,20 @@ extension ObservableSetType {
     }
 }
 
-private struct ParentSink<Parent: ObservableSetType, Result: Sequence>: UniqueOwnedSink
-where Result.Iterator.Element: Hashable {
-    typealias Owner = SetMappingForSequence<Parent, Result>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: SetUpdate<Parent.Element>) {
-        owner.apply(update)
-    }
-}
-
 class SetMappingForSequence<Parent: ObservableSetType, Result: Sequence>: SetMappingBase<Result.Iterator.Element>
 where Result.Iterator.Element: Hashable {
     typealias Element = Result.Iterator.Element
+
+    private struct ParentSink: UniqueOwnedSink {
+        typealias Owner = SetMappingForSequence
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: SetUpdate<Parent.Element>) {
+            owner.apply(update)
+        }
+    }
+    
     let parent: Parent
     let key: (Parent.Element) -> Result
 

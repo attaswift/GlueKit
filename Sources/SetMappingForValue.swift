@@ -18,19 +18,19 @@ extension ObservableSetType {
     }
 }
 
-private struct InjectiveSink<Parent: ObservableSetType, Element: Hashable>: UniqueOwnedSink {
-    typealias Owner = InjectiveSetMappingForValue<Parent, Element>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: SetUpdate<Parent.Element>) {
-        owner.apply(update)
-    }
-}
-
 private final class InjectiveSetMappingForValue<Parent: ObservableSetType, Element: Hashable>: _BaseObservableSet<Element> {
     typealias Change = SetChange<Element>
 
+    private struct InjectiveSink: UniqueOwnedSink {
+        typealias Owner = InjectiveSetMappingForValue
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: SetUpdate<Parent.Element>) {
+            owner.apply(update)
+        }
+    }
+    
     let parent: Parent
     let transform: (Parent.Element) -> Element
 
@@ -87,19 +87,19 @@ extension ObservableSetType {
     }
 }
 
-private struct MapSink<Parent: ObservableSetType, Element: Hashable>: UniqueOwnedSink {
-    typealias Owner = SetMappingForValue<Parent, Element>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: SetUpdate<Parent.Element>) {
-        owner.apply(update)
-    }
-}
-
 private final class SetMappingForValue<Parent: ObservableSetType, Element: Hashable>: SetMappingBase<Element> {
     typealias Change = SetChange<Element>
 
+    private struct MapSink: UniqueOwnedSink {
+        typealias Owner = SetMappingForValue
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: SetUpdate<Parent.Element>) {
+            owner.apply(update)
+        }
+    }
+    
     let parent: Parent
     let transform: (Parent.Element) -> Element
 

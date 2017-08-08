@@ -30,20 +30,20 @@ extension ObservableSetType {
     }
 }
 
-private struct FilteringSink<Parent: ObservableSetType>: UniqueOwnedSink {
-    typealias Owner = SetFilteringOnPredicate<Parent>
-
-    unowned let owner: Owner
-
-    func receive(_ update: SetUpdate<Parent.Element>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
 private final class SetFilteringOnPredicate<Parent: ObservableSetType>: _BaseObservableSet<Parent.Element> {
     public typealias Element = Parent.Element
     public typealias Change = SetChange<Element>
 
+    private struct FilteringSink: UniqueOwnedSink {
+        typealias Owner = SetFilteringOnPredicate
+        
+        unowned let owner: Owner
+        
+        func receive(_ update: SetUpdate<Parent.Element>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+    
     private let parent: Parent
     private let test: (Element) -> Bool
 

@@ -68,45 +68,45 @@ private struct Indexmap {
     }
 }
 
-private final class FieldSink<Parent: ObservableArrayType, Field: ObservableArrayType>: SinkType, RefListElement {
-    typealias Owner = ArrayMappingForArrayField<Parent, Field>
-
-    unowned let owner: Owner
-    let field: Field
-    var refListLink = RefListLink<FieldSink>()
-
-    init(owner: Owner, field: Field) {
-        self.owner = owner
-        self.field = field
-        field.add(self)
-    }
-
-    func disconnect() {
-        field.remove(self)
-    }
-
-    func receive(_ update: ArrayUpdate<Field.Element>) {
-        owner.applyFieldUpdate(update, from: self)
-    }
-}
-
-private struct ParentSink<Parent: ObservableArrayType, Field: ObservableArrayType>: UniqueOwnedSink {
-    typealias Owner = ArrayMappingForArrayField<Parent, Field>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ArrayUpdate<Parent.Element>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
 private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field: ObservableArrayType>: _BaseObservableArray<Field.Element> {
     typealias Element = Field.Element
 
+    private final class FieldSink: SinkType, RefListElement {
+        typealias Owner = ArrayMappingForArrayField
+
+        unowned let owner: Owner
+        let field: Field
+        var refListLink = RefListLink<FieldSink>()
+
+        init(owner: Owner, field: Field) {
+            self.owner = owner
+            self.field = field
+            field.add(self)
+        }
+
+        func disconnect() {
+            field.remove(self)
+        }
+
+        func receive(_ update: ArrayUpdate<Field.Element>) {
+            owner.applyFieldUpdate(update, from: self)
+        }
+    }
+
+    private struct ParentSink: UniqueOwnedSink {
+        typealias Owner = ArrayMappingForArrayField
+
+        unowned(unsafe) let owner: Owner
+
+        func receive(_ update: ArrayUpdate<Parent.Element>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+    
     private let parent: Parent
     private let key: (Parent.Element) -> Field
 
-    private var fieldSinks = RefList<FieldSink<Parent, Field>>()
+    private var fieldSinks = RefList<FieldSink>()
     private var indexMapping = Indexmap()
 
     init(parent: Parent, key: @escaping (Parent.Element) -> Field) {
@@ -114,7 +114,7 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
         self.key = key
         super.init()
 
-        parent.updates.add(ParentSink<Parent, Field>(owner: self))
+        parent.updates.add(ParentSink(owner: self))
         for pe in parent.value {
             let field = key(pe)
             fieldSinks.append(FieldSink(owner: self, field: field))
@@ -123,11 +123,11 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
     }
 
     deinit {
-        parent.updates.remove(ParentSink<Parent, Field>(owner: self))
+        parent.updates.remove(ParentSink(owner: self))
         fieldSinks.forEach { $0.disconnect() }
     }
 
-    func applyParentUpdate(_ update: ArrayUpdate<Parent.Element>) {
+    private func applyParentUpdate(_ update: ArrayUpdate<Parent.Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
@@ -164,7 +164,7 @@ private final class ArrayMappingForArrayField<Parent: ObservableArrayType, Field
         }
     }
 
-    func applyFieldUpdate(_ update: ArrayUpdate<Field.Element>, from sink: FieldSink<Parent, Field>) {
+    private func applyFieldUpdate(_ update: ArrayUpdate<Field.Element>, from sink: FieldSink) {
         switch update {
         case .beginTransaction:
             beginTransaction()

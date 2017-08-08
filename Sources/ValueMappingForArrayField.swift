@@ -51,34 +51,34 @@ extension ObservableValueType {
     }
 }
 
-private struct ParentSink<Parent: ObservableValueType, Field: ObservableArrayType>: OwnedSink {
-    typealias Owner = UpdateSourceForArrayField<Parent, Field>
-
-    unowned let owner: Owner
-    let identifier = 1
-
-    func receive(_ update: ValueUpdate<Parent.Value>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
-private struct FieldSink<Parent: ObservableValueType, Field: ObservableArrayType>: OwnedSink {
-    typealias Owner = UpdateSourceForArrayField<Parent, Field>
-
-    unowned let owner: Owner
-    let identifier = 2
-
-    func receive(_ update: ArrayUpdate<Field.Element>) {
-        owner.applyFieldUpdate(update)
-    }
-}
-
 /// A source of changes for an AnyObservableArray field.
 private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field: ObservableArrayType>
 : TransactionalSource<ArrayChange<Field.Element>> {
     typealias Element = Field.Element
     typealias Base = [Element]
     typealias Change = ArrayChange<Element>
+
+    private struct ParentSink: OwnedSink {
+        typealias Owner = UpdateSourceForArrayField
+
+        unowned let owner: Owner
+        let identifier = 1
+
+        func receive(_ update: ValueUpdate<Parent.Value>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+
+    private struct FieldSink: OwnedSink {
+        typealias Owner = UpdateSourceForArrayField
+
+        unowned let owner: Owner
+        let identifier = 2
+
+        func receive(_ update: ArrayUpdate<Field.Element>) {
+            owner.applyFieldUpdate(update)
+        }
+    }
 
     let parent: Parent
     let key: (Parent.Value) -> Field

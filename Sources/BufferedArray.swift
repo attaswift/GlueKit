@@ -15,19 +15,19 @@ extension ObservableArrayType {
     }
 }
 
-private struct BufferedSink<Content: ObservableArrayType>: UniqueOwnedSink {
-    typealias Owner = BufferedObservableArray<Content>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ArrayUpdate<Content.Element>) {
-        owner.applyUpdate(update)
-    }
-}
-
 internal class BufferedObservableArray<Content: ObservableArrayType>: _BaseObservableArray<Content.Element> {
     typealias Element = Content.Element
     typealias Change = ArrayChange<Element>
+
+    private struct BufferedSink: UniqueOwnedSink {
+        typealias Owner = BufferedObservableArray
+
+        unowned(unsafe) let owner: Owner
+
+        func receive(_ update: ArrayUpdate<Content.Element>) {
+            owner.applyUpdate(update)
+        }
+    }
 
     private let _content: Content
     private var _value: [Element]

@@ -23,19 +23,19 @@ extension ObservableSetType where Element: Comparable {
     }
 }
 
-private struct SortingSink<Parent: ObservableSetType, Element: Comparable>: UniqueOwnedSink {
-    typealias Owner = SetSortingByMappingToComparable<Parent, Element>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: SetUpdate<Parent.Element>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
 private final class SetSortingByMappingToComparable<Parent: ObservableSetType, Element: Comparable>: _BaseObservableArray<Element> {
     typealias Change = ArrayChange<Element>
 
+    private struct SortingSink: UniqueOwnedSink {
+        typealias Owner = SetSortingByMappingToComparable
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: SetUpdate<Parent.Element>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+    
     private let parent: Parent
     private let transform: (Parent.Element) -> Element
 

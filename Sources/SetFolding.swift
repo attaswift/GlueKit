@@ -30,17 +30,17 @@ extension ObservableSetType where Element: BinaryInteger {
     }
 }
 
-private struct FoldingSink<Parent: ObservableSetType, Value>: UniqueOwnedSink {
-    typealias Owner = SetFoldingByTwoWayFunction<Parent, Value>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: SetUpdate<Parent.Element>) {
-        owner.applyUpdate(update)
-    }
-}
-
 private class SetFoldingByTwoWayFunction<Parent: ObservableSetType, Value>: _BaseObservableValue<Value> {
+    private struct FoldingSink: UniqueOwnedSink {
+        typealias Owner = SetFoldingByTwoWayFunction
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: SetUpdate<Parent.Element>) {
+            owner.applyUpdate(update)
+        }
+    }
+    
     let parent: Parent
     let add: (Value, Parent.Element) -> Value
     let remove: (Value, Parent.Element) -> Value

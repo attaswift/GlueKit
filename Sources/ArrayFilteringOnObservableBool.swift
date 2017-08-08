@@ -31,51 +31,49 @@ extension ObservableArrayType {
     }
 }
 
-private struct ParentSink<Parent: ObservableArrayType, Test: ObservableValueType>: UniqueOwnedSink
-where Test.Value == Bool {
-    typealias Owner = ArrayFilteringOnObservableBool<Parent, Test>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ArrayUpdate<Parent.Element>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
-private final class FieldSink<Parent: ObservableArrayType, Test: ObservableValueType>: SinkType, RefListElement
-where Test.Value == Bool {
-    typealias Owner = ArrayFilteringOnObservableBool<Parent, Test>
-
-    unowned let owner: Owner
-    let field: Test
-    var refListLink = RefListLink<FieldSink<Parent, Test>>()
-
-    init(owner: Owner, field: Test) {
-        self.owner = owner
-        self.field = field
-
-        field.add(self)
-    }
-
-    func disconnect() {
-        field.remove(self)
-    }
-
-    func receive(_ update: ValueUpdate<Bool>) {
-        owner.applyFieldUpdate(update, from: self)
-    }
-}
-
 private class ArrayFilteringOnObservableBool<Parent: ObservableArrayType, Test: ObservableValueType>: _BaseObservableArray<Parent.Element>
 where Test.Value == Bool {
     typealias Element = Parent.Element
     typealias Change = ArrayChange<Element>
 
+    private struct ParentSink: UniqueOwnedSink {
+        typealias Owner = ArrayFilteringOnObservableBool
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: ArrayUpdate<Parent.Element>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+    
+    private final class FieldSink: SinkType, RefListElement {
+        typealias Owner = ArrayFilteringOnObservableBool
+        
+        unowned let owner: Owner
+        let field: Test
+        var refListLink = RefListLink<FieldSink>()
+        
+        init(owner: Owner, field: Test) {
+            self.owner = owner
+            self.field = field
+            
+            field.add(self)
+        }
+        
+        func disconnect() {
+            field.remove(self)
+        }
+        
+        func receive(_ update: ValueUpdate<Bool>) {
+            owner.applyFieldUpdate(update, from: self)
+        }
+    }
+
     private let parent: Parent
     private let isIncluded: (Element) -> Test
 
     private var indexMapping: ArrayFilteringIndexmap<Element>
-    private var elementConnections = RefList<FieldSink<Parent, Test>>()
+    private var elementConnections = RefList<FieldSink>()
 
     init(parent: Parent, isIncluded: @escaping (Element) -> Test) {
         self.parent = parent
@@ -92,7 +90,7 @@ where Test.Value == Bool {
         self.elementConnections.forEach { $0.disconnect() }
     }
 
-    func applyParentUpdate(_ update: ArrayUpdate<Element>) {
+    private func applyParentUpdate(_ update: ArrayUpdate<Element>) {
         switch update {
         case .beginTransaction:
             beginTransaction()
@@ -111,7 +109,7 @@ where Test.Value == Bool {
         }
     }
 
-    func applyFieldUpdate(_ update: ValueUpdate<Bool>, from sink: FieldSink<Parent, Test>) {
+    private func applyFieldUpdate(_ update: ValueUpdate<Bool>, from sink: FieldSink) {
         switch update {
         case .beginTransaction:
             beginTransaction()

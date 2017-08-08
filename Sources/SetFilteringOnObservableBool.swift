@@ -14,48 +14,46 @@ extension ObservableSetType {
     }
 }
 
-private struct ParentSink<Parent: ObservableSetType, Field: ObservableValueType>: UniqueOwnedSink
-where Field.Value == Bool {
-    typealias Owner = SetFilteringOnObservableBool<Parent, Field>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: SetUpdate<Parent.Element>) {
-        owner.applyParentUpdate(update)
-    }
-}
-
-private struct FieldSink<Parent: ObservableSetType, Field: ObservableValueType>: SinkType, SipHashable
-where Field.Value == Bool {
-    typealias Owner = SetFilteringOnObservableBool<Parent, Field>
-
-    unowned(unsafe) let owner: Owner
-    let element: Parent.Element
-
-    func receive(_ update: ValueUpdate<Field.Value>) {
-        owner.applyFieldUpdate(update, from: element)
-    }
-
-    func appendHashes(to hasher: inout SipHasher) {
-        hasher.append(ObjectIdentifier(owner))
-        hasher.append(element)
-    }
-
-    static func ==(left: FieldSink, right: FieldSink) -> Bool {
-        return left.owner === right.owner && left.element == right.element
-    }
-}
-
 private class SetFilteringOnObservableBool<Parent: ObservableSetType, Field: ObservableValueType>: _BaseObservableSet<Parent.Element>
 where Field.Value == Bool {
     typealias Element = Parent.Element
     typealias Change = SetChange<Element>
 
+    private struct ParentSink: UniqueOwnedSink {
+        typealias Owner = SetFilteringOnObservableBool
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: SetUpdate<Parent.Element>) {
+            owner.applyParentUpdate(update)
+        }
+    }
+    
+    private struct FieldSink: SinkType, SipHashable {
+        typealias Owner = SetFilteringOnObservableBool
+        
+        unowned(unsafe) let owner: Owner
+        let element: Parent.Element
+        
+        func receive(_ update: ValueUpdate<Field.Value>) {
+            owner.applyFieldUpdate(update, from: element)
+        }
+        
+        func appendHashes(to hasher: inout SipHasher) {
+            hasher.append(ObjectIdentifier(owner))
+            hasher.append(element)
+        }
+        
+        static func ==(left: FieldSink, right: FieldSink) -> Bool {
+            return left.owner === right.owner && left.element == right.element
+        }
+    }
+    
     private let parent: Parent
     private let isIncluded: (Element) -> Field
 
     private var matchingElements: Set<Element> = []
-    private var fieldSinks: Dictionary<FieldSink<Parent, Field>, Field> = [:]
+    private var fieldSinks: Dictionary<FieldSink, Field> = [:]
 
     init(parent: Parent, isIncluded: @escaping (Element) -> Field) {
         self.parent = parent

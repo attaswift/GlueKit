@@ -12,29 +12,6 @@ extension ObservableValueType where Value: ObservableSetType {
     }
 }
 
-private struct ReferenceSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableSetType {
-    typealias Owner = UnpackedObservableSetReference<Reference>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: ValueUpdate<Reference.Value>) {
-        owner.applyReferenceUpdate(update)
-    }
-}
-
-private struct TargetSink<Reference: ObservableValueType>: UniqueOwnedSink
-where Reference.Value: ObservableSetType {
-    typealias Owner = UnpackedObservableSetReference<Reference>
-
-    unowned(unsafe) let owner: Owner
-
-    func receive(_ update: SetUpdate<Reference.Value.Element>) {
-        owner.applyTargetUpdate(update)
-    }
-}
-
-
 /// A mutable reference to an `AnyObservableSet` that's also an observable set.
 /// You can switch to another target set without having to re-register subscribers.
 private final class UnpackedObservableSetReference<Reference: ObservableValueType>: _BaseObservableSet<Reference.Value.Element>
@@ -43,6 +20,26 @@ where Reference.Value: ObservableSetType {
     typealias Element = Target.Element
     typealias Change = SetChange<Element>
 
+    private struct ReferenceSink: UniqueOwnedSink {
+        typealias Owner = UnpackedObservableSetReference
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: ValueUpdate<Reference.Value>) {
+            owner.applyReferenceUpdate(update)
+        }
+    }
+    
+    private struct TargetSink: UniqueOwnedSink {
+        typealias Owner = UnpackedObservableSetReference
+        
+        unowned(unsafe) let owner: Owner
+        
+        func receive(_ update: SetUpdate<Reference.Value.Element>) {
+            owner.applyTargetUpdate(update)
+        }
+    }
+    
     private var _reference: Reference
     private var _target: Reference.Value? = nil // Retained to make sure we keep it alive
 
