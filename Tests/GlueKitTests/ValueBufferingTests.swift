@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import GlueKit
+@testable import GlueKit
 
 class BufferedValueTests: XCTestCase {
 
@@ -51,7 +51,7 @@ class BufferedValueTests: XCTestCase {
         }
 
         sink.expecting("begin") {
-            observable.begin()
+            observable.beginTransaction()
         }
 
         sink.expectingNothing {
@@ -63,7 +63,7 @@ class BufferedValueTests: XCTestCase {
         }
 
         sink.expecting(["2 -> 4", "end"]) {
-            observable.end()
+            observable.endTransaction()
         }
 
         sink.disconnect()

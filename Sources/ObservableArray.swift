@@ -175,32 +175,17 @@ open class _AbstractObservableArray<Element>: ObservableArrayType {
     public final var anyObservableArray: AnyObservableArray<Element> { return AnyObservableArray(box: self) }
 }
 
-open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, SignalDelegate {
-    private var state = TransactionState<ArrayChange<Element>>()
+open class _BaseObservableArray<Element>: _AbstractObservableArray<Element>, TransactionalThing {
+    var _signal: TransactionalSignal<ArrayChange<Element>>? = nil
+    var _transactionCount = 0
 
     public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
-        state.add(sink, with: self)
+        signal.add(sink)
     }
 
     @discardableResult
     public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
-        return state.remove(sink)
-    }
-
-    final var isConnected: Bool {
-        return state.isConnected
-    }
-
-    final func beginTransaction() {
-        state.begin()
-    }
-
-    final func endTransaction() {
-        state.end()
-    }
-
-    final func sendChange(_ change: Change) {
-        state.send(change)
+        return signal.remove(sink)
     }
 
     open func activate() {

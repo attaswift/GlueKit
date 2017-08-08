@@ -109,36 +109,18 @@ open class _AbstractObservableValue<Value>: ObservableValueType {
     }
 }
 
-open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, SignalDelegate {
-    private var state = TransactionState<ValueChange<Value>>()
+open class _BaseObservableValue<Value>: _AbstractObservableValue<Value>, TransactionalThing {
+    public typealias Change = ValueChange<Value>
+    var _signal: TransactionalSignal<ValueChange<Value>>? = nil
+    var _transactionCount: Int = 0
 
     public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        state.add(sink, with: self)
+        signal.add(sink)
     }
 
     @discardableResult
     public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
-        return state.remove(sink)
-    }
-
-    final func beginTransaction() {
-        state.begin()
-    }
-
-    final func endTransaction() {
-        state.end()
-    }
-
-    final func sendChange(_ change: Change) {
-        state.send(change)
-    }
-
-    final func send(_ update: Update<Change>) {
-        state.send(update)
-    }
-
-    final var isConnected: Bool {
-        return state.isConnected
+        return signal.remove(sink)
     }
 
     open func activate() {

@@ -134,19 +134,19 @@ internal final class KVOSource: TransactionalSource<ValueChange<Any?>> {
 
     func process(_ change: [NSKeyValueChangeKey : Any]) {
         if (change[.notificationIsPriorKey] as? NSNumber)?.boolValue == true {
-            state.begin()
+            beginTransaction()
         }
         else {
-            precondition(state.isChanging)
+            precondition(isInTransaction)
             let oldValue = change[.oldKey]
             let newValue = change[.newKey]
             let old: Any? = (oldValue is NSNull ? nil : oldValue)
             let new: Any? = (newValue is NSNull ? nil : newValue)
             let change = ValueChange(from: old, to: new)
-            if state.isInOuterMostTransaction {
-                state.send(change)
+            if isInOuterMostTransaction {
+                sendChange(change)
             }
-            state.end()
+            endTransaction()
         }
     }
 }

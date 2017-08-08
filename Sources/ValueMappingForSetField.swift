@@ -81,19 +81,19 @@ private final class UpdateSourceForSetField<Parent: ObservableValueType, Field: 
     func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             let oldValue = self._field!.value
             let field = self.key(change.new)
             self.subscribe(to: field)
-            state.send(SetChange(removed: oldValue, inserted: field.value))
+            sendChange(SetChange(removed: oldValue, inserted: field.value))
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
     func applyFieldUpdate(_ update: SetUpdate<Field.Element>) {
-        state.send(update)
+        send(update)
     }
 }
 

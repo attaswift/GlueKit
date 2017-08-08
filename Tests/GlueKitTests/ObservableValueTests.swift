@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import GlueKit
+@testable import GlueKit
 
 class ObservableValueTests: XCTestCase {
     func test_anyObservable_fromObservableValue() {
@@ -30,7 +30,7 @@ class ObservableValueTests: XCTestCase {
         let futureValuesSink = MockSink<Int>(any.futureValues)
 
         updateSink.expecting("begin") {
-            test.begin()
+            test.beginTransaction()
         }
         updateSink.expecting("0 -> 1") {
             test.value = 1
@@ -40,7 +40,7 @@ class ObservableValueTests: XCTestCase {
             changeSink.expecting("0 -> 1") {
                 valuesSink.expecting(1) {
                     futureValuesSink.expecting(1) {
-                        test.end()
+                        test.endTransaction()
                     }
                 }
             }

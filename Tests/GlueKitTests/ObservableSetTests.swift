@@ -9,8 +9,9 @@
 import XCTest
 @testable import GlueKit
 
-class TestObservableSet<Element: Hashable>: _AbstractObservableSet<Element>, SignalDelegate {
-    private var _state = TransactionState<SetChange<Element>>()
+class TestObservableSet<Element: Hashable>: _AbstractObservableSet<Element>, TransactionalThing {
+    var _signal: TransactionalSignal<SetChange<Element>>? = nil
+    var _transactionCount: Int = 0
     private var _value: Set<Element>
 
     init(_ value: Set<Element>) {
@@ -20,40 +21,29 @@ class TestObservableSet<Element: Hashable>: _AbstractObservableSet<Element>, Sig
     override var value: Set<Element> { return _value }
 
     override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        _state.add(sink, with: self)
+        signal.add(sink)
     }
 
     @discardableResult
     override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
-        return _state.remove(sink)
+        return signal.remove(sink)
     }
 
     func apply(_ change: Change) {
         if change.isEmpty { return }
-        _state.begin()
+        beginTransaction()
         _value.subtract(change.removed)
         _value.formUnion(change.inserted)
-        _state.send(change)
-        _state.end()
-    }
-
-    func begin() {
-        _state.begin()
-    }
-
-    func end() {
-        _state.end()
-    }
-
-    var isConnected: Bool {
-        return _state.isConnected
+        sendChange(change)
+        endTransaction()
     }
 }
 
-private class TestObservableSet2<Element: Hashable>: ObservableSetType, SignalDelegate {
+private class TestObservableSet2<Element: Hashable>: ObservableSetType, TransactionalThing {
     typealias Change = SetChange<Element>
 
-    var _state = TransactionState<Change>()
+    var _signal: TransactionalSignal<SetChange<Element>>? = nil
+    var _transactionCount: Int = 0
     var _value: Set<Element>
 
     init(_ value: Set<Element>) {
@@ -63,27 +53,28 @@ private class TestObservableSet2<Element: Hashable>: ObservableSetType, SignalDe
     var value: Set<Element> { return _value }
 
     func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        _state.add(sink, with: self)
+        signal.add(sink)
     }
 
     @discardableResult
     func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
-        return _state.remove(sink)
+        return signal.remove(sink)
     }
 
     func apply(_ change: Change) {
         if change.isEmpty { return }
-        _state.begin()
+        beginTransaction()
         _value.subtract(change.removed)
         _value.formUnion(change.inserted)
-        _state.send(change)
-        _state.end()
+        sendChange(change)
+        endTransaction()
     }
 }
 
 
-private class TestUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, SignalDelegate {
-    var _state = TransactionState<SetChange<Element>>()
+private class TestUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, TransactionalThing {
+    var _signal: TransactionalSignal<SetChange<Element>>? = nil
+    var _transactionCount: Int = 0
     var _value: Set<Element>
 
     init(_ value: Set<Element>) {
@@ -96,32 +87,33 @@ private class TestUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element
     }
 
     override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        _state.add(sink, with: self)
+        signal.add(sink)
     }
 
     @discardableResult
     override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
-        return _state.remove(sink)
+        return signal.remove(sink)
     }
 
     override func apply(_ update: Update<Change>) {
         switch update {
         case .beginTransaction:
-            _state.begin()
+            beginTransaction()
         case .change(let change):
             _value.subtract(change.removed)
             _value.formUnion(change.inserted)
-            _state.send(change)
+            sendChange(change)
         case .endTransaction:
-            _state.end()
+            endTransaction()
         }
     }
 }
 
-private class TestUpdatableSet2<Element: Hashable>: UpdatableSetType, SignalDelegate {
+private class TestUpdatableSet2<Element: Hashable>: UpdatableSetType, TransactionalThing {
     typealias Change = SetChange<Element>
 
-    var _state = TransactionState<Change>()
+    var _signal: TransactionalSignal<SetChange<Element>>? = nil
+    var _transactionCount: Int = 0
     var _value: Set<Element>
 
     init(_ value: Set<Element>) {
@@ -134,30 +126,30 @@ private class TestUpdatableSet2<Element: Hashable>: UpdatableSetType, SignalDele
     }
 
     func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        _state.add(sink, with: self)
+        signal.add(sink)
     }
 
     @discardableResult
     func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
-        return _state.remove(sink)
+        return signal.remove(sink)
     }
 
     func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
+        beginTransaction()
+        defer { endTransaction() }
         return body()
     }
 
     func apply(_ update: Update<Change>) {
         switch update {
         case .beginTransaction:
-            _state.begin()
+            beginTransaction()
         case .change(let change):
             _value.subtract(change.removed)
             _value.formUnion(change.inserted)
-            _state.send(change)
+            sendChange(change)
         case .endTransaction:
-            _state.end()
+            endTransaction()
         }
     }
 }

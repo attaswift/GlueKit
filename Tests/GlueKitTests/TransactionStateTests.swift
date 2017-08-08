@@ -1,5 +1,5 @@
 //
-//  TransactionStateTests.swift
+//  TransactionalTests.swift
 //  GlueKit
 //
 //  Created by Károly Lőrentey on 2016-10-26.
@@ -9,30 +9,32 @@
 import XCTest
 @testable import GlueKit
 
-private class TransactionTestObservable: ObservableValueType, SignalDelegate {
+private class TransactionalTestObservable: ObservableValueType, TransactionalThing {
     typealias Value = Int
     typealias Change = ValueChange<Int>
 
-    var state = TransactionState<Change>()
+    var _signal: TransactionalSignal<ValueChange<Int>>? = nil
+    var _transactionCount: Int = 0
 
     var _value: Value = 0
 
     var value: Value {
         get { return _value }
         set {
-            state.begin()
+            beginTransaction()
             let old = _value
             _value = newValue
-            state.send(.init(from: old, to: _value))
-            state.end()
+            sendChange(.init(from: old, to: _value))
+            endTransaction()
         }
     }
 
     func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        state.add(sink, with: self)
+        signal.add(sink)
     }
+
     func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
-        return state.remove(sink)
+        return signal.remove(sink)
     }
 
     var activated = 0
@@ -47,9 +49,9 @@ private class TransactionTestObservable: ObservableValueType, SignalDelegate {
     }
 }
 
-class TransactionStateTests: XCTestCase {
+class TransactionalTests: XCTestCase {
     func testUpdatesSourceRemainsTheSame1() {
-        let observable = TransactionTestObservable()
+        let observable = TransactionalTestObservable()
         let sink1 = MockValueUpdateSink<Int>()
         let updates1 = observable.updates
         updates1.add(sink1)
@@ -72,7 +74,7 @@ class TransactionStateTests: XCTestCase {
     }
 
     func testUpdatesSourceRemainsTheSame2() {
-        let observable = TransactionTestObservable()
+        let observable = TransactionalTestObservable()
         let sink1 = MockValueUpdateSink<Int>()
 
         observable.updates.add(sink1)
@@ -93,167 +95,167 @@ class TransactionStateTests: XCTestCase {
     }
 
     func testSendIfConnected() {
-        let observable = TransactionTestObservable()
+        let observable = TransactionalTestObservable()
 
         // The autoclosure argument should not be called if the observable isn't connected.
-        observable.state.begin()
-        observable.state.sendIfConnected({ XCTFail(); return ValueChange(from: 0, to: 1) }())
-        observable.state.end()
+        observable.beginTransaction()
+        observable.sendIfConnected({ XCTFail(); return ValueChange(from: 0, to: 1) }())
+        observable.endTransaction()
 
         let sink = MockValueUpdateSink<Int>()
         observable.updates.add(sink)
 
         sink.expecting(["begin", "0 -> 1", "end"]) {
-            observable.state.begin()
-            observable.state.sendIfConnected(ValueChange(from: 0, to: 1))
-            observable.state.end()
+            observable.beginTransaction()
+            observable.sendIfConnected(ValueChange(from: 0, to: 1))
+            observable.endTransaction()
         }
 
         observable.updates.remove(sink)
     }
 
     func testSendLater() {
-        let observable = TransactionTestObservable()
+        let observable = TransactionalTestObservable()
         let sink = MockValueUpdateSink<Int>()
 
         observable.updates.add(sink)
 
         sink.expecting("begin") {
-            observable.state.begin()
+            observable.beginTransaction()
         }
 
-        observable.state.sendLater(ValueChange(from: 0, to: 1))
+        observable.signal.sendLater(.change(ValueChange(from: 0, to: 1)))
 
         sink.expecting("0 -> 1") {
-            observable.state.sendNow()
+            observable.signal.sendNow()
         }
 
         sink.expecting("end") {
-            observable.state.end()
+            observable.endTransaction()
         }
 
         observable.updates.remove(sink)
     }
 
     func testSendUpdate() {
-        let observable = TransactionTestObservable()
+        let observable = TransactionalTestObservable()
         let sink = MockValueUpdateSink<Int>()
 
         observable.updates.add(sink)
 
         sink.expecting("begin") {
-            observable.state.send(.beginTransaction)
+            observable.send(.beginTransaction)
         }
 
         sink.expecting("0 -> 1") {
-            observable.state.send(.change(ValueChange(from: 0, to: 1)))
+            observable.send(.change(ValueChange(from: 0, to: 1)))
         }
 
         sink.expecting("end") {
-            observable.state.send(.endTransaction)
+            observable.send(.endTransaction)
         }
 
         observable.updates.remove(sink)
     }
 
     func testSubscribingToOpenTransaction() {
-        let observable = TransactionTestObservable()
+        let observable = TransactionalTestObservable()
         let sink = MockValueUpdateSink<Int>()
 
-        observable.state.begin()
+        observable.beginTransaction()
 
         sink.expecting("begin") {
             observable.updates.add(sink)
         }
 
         sink.expecting("end") {
-            observable.state.end()
+            observable.endTransaction()
         }
 
         _ = observable.updates.remove(sink)
     }
 
     func testUnsubscribingFromOpenTransaction() {
-        let observable = TransactionTestObservable()
+        let observable = TransactionalTestObservable()
         let sink = MockValueUpdateSink<Int>()
 
         observable.updates.add(sink)
 
         sink.expecting("begin") {
-            observable.state.begin()
+            observable.beginTransaction()
         }
         sink.expecting("end") {
             _ = observable.updates.remove(sink)
         }
 
-        observable.state.end()
+        observable.endTransaction()
     }
 
     func testPropertiesWithNestedTransactions() {
-        let observable = TransactionTestObservable()
+        let observable = TransactionalTestObservable()
 
-        XCTAssertEqual(observable.state.isChanging, false)
-        XCTAssertEqual(observable.state.isConnected, false)
-        XCTAssertEqual(observable.state.isActive, false)
+        XCTAssertEqual(observable.isInTransaction, false)
+        XCTAssertEqual(observable.isConnected, false)
+        XCTAssertEqual(observable.isActive, false)
 
         // Start an outer transaction.
-        observable.state.begin()
+        observable.beginTransaction()
 
-        XCTAssertEqual(observable.state.isChanging, true)
-        XCTAssertEqual(observable.state.isConnected, false)
-        XCTAssertEqual(observable.state.isActive, true)
+        XCTAssertEqual(observable.isInTransaction, true)
+        XCTAssertEqual(observable.isConnected, false)
+        XCTAssertEqual(observable.isActive, true)
 
         // Start a nested transaction.
-        observable.state.begin()
+        observable.beginTransaction()
 
-        XCTAssertEqual(observable.state.isChanging, true)
-        XCTAssertEqual(observable.state.isConnected, false)
-        XCTAssertEqual(observable.state.isActive, true)
+        XCTAssertEqual(observable.isInTransaction, true)
+        XCTAssertEqual(observable.isConnected, false)
+        XCTAssertEqual(observable.isActive, true)
 
-        observable.state.end()
+        observable.endTransaction()
 
-        XCTAssertEqual(observable.state.isChanging, true)
-        XCTAssertEqual(observable.state.isConnected, false)
-        XCTAssertEqual(observable.state.isActive, true)
+        XCTAssertEqual(observable.isInTransaction, true)
+        XCTAssertEqual(observable.isConnected, false)
+        XCTAssertEqual(observable.isActive, true)
 
-        observable.state.end()
+        observable.endTransaction()
 
-        XCTAssertEqual(observable.state.isChanging, false)
-        XCTAssertEqual(observable.state.isConnected, false)
-        XCTAssertEqual(observable.state.isActive, false)
+        XCTAssertEqual(observable.isInTransaction, false)
+        XCTAssertEqual(observable.isConnected, false)
+        XCTAssertEqual(observable.isActive, false)
 
         let sink = MockValueUpdateSink<Int>()
         observable.updates.add(sink)
 
-        XCTAssertEqual(observable.state.isChanging, false)
-        XCTAssertEqual(observable.state.isConnected, true)
-        XCTAssertEqual(observable.state.isActive, true)
+        XCTAssertEqual(observable.isInTransaction, false)
+        XCTAssertEqual(observable.isConnected, true)
+        XCTAssertEqual(observable.isActive, true)
 
         sink.expecting("begin") {
-            observable.state.begin()
+            observable.beginTransaction()
         }
 
-        XCTAssertEqual(observable.state.isChanging, true)
-        XCTAssertEqual(observable.state.isConnected, true)
-        XCTAssertEqual(observable.state.isActive, true)
+        XCTAssertEqual(observable.isInTransaction, true)
+        XCTAssertEqual(observable.isConnected, true)
+        XCTAssertEqual(observable.isActive, true)
 
         sink.expecting("end") {
-            observable.state.end()
+            observable.endTransaction()
         }
 
-        XCTAssertEqual(observable.state.isChanging, false)
-        XCTAssertEqual(observable.state.isConnected, true)
-        XCTAssertEqual(observable.state.isActive, true)
+        XCTAssertEqual(observable.isInTransaction, false)
+        XCTAssertEqual(observable.isConnected, true)
+        XCTAssertEqual(observable.isActive, true)
 
         observable.updates.remove(sink)
 
-        XCTAssertEqual(observable.state.isChanging, false)
-        XCTAssertEqual(observable.state.isConnected, false)
-        XCTAssertEqual(observable.state.isActive, false)
+        XCTAssertEqual(observable.isInTransaction, false)
+        XCTAssertEqual(observable.isConnected, false)
+        XCTAssertEqual(observable.isActive, false)
     }
 
     func testActivation() {
-        let observable = TransactionTestObservable()
+        let observable = TransactionalTestObservable()
         let sink = MockValueUpdateSink<Int>()
 
         XCTAssertEqual(observable.activated, 0)
@@ -269,10 +271,6 @@ class TransactionStateTests: XCTestCase {
 class TestTransactionalSource: TransactionalSource<ValueChange<Int>> {
     var activated = 0
     var deactivated = 0
-
-    func send(_ value: ValueUpdate<Int>) {
-        state.send(value)
-    }
 
     override func activate() {
         super.activate()

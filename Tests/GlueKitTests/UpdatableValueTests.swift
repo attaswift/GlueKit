@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import GlueKit
+@testable import GlueKit
 
 class UpdatableValueTests: XCTestCase {
     func test_anyUpdatable_fromUpdatableValue() {
@@ -30,7 +30,7 @@ class UpdatableValueTests: XCTestCase {
         let futureValuesSink = MockSink<Int>(any.futureValues)
 
         updateSink.expecting("begin") {
-            test.begin()
+            test.beginTransaction()
         }
         updateSink.expecting("0 -> 1") {
             test.value = 1
@@ -40,7 +40,7 @@ class UpdatableValueTests: XCTestCase {
             changeSink.expecting("0 -> 1") {
                 valuesSink.expecting(1) {
                     futureValuesSink.expecting(1) {
-                        test.end()
+                        test.endTransaction()
                     }
                 }
             }
@@ -174,14 +174,14 @@ class UpdatableValueTests: XCTestCase {
         let updateSink = MockValueUpdateSink<Int>(any.updates)
 
         updateSink.expecting("begin") {
-            test.begin()
+            test.beginTransaction()
         }
         updateSink.expecting("0 -> 1") {
             test.value = 1
         }
 
         updateSink.expecting("end") {
-            test.end()
+            test.endTransaction()
         }
     }
 }

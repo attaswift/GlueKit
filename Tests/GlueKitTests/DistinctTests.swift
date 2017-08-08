@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import GlueKit
+@testable import GlueKit
 
 class DistinctTests: XCTestCase {
     func test_updates_reportsChangesAtTheEndOfTheTransaction() {
@@ -18,7 +18,7 @@ class DistinctTests: XCTestCase {
         distinct.updates.add(sink)
 
         sink.expecting("begin") {
-            test.begin()
+            test.beginTransaction()
         }
 
         sink.expectingNothing {
@@ -27,7 +27,7 @@ class DistinctTests: XCTestCase {
         }
 
         sink.expecting(["0 -> 2", "end"]) {
-            test.end()
+            test.endTransaction()
         }
 
         distinct.updates.remove(sink)
@@ -41,7 +41,7 @@ class DistinctTests: XCTestCase {
         distinct.updates.add(sink)
 
         sink.expecting("begin") {
-            test.begin()
+            test.beginTransaction()
         }
 
         sink.expectingNothing {
@@ -50,7 +50,7 @@ class DistinctTests: XCTestCase {
         }
 
         sink.expecting(["end"]) {
-            test.end()
+            test.endTransaction()
         }
 
         distinct.updates.remove(sink)
@@ -68,7 +68,7 @@ class DistinctTests: XCTestCase {
 
         sink0to2.expecting("begin") {
             sink0to3.expecting("begin") {
-                test.begin()
+                test.beginTransaction()
             }
         }
 
@@ -114,7 +114,7 @@ class DistinctTests: XCTestCase {
 
         sink0to3.expecting(["0 -> 3", "end"]) {
             sink1to3.expecting(["1 -> 3", "end"]) {
-                test.end()
+                test.endTransaction()
             }
         }
 

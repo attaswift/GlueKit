@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import GlueKit
+@testable import GlueKit
 
 class ChangesSourceTests: XCTestCase {
     func testRetainsObservable() {
@@ -50,13 +50,13 @@ class ChangesSourceTests: XCTestCase {
         changes.add(sink)
 
         sink.expectingNothing {
-            observable.begin()
+            observable.beginTransaction()
             observable.value = 1
             observable.value = 2
         }
 
         sink.expecting(TestChange([0, 1, 2])) {
-            observable.end()
+            observable.endTransaction()
         }
 
         changes.remove(sink)
@@ -68,14 +68,14 @@ class ChangesSourceTests: XCTestCase {
 
         let sink = MockSink<TestChange>()
         changes.add(sink)
-        observable.begin()
+        observable.beginTransaction()
         observable.value = 1
         observable.value = 2
         sink.expecting(TestChange([0, 1, 2])) {
             _ = changes.remove(sink)
         }
         observable.value = 3
-        observable.end()
+        observable.endTransaction()
     }
 
     func testDifferentSinksMayReceiveDifferentChanges() {
@@ -85,7 +85,7 @@ class ChangesSourceTests: XCTestCase {
         let sink1 = MockSink<TestChange>()
         changes.add(sink1)
 
-        observable.begin()
+        observable.beginTransaction()
         observable.value = 1
 
         let sink2 = MockSink<TestChange>()
@@ -100,7 +100,7 @@ class ChangesSourceTests: XCTestCase {
         observable.value = 3
 
         sink2.expecting(TestChange([1, 2, 3])) {
-            observable.end()
+            observable.endTransaction()
         }
 
         changes.remove(sink2)

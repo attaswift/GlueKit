@@ -200,48 +200,33 @@ open class _AbstractUpdatableSet<Element: Hashable>: _AbstractObservableSet<Elem
     }
 }
 
-public class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, SignalDelegate {
+public class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, TransactionalThing {
     public typealias Change = SetChange<Element>
 
-    private var state = TransactionState<SetChange<Element>>()
+    var _signal: TransactionalSignal<SetChange<Element>>? = nil
+    var _transactionCount: Int = 0
 
     func rawApply(_ change: Change) { abstract() }
 
     public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        state.add(sink, with: self)
+        signal.add(sink)
     }
 
     @discardableResult
     public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
-        return state.remove(sink)
+        return signal.remove(sink)
     }
 
     public final override func apply(_ update: Update<Change>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             rawApply(change)
             sendChange(change)
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
-    }
-
-    final var isConnected: Bool {
-        return state.isConnected
-    }
-
-    final func beginTransaction() {
-        state.begin()
-    }
-
-    final func endTransaction() {
-        state.end()
-    }
-
-    final func sendChange(_ change: Change) {
-        state.send(change)
     }
 
     open func activate() {

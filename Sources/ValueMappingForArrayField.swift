@@ -106,21 +106,21 @@ private final class UpdateSourceForArrayField<Parent: ObservableValueType, Field
     func applyParentUpdate(_ update: ValueUpdate<Parent.Value>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             let old = key(change.old).value
             let field = self.key(change.new)
             self.field!.remove(FieldSink(owner: self))
             self.field = field
             field.add(FieldSink(owner: self))
-            state.send(.init(from: old, to: field.value))
+            sendChange(.init(from: old, to: field.value))
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
     }
 
     func applyFieldUpdate(_ update: ArrayUpdate<Field.Element>) {
-        state.send(update)
+        signal.send(update)
     }
 }
 

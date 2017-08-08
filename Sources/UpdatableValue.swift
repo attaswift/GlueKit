@@ -81,19 +81,20 @@ open class _AbstractUpdatableValue<Value>: _AbstractObservableValue<Value>, Upda
     public final var anyUpdatableValue: AnyUpdatableValue<Value> { return AnyUpdatableValue(box: self) }
 }
 
-public class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, SignalDelegate {
-    private var state = TransactionState<ValueChange<Value>>()
+public class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, TransactionalThing {
+    var _signal: TransactionalSignal<ValueChange<Value>>? = nil
+    var _transactionCount = 0
 
     func rawGetValue() -> Value { abstract() }
     func rawSetValue(_ value: Value) { abstract() }
 
     public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        state.add(sink, with: self)
+        signal.add(sink)
     }
 
     @discardableResult
     public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
-        return state.remove(sink)
+        return signal.remove(sink)
     }
 
     public final override var value: Value {
@@ -112,29 +113,13 @@ public class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, SignalD
     public final override func apply(_ update: Update<Change>) {
         switch update {
         case .beginTransaction:
-            state.begin()
+            beginTransaction()
         case .change(let change):
             rawSetValue(change.new)
             sendChange(change)
         case .endTransaction:
-            state.end()
+            endTransaction()
         }
-    }
-
-    final func beginTransaction() {
-        state.begin()
-    }
-
-    final func endTransaction() {
-        state.end()
-    }
-
-    final func sendChange(_ change: Change) {
-        state.send(change)
-    }
-
-    final func send(_ update: Update<Change>) {
-        state.send(update)
     }
 
     open func activate() {

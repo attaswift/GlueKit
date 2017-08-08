@@ -9,11 +9,12 @@
 import XCTest
 @testable import GlueKit
 
-class TestUpdatable: UpdatableType, SignalDelegate {
+class TestUpdatable: UpdatableType, TransactionalThing {
     typealias Change = TestChange
     typealias Value = Int
 
-    var _state = TransactionState<Change>()
+    var _signal: TransactionalSignal<TestChange>? = nil
+    var _transactionCount: Int = 0
     var _value: Value
 
     init(_ value: Value) {
@@ -24,47 +25,38 @@ class TestUpdatable: UpdatableType, SignalDelegate {
         get { return _value }
         set {
             let old = _value
-            _state.begin()
+            beginTransaction()
             _value = newValue
-            _state.send(.init(from: old, to: _value))
-            _state.end()
+            sendChange(.init(from: old, to: _value))
+            endTransaction()
         }
-    }
-
-    func begin() {
-        _state.begin()
-    }
-
-    func end() {
-        _state.end()
     }
 
     func apply(_ update: Update<TestChange>) {
         switch update {
         case .beginTransaction:
-            _state.begin()
+            beginTransaction()
         case .change(let change):
             change.apply(on: &_value)
-            _state.send(change)
+            sendChange(change)
         case .endTransaction:
-            _state.end()
+            endTransaction()
         }
     }
 
-    var isConnected: Bool { return _state.isConnected }
-
     func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        _state.add(sink, with: self)
+        signal.add(sink)
     }
     func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
-        return _state.remove(sink)
+        return signal.remove(sink)
     }
 }
 
-class TestUpdatableValue<Value>: UpdatableValueType, SignalDelegate {
+class TestUpdatableValue<Value>: UpdatableValueType, TransactionalThing {
     typealias Change = ValueChange<Value>
 
-    var _state = TransactionState<Change>()
+    var _signal: TransactionalSignal<ValueChange<Value>>? = nil
+    var _transactionCount: Int = 0
     var _value: Value
 
     init(_ value: Value) {
@@ -75,39 +67,29 @@ class TestUpdatableValue<Value>: UpdatableValueType, SignalDelegate {
         get { return _value }
         set {
             let old = _value
-            _state.begin()
+            beginTransaction()
             _value = newValue
-            _state.send(.init(from: old, to: _value))
-            _state.end()
+            sendChange(.init(from: old, to: _value))
+            endTransaction()
         }
-    }
-
-    func begin() {
-        _state.begin()
-    }
-
-    func end() {
-        _state.end()
     }
 
     func apply(_ update: Update<Change>) {
         switch update {
         case .beginTransaction:
-            _state.begin()
+            beginTransaction()
         case .change(let change):
             change.apply(on: &_value)
-            _state.send(change)
+            sendChange(change)
         case .endTransaction:
-            _state.end()
+            endTransaction()
         }
     }
 
-    var isConnected: Bool { return _state.isConnected }
-
     func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<Change> {
-        _state.add(sink, with: self)
+        signal.add(sink)
     }
     func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<Change> {
-        return _state.remove(sink)
+        return signal.remove(sink)
     }
 }

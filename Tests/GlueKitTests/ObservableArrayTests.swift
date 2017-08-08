@@ -9,10 +9,11 @@
 import XCTest
 @testable import GlueKit
 
-class TestObservableArray<Element>: ObservableArrayType, SignalDelegate {
+class TestObservableArray<Element>: ObservableArrayType, TransactionalThing {
     typealias Change = ArrayChange<Element>
-    
-    var _state = TransactionState<ArrayChange<Element>>()
+
+    var _signal: TransactionalSignal<ArrayChange<Element>>? = nil
+    var _transactionCount: Int = 0
     var _value: [Element]
 
     init(_ value: [Element]) {
@@ -28,32 +29,20 @@ class TestObservableArray<Element>: ObservableArrayType, SignalDelegate {
     }
 
     func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<ArrayChange<Element>> {
-        _state.add(sink, with: self)
+        signal.add(sink)
     }
 
     @discardableResult
     func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<ArrayChange<Element>> {
-        return _state.remove(sink)
-    }
-
-    func begin() {
-        _state.begin()
-    }
-
-    func end() {
-        _state.end()
+        return signal.remove(sink)
     }
 
     func apply(_ change: ArrayChange<Element>) {
         if change.isEmpty { return }
-        _state.begin()
+        beginTransaction()
         _value.apply(change)
-        _state.send(change)
-        _state.end()
-    }
-
-    var isConnected: Bool {
-        return _state.isConnected
+        sendChange(change)
+        endTransaction()
     }
 }
 
@@ -74,20 +63,20 @@ private class TestUpdatableArray<Element>: TestObservableArray<Element>, Updatab
     }
 
     func withTransaction<Result>(_ body: () -> Result) -> Result {
-        _state.begin()
-        defer { _state.end() }
+        beginTransaction()
+        defer { endTransaction() }
         return body()
     }
 
     func apply(_ update: Update<ArrayChange<Element>>) {
         switch update {
         case .beginTransaction:
-            begin()
+            beginTransaction()
         case .change(let change):
             _value.apply(change)
-            _state.send(change)
+            sendChange(change)
         case .endTransaction:
-            end()
+            endTransaction()
         }
     }
 }

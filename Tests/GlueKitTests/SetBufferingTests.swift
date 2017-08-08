@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import GlueKit
+@testable import GlueKit
 
 class SetBufferingTests: XCTestCase {
     func test_connectsImmediately() {
@@ -54,7 +54,7 @@ class SetBufferingTests: XCTestCase {
         XCTAssertEqual(buffered.value, [1, 2])
 
         sink.expecting("begin") {
-            observable.begin()
+            observable.beginTransaction()
         }
 
         sink.expectingNothing {
@@ -68,7 +68,7 @@ class SetBufferingTests: XCTestCase {
         XCTAssertEqual(buffered.value, [1, 2])
 
         sink.expecting(["[2]/[4, 9]", "end"]) {
-            observable.end()
+            observable.endTransaction()
         }
         XCTAssertEqual(buffered.value, [1, 4, 9])
 

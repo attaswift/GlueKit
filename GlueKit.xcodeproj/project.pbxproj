@@ -172,7 +172,7 @@
 		BB6CE3B91DC4CD3B00295C55 /* Update.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE9AAC91DC0F0A5000B3DD0 /* Update.swift */; };
 		BB6CE3BA1DC4CD3F00295C55 /* ObservableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */; };
 		BB6CE3BB1DC4CD4800295C55 /* ChangesSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73E51DBB727300E20D67 /* ChangesSource.swift */; };
-		BB6CE3BC1DC4CD6500295C55 /* TransactionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73DF1DBB61C100E20D67 /* TransactionState.swift */; };
+		BB6CE3BC1DC4CD6500295C55 /* TransactionalThing.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73DF1DBB61C100E20D67 /* TransactionalThing.swift */; };
 		BB6CE3BD1DC4CD6900295C55 /* ValueChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF441DA3A908005EC162 /* ValueChange.swift */; };
 		BB6CE3BE1DC4CD6B00295C55 /* ObservableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B291C8FCC810050DDA9 /* ObservableValue.swift */; };
 		BB6CE3BF1DC4CD6F00295C55 /* UpdatableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B331C8FCC820050DDA9 /* UpdatableValue.swift */; };
@@ -270,9 +270,9 @@
 		BB9D73D51DBB4BB300E20D67 /* MergedSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B261C8FCC810050DDA9 /* MergedSource.swift */; };
 		BB9D73D61DBB519500E20D67 /* TransformedSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B311C8FCC810050DDA9 /* TransformedSource.swift */; };
 		BB9D73DC1DBB612600E20D67 /* Connector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB55B221C8FCC810050DDA9 /* Connector.swift */; };
-		BB9D73E01DBB61C100E20D67 /* TransactionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73DF1DBB61C100E20D67 /* TransactionState.swift */; };
-		BB9D73E21DBB61C100E20D67 /* TransactionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73DF1DBB61C100E20D67 /* TransactionState.swift */; };
-		BB9D73E31DBB61C100E20D67 /* TransactionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73DF1DBB61C100E20D67 /* TransactionState.swift */; };
+		BB9D73E01DBB61C100E20D67 /* TransactionalThing.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73DF1DBB61C100E20D67 /* TransactionalThing.swift */; };
+		BB9D73E21DBB61C100E20D67 /* TransactionalThing.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73DF1DBB61C100E20D67 /* TransactionalThing.swift */; };
+		BB9D73E31DBB61C100E20D67 /* TransactionalThing.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73DF1DBB61C100E20D67 /* TransactionalThing.swift */; };
 		BB9D73E61DBB727300E20D67 /* ChangesSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73E51DBB727300E20D67 /* ChangesSource.swift */; };
 		BB9D73E81DBB727300E20D67 /* ChangesSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73E51DBB727300E20D67 /* ChangesSource.swift */; };
 		BB9D73E91DBB727300E20D67 /* ChangesSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9D73E51DBB727300E20D67 /* ChangesSource.swift */; };
@@ -658,7 +658,7 @@
 		BB948BC01DD720FE00B0734C /* UISwitch Glue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UISwitch Glue.swift"; sourceTree = "<group>"; };
 		BB9D73C81DBB2EB400E20D67 /* Connect.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Connect.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		BB9D73CE1DBB38F900E20D67 /* Sink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sink.swift; sourceTree = "<group>"; };
-		BB9D73DF1DBB61C100E20D67 /* TransactionState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransactionState.swift; sourceTree = "<group>"; };
+		BB9D73DF1DBB61C100E20D67 /* TransactionalThing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransactionalThing.swift; sourceTree = "<group>"; };
 		BB9D73E51DBB727300E20D67 /* ChangesSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = ChangesSource.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		BB9D73EE1DBDFEE400E20D67 /* TwoWayBinding.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TwoWayBinding.swift; sourceTree = "<group>"; };
 		BB9D73F31DBE03EB00E20D67 /* DispatchSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DispatchSource.swift; sourceTree = "<group>"; };
@@ -1038,7 +1038,7 @@
 				BBE9AAC91DC0F0A5000B3DD0 /* Update.swift */,
 				BBE4DF3F1DA3A88C005EC162 /* ObservableType.swift */,
 				BB9D73E51DBB727300E20D67 /* ChangesSource.swift */,
-				BB9D73DF1DBB61C100E20D67 /* TransactionState.swift */,
+				BB9D73DF1DBB61C100E20D67 /* TransactionalThing.swift */,
 			);
 			name = "Abstract Observable";
 			sourceTree = "<group>";
@@ -1582,7 +1582,7 @@
 				BB69A7F31D6B1D7B001D2821 /* Change.swift in Sources */,
 				BB69A7F71D6B1D82001D2821 /* ArrayChange.swift in Sources */,
 				BB7E04E11DA7255D00BE3051 /* ArrayFilteringIndexmap.swift in Sources */,
-				BB9D73E01DBB61C100E20D67 /* TransactionState.swift in Sources */,
+				BB9D73E01DBB61C100E20D67 /* TransactionalThing.swift in Sources */,
 				BB9D73CF1DBB38F900E20D67 /* Sink.swift in Sources */,
 				BB69A81D1D6B71F9001D2821 /* SetChange.swift in Sources */,
 				BB69A8101D6B5397001D2821 /* ValueMappingForValueField.swift in Sources */,
@@ -1730,7 +1730,7 @@
 				BB6CE3C61DC4CD8D00295C55 /* ValueMappingForValue.swift in Sources */,
 				BB015F301DC4F64200C8C05A /* UpdatableSet.swift in Sources */,
 				BB6CE3D91DC4F19D00295C55 /* ObservableArray.swift in Sources */,
-				BB6CE3BC1DC4CD6500295C55 /* TransactionState.swift in Sources */,
+				BB6CE3BC1DC4CD6500295C55 /* TransactionalThing.swift in Sources */,
 				BBEA2A401DBFE38F00CCCB08 /* BufferedSource.swift in Sources */,
 				BB69A7F01D6AFF1A001D2821 /* Abstract.swift in Sources */,
 				BB015F471DC52B6200C8C05A /* ArrayConcatenation.swift in Sources */,
@@ -1916,7 +1916,7 @@
 				BB69A7FD1D6B1D95001D2821 /* ObservableArray.swift in Sources */,
 				BBA0335E1DA7276200E83AC1 /* SetSortingByComparator.swift in Sources */,
 				BB7E04E81DA725A500BE3051 /* ArrayFilteringOnObservableBool.swift in Sources */,
-				BB9D73E21DBB61C100E20D67 /* TransactionState.swift in Sources */,
+				BB9D73E21DBB61C100E20D67 /* TransactionalThing.swift in Sources */,
 				BBF7B95B1EACFC3B00073DF8 /* DependentValue.swift in Sources */,
 				BBB55B741C8FCC820050DDA9 /* Signal.swift in Sources */,
 				BBB55B5C1C8FCC820050DDA9 /* BufferedValue.swift in Sources */,
@@ -2035,7 +2035,7 @@
 				BBB55B451C8FCC820050DDA9 /* Connector.swift in Sources */,
 				BB7E04CB1DA7233B00BE3051 /* ArrayMappingForArrayField.swift in Sources */,
 				BBB55B891C8FCC820050DDA9 /* UpdatableValue.swift in Sources */,
-				BB9D73E31DBB61C100E20D67 /* TransactionState.swift in Sources */,
+				BB9D73E31DBB61C100E20D67 /* TransactionalThing.swift in Sources */,
 				BB69A8201D6B71FB001D2821 /* SetChange.swift in Sources */,
 				BBBBEC901DCA1AEB000B646D /* ValueReference.swift in Sources */,
 				BBF7B9571EACEB0100073DF8 /* AccumulatedSource.swift in Sources */,

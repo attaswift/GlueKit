@@ -134,32 +134,17 @@ open class _AbstractObservableSet<Element: Hashable>: ObservableSetType {
     }
 }
 
-open class _BaseObservableSet<Element: Hashable>: _AbstractObservableSet<Element>, SignalDelegate {
-    private var state = TransactionState<SetChange<Element>>()
+open class _BaseObservableSet<Element: Hashable>: _AbstractObservableSet<Element>, TransactionalThing {
+    var _signal: TransactionalSignal<SetChange<Element>>? = nil
+    var _transactionCount = 0
 
     public final override func add<Sink: SinkType>(_ sink: Sink) where Sink.Value == Update<SetChange<Element>> {
-        state.add(sink, with: self)
+        signal.add(sink)
     }
 
     @discardableResult
     public final override func remove<Sink: SinkType>(_ sink: Sink) -> Sink where Sink.Value == Update<SetChange<Element>> {
-        return state.remove(sink)
-    }
-
-    final var isConnected: Bool {
-        return state.isConnected
-    }
-
-    final func beginTransaction() {
-        state.begin()
-    }
-
-    final func endTransaction() {
-        state.end()
-    }
-
-    final func sendChange(_ change: SetChange<Element>) {
-        state.send(change)
+        return signal.remove(sink)
     }
 
     func activate() {
