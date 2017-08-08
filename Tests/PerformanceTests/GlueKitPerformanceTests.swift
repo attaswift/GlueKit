@@ -76,7 +76,7 @@ private struct HardwiredMethodSink: SinkType {
 
 extension XCTestCase {
     func measureDelayed(_ body: @escaping () -> ()) {
-        self.measureMetrics(XCTestCase.defaultPerformanceMetrics(), automaticallyStartMeasuring: false, for: body)
+        self.measureMetrics(XCTestCase.defaultPerformanceMetrics, automaticallyStartMeasuring: false, for: body)
     }
 }
 
