@@ -110,6 +110,7 @@
 		BB568AF31DA6942700BC4B58 /* MockSetObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */; };
 		BB568AF51DA6942700BC4B58 /* MockSetObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */; };
 		BB568AF91DA6A9EE00BC4B58 /* MockArrayObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */; };
+		BB6139831F5E1B3F005455D5 /* NSTextField Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB6139821F5E1B3F005455D5 /* NSTextField Glue.swift */; };
 		BB67E5521C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
 		BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
 		BB69A7EF1D6AFF1A001D2821 /* Abstract.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB69A7EE1D6AFF1A001D2821 /* Abstract.swift */; };
@@ -627,6 +628,7 @@
 		BB568AEE1DA693F700BC4B58 /* SetFilteringTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetFilteringTests.swift; sourceTree = "<group>"; };
 		BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockSetObserver.swift; sourceTree = "<group>"; };
 		BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockArrayObserver.swift; sourceTree = "<group>"; };
+		BB6139821F5E1B3F005455D5 /* NSTextField Glue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSTextField Glue.swift"; sourceTree = "<group>"; };
 		BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CADisplayLink Extensions.swift"; sourceTree = "<group>"; };
 		BB69A7EE1D6AFF1A001D2821 /* Abstract.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Abstract.swift; sourceTree = "<group>"; };
 		BB69A7FF1D6B2377001D2821 /* BufferedArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BufferedArray.swift; sourceTree = "<group>"; };
@@ -882,6 +884,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		BB5B02D71F5E1B880084D86B /* AppKit Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				BB6139821F5E1B3F005455D5 /* NSTextField Glue.swift */,
+			);
+			name = "AppKit Extensions";
+			sourceTree = "<group>";
+		};
 		BB8990011D5DF2BD0097F350 /* Observable Sets */ = {
 			isa = PBXGroup;
 			children = (
@@ -977,6 +987,7 @@
 				BBB55B951C8FCD4E0050DDA9 /* Observable Arrays */,
 				BB8990011D5DF2BD0097F350 /* Observable Sets */,
 				BBB4F2531C9594E0002532CC /* Foundation Extensions */,
+				BB5B02D71F5E1B880084D86B /* AppKit Extensions */,
 				BBC3C84F1C93164700E10D59 /* UIKit Extensions */,
 			);
 			path = Sources;
@@ -1771,6 +1782,7 @@
 				BB6CE3BB1DC4CD4800295C55 /* ChangesSource.swift in Sources */,
 				BB6CE3C41DC4CD8300295C55 /* CompositeObservable.swift in Sources */,
 				BB6CE3C81DC4D2D400295C55 /* ValueMappingForValueField.swift in Sources */,
+				BB6139831F5E1B3F005455D5 /* NSTextField Glue.swift in Sources */,
 				BB9D73F51DBE03EB00E20D67 /* DispatchSource.swift in Sources */,
 				BB9D73FF1DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BB015F451DC52ADD00C8C05A /* ArrayFolding.swift in Sources */,

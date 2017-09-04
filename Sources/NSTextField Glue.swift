@@ -1,0 +1,69 @@
+//
+//  NSTextField Glue.swift
+//  macOS
+//
+//  Created by Károly Lőrentey on 2017-09-05.
+//  Copyright © 2017 Károly Lőrentey. All rights reserved.
+//
+
+import AppKit
+
+extension NSTextField {
+    @objc open dynamic override var glue: GlueForNSTextField { return _glue() }
+}
+
+public func <-- <V: UpdatableValueType>(target: GlueForNSTextField, model: V) where V.Value: LosslessStringConvertible {
+    target.setModel(model)
+}
+
+open class GlueForNSTextField: GlueForNSObject {
+    var delegate: Any? = nil
+    var object: NSTextField { return owner as! NSTextField }
+
+    public func setModel<V: UpdatableValueType>(_ model: V)
+        where V.Value: LosslessStringConvertible {
+            if let delegate = self.delegate as? GlueKitTextFieldDelegate<V.Value> {
+                delegate.model = model.anyUpdatableValue
+            }
+            else {
+                let delegate = GlueKitTextFieldDelegate(object, model)
+                self.delegate = delegate
+            }
+    }
+}
+
+class GlueKitTextFieldDelegate<Value: LosslessStringConvertible>: NSObject, NSTextFieldDelegate {
+    public unowned let view: NSTextField
+    public var model: AnyUpdatableValue<Value> {
+        didSet { reconnect() }
+    }
+
+    init<V: UpdatableValueType>(_ view: NSTextField, _ model: V) where V.Value == Value {
+        self.view = view
+        self.model = model.anyUpdatableValue
+        super.init()
+        reconnect()
+    }
+
+    private let modelConnector = Connector()
+    private func reconnect() {
+        view.delegate = self
+        modelConnector.disconnect()
+        modelConnector.connect(model.values) { [unowned self] value in
+            self.view.stringValue = "\(value)"
+        }
+    }
+
+    func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
+        return Value(view.stringValue) != nil
+    }
+
+    override func controlTextDidEndEditing(_ obj: Notification) {
+        if let value = Value(view.stringValue) {
+            model.value = value
+        }
+        else {
+            view.stringValue = "\(model.value)"
+        }
+    }
+}
