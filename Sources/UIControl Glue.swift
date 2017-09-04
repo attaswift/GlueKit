@@ -65,21 +65,21 @@ public class GlueForUIControl: GlueForNSObject {
     
     private var object: UIControl { return owner as! UIControl }
 
-    private var targets: [ControlEventsControlEventsTargetKey: ControlEventsTarget] = [:]
+    private var targets: [ControlEventsTargetKey: ControlEventsTarget] = [:]
 
     public func source(for events: UIControlEvents = .primaryActionTriggered) -> ControlEventsSource {
         return ControlEventsSource(control: object, events: events)
     }
 
-    fileprivate func add(_ sink: AnySink<UIEvent>, for events: UIControlEvents) -> ControlEventsTarget {
+    private func add(_ sink: AnySink<UIEvent>, for events: UIControlEvents) -> ControlEventsTarget {
         let target = ControlEventsTarget(sink: sink)
-        let key = ControlEventsControlEventsTargetKey(sink: sink, events: events)
+        let key = ControlEventsTargetKey(sink: sink, events: events)
         precondition(targets[key] == nil)
         targets[key] = target
         return target
     }
 
-    fileprivate func remove(_ sink: AnySink<UIEvent>, for events: UIControlEvents) -> ControlEventsTarget {
+    private func remove(_ sink: AnySink<UIEvent>, for events: UIControlEvents) -> ControlEventsTarget {
         let key = ControlEventsTargetKey(sink: sink, events: events)
         let target = targets[key]!
         targets[key] = nil
