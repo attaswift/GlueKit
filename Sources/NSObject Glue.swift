@@ -8,9 +8,159 @@
 
 import Foundation
 
+extension NSObjectProtocol where Self: NSObject {
+    public func observable<Value>(for keyPath: KeyPath<Self, Value>) -> AnyObservableValue<Value> {
+        return ModernKVOObservable(self, keyPath).anyObservableValue
+    }
+
+    public func updatable<Value>(for keyPath: ReferenceWritableKeyPath<Self, Value>) -> AnyUpdatableValue<Value> {
+        return ModernKVOUpdatable(self, keyPath).anyUpdatableValue
+    }
+}
+
+private class ModernKVOObservation<Root: NSObject, Value>: Hashable {
+    typealias Sink = AnySink<ValueUpdate<Value>>
+    let sink: Sink
+    var observation: NSKeyValueObservation!
+    var transactionCount: Int = 0
+    var pendingOld: Value? = nil
+    var pendingNew: Value? = nil
+
+    init(object: Root, keyPath: KeyPath<Root, Value>, sink: Sink) {
+        self.sink = sink.anySink
+        self.observation = object.observe(keyPath, options: [.prior, .old, .new], changeHandler: self.observeChange)
+    }
+
+    var hashValue: Int { return sink.hashValue }
+    public static func ==(left: ModernKVOObservation, right: ModernKVOObservation) -> Bool {
+        return left.sink == right.sink
+    }
+
+    func invalidate() {
+        observation.invalidate()
+        if transactionCount > 0 {
+            sink.receive(.endTransaction)
+        }
+    }
+
+    func closeTransaction() {
+        precondition(transactionCount > 0)
+        guard transactionCount == 1 else { transactionCount -= 1; return }
+        while let new = pendingNew {
+            let old = pendingOld!
+            pendingOld = new
+            pendingNew = nil
+            sink.receive(.change(.init(from: old, to: new)))
+            precondition(transactionCount > 0)
+        }
+        transactionCount -= 1
+        if transactionCount == 0 {
+            pendingOld = nil
+            sink.receive(.endTransaction)
+        }
+    }
+
+    func observeChange(object: Root, change: NSKeyValueObservedChange<Value>) {
+        if change.isPrior {
+            transactionCount += 1
+            if transactionCount == 1 {
+                precondition(pendingOld == nil)
+                // Weird round trip through Any is because change.oldValue/.newValue is nil if value is a nil optional.
+                pendingOld = ((change.oldValue as Any) as! Value)
+                sink.receive(.beginTransaction)
+            }
+        }
+        else {
+            precondition(transactionCount > 0)
+            // Weird round trip through Any is because change.oldValue/.newValue is nil if value is a nil optional.
+            pendingNew = ((change.newValue as Any) as! Value)
+            closeTransaction()
+        }
+    }
+}
+
+
+private class ModernKVOObservable<Root: NSObject, Value>: _AbstractObservableValue<Value> {
+    typealias Sink = AnySink<ValueUpdate<Value>>
+
+    let object: Root
+    let keyPath: KeyPath<Root, Value>
+
+    var sinks: [Sink: ModernKVOObservation<Root, Value>] = [:]
+
+    init(_ object: Root, _ keyPath: KeyPath<Root, Value>) {
+        self.object = object
+        self.keyPath = keyPath
+    }
+
+    override var value: Value {
+        return object[keyPath: keyPath]
+    }
+
+    override func add<Sink>(_ sink: Sink) where Sink: SinkType, Sink.Value == Update<Change> {
+        let r = sinks.updateValue(ModernKVOObservation(object: object, keyPath: keyPath, sink: sink.anySink),
+                                  forKey: sink.anySink)
+        precondition(r == nil)
+    }
+
+    override func remove<Sink>(_ sink: Sink) -> Sink where Sink: SinkType, Sink.Value == Update<Change> {
+        let (result, observation) = sinks.remove(at: sinks.index(forKey: sink.anySink)!)
+        observation.invalidate()
+        return result.opened()!
+    }
+}
+
+private class ModernKVOUpdatable<Root: NSObject, Value>: _AbstractUpdatableValue<Value> {
+    typealias Sink = AnySink<ValueUpdate<Value>>
+
+    let object: Root
+    let keyPath: ReferenceWritableKeyPath<Root, Value>
+
+    var sinks: [Sink: ModernKVOObservation<Root, Value>] = [:]
+
+    init(_ object: Root, _ keyPath: ReferenceWritableKeyPath<Root, Value>) {
+        self.object = object
+        self.keyPath = keyPath
+    }
+
+    override var value: Value {
+        get {
+            return object[keyPath: keyPath]
+        }
+        set {
+            object[keyPath: keyPath] = newValue
+        }
+    }
+
+    override func apply(_ update: Update<ValueChange<Value>>) {
+        switch update {
+        case .beginTransaction:
+            object.willChangeValue(for: keyPath)
+        case .change(let change):
+            object[keyPath: keyPath] = change.new
+        case .endTransaction:
+            object.didChangeValue(for: keyPath)
+        }
+    }
+
+    override func add<Sink>(_ sink: Sink) where Sink: SinkType, Sink.Value == Update<Change> {
+        let r = sinks.updateValue(ModernKVOObservation(object: object, keyPath: keyPath, sink: sink.anySink),
+                                  forKey: sink.anySink)
+        precondition(r == nil)
+    }
+
+    override func remove<Sink>(_ sink: Sink) -> Sink where Sink: SinkType, Sink.Value == Update<Change> {
+        let (result, observation) = sinks.remove(at: sinks.index(forKey: sink.anySink)!)
+        observation.invalidate()
+        return result.opened()!
+    }
+}
+
+//
+
 private var associatedObjectKeyForGlue: UInt8 = 0
 
-extension NSObjectProtocol where Self: NSObject {
+extension NSObject {
     public func _glue<Glue: GlueForNSObject>() -> Glue {
         if let glue = objc_getAssociatedObject(self, &associatedObjectKeyForGlue) {
             return glue as! Glue
@@ -31,7 +181,6 @@ public class GlueForNSObject: NSObject {
     public unowned let owner: NSObject
 
     public private(set) lazy var connector = Connector()
-
     fileprivate var keyValueSources: [String: KVOSource] = [:]
 
     public required init(owner: NSObject) {
@@ -115,7 +264,7 @@ extension GlueForNSObject {
     }
 }
 
-internal final class KVOSource: TransactionalSource<ValueChange<Any?>> {
+private final class KVOSource: TransactionalSource<ValueChange<Any?>> {
     unowned let object: NSObject
     let keyPath: String
 
@@ -204,3 +353,6 @@ public struct KVOUpdatable: UpdatableValueType {
         }
     }
 }
+
+
+
