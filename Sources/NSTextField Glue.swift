@@ -66,4 +66,11 @@ class GlueKitTextFieldDelegate<Value: LosslessStringConvertible>: NSObject, NSTe
             view.stringValue = "\(model.value)"
         }
     }
+
+    func control(_ control: NSControl, textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
+        guard commandSelector == #selector(NSResponder.cancelOperation(_:)) else { return false }
+        view.stringValue = "\(model.value)"
+        //textView.window?.makeFirstResponder(nil)
+        return true
+    }
 }
