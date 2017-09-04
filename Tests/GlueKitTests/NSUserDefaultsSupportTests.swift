@@ -8,9 +8,18 @@
 
 import XCTest
 
+extension UserDefaults {
+    var testValue: Bool {
+        get { return self.bool(forKey: "TestKey") }
+        set { self.set(newValue, forKey: "TestKey") }
+    }
+}
+
 class NSUserDefaultsSupportTests: XCTestCase {
     let key = "TestKey"
     let defaults = UserDefaults.standard
+    var context: UInt8 = 0
+    var notifications: [[NSKeyValueChangeKey: Any]] = []
 
     override func setUp() {
         super.setUp()
@@ -20,6 +29,24 @@ class NSUserDefaultsSupportTests: XCTestCase {
     override func tearDown() {
         defaults.removeObject(forKey: key)
         super.tearDown()
+    }
+    
+    func testStandardNotifications() {
+        defaults.addObserver(self, forKeyPath: key, options: [.old, .new], context: &context)
+        defaults.set(true, forKey: key)
+        defaults.removeObserver(self, forKeyPath: key, context: &context)
+        
+        XCTAssertEqual(notifications.count, 1, "Unexpected notifications: \(notifications)")
+    }
+
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if context == &self.context {
+            print(change)
+            notifications.append(change!)
+        }
+        else {
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+        }
     }
 
     func testAny() {
