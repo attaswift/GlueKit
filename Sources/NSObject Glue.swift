@@ -172,7 +172,7 @@ extension NSObject {
 }
 
 extension NSObject {
-    @objc public dynamic var glue: GlueForNSObject {
+    @objc open dynamic var glue: GlueForNSObject {
         return _glue()
     }
 }
