@@ -10,12 +10,12 @@
 import UIKit
 
 extension UILabel {
-    public override var glue: GlueForUILabel {
+    open override var glue: GlueForUILabel {
         return _glue()
     }
 }
 
-public class GlueForUILabel: GlueForNSObject {
+open class GlueForUILabel: GlueForNSObject {
     private var object: UILabel { return owner as! UILabel }
 
     public lazy var text: DependentValue<String?> = DependentValue { [unowned self] in self.object.text = $0 }

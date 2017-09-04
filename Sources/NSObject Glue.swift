@@ -177,7 +177,7 @@ extension NSObject {
     }
 }
 
-public class GlueForNSObject: NSObject {
+open class GlueForNSObject: NSObject {
     public unowned let owner: NSObject
 
     public private(set) lazy var connector = Connector()
@@ -251,7 +251,7 @@ extension GlueForNSObject {
         return old
     }
 
-    @objc public override func observeValue(forKeyPath keyPath: String?,
+    @objc open override func observeValue(forKeyPath keyPath: String?,
                                             of object: Any?,
                                             change: [NSKeyValueChangeKey : Any]?,
                                             context: UnsafeMutableRawPointer?) {

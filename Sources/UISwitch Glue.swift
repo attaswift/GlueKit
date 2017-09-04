@@ -10,12 +10,12 @@
 import UIKit
 
 extension UISwitch {
-    public override var glue: GlueForUISwitch {
+    open override var glue: GlueForUISwitch {
         return _glue()
     }
 }
 
-public class GlueForUISwitch: GlueForUIControl {
+open class GlueForUISwitch: GlueForUIControl {
     private var object: UISwitch { return owner as! UISwitch }
 
     public lazy var isOn: ComputedUpdatable<Bool>

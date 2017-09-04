@@ -13,12 +13,12 @@ import SipHash
 private var associatedObjectKey: Int8 = 0
 
 extension UIControl {
-    public override var glue: GlueForUIControl {
+    open override var glue: GlueForUIControl {
         return _glue()
     }
 }
 
-public class GlueForUIControl: GlueForNSObject {
+open class GlueForUIControl: GlueForNSObject {
     private struct ControlEventsTargetKey: SipHashable {
         let sink: AnySink<UIEvent>
         let events: UIControlEvents

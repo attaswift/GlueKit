@@ -10,12 +10,12 @@
 import UIKit
 
 extension UIDevice {
-    public override var glue: GlueForUIDevice {
+    open override var glue: GlueForUIDevice {
         return _glue()
     }
 }
 
-public class GlueForUIDevice: GlueForNSObject {
+open class GlueForUIDevice: GlueForNSObject {
     private var object: UIDevice { return owner as! UIDevice }
 
     public lazy var orientation: AnyObservableValue<UIDeviceOrientation>

@@ -41,7 +41,7 @@ class NSUserDefaultsSupportTests: XCTestCase {
 
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if context == &self.context {
-            print(change)
+            print(change ?? "nil")
             notifications.append(change!)
         }
         else {

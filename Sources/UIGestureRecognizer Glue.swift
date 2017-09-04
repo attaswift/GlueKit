@@ -10,12 +10,12 @@
 import UIKit
 
 extension UIGestureRecognizer {
-    public override var glue: GlueForUIGestureRecognizer {
+    open override var glue: GlueForUIGestureRecognizer {
         return _glue()
     }
 }
 
-public class GlueForUIGestureRecognizer: GlueForNSObject {
+open class GlueForUIGestureRecognizer: GlueForNSObject {
     private var object: UIGestureRecognizer { return owner as! UIGestureRecognizer }
 
     public lazy var state: AnyObservableValue<UIGestureRecognizerState>

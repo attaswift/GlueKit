@@ -10,12 +10,12 @@
 import UIKit
 
 extension UISearchBar {
-    public override var glue: GlueForUISearchBar {
+    open override var glue: GlueForUISearchBar {
         return _glue()
     }
 }
 
-public class GlueForUISearchBar: GlueForNSObject, UISearchBarDelegate {
+open class GlueForUISearchBar: GlueForNSObject, UISearchBarDelegate {
     private var object: UISearchBar { return owner as! UISearchBar }
 
     public lazy var text: ComputedUpdatable<String?>

@@ -9,12 +9,12 @@
 import Foundation
 
 extension NotificationCenter {
-    public override var glue: GlueForNotificationCenter {
+    open override var glue: GlueForNotificationCenter {
         return _glue()
     }
 }
 
-public class GlueForNotificationCenter: GlueForNSObject {
+open class GlueForNotificationCenter: GlueForNSObject {
     private var object: NotificationCenter { return owner as! NotificationCenter }
 
     /// Creates a Source that observes the specified notifications and forwards it to its connected sinks.
