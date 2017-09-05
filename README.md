@@ -104,8 +104,8 @@ and add references to their `xcodeproj` files to your project's workspace. You m
 but if you use Git for your app development, it is a good idea to set them up as submodules of your app's top-level 
 Git repository.
 
-[btree]: https://github.com/lorentey/BTree
-[siphash]: https://github.com/lorentey/SipHash
+[btree]: https://github.com/attaswift/BTree
+[siphash]: https://github.com/attaswift/SipHash
 
 To link your application binary with GlueKit, just add `GlueKit.framework`, `BTree.framework` and `SipHash.framework`
 from the BTree project to the Embedded Binaries section of your app target's General page in Xcode.

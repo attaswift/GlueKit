@@ -1,2 +1,2 @@
-github "lorentey/BTree" "5.x"
-github "lorentey/SipHash" "swift4"
+github "attaswift/BTree" "5.x"
+github "attaswift/SipHash" "swift4"
