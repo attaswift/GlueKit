@@ -13,28 +13,47 @@ extension NSPopUpButton {
     @objc open dynamic override var glue: GlueForNSPopUpButton { return _glue() }
 }
 
-public func <-- <Value>(target: GlueForNSPopUpButton, model: NSPopUpButton.Choices<Value>) {
-    target.setChoices(value: model.value, choices: model.choices)
+public func <-- <Value>(target: GlueForNSPopUpButton, choices: NSPopUpButton.Choices<Value>) {
+    target.setChoices(choices)
 }
 
 extension NSPopUpButton {
     public struct Choices<Value: Equatable> {
-        let value: AnyUpdatableValue<Value>
-        let choices: AnyObservableArray<(label: String, value: Value)>
+        let model: AnyUpdatableValue<Value?>
+        let values: AnyObservableArray<(label: String, value: Value?)>
 
-        public init<U: UpdatableValueType, C: ObservableArrayType>(value: U, choices: C) where U.Value == Value, C.Element == (label: String, value: Value) {
-            self.value = value.anyUpdatableValue
-            self.choices = choices.anyObservableArray
+        public init<U: UpdatableValueType, C: ObservableArrayType>(model: U, values: C) where U.Value == Value, C.Element == (label: String, value: Value) {
+            self.model = ComputedUpdatable<Value?>(getter: { model.value as Value? },
+                                                   setter: { newValue in if let v = newValue { model.value = v }},
+                                                   refreshSource: model.tick).anyUpdatableValue
+            self.values = values.map { ($0.label, $0.value as Value?) }.anyObservableArray
+        }
+        public init<U: UpdatableValueType, C: ObservableArrayType>(model: U, values: C) where U.Value == Value?, C.Element == (label: String, value: Value?) {
+            self.model = model.anyUpdatableValue
+            self.values = values.anyObservableArray
         }
 
-        public init<U: UpdatableValueType, S: Sequence>(value: U, choices: S) where U.Value == Value, S.Element == (label: String, value: Value) {
-            self.value = value.anyUpdatableValue
-            self.choices = AnyObservableArray.constant(Array(choices))
+
+        public init<U: UpdatableValueType, S: Sequence>(model: U, values: S) where U.Value == Value, S.Element == (label: String, value: Value) {
+            self.model = ComputedUpdatable<Value?>(getter: { model.value as Value? },
+                                                   setter: { newValue in if let v = newValue { model.value = v }},
+                                                   refreshSource: model.tick).anyUpdatableValue
+            self.values = AnyObservableArray.constant(values.map { ($0.label, $0.value as Value?) })
+        }
+        public init<U: UpdatableValueType, S: Sequence>(model: U, values: S) where U.Value == Value?, S.Element == (label: String, value: Value?) {
+            self.model = model.anyUpdatableValue
+            self.values = AnyObservableArray.constant(Array(values))
         }
 
-        public init<U: UpdatableValueType>(value: U, choices: [String: Value]) where U.Value == Value {
-            self.value = value.anyUpdatableValue
-            self.choices = AnyObservableArray.constant(Array(choices.map { ($0.key, $0.value) }))
+        public init<U: UpdatableValueType>(model: U, values: [String: Value]) where U.Value == Value {
+            self.model = ComputedUpdatable<Value?>(getter: { model.value as Value? },
+                                                   setter: { newValue in if let v = newValue { model.value = v }},
+                                                   refreshSource: model.tick).anyUpdatableValue
+            self.values = AnyObservableArray.constant(values.map { ($0.key, $0.value as Value?) })
+        }
+        public init<U: UpdatableValueType>(model: U, values: [String: Value?]) where U.Value == Value? {
+            self.model = model.anyUpdatableValue
+            self.values = AnyObservableArray.constant(Array(values.map { ($0.key, $0.value) }))
         }
     }
 }
@@ -46,17 +65,14 @@ open class GlueForNSPopUpButton: GlueForNSButton {
     private var choicesConnection: Connection? = nil
     private var update: (Any?) -> Void = { _ in }
 
-    fileprivate func setChoices<Value: Equatable, U: UpdatableValueType, C: ObservableArrayType>(of type: Value.Type = Value.self, value: U, choices: C) where U.Value == Value, C.Element == (label: String, value: Value) {
+    fileprivate func setChoices<Value>(_ choices: NSPopUpButton.Choices<Value>) {
 
         valueConnection?.disconnect()
         choicesConnection?.disconnect()
 
-        update = { newValue in
-            guard let v = newValue as? Value else { return }
-            value.value = v
-        }
+        update = { newValue in choices.model.value = newValue as? Value }
 
-        choicesConnection = choices.anyObservableValue.values.subscribe { [unowned self] choices in
+        choicesConnection = choices.values.anyObservableValue.values.subscribe { [unowned self] choices in
             let menu = NSMenu()
             choices.forEach { choice in
                 let item = NSMenuItem(title: choice.label, action: #selector(GlueForNSPopUpButton.choiceAction(_:)), keyEquivalent: "")
@@ -67,7 +83,7 @@ open class GlueForNSPopUpButton: GlueForNSButton {
             self.object.menu = menu
         }
 
-        valueConnection = value.values.subscribe { [unowned self] newValue in
+        valueConnection = choices.model.values.subscribe { [unowned self] newValue in
             if let item = self.object.menu?.items.first(where: { $0.representedObject as? Value == newValue }) {
                 if self.object.selectedItem != item {
                     self.object.select(item)
