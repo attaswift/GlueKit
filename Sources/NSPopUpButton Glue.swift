@@ -19,39 +19,20 @@ public func <-- <Value>(target: GlueForNSPopUpButton, choices: NSPopUpButton.Cho
 
 extension NSPopUpButton {
     public struct Choices<Value: Equatable> {
-        let model: AnyUpdatableValue<Value?>
-        let values: AnyObservableArray<(label: String, value: Value?)>
+        let model: AnyUpdatableValue<Value>
+        let values: AnyObservableArray<(label: String, value: Value)>
 
         public init<U: UpdatableValueType, C: ObservableArrayType>(model: U, values: C) where U.Value == Value, C.Element == (label: String, value: Value) {
-            self.model = ComputedUpdatable<Value?>(getter: { model.value as Value? },
-                                                   setter: { newValue in if let v = newValue { model.value = v }},
-                                                   refreshSource: model.tick).anyUpdatableValue
-            self.values = values.map { ($0.label, $0.value as Value?) }.anyObservableArray
-        }
-        public init<U: UpdatableValueType, C: ObservableArrayType>(model: U, values: C) where U.Value == Value?, C.Element == (label: String, value: Value?) {
             self.model = model.anyUpdatableValue
             self.values = values.anyObservableArray
         }
 
-
         public init<U: UpdatableValueType, S: Sequence>(model: U, values: S) where U.Value == Value, S.Element == (label: String, value: Value) {
-            self.model = ComputedUpdatable<Value?>(getter: { model.value as Value? },
-                                                   setter: { newValue in if let v = newValue { model.value = v }},
-                                                   refreshSource: model.tick).anyUpdatableValue
-            self.values = AnyObservableArray.constant(values.map { ($0.label, $0.value as Value?) })
-        }
-        public init<U: UpdatableValueType, S: Sequence>(model: U, values: S) where U.Value == Value?, S.Element == (label: String, value: Value?) {
             self.model = model.anyUpdatableValue
             self.values = AnyObservableArray.constant(Array(values))
         }
 
         public init<U: UpdatableValueType>(model: U, values: DictionaryLiteral<String, Value>) where U.Value == Value {
-            self.model = ComputedUpdatable<Value?>(getter: { model.value as Value? },
-                                                   setter: { newValue in if let v = newValue { model.value = v }},
-                                                   refreshSource: model.tick).anyUpdatableValue
-            self.values = AnyObservableArray.constant(values.map { ($0.key, $0.value as Value?) })
-        }
-        public init<U: UpdatableValueType>(model: U, values: DictionaryLiteral<String, Value?>) where U.Value == Value? {
             self.model = model.anyUpdatableValue
             self.values = AnyObservableArray.constant(Array(values.map { ($0.key, $0.value) }))
         }
@@ -70,7 +51,7 @@ open class GlueForNSPopUpButton: GlueForNSButton {
         valueConnection?.disconnect()
         choicesConnection?.disconnect()
 
-        update = { newValue in choices.model.value = newValue as? Value }
+        update = { value in if let value = value as? Value { choices.model.value = value } }
 
         choicesConnection = choices.values.anyObservableValue.values.subscribe { [unowned self] choices in
             let menu = NSMenu()
