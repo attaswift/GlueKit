@@ -45,13 +45,13 @@ extension NSPopUpButton {
             self.values = AnyObservableArray.constant(Array(values))
         }
 
-        public init<U: UpdatableValueType>(model: U, values: [String: Value]) where U.Value == Value {
+        public init<U: UpdatableValueType>(model: U, values: DictionaryLiteral<String, Value>) where U.Value == Value {
             self.model = ComputedUpdatable<Value?>(getter: { model.value as Value? },
                                                    setter: { newValue in if let v = newValue { model.value = v }},
                                                    refreshSource: model.tick).anyUpdatableValue
             self.values = AnyObservableArray.constant(values.map { ($0.key, $0.value as Value?) })
         }
-        public init<U: UpdatableValueType>(model: U, values: [String: Value?]) where U.Value == Value? {
+        public init<U: UpdatableValueType>(model: U, values: DictionaryLiteral<String, Value?>) where U.Value == Value? {
             self.model = model.anyUpdatableValue
             self.values = AnyObservableArray.constant(Array(values.map { ($0.key, $0.value) }))
         }
