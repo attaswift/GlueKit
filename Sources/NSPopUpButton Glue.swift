@@ -22,16 +22,17 @@ extension NSPopUpButton {
         let value: AnyUpdatableValue<Value>
         let choices: AnyObservableArray<(label: String, value: Value)>
 
-        init<U: UpdatableValueType, C: ObservableArrayType>(value: U, choices: C) where U.Value == Value, C.Element == (label: String, value: Value) {
+        public init<U: UpdatableValueType, C: ObservableArrayType>(value: U, choices: C) where U.Value == Value, C.Element == (label: String, value: Value) {
             self.value = value.anyUpdatableValue
             self.choices = choices.anyObservableArray
         }
 
-        init<U: UpdatableValueType, S: Sequence>(value: U, choices: S) where U.Value == Value, S.Element == (label: String, value: Value) {
+        public init<U: UpdatableValueType, S: Sequence>(value: U, choices: S) where U.Value == Value, S.Element == (label: String, value: Value) {
             self.value = value.anyUpdatableValue
             self.choices = AnyObservableArray.constant(Array(choices))
         }
-        init<U: UpdatableValueType>(value: U, choices: [String: Value]) where U.Value == Value {
+
+        public init<U: UpdatableValueType>(value: U, choices: [String: Value]) where U.Value == Value {
             self.value = value.anyUpdatableValue
             self.choices = AnyObservableArray.constant(Array(choices.map { ($0.key, $0.value) }))
         }
