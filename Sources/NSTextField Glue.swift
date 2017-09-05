@@ -6,6 +6,7 @@
 //  Copyright © 2017 Károly Lőrentey. All rights reserved.
 //
 
+#if os(macOS)
 import AppKit
 
 extension NSTextField {
@@ -74,3 +75,4 @@ class GlueKitTextFieldDelegate<Value: LosslessStringConvertible>: NSObject, NSTe
         return true
     }
 }
+#endif
