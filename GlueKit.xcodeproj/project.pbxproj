@@ -110,6 +110,14 @@
 		BB568AF31DA6942700BC4B58 /* MockSetObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */; };
 		BB568AF51DA6942700BC4B58 /* MockSetObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */; };
 		BB568AF91DA6A9EE00BC4B58 /* MockArrayObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */; };
+		BB5B02DB1F5E3FC50084D86B /* ArrayGatheringSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5B02DA1F5E3FC50084D86B /* ArrayGatheringSource.swift */; };
+		BB5B02DC1F5E3FC50084D86B /* ArrayGatheringSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5B02DA1F5E3FC50084D86B /* ArrayGatheringSource.swift */; };
+		BB5B02DD1F5E3FC50084D86B /* ArrayGatheringSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5B02DA1F5E3FC50084D86B /* ArrayGatheringSource.swift */; };
+		BB5B02DE1F5E3FC50084D86B /* ArrayGatheringSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5B02DA1F5E3FC50084D86B /* ArrayGatheringSource.swift */; };
+		BB5B02E01F5E3FDE0084D86B /* SetGatheringSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5B02DF1F5E3FDE0084D86B /* SetGatheringSource.swift */; };
+		BB5B02E11F5E3FDE0084D86B /* SetGatheringSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5B02DF1F5E3FDE0084D86B /* SetGatheringSource.swift */; };
+		BB5B02E21F5E3FDE0084D86B /* SetGatheringSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5B02DF1F5E3FDE0084D86B /* SetGatheringSource.swift */; };
+		BB5B02E31F5E3FDE0084D86B /* SetGatheringSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5B02DF1F5E3FDE0084D86B /* SetGatheringSource.swift */; };
 		BB6139831F5E1B3F005455D5 /* NSTextField Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB6139821F5E1B3F005455D5 /* NSTextField Glue.swift */; };
 		BB67E5521C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
 		BB67E5531C9B6A63002B0AB5 /* CADisplayLink Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */; };
@@ -628,6 +636,8 @@
 		BB568AEE1DA693F700BC4B58 /* SetFilteringTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetFilteringTests.swift; sourceTree = "<group>"; };
 		BB568AF21DA6942700BC4B58 /* MockSetObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockSetObserver.swift; sourceTree = "<group>"; };
 		BB568AF61DA6A9EE00BC4B58 /* MockArrayObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockArrayObserver.swift; sourceTree = "<group>"; };
+		BB5B02DA1F5E3FC50084D86B /* ArrayGatheringSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayGatheringSource.swift; sourceTree = "<group>"; };
+		BB5B02DF1F5E3FDE0084D86B /* SetGatheringSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetGatheringSource.swift; sourceTree = "<group>"; };
 		BB6139821F5E1B3F005455D5 /* NSTextField Glue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSTextField Glue.swift"; sourceTree = "<group>"; };
 		BB67E5511C9B6A63002B0AB5 /* CADisplayLink Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CADisplayLink Extensions.swift"; sourceTree = "<group>"; };
 		BB69A7EE1D6AFF1A001D2821 /* Abstract.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Abstract.swift; sourceTree = "<group>"; };
@@ -1034,6 +1044,8 @@
 				BBB55B2E1C8FCC810050DDA9 /* Signal.swift */,
 				BBB55B2F1C8FCC810050DDA9 /* SimpleSources.swift */,
 				BBB55B261C8FCC810050DDA9 /* MergedSource.swift */,
+				BB5B02DA1F5E3FC50084D86B /* ArrayGatheringSource.swift */,
+				BB5B02DF1F5E3FDE0084D86B /* SetGatheringSource.swift */,
 				BBB55B311C8FCC810050DDA9 /* TransformedSource.swift */,
 				BBEA2A3E1DBFE38F00CCCB08 /* BufferedSource.swift */,
 				BBEA2A391DBFE37A00CCCB08 /* BracketingSource.swift */,
@@ -1574,6 +1586,7 @@
 				BB9D74301DBE7B3B00E20D67 /* SetFilteringOnObservableBool.swift in Sources */,
 				BBB55B761C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
 				BBC2A8291CBC14C600394D24 /* NSObject Glue.swift in Sources */,
+				BB5B02E01F5E3FDE0084D86B /* SetGatheringSource.swift in Sources */,
 				BB69A7FB1D6B1D94001D2821 /* ObservableArray.swift in Sources */,
 				BBF3EB0E1D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BBB55B7E1C8FCC820050DDA9 /* TransformedSource.swift in Sources */,
@@ -1609,6 +1622,7 @@
 				BBBFD14B1EBE673200EC9814 /* SetSortingByComparableField.swift in Sources */,
 				BBB55B561C8FCC820050DDA9 /* NSNotificationCenter Support.swift in Sources */,
 				BBAA827D1C91D43700586903 /* Type Helpers.swift in Sources */,
+				BB5B02DB1F5E3FC50084D86B /* ArrayGatheringSource.swift in Sources */,
 				BB9D742A1DBE7B3B00E20D67 /* SetMappingForValue.swift in Sources */,
 				BBCD9E141DAAC4DC00E85FB9 /* ValueMappingForArrayField.swift in Sources */,
 				BBEA2A3A1DBFE37A00CCCB08 /* BracketingSource.swift in Sources */,
@@ -1738,6 +1752,7 @@
 				BB015F361DC5004F00C8C05A /* ValueMappingForSetField.swift in Sources */,
 				BB6CE3C11DC4CD7600295C55 /* Variable.swift in Sources */,
 				BB9D741E1DBE644200E20D67 /* NSNotificationCenter Support.swift in Sources */,
+				BB5B02E11F5E3FDE0084D86B /* SetGatheringSource.swift in Sources */,
 				BB6CE3C61DC4CD8D00295C55 /* ValueMappingForValue.swift in Sources */,
 				BB015F301DC4F64200C8C05A /* UpdatableSet.swift in Sources */,
 				BB6CE3D91DC4F19D00295C55 /* ObservableArray.swift in Sources */,
@@ -1773,6 +1788,7 @@
 				BB6CE3B51DC4C21C00295C55 /* TransformedSink.swift in Sources */,
 				BB015F371DC506B400C8C05A /* ValueMappingForArrayField.swift in Sources */,
 				BB015F5F1DC687EE00C8C05A /* SetSortingByComparator.swift in Sources */,
+				BB5B02DC1F5E3FC50084D86B /* ArrayGatheringSource.swift in Sources */,
 				BB015F3A1DC50B1200C8C05A /* ArrayMappingForValue.swift in Sources */,
 				BB015F411DC5262400C8C05A /* ArrayFilteringOnPredicate.swift in Sources */,
 				BB015F5D1DC686CD00C8C05A /* SetSortingByMappingToObservableComparable.swift in Sources */,
@@ -1900,6 +1916,7 @@
 				BBF7B9621EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift in Sources */,
 				BB9D73F61DBE03EB00E20D67 /* DispatchSource.swift in Sources */,
 				BB9D73E81DBB727300E20D67 /* ChangesSource.swift in Sources */,
+				BB5B02E21F5E3FDE0084D86B /* SetGatheringSource.swift in Sources */,
 				BBEA2A411DBFE38F00CCCB08 /* BufferedSource.swift in Sources */,
 				BBE4DF421DA3A88C005EC162 /* ObservableType.swift in Sources */,
 				BBB55B781C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
@@ -1907,6 +1924,7 @@
 				BBB55B801C8FCC820050DDA9 /* TransformedSource.swift in Sources */,
 				BBF400661DA108E900DA0B2C /* ObservableContains.swift in Sources */,
 				BB6CE3B61DC4C21C00295C55 /* TransformedSink.swift in Sources */,
+				BB5B02DD1F5E3FC50084D86B /* ArrayGatheringSource.swift in Sources */,
 				BB69A80E1D6B472F001D2821 /* ArrayMappingForValueField.swift in Sources */,
 				BBF3EB101D99ACDE006AC7CD /* RefList.swift in Sources */,
 				BB69A7F11D6AFF1A001D2821 /* Abstract.swift in Sources */,
@@ -1995,6 +2013,7 @@
 				BBF7B9631EAEA60900073DF8 /* ArrayBasedTableViewDataSource.swift in Sources */,
 				BB9D74011DBE061D00E20D67 /* OwnedSink.swift in Sources */,
 				BB69A8311D6B7E37001D2821 /* SetSortingByMappingToComparable.swift in Sources */,
+				BB5B02E31F5E3FDE0084D86B /* SetGatheringSource.swift in Sources */,
 				BBEA2A3D1DBFE37B00CCCB08 /* BracketingSource.swift in Sources */,
 				BBB55B611C8FCC820050DDA9 /* ObservableValue.swift in Sources */,
 				BBCD9E1C1DAAC50900E85FB9 /* ValueMappingForSourceField.swift in Sources */,
@@ -2002,6 +2021,7 @@
 				BBCD9E2B1DAAD2B900E85FB9 /* DistinctValue.swift in Sources */,
 				BBB55B851C8FCC820050DDA9 /* TimerSource.swift in Sources */,
 				BBB55B791C8FCC820050DDA9 /* SimpleSources.swift in Sources */,
+				BB5B02DE1F5E3FC50084D86B /* ArrayGatheringSource.swift in Sources */,
 				BB7E04D51DA7240C00BE3051 /* SetMappingForSequence.swift in Sources */,
 				BBB55B811C8FCC820050DDA9 /* TransformedSource.swift in Sources */,
 				BB69A8031D6B2377001D2821 /* BufferedArray.swift in Sources */,

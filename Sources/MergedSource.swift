@@ -8,6 +8,12 @@
 
 import SipHash
 
+extension Sequence where Element: SourceType {
+    public func gather() -> MergedSource<Element.Value> {
+        return MergedSource(sources: self)
+    }
+}
+
 extension SourceType {
     /// Returns a source that merges self with `source`. The returned source will forward all values sent by either
     /// of its two input sources to its own connected sinks.
@@ -80,3 +86,5 @@ private struct MergedSink<Value>: SinkType, SipHashable {
         return left.source === right.source && left.index == right.index
     }
 }
+
+
