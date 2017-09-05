@@ -10,7 +10,7 @@
 ///
 /// - SeeAlso: UnownedVariable<Value>, WeakVariable<Value>
 ///
-public class Variable<Value>: _BaseUpdatableValue<Value> {
+open class Variable<Value>: _BaseUpdatableValue<Value> {
     public typealias Change = ValueChange<Value>
 
     private var _value: Value

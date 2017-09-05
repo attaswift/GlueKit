@@ -6,7 +6,7 @@
 //  Copyright © 2015–2017 Károly Lőrentey.
 //
 
-public final class ArrayVariable<Element>: _BaseUpdatableArray<Element> {
+open class ArrayVariable<Element>: _BaseUpdatableArray<Element>, ExpressibleByArrayLiteral {
     public typealias Value = Array<Element>
     public typealias Change = ArrayChange<Element>
 
@@ -24,12 +24,15 @@ public final class ArrayVariable<Element>: _BaseUpdatableArray<Element> {
     public init(elements: Element...) {
         _value = elements
     }
+    public required convenience init(arrayLiteral elements: Element...) {
+        self.init(elements)
+    }
 
     override func rawApply(_ change: ArrayChange<Element>) {
         _value.apply(change)
     }
 
-    public override var value: [Element] {
+    final public override var value: [Element] {
         get {
             return _value
         }
@@ -47,15 +50,15 @@ public final class ArrayVariable<Element>: _BaseUpdatableArray<Element> {
         }
     }
 
-    public override var count: Int {
+    final public override var count: Int {
         return _value.count
     }
 
-    public override var isBuffered: Bool {
+    final public override var isBuffered: Bool {
         return true
     }
 
-    public override subscript(index: Int) -> Element {
+    final public override subscript(index: Int) -> Element {
         get {
             return _value[index]
         }
@@ -73,7 +76,7 @@ public final class ArrayVariable<Element>: _BaseUpdatableArray<Element> {
         }
     }
 
-    public override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
+    final public override subscript(bounds: Range<Int>) -> ArraySlice<Element> {
         get {
             return value[bounds]
         }
@@ -94,8 +97,3 @@ public final class ArrayVariable<Element>: _BaseUpdatableArray<Element> {
     }
 }
 
-extension ArrayVariable: ExpressibleByArrayLiteral {
-    public convenience init(arrayLiteral elements: Element...) {
-        self.init(elements)
-    }
-}

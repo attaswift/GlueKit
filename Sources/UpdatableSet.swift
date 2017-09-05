@@ -200,7 +200,7 @@ open class _AbstractUpdatableSet<Element: Hashable>: _AbstractObservableSet<Elem
     }
 }
 
-public class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, TransactionalThing {
+open class _BaseUpdatableSet<Element: Hashable>: _AbstractUpdatableSet<Element>, TransactionalThing {
     public typealias Change = SetChange<Element>
 
     var _signal: TransactionalSignal<SetChange<Element>>? = nil

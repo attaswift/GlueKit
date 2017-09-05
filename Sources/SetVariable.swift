@@ -6,7 +6,7 @@
 //  Copyright © 2015–2017 Károly Lőrentey.
 //
 
-public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
+open class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element>, ExpressibleByArrayLiteral {
     public typealias Value = Set<Element>
     public typealias Change = SetChange<Element>
 
@@ -32,7 +32,11 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         _value = Set(elements)
     }
 
-    public override var isBuffered: Bool {
+    public required convenience init(arrayLiteral elements: Element...) {
+        self.init(elements)
+    }
+
+    final public override var isBuffered: Bool {
         return true
     }
 
@@ -40,11 +44,11 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         return _value.isEmpty
     }
 
-    public override var count: Int {
+    final public override var count: Int {
         return _value.count
     }
 
-    public override var value: Value {
+    final public override var value: Value {
         get {
             return _value
         }
@@ -57,15 +61,15 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         }
     }
 
-    public override func contains(_ member: Element) -> Bool {
+    final public override func contains(_ member: Element) -> Bool {
         return _value.contains(member)
     }
 
-    public override func isSubset(of other: Set<Element>) -> Bool {
+    final public override func isSubset(of other: Set<Element>) -> Bool {
         return _value.isSubset(of: other)
     }
 
-    public override func isSuperset(of other: Set<Element>) -> Bool {
+    final public override func isSuperset(of other: Set<Element>) -> Bool {
         return _value.isSuperset(of: other)
     }
 
@@ -73,7 +77,7 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         _value.apply(change)
     }
 
-    public override func remove(_ member: Element) {
+    final public override func remove(_ member: Element) {
         guard _value.contains(member) else { return }
         if isConnected {
             beginTransaction()
@@ -86,7 +90,7 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         }
     }
 
-    public override func insert(_ member: Element) {
+    final public override func insert(_ member: Element) {
         guard !_value.contains(member) else { return }
         if isConnected {
             beginTransaction()
@@ -99,7 +103,7 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         }
     }
 
-    public override func removeAll() {
+    final public override func removeAll() {
         guard !isEmpty else { return }
         let value = self._value
         if isConnected {
@@ -114,7 +118,7 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
     }
 
 
-    public override func formUnion(_ other: Set<Element>) {
+    final public override func formUnion(_ other: Set<Element>) {
         if isConnected {
             beginTransaction()
             let difference = other.subtracting(_value)
@@ -127,7 +131,7 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         }
     }
 
-    public override func formIntersection(_ other: Set<Element>) {
+    final public override func formIntersection(_ other: Set<Element>) {
         if isConnected {
             beginTransaction()
             let difference = _value.subtracting(other)
@@ -140,7 +144,7 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         }
     }
 
-    public override func formSymmetricDifference(_ other: Set<Element>) {
+    final public override func formSymmetricDifference(_ other: Set<Element>) {
         if isConnected {
             beginTransaction()
             let intersection = _value.intersection(other)
@@ -154,7 +158,7 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         }
     }
 
-    public override func subtract(_ other: Set<Element>) {
+    final public override func subtract(_ other: Set<Element>) {
         if isConnected {
             beginTransaction()
             let intersection = _value.intersection(other)
@@ -165,12 +169,6 @@ public final class SetVariable<Element: Hashable>: _BaseUpdatableSet<Element> {
         else {
             _value.subtract(other)
         }
-    }
-}
-
-extension SetVariable: ExpressibleByArrayLiteral {
-    public convenience init(arrayLiteral elements: Element...) {
-        self.init(elements)
     }
 }
 

@@ -205,7 +205,7 @@ open class _AbstractUpdatableArray<Element>: _AbstractObservableArray<Element>, 
     }
 }
 
-public class _BaseUpdatableArray<Element>: _AbstractUpdatableArray<Element>, TransactionalThing {
+open class _BaseUpdatableArray<Element>: _AbstractUpdatableArray<Element>, TransactionalThing {
     var _signal: TransactionalSignal<ArrayChange<Element>>? = nil
     var _transactionCount = 0
 

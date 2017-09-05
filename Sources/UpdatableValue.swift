@@ -81,7 +81,7 @@ open class _AbstractUpdatableValue<Value>: _AbstractObservableValue<Value>, Upda
     public final var anyUpdatableValue: AnyUpdatableValue<Value> { return AnyUpdatableValue(box: self) }
 }
 
-public class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, TransactionalThing {
+open class _BaseUpdatableValue<Value>: _AbstractUpdatableValue<Value>, TransactionalThing {
     var _signal: TransactionalSignal<ValueChange<Value>>? = nil
     var _transactionCount = 0
 
