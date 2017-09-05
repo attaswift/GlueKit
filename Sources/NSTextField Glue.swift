@@ -13,29 +13,31 @@ extension NSTextField {
     @objc open dynamic override var glue: GlueForNSTextField { return _glue() }
 }
 
-public func <-- <V: UpdatableValueType>(target: GlueForNSTextField, model: V) where V.Value: LosslessStringConvertible {
-    target.setModel(model)
+public func <-- <V: UpdatableValueType>(target: GlueForNSTextField.ValidatingValueReceiver, model: V) where V.Value: LosslessStringConvertible {
+    target.glue.setModel(model)
 }
 
 open class GlueForNSTextField: GlueForNSControl {
-    var delegate: Any? = nil
-    var object: NSTextField { return owner as! NSTextField }
+    private var object: NSTextField { return owner as! NSTextField }
+    private var delegate: Any? = nil
 
-    public func setModel<V: UpdatableValueType>(_ model: V)
-        where V.Value: LosslessStringConvertible {
-            if let delegate = self.delegate as? GlueKitTextFieldDelegate<V.Value> {
-                delegate.model = model.anyUpdatableValue
-            }
-            else {
-                let delegate = GlueKitTextFieldDelegate(object, model)
-                self.delegate = delegate
-            }
+    public struct ValidatingValueReceiver { let glue: GlueForNSTextField }
+    public var value: ValidatingValueReceiver { return ValidatingValueReceiver(glue: self) }
+
+    fileprivate func setModel<V: UpdatableValueType>(_ model: V) where V.Value: LosslessStringConvertible {
+        if let delegate = self.delegate as? GlueKitTextFieldDelegate<V.Value> {
+            delegate.model = model.anyUpdatableValue
+        }
+        else {
+            let delegate = GlueKitTextFieldDelegate(object, model)
+            self.delegate = delegate
+        }
     }
 }
 
 class GlueKitTextFieldDelegate<Value: LosslessStringConvertible>: NSObject, NSTextFieldDelegate {
-    public unowned let view: NSTextField
-    public var model: AnyUpdatableValue<Value> {
+    unowned let view: NSTextField
+    var model: AnyUpdatableValue<Value> {
         didSet { reconnect() }
     }
 
