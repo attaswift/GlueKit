@@ -13,18 +13,25 @@ extension NSButton {
     @objc open dynamic override var glue: GlueForNSButton { return _glue() }
 }
 
-public func <-- <V: UpdatableValueType>(target: GlueForNSButton, model: V) where V.Value == NSControl.StateValue {
-    target.model = model.anyUpdatableValue
+public func <-- <V: UpdatableValueType>(target: GlueForNSButton.StateReceiver, model: V) where V.Value == NSControl.StateValue {
+    target.glue.model = model.anyUpdatableValue
 }
 
-public func <-- <B: UpdatableValueType>(target: GlueForNSButton, model: B) where B.Value == Bool {
-    target.model = model.map({ $0 ? .on : .off }, inverse: { $0 == .off ? false : true })
+public func <-- <B: UpdatableValueType>(target: GlueForNSButton.StateReceiver, model: B) where B.Value == Bool {
+    target.glue.model = model.map({ $0 ? .on : .off }, inverse: { $0 == .off ? false : true })
 }
 
-open class GlueForNSButton: GlueForNSObject {
-    var object: NSButton { return owner as! NSButton }
+open class GlueForNSButton: GlueForNSControl {
+    private var object: NSButton { return owner as! NSButton }
+
+    public struct StateReceiver {
+        let glue: GlueForNSButton
+    }
+
+    public var state: StateReceiver { return StateReceiver(glue: self) }
+
     private let modelConnector = Connector()
-    var model: AnyUpdatableValue<NSControl.StateValue>? {
+    fileprivate var model: AnyUpdatableValue<NSControl.StateValue>? {
         didSet {
             modelConnector.disconnect()
             if object.target === self {

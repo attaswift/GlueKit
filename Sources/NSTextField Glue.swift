@@ -17,7 +17,7 @@ public func <-- <V: UpdatableValueType>(target: GlueForNSTextField, model: V) wh
     target.setModel(model)
 }
 
-open class GlueForNSTextField: GlueForNSObject {
+open class GlueForNSTextField: GlueForNSControl {
     var delegate: Any? = nil
     var object: NSTextField { return owner as! NSTextField }
 
@@ -46,11 +46,11 @@ class GlueKitTextFieldDelegate<Value: LosslessStringConvertible>: NSObject, NSTe
         reconnect()
     }
 
-    private let modelConnector = Connector()
+    private var modelConnection: Connection? = nil
     private func reconnect() {
         view.delegate = self
-        modelConnector.disconnect()
-        modelConnector.connect(model.values) { [unowned self] value in
+        modelConnection?.disconnect()
+        modelConnection = model.values.subscribe { [unowned self] value in
             self.view.stringValue = "\(value)"
         }
     }

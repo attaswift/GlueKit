@@ -319,6 +319,7 @@
 		BB9D74451DBEB5F300E20D67 /* DistinctUnion.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE4DF491DA409EE005EC162 /* DistinctUnion.swift */; };
 		BB9D744A1DBEC82C00E20D67 /* ValueMappingForSetField.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCD9E1D1DAAC7E600E85FB9 /* ValueMappingForSetField.swift */; };
 		BB9FCDCC1F5E54BF001B8781 /* NSButton Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9FCDCB1F5E54BF001B8781 /* NSButton Glue.swift */; };
+		BB9FCDCE1F5EB646001B8781 /* NSControl Glue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9FCDCD1F5EB646001B8781 /* NSControl Glue.swift */; };
 		BBA033591DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA033561DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift */; };
 		BBA0335A1DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA033561DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift */; };
 		BBA0335E1DA7276200E83AC1 /* SetSortingByComparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA0335B1DA7276200E83AC1 /* SetSortingByComparator.swift */; };
@@ -677,6 +678,7 @@
 		BB9D73F31DBE03EB00E20D67 /* DispatchSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DispatchSource.swift; sourceTree = "<group>"; };
 		BB9D73FD1DBE061D00E20D67 /* OwnedSink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OwnedSink.swift; sourceTree = "<group>"; };
 		BB9FCDCB1F5E54BF001B8781 /* NSButton Glue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSButton Glue.swift"; sourceTree = "<group>"; };
+		BB9FCDCD1F5EB646001B8781 /* NSControl Glue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSControl Glue.swift"; sourceTree = "<group>"; };
 		BBA033561DA726AA00E83AC1 /* SetFilteringOnObservableBool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetFilteringOnObservableBool.swift; sourceTree = "<group>"; };
 		BBA0335B1DA7276200E83AC1 /* SetSortingByComparator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetSortingByComparator.swift; sourceTree = "<group>"; };
 		BBA033601DA7278C00E83AC1 /* SetSortingByMappingToObservableComparable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetSortingByMappingToObservableComparable.swift; sourceTree = "<group>"; };
@@ -899,8 +901,9 @@
 		BB5B02D71F5E1B880084D86B /* AppKit Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				BB6139821F5E1B3F005455D5 /* NSTextField Glue.swift */,
+				BB9FCDCD1F5EB646001B8781 /* NSControl Glue.swift */,
 				BB9FCDCB1F5E54BF001B8781 /* NSButton Glue.swift */,
+				BB6139821F5E1B3F005455D5 /* NSTextField Glue.swift */,
 			);
 			name = "AppKit Extensions";
 			sourceTree = "<group>";
@@ -1790,6 +1793,7 @@
 				BB9D73D51DBB4BB300E20D67 /* MergedSource.swift in Sources */,
 				BBB55B671C8FCC820050DDA9 /* Reference.swift in Sources */,
 				BB6CE3B51DC4C21C00295C55 /* TransformedSink.swift in Sources */,
+				BB9FCDCE1F5EB646001B8781 /* NSControl Glue.swift in Sources */,
 				BB015F371DC506B400C8C05A /* ValueMappingForArrayField.swift in Sources */,
 				BB015F5F1DC687EE00C8C05A /* SetSortingByComparator.swift in Sources */,
 				BB5B02DC1F5E3FC50084D86B /* ArrayGatheringSource.swift in Sources */,
