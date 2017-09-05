@@ -24,7 +24,13 @@ extension ObservableType {
     public var updates: UpdateSource<Self> {
         return UpdateSource(owner: self)
     }
+}
 
+extension ObservableType {
+    /// A source that sends an empty value whenever the observable completes a transaction.
+    public var tick: AnySource<Void> {
+        return self.updates.flatMap { if case .endTransaction = $0 { return () }; return nil }
+    }
 }
 
 public struct UpdateSource<Observable: ObservableType>: SourceType {
