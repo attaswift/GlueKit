@@ -123,6 +123,10 @@ public final class StringVariable: Variable<String>, ExpressibleByStringLiteral 
 }
 
 public final class OptionalVariable<Wrapped>: Variable<Optional<Wrapped>>, ExpressibleByNilLiteral {
+    public override init(_ value: Wrapped?) {
+        super.init(value)
+    }
+
     public init(nilLiteral: ()) {
         super.init(nil)
     }
