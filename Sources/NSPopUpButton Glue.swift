@@ -13,7 +13,7 @@ extension NSPopUpButton {
     @objc open dynamic override var glue: GlueForNSPopUpButton { return _glue() }
 }
 
-public func <-- <Value: Equatable>(target: GlueForNSPopUpButton, model: NSPopUpButton.Choices<Value>) {
+public func <-- <Value>(target: GlueForNSPopUpButton, model: NSPopUpButton.Choices<Value>) {
     target.setChoices(value: model.value, choices: model.choices)
 }
 
@@ -30,6 +30,10 @@ extension NSPopUpButton {
         init<U: UpdatableValueType, S: Sequence>(value: U, choices: S) where U.Value == Value, S.Element == (label: String, value: Value) {
             self.value = value.anyUpdatableValue
             self.choices = AnyObservableArray.constant(Array(choices))
+        }
+        init<U: UpdatableValueType>(value: U, choices: [String: Value]) where U.Value == Value {
+            self.value = value.anyUpdatableValue
+            self.choices = AnyObservableArray.constant(Array(choices.map { ($0.key, $0.value) }))
         }
     }
 }
