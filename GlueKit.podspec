@@ -7,9 +7,9 @@ Pod::Spec.new do |spec|
   spec.watchos.deployment_target = "3.0"
   spec.summary      = 'Type-safe observable values and collections in Swift'
   spec.author       = 'Károly Lőrentey'
-  spec.homepage     = 'https://github.com/lorentey/GlueKit'
+  spec.homepage     = 'https://github.com/attaswift/GlueKit'
   spec.license      = { :type => 'MIT', :file => 'LICENSE.md' }
-  spec.source       = { :git => 'https://github.com/lorentey/GlueKit.git', :tag => 'v0.1.0-alpha.1' }
+  spec.source       = { :git => 'https://github.com/attaswift/GlueKit.git', :tag => 'v0.1.0-alpha.1' }
   spec.source_files = 'Sources/*.swift'
   spec.social_media_url = 'https://twitter.com/lorentey'
   #spec.documentation_url = 'http://lorentey.github.io/GlueKit/'

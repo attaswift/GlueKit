@@ -1,11 +1,11 @@
 # GlueKit
 
 [![Swift 3](https://img.shields.io/badge/Swift-3.0-blue.svg)](https://swift.org) 
-[![License](https://img.shields.io/badge/licence-MIT-blue.svg)](https://github.com/lorentey/GlueKit/blob/master/LICENSE.md)
+[![License](https://img.shields.io/badge/licence-MIT-blue.svg)](https://github.com/attaswift/GlueKit/blob/master/LICENSE.md)
 [![Platform](https://img.shields.io/badge/platforms-macOS%20∙%20iOS%20∙%20watchOS%20∙%20tvOS-blue.svg)](https://developer.apple.com/platforms/)
 
-[![Build Status](https://travis-ci.org/lorentey/GlueKit.svg?branch=master)](https://travis-ci.org/lorentey/GlueKit)
-[![Code Coverage](https://codecov.io/github/lorentey/GlueKit/coverage.svg?branch=master)](https://codecov.io/github/lorentey/GlueKit?branch=master)
+[![Build Status](https://travis-ci.org/attaswift/GlueKit.svg?branch=master)](https://travis-ci.org/attaswift/GlueKit)
+[![Code Coverage](https://codecov.io/github/attaswift/GlueKit/coverage.svg?branch=master)](https://codecov.io/github/attaswift/GlueKit?branch=master)
 
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg)](https://github.com/Carthage/Carthage)
 [![CocoaPod Version](https://img.shields.io/cocoapods/v/GlueKit.svg)](http://cocoapods.org/pods/GlueKit)
@@ -74,7 +74,7 @@ Károly gave a talk on GlueKit during [Functional Swift Conference 2016][FunSwif
 If you use CocoaPods, you can start using GlueKit by including it as a dependency in your  `Podfile`:
 
 ```
-pod 'GlueKit', :git => 'https://github.com/lorentey/GlueKit.git'
+pod 'GlueKit', :git => 'https://github.com/attaswift/GlueKit.git'
 ```
 
 (There are no official releases of GlueKit yet; the API is incomplete and very unstable for now.)
@@ -84,7 +84,7 @@ pod 'GlueKit', :git => 'https://github.com/lorentey/GlueKit.git'
 For Carthage, add the following line to your `Cartfile`:
 
 ```
-github "lorentey/GlueKit" "<commit-hash>"
+github "attaswift/GlueKit" "<commit-hash>"
 ```
 
 (You have to use a specific commit hash, because there are no official releases of GlueKit yet; the API is incomplete and very unstable for now.)
@@ -94,7 +94,7 @@ github "lorentey/GlueKit" "<commit-hash>"
 For Swift Package Manager, add the following entry to the dependencies list inside your `Package.swift` file:
 
 ```
-.Package(url: "https://github.com/lorentey/GlueKit.git", branch: master)
+.Package(url: "https://github.com/attaswift/GlueKit.git", branch: master)
 ```
 
 ### Standalone Development
@@ -120,7 +120,7 @@ If you want to do some work on GlueKit on its own, without embedding it in an ap
 simply clone this repo with the `--recursive` option, open `GlueKit.xcworkspace`, and start hacking.
 
 ```
-git clone --recursive https://github.com/lorentey/GlueKit.git GlueKit
+git clone --recursive https://github.com/attaswift/GlueKit.git GlueKit
 open GlueKit/GlueKit.xcworkspace
 ```
 
@@ -165,7 +165,7 @@ bug-free library:
 
 ## Overview
 
-[The GlueKit Overview](https://github.com/lorentey/GlueKit/blob/master/Documentation/Overview.md)
+[The GlueKit Overview](https://github.com/attaswift/GlueKit/blob/master/Documentation/Overview.md)
 describes the basic concepts of GlueKit.
 
 ## Appetizer
