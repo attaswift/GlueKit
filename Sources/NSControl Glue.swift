@@ -6,6 +6,7 @@
 //  Copyright © 2017 Károly Lőrentey. All rights reserved.
 //
 
+#if os(macOS)
 import AppKit
 
 extension NSControl {
@@ -92,4 +93,4 @@ open class GlueForNSControl: GlueForNSObject {
     public struct AttributedStringValueReceiver { fileprivate let glue: GlueForNSControl }
     public var attributedStringValue: AttributedStringValueReceiver { return AttributedStringValueReceiver(glue: self) }
 }
-
+#endif
