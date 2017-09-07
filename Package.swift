@@ -7,8 +7,8 @@ let package = Package(
         .library(name: "GlueKit", type: .dynamic, targets: ["GlueKit"])
     ],
     dependencies: [
-        .package(url: "https://github.com/attaswift/SipHash", .branch("swift4")),
-        .package(url: "https://github.com/attaswift/BTree", .branch("5.x"))
+        .package(url: "https://github.com/attaswift/SipHash", .from("1.2")),
+        .package(url: "https://github.com/attaswift/BTree", .from("4.1"))
     ],
     targets: [
         .target(name: "GlueKit", dependencies: ["BTree", "SipHash"], path: "Sources"),

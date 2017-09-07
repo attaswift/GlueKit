@@ -1,2 +1,2 @@
-github "attaswift/BTree" "5.x"
-github "attaswift/SipHash" "swift4"
+github "attaswift/BTree" ~> 4.1
+github "attaswift/SipHash" ~> 1.2

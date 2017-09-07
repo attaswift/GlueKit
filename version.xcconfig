@@ -6,11 +6,11 @@
 //
 
 // Increment the build number whenever you modify the version string.
-VERSION_STRING = 0.1.0-alpha.1
-BUILD_NUMBER = 1
+VERSION_STRING = 0.2.0
+BUILD_NUMBER = 2
 
 PROJECT_NAME = GlueKit
-BUNDLE_IDENTIFIER_BASE = hu.lorentey.$(PROJECT_NAME)
+BUNDLE_IDENTIFIER_BASE = org.attaswift.$(PROJECT_NAME)
 
 IPHONEOS_DEPLOYMENT_TARGET = 9.3
 MACOSX_DEPLOYMENT_TARGET = 10.11

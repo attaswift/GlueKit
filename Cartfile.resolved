@@ -1,2 +1,2 @@
-github "attaswift/BTree" "ecfcff6f7e633bf238e105ea44fbb9db62f91293"
-github "attaswift/SipHash" "a545f26fd119a90a3241cd72914f80fd2c2b8f48"
+github "attaswift/BTree" "v4.1.0"
+github "attaswift/SipHash" "v1.2.0"
