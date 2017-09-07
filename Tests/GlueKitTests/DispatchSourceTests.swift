@@ -15,7 +15,7 @@ class DispatchSourceTests: XCTestCase {
     func testDispatchQueue() {
         let signal = Signal<Int>()
 
-        let queue = DispatchQueue(label: "hu.lorentey.GlueKit.test")
+        let queue = DispatchQueue(label: "org.attaswift.GlueKit.test")
         let semaphore = DispatchSemaphore(value: 1)
         var r: [Int] = []
 

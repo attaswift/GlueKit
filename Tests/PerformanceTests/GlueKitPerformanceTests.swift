@@ -306,7 +306,7 @@ class SignalSendTests: XCTestCase {
             let signal = Signal<Int>()
             let c = signal.subscribe { i in count += 1 }
 
-            let queues = (1...queueCount).map { i in DispatchQueue(label: "com.github.lorentey.GlueKit.testQueue \(i)") }
+            let queues = (1...queueCount).map { i in DispatchQueue(label: "org.attaswift.GlueKit.testQueue \(i)") }
 
             let group = DispatchGroup()
             self.startMeasuring()
