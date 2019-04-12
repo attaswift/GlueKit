@@ -56,7 +56,9 @@ public protocol UpdatableType: ObservableType {
     /// The current value of this observable.
     ///
     /// The setter is nonmutating because the value ultimately needs to be stored in a reference type anyway.
-    var value: Value { get nonmutating set }
+    /// for some reason new Swift version deosnt' want this property to be overloaded by other protocols
+    /// Tho the part below moved to  `UpdatableValueType`
+    //    var value: Value { get nonmutating set }
 
     func apply(_ update: Update<Change>)
 }

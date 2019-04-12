@@ -10,6 +10,9 @@
 public protocol UpdatableValueType: ObservableValueType, UpdatableType {
     /// Returns the type-erased version of this UpdatableValueType.
     var anyUpdatableValue: AnyUpdatableValue<Value> { get }
+    
+    var value: Value { get nonmutating set }
+
 }
 
 extension UpdatableValueType {
